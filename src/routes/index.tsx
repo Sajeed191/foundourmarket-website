@@ -131,19 +131,36 @@ function Home() {
         </div>
       </section>
 
-      {/* Trending Products */}
+      {/* Featured Products */}
+      {products.some((p) => p.featured) && (
+        <section className="px-6 py-24 max-w-7xl mx-auto">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Handpicked</p>
+              <h2 className="text-3xl md:text-4xl font-display tracking-tight">Featured Products</h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.filter((p) => p.featured).slice(0, 4).map((p) => (
+              <ProductCard key={p.slug} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* New Arrivals */}
       <section className="px-6 py-24 max-w-7xl mx-auto">
         <div className="flex justify-between items-end mb-12">
           <div>
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Curated</p>
-            <h2 className="text-3xl md:text-4xl font-display tracking-tight">Trending Now</h2>
+            <h2 className="text-3xl md:text-4xl font-display tracking-tight">New Arrivals</h2>
           </div>
           <Link to="/" className="text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-foreground hover:border-foreground transition-colors">
             View All
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.slice(0, 8).map((p) => (
+          {products.filter((p) => !p.featured).slice(0, 8).map((p) => (
             <ProductCard key={p.slug} product={p} />
           ))}
         </div>
