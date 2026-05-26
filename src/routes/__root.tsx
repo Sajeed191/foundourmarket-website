@@ -1,9 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -13,10 +15,13 @@ import { RegionProvider } from "@/lib/region";
 import { CartProvider } from "@/lib/cart";
 import { AuthProvider } from "@/lib/auth";
 import { WishlistProvider } from "@/lib/wishlist";
+import { NotificationsProvider } from "@/lib/notifications";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { CompareTray } from "@/components/site/CompareTray";
+import { registerServiceWorker } from "@/lib/pwa";
+import { trackPageView } from "@/lib/analytics";
 
 function NotFoundComponent() {
   return (
@@ -75,8 +80,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Everything You Need. All In One Place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#0a0a0a" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -100,24 +109,31 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => { registerServiceWorker(); }, []);
+  useEffect(() => { trackPageView(pathname); }, [pathname]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WishlistProvider>
-          <RegionProvider>
-            <CartProvider>
-              <div className="min-h-screen flex flex-col">
-                <Nav />
-                <main className="flex-1 pb-16 md:pb-0">
-                  <Outlet />
-                </main>
-                <Footer />
-                <MobileBottomNav />
-                <CompareTray />
-              </div>
-            </CartProvider>
-          </RegionProvider>
-        </WishlistProvider>
+        <NotificationsProvider>
+          <WishlistProvider>
+            <RegionProvider>
+              <CartProvider>
+                <div className="min-h-screen flex flex-col">
+                  <Nav />
+                  <main className="flex-1 pb-16 md:pb-0">
+                    <Outlet />
+                  </main>
+                  <Footer />
+                  <MobileBottomNav />
+                  <CompareTray />
+                </div>
+              </CartProvider>
+            </RegionProvider>
+          </WishlistProvider>
+        </NotificationsProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
