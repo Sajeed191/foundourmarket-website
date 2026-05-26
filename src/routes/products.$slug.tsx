@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart, Truck, Shield, RotateCcw, Star, Minus, Plus, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useProduct, useProducts } from "@/lib/use-products";
+import { useProduct, useProducts, invalidateProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { ProductCard } from "@/components/site/ProductCard";
+import { ProductReviews } from "@/components/site/ProductReviews";
 
 export const Route = createFileRoute("/products/$slug")({
   head: ({ params }) => ({
@@ -126,6 +127,8 @@ function ProductPage() {
           </div>
         </div>
       </div>
+
+      <ProductReviews productSlug={product.slug} onAggregateChange={invalidateProducts} />
 
       {related.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 py-24">
