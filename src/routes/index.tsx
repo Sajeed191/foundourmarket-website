@@ -9,6 +9,7 @@ import { ProductCard } from "@/components/site/ProductCard";
 
 import { NewsletterForm } from "@/components/site/NewsletterForm";
 import { HomePersonalized } from "@/components/site/HomePersonalized";
+import logoSrc from "@/assets/logo.jpeg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
