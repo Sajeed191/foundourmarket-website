@@ -7,6 +7,7 @@ import { useProducts } from "@/lib/use-products";
 import { ProductCard } from "@/components/site/ProductCard";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { NewsletterForm } from "@/components/site/NewsletterForm";
+import { HomePersonalized } from "@/components/site/HomePersonalized";
 
 
 export const Route = createFileRoute("/")({
