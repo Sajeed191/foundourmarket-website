@@ -111,7 +111,7 @@ function SearchPage() {
             <div className="space-y-1.5">
               <button onClick={() => update({ cat: undefined })}
                 className={`block text-sm hover:text-accent transition-colors ${!search.cat ? "text-accent" : "text-foreground"}`}>All</button>
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <button key={c.slug} onClick={() => update({ cat: c.slug })}
                   className={`block text-sm hover:text-accent transition-colors ${search.cat === c.slug ? "text-accent" : "text-foreground"}`}>{c.name}</button>
               ))}
