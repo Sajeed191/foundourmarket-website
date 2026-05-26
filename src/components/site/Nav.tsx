@@ -50,15 +50,29 @@ export function Nav() {
     { to: "/category/$slug", params: { slug: "home" }, label: "Home" },
   ] as const;
 
+  const { scrollY } = useScroll();
+  const lastY = useRef(0);
+  const [hidden, setHidden] = useState(false);
+  useMotionValueEvent(scrollY, "change", (y) => {
+    const prev = lastY.current;
+    if (y > prev && y > 80) setHidden(true);
+    else if (y < prev - 4) setHidden(false);
+    lastY.current = y;
+  });
+
   return (
     <>
-      <div className="sticky top-0 z-50 px-3 sm:px-4 pt-3 sm:pt-4">
-        <nav className="max-w-7xl mx-auto rounded-2xl glass-strong">
+      <motion.div
+        animate={{ y: hidden ? -120 : 0, opacity: hidden ? 0 : 1, filter: hidden ? "blur(6px)" : "blur(0px)" }}
+        transition={{ type: "spring", stiffness: 380, damping: 38, mass: 0.8 }}
+        className="sticky top-0 z-50 px-3 sm:px-4 pt-3 sm:pt-4"
+      >
+        <nav className="max-w-7xl mx-auto rounded-2xl glass-strong shadow-[var(--shadow-float)] ring-1 ring-white/10">
           <div className="flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-3 gap-2">
             <button
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="md:hidden size-9 rounded-xl grid place-items-center hover:bg-white/5 transition-colors"
+              className="md:hidden size-10 rounded-xl grid place-items-center hover:bg-white/5 active:bg-white/10 transition-colors"
             >
               <Menu className="size-5" />
             </button>
