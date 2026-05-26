@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, User as UserIcon, Mail, Phone, Globe, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Loader2, User as UserIcon, Mail, Phone, Globe, Upload, Trash2, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -20,6 +20,30 @@ function EditProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onPickAvatar = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5 MB"); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+      setAvatarUrl(data.publicUrl);
+      toast.success("Photo uploaded");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -86,16 +110,47 @@ function EditProfilePage() {
         <h1 className="text-3xl sm:text-4xl font-display font-semibold mb-8">Edit profile</h1>
 
         <div className="flex items-center gap-4 mb-8">
-          <div className="size-20 rounded-full overflow-hidden bg-card border border-border grid place-items-center text-muted-foreground">
+          <div className="relative size-20 rounded-full overflow-hidden bg-card border border-border grid place-items-center text-muted-foreground group">
             {avatarUrl ? (
               <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
             ) : (
               <UserIcon className="size-8" />
             )}
+            {uploading && (
+              <div className="absolute inset-0 bg-black/60 grid place-items-center">
+                <Loader2 className="size-5 animate-spin text-accent" />
+              </div>
+            )}
           </div>
-          <div>
-            <p className="text-sm font-medium">{fullName || user.email}</p>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{fullName || user.email}</p>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest border border-border rounded-full px-3 py-1.5 hover:border-accent/40 hover:text-accent transition-colors disabled:opacity-60"
+              >
+                <Upload className="size-3" /> {avatarUrl ? "Change photo" : "Upload photo"}
+              </button>
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => setAvatarUrl("")}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="size-3" /> Remove
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickAvatar(f); e.target.value = ""; }}
+            />
           </div>
         </div>
 
@@ -134,15 +189,9 @@ function EditProfilePage() {
               className="w-full bg-card border border-border rounded-full pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </Field>
-          <Field icon={ImageIcon} label="Avatar URL">
-            <input
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              maxLength={500}
-              placeholder="https://…"
-              className="w-full bg-card border border-border rounded-full pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
-            />
-          </Field>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/70 pt-2 flex items-center gap-1.5">
+            <Camera className="size-3" /> Photo uploads support gallery, camera, and albums on mobile.
+          </p>
 
           <div className="flex items-center gap-3 pt-4">
             <button
