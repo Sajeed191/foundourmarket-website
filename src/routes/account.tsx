@@ -217,13 +217,12 @@ function AccountPage() {
         {/* 3 — QUICK ACTIONS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }}>
           <SectionHeader title="Quick actions" eyebrow="Jump to" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
             <ActionCard to="/account/orders" icon={Package} title="Orders" subtitle="Track & invoices" badge={stats.active || undefined} />
             <ActionCard to="/wishlist" icon={Heart} title="Wishlist" subtitle="Saved for later" badge={wishSlugs.size || undefined} />
             <ActionCard to="/cart" icon={ShoppingBag} title="Cart" subtitle="Review & checkout" badge={cartCount || undefined} />
             <ActionCard to="/account/addresses" icon={MapPin} title="Addresses" subtitle="Shipping & billing" />
             <ActionCard to="/account/notifications" icon={Bell} title="Notifications" subtitle="Inbox & alerts" badge={unread} />
-            <ActionCard to="/account/recently-viewed" icon={Eye} title="Recently viewed" subtitle="Pick up where you left" badge={recentSlugs.length || undefined} />
             <ActionCard to="/account/history" icon={Clock} title="History" subtitle="Activity timeline" />
             <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Password & sessions" />
             <ActionCard to="/help" icon={HelpCircle} title="Help center" subtitle="Guides & FAQ" />
