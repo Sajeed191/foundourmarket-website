@@ -41,6 +41,7 @@ import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AccountReturnsRouteImport } from './routes/account.returns'
+import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as AccountNotificationsRouteImport } from './routes/account.notifications'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
 
@@ -204,6 +205,11 @@ const AccountReturnsRoute = AccountReturnsRouteImport.update({
   path: '/returns',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountProfileRoute = AccountProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountNotificationsRoute = AccountNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
+    | '/account/profile'
     | '/account/returns'
     | '/blog/$slug'
     | '/category/$slug'
@@ -391,6 +401,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
+    | '/account/profile'
     | '/account/returns'
     | '/blog/$slug'
     | '/category/$slug'
@@ -427,6 +438,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
+    | '/account/profile'
     | '/account/returns'
     | '/blog/$slug'
     | '/category/$slug'
@@ -694,6 +706,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountReturnsRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/profile': {
+      id: '/account/profile'
+      path: '/profile'
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AccountProfileRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/notifications': {
       id: '/account/notifications'
       path: '/notifications'
@@ -714,12 +733,14 @@ declare module '@tanstack/react-router' {
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
   AccountNotificationsRoute: typeof AccountNotificationsRoute
+  AccountProfileRoute: typeof AccountProfileRoute
   AccountReturnsRoute: typeof AccountReturnsRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
   AccountNotificationsRoute: AccountNotificationsRoute,
+  AccountProfileRoute: AccountProfileRoute,
   AccountReturnsRoute: AccountReturnsRoute,
 }
 
