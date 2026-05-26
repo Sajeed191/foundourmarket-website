@@ -10,6 +10,7 @@ import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
 import { useCompare } from "@/hooks/use-compare";
+import { useWishlist } from "@/lib/wishlist";
 import { fetchProductImages, fetchProductVariants, type ProductImage, type ProductVariant } from "@/lib/products";
 
 
@@ -28,6 +29,7 @@ function ProductPage() {
   const { add } = useCart();
   const { record } = useRecentlyViewed();
   const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
+  const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   const [qty, setQty] = useState(1);
   const [images, setImages] = useState<ProductImage[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
@@ -183,8 +185,13 @@ function ProductPage() {
               >
                 Add to Cart
               </button>
-              <button aria-label="Wishlist" className="size-12 grid place-items-center border border-border rounded-full hover:text-accent transition-colors">
-                <Heart className="size-4" />
+              <button
+                onClick={() => toggleWishlist(product.slug)}
+                aria-label={inWishlist(product.slug) ? "Remove from wishlist" : "Add to wishlist"}
+                aria-pressed={inWishlist(product.slug)}
+                className={`size-12 grid place-items-center border rounded-full transition-colors ${inWishlist(product.slug) ? "border-accent text-accent bg-accent/10" : "border-border hover:text-accent"}`}
+              >
+                <Heart className={`size-4 ${inWishlist(product.slug) ? "fill-accent" : ""}`} />
               </button>
               <button
                 aria-label={inCompare(product.slug) ? "Remove from compare" : "Add to compare"}
