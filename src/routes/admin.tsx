@@ -361,7 +361,7 @@ function AdminPage() {
 }
 
 
-function ProductEditor({ row, nextSort, onClose, onSaved }: { row: ProductRow | null; nextSort: number; onClose: () => void; onSaved: () => void }) {
+function ProductEditor({ row, nextSort, categories, onClose, onSaved }: { row: ProductRow | null; nextSort: number; categories: Category[]; onClose: () => void; onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -369,7 +369,8 @@ function ProductEditor({ row, nextSort, onClose, onSaved }: { row: ProductRow | 
     slug: row?.slug ?? "",
     name: row?.name ?? "",
     tagline: row?.tagline ?? "",
-    category: row?.category ?? CATEGORIES[0].slug,
+    category: row?.category ?? categories[0]?.slug ?? "",
+
     price: row ? String(row.price) : "0",
     image: row?.image ?? "",
     description: row?.description ?? "",
