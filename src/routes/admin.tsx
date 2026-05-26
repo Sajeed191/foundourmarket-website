@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, ShieldAlert, TrendingUp, ShoppingBag, Users, Package, Check } from "lucide-react";
+import { Loader2, ShieldAlert, TrendingUp, ShoppingBag, Users, Package, Plus, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { invalidateProducts } from "@/lib/use-products";
+import { CATEGORIES, resolveImage } from "@/lib/products";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — FoundOurMarket™" }] }),
@@ -10,30 +12,32 @@ export const Route = createFileRoute("/admin")({
 });
 
 type Order = {
-  id: string;
-  user_id: string;
-  status: string;
-  total: number;
-  currency: string;
-  contact_email: string | null;
-  created_at: string;
+  id: string; user_id: string; status: string; total: number; currency: string;
+  contact_email: string | null; created_at: string;
   order_items: { name: string; quantity: number }[];
 };
 
+type ProductRow = {
+  id: string; slug: string; name: string; tagline: string | null; category: string;
+  price: number | string; rating: number | string; reviews: number;
+  image: string | null; description: string | null; in_stock: boolean;
+  discount: number | null; sort_order: number;
+};
+
 const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
-type Tab = "overview" | "orders" | "customers";
+type Tab = "overview" | "orders" | "customers" | "products";
 
 function AdminPage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [orders, setOrders] = useState<Order[] | null>(null);
+  const [products, setProducts] = useState<ProductRow[] | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [updating, setUpdating] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ProductRow | "new" | null>(null);
 
-  useEffect(() => {
-    if (!loading && !user) nav({ to: "/auth" });
-  }, [loading, user, nav]);
+  useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
 
   useEffect(() => {
     if (!user) return;
@@ -47,13 +51,26 @@ function AdminPage() {
       .select("id,user_id,status,total,currency,contact_email,created_at,order_items(name,quantity)")
       .order("created_at", { ascending: false }).limit(200)
       .then(({ data }) => setOrders((data as Order[]) ?? []));
+    loadProducts();
   }, [isAdmin]);
+
+  async function loadProducts() {
+    const { data } = await supabase.from("products").select("*").order("sort_order", { ascending: true });
+    setProducts((data as ProductRow[]) ?? []);
+  }
 
   async function updateStatus(id: string, status: string) {
     setUpdating(id);
     const { error } = await supabase.from("orders").update({ status }).eq("id", id);
     if (!error) setOrders((prev) => prev?.map((o) => o.id === id ? { ...o, status } : o) ?? null);
     setUpdating(null);
+  }
+
+  async function deleteProduct(id: string) {
+    if (!confirm("Delete this product?")) return;
+    await supabase.from("products").delete().eq("id", id);
+    await loadProducts();
+    invalidateProducts();
   }
 
   if (loading || isAdmin === null) {
@@ -82,7 +99,6 @@ function AdminPage() {
 
   const list = orders ?? [];
   const totalRevenue = list.reduce((s, o) => s + Number(o.total), 0);
-  const totalOrders = list.length;
   const customerMap = new Map<string, { email: string | null; orders: number; spent: number; last: string }>();
   for (const o of list) {
     const prev = customerMap.get(o.user_id);
@@ -103,10 +119,10 @@ function AdminPage() {
         <h1 className="text-3xl md:text-5xl font-display font-semibold">Admin Dashboard</h1>
       </div>
 
-      <div className="flex gap-1 mb-10 border-b border-border">
-        {(["overview", "orders", "customers"] as Tab[]).map((t) => (
+      <div className="flex gap-1 mb-10 border-b border-border overflow-x-auto">
+        {(["overview", "orders", "products", "customers"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-5 py-3 text-xs uppercase tracking-widest font-mono transition-colors border-b-2 -mb-px ${tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            className={`px-5 py-3 text-xs uppercase tracking-widest font-mono transition-colors border-b-2 -mb-px whitespace-nowrap ${tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             {t}
           </button>
         ))}
@@ -116,9 +132,9 @@ function AdminPage() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-12">
             <Stat icon={<TrendingUp className="size-4" />} label="Revenue" value={`$${totalRevenue.toFixed(2)}`} />
-            <Stat icon={<ShoppingBag className="size-4" />} label="Orders" value={totalOrders} />
+            <Stat icon={<ShoppingBag className="size-4" />} label="Orders" value={list.length} />
             <Stat icon={<Users className="size-4" />} label="Customers" value={customers.length} />
-            <Stat icon={<Package className="size-4" />} label="Units" value={totalUnits} />
+            <Stat icon={<Package className="size-4" />} label="Products" value={products?.length ?? 0} />
           </div>
           <h2 className="text-xl font-medium mb-6">Recent Activity</h2>
           {orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
@@ -138,6 +154,7 @@ function AdminPage() {
               ))}
             </div>
           }
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-4">Units sold: {totalUnits}</p>
         </>
       )}
 
@@ -147,14 +164,7 @@ function AdminPage() {
         <div className="overflow-x-auto bg-card border border-border rounded-2xl">
           <table className="w-full text-sm min-w-[800px]">
             <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
-              <tr>
-                <th className="text-left px-5 py-3">Order</th>
-                <th className="text-left px-5 py-3">Customer</th>
-                <th className="text-left px-5 py-3">Items</th>
-                <th className="text-left px-5 py-3">Status</th>
-                <th className="text-right px-5 py-3">Total</th>
-                <th className="text-right px-5 py-3">Date</th>
-              </tr>
+              <tr><th className="text-left px-5 py-3">Order</th><th className="text-left px-5 py-3">Customer</th><th className="text-left px-5 py-3">Items</th><th className="text-left px-5 py-3">Status</th><th className="text-right px-5 py-3">Total</th><th className="text-right px-5 py-3">Date</th></tr>
             </thead>
             <tbody>
               {list.map((o) => (
@@ -180,18 +190,68 @@ function AdminPage() {
         </div>
       )}
 
+      {tab === "products" && (
+        <>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-medium">Catalog</h2>
+            <button onClick={() => setEditing("new")} className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold hover:brightness-110 transition-all">
+              <Plus className="size-3.5" /> New Product
+            </button>
+          </div>
+          {products === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
+            products.length === 0 ? <p className="text-sm text-muted-foreground">No products yet.</p> :
+            <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+              <table className="w-full text-sm min-w-[720px]">
+                <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
+                  <tr><th className="text-left px-5 py-3">Product</th><th className="text-left px-5 py-3">Category</th><th className="text-right px-5 py-3">Price</th><th className="text-right px-5 py-3">Stock</th><th className="px-5 py-3"></th></tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => (
+                    <tr key={p.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-lg overflow-hidden bg-background border border-border shrink-0">
+                            {p.image && <img src={resolveImage(p.image)} alt="" className="w-full h-full object-cover" />}
+                          </div>
+                          <div>
+                            <p className="text-sm">{p.name}</p>
+                            <p className="font-mono text-[10px] text-muted-foreground">{p.slug}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-xs text-muted-foreground capitalize">{p.category}</td>
+                      <td className="px-5 py-3 text-right font-mono text-accent">${Number(p.price).toFixed(2)}</td>
+                      <td className="px-5 py-3 text-right">
+                        <span className={`text-[10px] font-mono uppercase tracking-widest ${p.in_stock ? "text-accent" : "text-muted-foreground"}`}>
+                          {p.in_stock ? "In stock" : "Out"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button onClick={() => setEditing(p)} className="size-8 grid place-items-center rounded-full hover:bg-white/5 transition-colors" aria-label="Edit">
+                            <Pencil className="size-3.5" />
+                          </button>
+                          <button onClick={() => deleteProduct(p.id)} className="size-8 grid place-items-center rounded-full hover:bg-white/5 hover:text-accent transition-colors" aria-label="Delete">
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          }
+        </>
+      )}
+
       {tab === "customers" && (
         orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
         customers.length === 0 ? <p className="text-sm text-muted-foreground">No customers yet.</p> :
         <div className="overflow-x-auto bg-card border border-border rounded-2xl">
           <table className="w-full text-sm min-w-[640px]">
             <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
-              <tr>
-                <th className="text-left px-5 py-3">Customer</th>
-                <th className="text-right px-5 py-3">Orders</th>
-                <th className="text-right px-5 py-3">Spent</th>
-                <th className="text-right px-5 py-3">Last Order</th>
-              </tr>
+              <tr><th className="text-left px-5 py-3">Customer</th><th className="text-right px-5 py-3">Orders</th><th className="text-right px-5 py-3">Spent</th><th className="text-right px-5 py-3">Last Order</th></tr>
             </thead>
             <tbody>
               {customers.map(([uid, c]) => (
@@ -206,6 +266,116 @@ function AdminPage() {
           </table>
         </div>
       )}
+
+      {editing && (
+        <ProductEditor
+          row={editing === "new" ? null : editing}
+          nextSort={(products?.length ?? 0) + 1}
+          onClose={() => setEditing(null)}
+          onSaved={async () => { setEditing(null); await loadProducts(); invalidateProducts(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function ProductEditor({ row, nextSort, onClose, onSaved }: { row: ProductRow | null; nextSort: number; onClose: () => void; onSaved: () => void }) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    slug: row?.slug ?? "",
+    name: row?.name ?? "",
+    tagline: row?.tagline ?? "",
+    category: row?.category ?? CATEGORIES[0].slug,
+    price: row ? String(row.price) : "0",
+    image: row?.image ?? "",
+    description: row?.description ?? "",
+    in_stock: row?.in_stock ?? true,
+    discount: row?.discount ?? null as number | null,
+    rating: row ? String(row.rating) : "5",
+    reviews: row?.reviews ?? 0,
+    sort_order: row?.sort_order ?? nextSort,
+  });
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true); setError(null);
+    const payload = {
+      slug: form.slug.trim(),
+      name: form.name.trim(),
+      tagline: form.tagline.trim() || null,
+      category: form.category,
+      price: Number(form.price) || 0,
+      image: form.image.trim() || null,
+      description: form.description.trim() || null,
+      in_stock: form.in_stock,
+      discount: form.discount ? Number(form.discount) : null,
+      rating: Number(form.rating) || 0,
+      reviews: Number(form.reviews) || 0,
+      sort_order: Number(form.sort_order) || 0,
+    };
+    const { error } = row
+      ? await supabase.from("products").update(payload).eq("id", row.id)
+      : await supabase.from("products").insert(payload);
+    setSaving(false);
+    if (error) { setError(error.message); return; }
+    onSaved();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-card border border-border rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-display">{row ? "Edit Product" : "New Product"}</h2>
+          <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Slug" required value={form.slug} onChange={(v) => setForm({ ...form, slug: v })} />
+          <Field label="Name" required value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+          <Field label="Tagline" value={form.tagline} onChange={(v) => setForm({ ...form, tagline: v })} />
+          <div>
+            <label className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Category</label>
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
+              {CATEGORIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+            </select>
+          </div>
+          <Field label="Price (USD)" type="number" required value={form.price} onChange={(v) => setForm({ ...form, price: v })} />
+          <Field label="Discount %" type="number" value={form.discount?.toString() ?? ""} onChange={(v) => setForm({ ...form, discount: v ? Number(v) : null })} />
+          <Field label="Rating" type="number" value={form.rating} onChange={(v) => setForm({ ...form, rating: v })} />
+          <Field label="Reviews" type="number" value={String(form.reviews)} onChange={(v) => setForm({ ...form, reviews: Number(v) || 0 })} />
+          <div className="col-span-2">
+            <Field label="Image URL or filename (e.g. product-earbuds.jpg)" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Description</label>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3}
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent" />
+          </div>
+          <label className="flex items-center gap-2 text-sm col-span-2">
+            <input type="checkbox" checked={form.in_stock} onChange={(e) => setForm({ ...form, in_stock: e.target.checked })}
+              className="accent-[var(--accent)]" />
+            In stock
+          </label>
+        </div>
+        {error && <p className="text-xs text-red-400 mt-4">{error}</p>}
+        <div className="flex justify-end gap-2 mt-6">
+          <button type="button" onClick={onClose} className="px-5 py-2 rounded-full text-xs uppercase tracking-widest border border-border hover:bg-white/5">Cancel</button>
+          <button type="submit" disabled={saving} className="px-5 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground hover:brightness-110 disabled:opacity-50">
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, type = "text", required }: { label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean }) {
+  return (
+    <div>
+      <label className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">{label}</label>
+      <input type={type} required={required} value={value} onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent" />
     </div>
   );
 }
@@ -221,6 +391,3 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
     </div>
   );
 }
-
-// silence unused import
-void Check;
