@@ -9,6 +9,7 @@ import { RelatedProducts } from "@/components/site/RelatedProducts";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
+import { useCompare } from "@/hooks/use-compare";
 
 
 
