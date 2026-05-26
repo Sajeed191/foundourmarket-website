@@ -107,10 +107,11 @@ function RootComponent() {
             <CartProvider>
               <div className="min-h-screen flex flex-col">
                 <Nav />
-                <main className="flex-1">
+                <main className="flex-1 pb-16 md:pb-0">
                   <Outlet />
                 </main>
                 <Footer />
+                <MobileBottomNav />
               </div>
             </CartProvider>
           </RegionProvider>
