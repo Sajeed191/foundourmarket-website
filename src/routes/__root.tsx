@@ -15,6 +15,7 @@ import { AuthProvider } from "@/lib/auth";
 import { WishlistProvider } from "@/lib/wishlist";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
+import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 
 function NotFoundComponent() {
   return (
@@ -106,10 +107,11 @@ function RootComponent() {
             <CartProvider>
               <div className="min-h-screen flex flex-col">
                 <Nav />
-                <main className="flex-1">
+                <main className="flex-1 pb-16 md:pb-0">
                   <Outlet />
                 </main>
                 <Footer />
+                <MobileBottomNav />
               </div>
             </CartProvider>
           </RegionProvider>

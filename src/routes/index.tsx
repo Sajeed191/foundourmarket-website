@@ -29,17 +29,17 @@ function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="relative pt-24 pb-32 px-6 overflow-hidden">
+      <section className="relative pt-12 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-32 px-4 sm:px-6 overflow-hidden">
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <p className="animate-fade-up text-[11px] font-mono uppercase tracking-[0.3em] text-accent mb-6">
+          <p className="animate-fade-up text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] sm:tracking-[0.3em] text-accent mb-4 sm:mb-6">
             Global Marketplace · Curated Worldwide
           </p>
-          <h1 className="animate-fade-up text-5xl md:text-7xl lg:text-8xl font-display font-semibold tracking-tight text-balance leading-[0.9] mb-8">
+          <h1 className="animate-fade-up text-[clamp(2.25rem,9vw,5rem)] md:text-7xl lg:text-8xl font-display font-semibold tracking-tight text-balance leading-[0.95] mb-6 sm:mb-8">
             Everything You Need.
             <br />
             <span className="text-muted-foreground">All In One Place.</span>
           </h1>
-          <p className="animate-fade-up [animation-delay:100ms] text-lg text-muted-foreground max-w-2xl mx-auto text-balance mb-12">
+          <p className="animate-fade-up [animation-delay:100ms] text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto text-balance mb-8 sm:mb-12 px-2">
             A premium independent marketplace sourcing top-quality products from across the world — delivered to your door with cinematic precision.
           </p>
 
@@ -48,24 +48,24 @@ function Home() {
             onSubmit={(e) => { e.preventDefault(); nav({ to: "/search", search: { q: query } }); }}
             className="animate-fade-up [animation-delay:200ms] max-w-2xl mx-auto relative"
           >
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Search className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search the global marketplace..."
-              className="w-full bg-card border border-border rounded-full pl-14 pr-32 py-5 text-base focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all placeholder:text-muted-foreground/60"
+              placeholder="Search the marketplace..."
+              className="w-full bg-card border border-border rounded-full pl-11 sm:pl-14 pr-24 sm:pr-32 py-4 sm:py-5 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all placeholder:text-muted-foreground/60"
             />
-            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-bold px-6 py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all">
+            <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-bold px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-[10px] sm:text-xs uppercase tracking-widest hover:brightness-110 transition-all">
               Search
             </button>
           </form>
 
-          <div className="animate-fade-up [animation-delay:300ms] mt-10 flex flex-wrap justify-center gap-4">
-            <Link to="/category/$slug" params={{ slug: "electronics" }} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-foreground text-background text-xs uppercase tracking-widest font-semibold hover:brightness-110 transition-all">
+          <div className="animate-fade-up [animation-delay:300ms] mt-8 sm:mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
+            <Link to="/category/$slug" params={{ slug: "electronics" }} className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-full bg-foreground text-background text-[10px] sm:text-xs uppercase tracking-widest font-semibold hover:brightness-110 transition-all">
               Explore Products <ArrowRight className="size-3.5" />
             </Link>
-            <a href="#categories" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border text-xs uppercase tracking-widest font-semibold hover:bg-white/5 transition-all">
+            <a href="#categories" className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-full border border-border text-[10px] sm:text-xs uppercase tracking-widest font-semibold hover:bg-white/5 transition-all">
               Shop Categories
             </a>
           </div>
@@ -73,14 +73,14 @@ function Home() {
         {/* ember glow */}
         <div
           aria-hidden
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] -z-0 rounded-full animate-glow"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] sm:w-[900px] h-[60vw] sm:h-[500px] max-w-none -z-0 rounded-full animate-glow"
           style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }}
         />
       </section>
 
       {/* Trust Strip */}
       <section className="border-y border-border bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { icon: Truck, label: "Worldwide Shipping" },
             { icon: Shield, label: "Secure Payments" },
@@ -98,14 +98,14 @@ function Home() {
       </section>
 
       {/* Categories */}
-      <section id="categories" className="px-6 py-24 max-w-7xl mx-auto">
-        <div className="flex justify-between items-end mb-12">
+      <section id="categories" className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
+        <div className="flex justify-between items-end mb-8 sm:mb-12 gap-4">
           <div>
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Browse</p>
-            <h2 className="text-3xl md:text-4xl font-display tracking-tight">Featured Categories</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight">Featured Categories</h2>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {categories.map((cat, i) => (
             <Link
               key={cat.slug}
@@ -133,14 +133,14 @@ function Home() {
 
       {/* Featured Products */}
       {products.some((p) => p.featured) && (
-        <section className="px-6 py-24 max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-12">
+        <section className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
+          <div className="flex justify-between items-end mb-8 sm:mb-12 gap-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Handpicked</p>
-              <h2 className="text-3xl md:text-4xl font-display tracking-tight">Featured Products</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight">Featured Products</h2>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
             {products.filter((p) => p.featured).slice(0, 4).map((p) => (
               <ProductCard key={p.slug} product={p} />
             ))}
@@ -149,17 +149,17 @@ function Home() {
       )}
 
       {/* New Arrivals */}
-      <section className="px-6 py-24 max-w-7xl mx-auto">
-        <div className="flex justify-between items-end mb-12">
+      <section className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
+        <div className="flex justify-between items-end mb-8 sm:mb-12 gap-4">
           <div>
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Curated</p>
-            <h2 className="text-3xl md:text-4xl font-display tracking-tight">New Arrivals</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight">New Arrivals</h2>
           </div>
           <Link to="/" className="text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-foreground hover:border-foreground transition-colors">
             View All
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
           {products.filter((p) => !p.featured).slice(0, 8).map((p) => (
             <ProductCard key={p.slug} product={p} />
           ))}
@@ -167,12 +167,12 @@ function Home() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="px-6 py-24 max-w-7xl mx-auto">
+      <section className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Why FoundOurMarket</p>
-          <h2 className="text-3xl md:text-4xl font-display tracking-tight">Built for the modern buyer</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight">Built for the modern buyer</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {[
             { title: "Secure Payments", desc: "Bank-grade encryption on every transaction with trusted global gateways." },
             { title: "Worldwide Shipping", desc: "Fast, tracked delivery to 180+ countries from our global distribution hubs." },
@@ -190,10 +190,10 @@ function Home() {
       </section>
 
       {/* Testimonial */}
-      <section className="px-6 py-32 overflow-hidden">
+      <section className="px-4 sm:px-6 py-20 sm:py-28 md:py-32 overflow-hidden">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-block size-1 bg-accent mb-12" />
-          <blockquote className="text-2xl md:text-4xl font-display text-pretty leading-tight mb-8">
+          <blockquote className="text-xl sm:text-2xl md:text-4xl font-display text-pretty leading-tight mb-8">
             "FoundOurMarket has completely redefined how I source premium goods. The quality of the marketplace is unmatched."
           </blockquote>
           <cite className="not-italic font-mono text-xs uppercase tracking-widest text-accent">
@@ -203,10 +203,10 @@ function Home() {
       </section>
 
       {/* Newsletter */}
-      <section className="px-6 py-24">
-        <div className="max-w-3xl mx-auto bg-card border border-border p-12 rounded-3xl text-center relative overflow-hidden">
+      <section className="px-4 sm:px-6 py-14 sm:py-20 md:py-24">
+        <div className="max-w-3xl mx-auto bg-card border border-border p-6 sm:p-10 md:p-12 rounded-3xl text-center relative overflow-hidden">
           <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-display tracking-tight mb-4">Join the Inner Circle</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight mb-4">Join the Inner Circle</h2>
             <p className="text-muted-foreground mb-8 text-pretty">
               Exclusive drops and curator insights — plus 10% off your first order.
             </p>
