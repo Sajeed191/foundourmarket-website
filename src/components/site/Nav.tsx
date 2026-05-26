@@ -68,21 +68,27 @@ export function Nav() {
         className="sticky top-0 z-50 px-3 sm:px-4 pt-3 sm:pt-4"
       >
         <nav className="max-w-7xl mx-auto rounded-2xl glass-strong shadow-[var(--shadow-float)] ring-1 ring-white/10">
-          <div className="flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-3 gap-2">
+          <div className="flex items-center justify-between px-2.5 sm:px-5 py-2.5 sm:py-3 gap-1.5 sm:gap-2">
             <button
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="md:hidden size-10 rounded-xl grid place-items-center hover:bg-white/5 active:bg-white/10 transition-colors"
+              className="md:hidden shrink-0 size-10 rounded-xl grid place-items-center hover:bg-white/5 active:bg-white/10 transition-colors"
             >
               <Menu className="size-5" />
             </button>
 
-            <Link to="/" className="text-base sm:text-lg font-display tracking-tight font-semibold whitespace-nowrap flex items-center gap-2">
-              <span className="relative inline-grid place-items-center size-8 rounded-xl bg-black/40 ring-1 ring-white/10 overflow-hidden shadow-[0_0_18px_-4px_var(--color-accent)]">
-                <img src={logoSrc} alt="FoundOurMarket logo" className="size-8 object-cover" />
+            <Link
+              to="/"
+              className="min-w-0 flex-1 md:flex-none flex items-center gap-1.5 sm:gap-2 text-[13px] sm:text-lg font-display tracking-tight font-semibold"
+            >
+              <span className="shrink-0 relative inline-grid place-items-center size-7 sm:size-8 rounded-xl bg-black/40 ring-1 ring-white/10 overflow-hidden shadow-[0_0_18px_-4px_var(--color-accent)]">
+                <img src={logoSrc} alt="FoundOurMarket logo" className="size-full object-cover" />
               </span>
-              FoundOurMarket<span className="text-accent">™</span>
+              <span className="truncate">
+                FoundOurMarket<span className="text-accent">™</span>
+              </span>
             </Link>
+
 
             <div className="hidden md:flex items-center gap-1 text-[13px] font-medium text-muted-foreground">
               {navLinks.map((l) => (
@@ -97,7 +103,7 @@ export function Nav() {
               ))}
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-1.5">
+            <div className="shrink-0 flex items-center gap-0.5 sm:gap-1.5">
               <button onClick={() => setSearchOpen(true)} aria-label="Search" className="size-9 rounded-xl grid place-items-center hover:bg-white/5 transition-colors">
                 <Search className="size-4" />
               </button>
@@ -117,7 +123,7 @@ export function Nav() {
               <Link to={user ? "/account" : "/auth"} aria-label="Account" className="size-9 rounded-xl grid place-items-center hover:bg-white/5 transition-colors">
                 <User className="size-4" />
               </Link>
-              <Link to="/cart" aria-label="Cart" className="relative flex items-center gap-1.5 px-3 py-2 rounded-xl bg-accent text-accent-foreground hover:brightness-110 transition-all shadow-[var(--shadow-ember)]">
+              <Link to="/cart" aria-label="Cart" className="shrink-0 relative flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-accent text-accent-foreground hover:brightness-110 transition-all shadow-[var(--shadow-ember)]">
                 <ShoppingBag className="size-4" />
                 <span className="text-xs font-mono font-semibold">{count}</span>
               </Link>
