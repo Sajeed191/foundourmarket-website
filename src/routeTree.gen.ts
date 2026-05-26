@@ -40,8 +40,8 @@ import { Route as PagesSlugRouteImport } from './routes/pages.$slug'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AccountProfileRouteImport } from './routes/account_.profile'
 import { Route as AccountReturnsRouteImport } from './routes/account.returns'
-import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as AccountNotificationsRouteImport } from './routes/account.notifications'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
 
@@ -200,14 +200,14 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BlogRoute,
 } as any)
+const AccountProfileRoute = AccountProfileRouteImport.update({
+  id: '/account_/profile',
+  path: '/account/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountReturnsRoute = AccountReturnsRouteImport.update({
   id: '/returns',
   path: '/returns',
-  getParentRoute: () => AccountRoute,
-} as any)
-const AccountProfileRoute = AccountProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountNotificationsRoute = AccountNotificationsRouteImport.update({
@@ -250,8 +250,8 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
-  '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
+  '/account/profile': typeof AccountProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -287,8 +287,8 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
-  '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
+  '/account/profile': typeof AccountProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -325,8 +325,8 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
-  '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
+  '/account_/profile': typeof AccountProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -364,8 +364,8 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
-    | '/account/profile'
     | '/account/returns'
+    | '/account/profile'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -401,8 +401,8 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
-    | '/account/profile'
     | '/account/returns'
+    | '/account/profile'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -438,8 +438,8 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
-    | '/account/profile'
     | '/account/returns'
+    | '/account_/profile'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -474,6 +474,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TrackRoute: typeof TrackRoute
   WishlistRoute: typeof WishlistRoute
+  AccountProfileRoute: typeof AccountProfileRoute
   CategorySlugRoute: typeof CategorySlugRoute
   OrdersIdRoute: typeof OrdersIdRoute
   PagesSlugRoute: typeof PagesSlugRoute
@@ -699,18 +700,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
     }
+    '/account_/profile': {
+      id: '/account_/profile'
+      path: '/account/profile'
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AccountProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/returns': {
       id: '/account/returns'
       path: '/returns'
       fullPath: '/account/returns'
       preLoaderRoute: typeof AccountReturnsRouteImport
-      parentRoute: typeof AccountRoute
-    }
-    '/account/profile': {
-      id: '/account/profile'
-      path: '/profile'
-      fullPath: '/account/profile'
-      preLoaderRoute: typeof AccountProfileRouteImport
       parentRoute: typeof AccountRoute
     }
     '/account/notifications': {
@@ -733,14 +734,12 @@ declare module '@tanstack/react-router' {
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
   AccountNotificationsRoute: typeof AccountNotificationsRoute
-  AccountProfileRoute: typeof AccountProfileRoute
   AccountReturnsRoute: typeof AccountReturnsRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
   AccountNotificationsRoute: AccountNotificationsRoute,
-  AccountProfileRoute: AccountProfileRoute,
   AccountReturnsRoute: AccountReturnsRoute,
 }
 
@@ -784,6 +783,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TrackRoute: TrackRoute,
   WishlistRoute: WishlistRoute,
+  AccountProfileRoute: AccountProfileRoute,
   CategorySlugRoute: CategorySlugRoute,
   OrdersIdRoute: OrdersIdRoute,
   PagesSlugRoute: PagesSlugRoute,
@@ -792,3 +792,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
