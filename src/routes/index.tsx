@@ -106,7 +106,7 @@ function Home() {
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {CATEGORIES.map((cat, i) => (
+          {categories.map((cat, i) => (
             <Link
               key={cat.slug}
               to="/category/$slug"
