@@ -267,6 +267,8 @@ function Home() {
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ background: "var(--gradient-ember)" }}
                 />
+                {/* shimmer sweep */}
+                <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1400ms] ease-out bg-gradient-to-r from-transparent via-white/[0.08] to-transparent skew-x-12" />
                 <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-end z-10">
                   <p className="font-mono text-[10px] text-accent mb-1">{String(i + 1).padStart(2, "0")}</p>
                   <h3 className="text-base sm:text-lg font-medium">{cat.name}</h3>
