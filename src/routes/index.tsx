@@ -18,6 +18,8 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { products } = useProducts();
+  const { categories } = useCategories();
+
   const nav = useNavigate();
   const [query, setQuery] = useState("");
   const categoryCounts = products.reduce<Record<string, number>>((acc, p) => {
