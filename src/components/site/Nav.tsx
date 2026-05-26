@@ -67,14 +67,7 @@ export function Nav() {
             <button onClick={() => setSearchOpen(true)} aria-label="Search" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
               <Search className="size-4" />
             </button>
-            <button
-              onClick={() => setRegion(region === "IN" ? "INTL" : "IN")}
-              className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-full border border-border"
-              aria-label="Switch region"
-            >
-              <Globe className="size-3" />
-              {region === "IN" ? "IN · ₹" : "INTL · $"}
-            </button>
+            <div className="hidden sm:block"><CurrencySwitcher /></div>
             <Link to="/wishlist" aria-label="Wishlist" className="relative hidden xs:grid sm:grid size-9 rounded-full place-items-center hover:bg-white/5 transition-colors">
               <Heart className="size-4" />
               {wishSlugs.size > 0 && (
