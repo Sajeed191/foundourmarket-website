@@ -12,7 +12,7 @@ export function KpiCard({ label, value, icon, delta, sub }: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -2 }}
-      className="group relative overflow-hidden bg-card border border-border rounded-2xl p-5 hover:border-accent/40 transition-colors"
+      className="group relative overflow-hidden card-premium rounded-2xl p-5 hover:border-accent/40 transition-colors"
     >
       <div className="absolute -top-16 -right-16 size-32 rounded-full bg-accent/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative">

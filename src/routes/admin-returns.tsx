@@ -60,7 +60,7 @@ function AdminReturnsPage() {
         returns.length === 0 ? <p className="text-sm text-muted-foreground">No returns yet.</p> :
         <div className="space-y-3">
           {returns.map((r) => (
-            <div key={r.id} className="bg-card border border-border rounded-2xl p-5">
+            <div key={r.id} className="card-premium rounded-2xl p-5">
               <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
                 <div>
                   <p className="font-mono text-[11px] text-muted-foreground">Return #{r.id.slice(0, 8)} · Order #{r.order_id.slice(0, 8)}</p>

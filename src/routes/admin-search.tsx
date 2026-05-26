@@ -45,7 +45,7 @@ function SearchPage() {
     }>
       {rows === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="card-premium rounded-2xl overflow-hidden">
             <div className="px-5 py-3 border-b border-border flex items-center gap-2"><TrendingUp className="size-4 text-muted-foreground" /><h2 className="text-sm font-medium">Most searched</h2></div>
             <ul className="divide-y divide-border/40 max-h-[500px] overflow-y-auto">
               {topTerms.map((r) => {
@@ -63,7 +63,7 @@ function SearchPage() {
               {topTerms.length === 0 && <li className="px-5 py-8 text-center text-xs text-muted-foreground">No searches yet.</li>}
             </ul>
           </div>
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="card-premium rounded-2xl overflow-hidden">
             <div className="px-5 py-3 border-b border-border flex items-center gap-2"><AlertCircle className="size-4 text-destructive" /><h2 className="text-sm font-medium">Zero-result queries</h2></div>
             <ul className="divide-y divide-border/40 max-h-[500px] overflow-y-auto">
               {noResults.map((r) => (

@@ -96,7 +96,7 @@ function AdminShipmentsPage() {
           {orders.map((o) => {
             const orderShipments = shipments.filter((s) => s.order_id === o.id);
             return (
-              <div key={o.id} className="bg-card border border-border rounded-2xl p-5">
+              <div key={o.id} className="card-premium rounded-2xl p-5">
                 <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
                   <div>
                     <p className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8)}</p>

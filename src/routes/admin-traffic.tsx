@@ -84,7 +84,7 @@ function TrafficPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-5">
+        <div className="lg:col-span-2 card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-4">Visitors & views</h2>
           {pv === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             <ResponsiveContainer width="100%" height={260}>
@@ -103,7 +103,7 @@ function TrafficPage() {
             </ResponsiveContainer>
           }
         </div>
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-4">Devices</h2>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
@@ -118,7 +118,7 @@ function TrafficPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-4 flex items-center gap-2"><Eye className="size-4 text-muted-foreground" /> Top pages</h2>
           <ul className="space-y-2">
             {stats.topPages.map(([path, n]) => (
@@ -130,7 +130,7 @@ function TrafficPage() {
             {stats.topPages.length === 0 && <p className="text-xs text-muted-foreground">No page views yet.</p>}
           </ul>
         </div>
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-4 flex items-center gap-2"><Globe className="size-4 text-muted-foreground" /> Referrers</h2>
           <ul className="space-y-2">
             {stats.refs.map(([r, n]) => (

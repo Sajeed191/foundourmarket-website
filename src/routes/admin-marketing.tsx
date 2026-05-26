@@ -71,7 +71,7 @@ function MarketingPage() {
           {banners === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {banners.map((b) => (
-                <div key={b.id} className="bg-card border border-border rounded-2xl overflow-hidden">
+                <div key={b.id} className="card-premium rounded-2xl overflow-hidden">
                   {b.image && <img src={b.image} alt="" className="w-full h-32 object-cover" />}
                   <div className="p-4">
                     <div className="flex items-start justify-between">
@@ -108,7 +108,7 @@ function MarketingPage() {
             </button>
           </div>
           {flash === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            <div className="card-premium rounded-2xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
                   <tr><th className="text-left px-5 py-3">Name</th><th className="text-right px-5 py-3">Discount</th><th className="text-left px-5 py-3">Products</th><th className="text-left px-5 py-3">Window</th><th className="text-left px-5 py-3">Status</th><th></th></tr>
@@ -167,7 +167,7 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
   }
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-card border border-border rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl card-premium rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg font-display">{row ? "Edit banner" : "New banner"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
@@ -217,7 +217,7 @@ function FlashEditor({ row, onClose, onSaved }: { row: Flash | null; onClose: ()
   }
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-card border border-border rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl card-premium rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg font-display">{row ? "Edit flash sale" : "New flash sale"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
