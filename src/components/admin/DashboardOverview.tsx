@@ -136,7 +136,7 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-5">
+        <div className="lg:col-span-2 card-premium rounded-2xl p-5">
           <div className="flex items-baseline justify-between mb-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Last {period} days</p>
@@ -181,7 +181,7 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Pipeline</p>
           <h2 className="text-lg font-medium mt-1 mb-4">Order status</h2>
           <ul className="space-y-3">
@@ -210,7 +210,7 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <div className="flex justify-between items-baseline mb-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Bestsellers</p>
@@ -238,7 +238,7 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
           )}
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <div className="flex justify-between items-baseline mb-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Recent activity</p>
@@ -268,7 +268,7 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <div className="flex justify-between items-baseline mb-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Inventory alerts</p>
@@ -314,7 +314,7 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
           )}
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <div className="flex justify-between items-baseline mb-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Catalog health</p>
