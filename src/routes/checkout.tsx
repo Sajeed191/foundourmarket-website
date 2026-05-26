@@ -74,6 +74,8 @@ function CheckoutPage() {
           subtotal: Number(subtotalUSD.toFixed(2)),
           shipping: Number(shipping.toFixed(2)),
           tax: Number(tax.toFixed(2)),
+          discount: Number(discount.toFixed(2)),
+          promo_code: promo?.code ?? null,
           total: Number(total.toFixed(2)),
           contact_email: user.email,
           shipping_address: form,
