@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { useAddresses, type Address } from "@/lib/use-addresses";
 import { AddressForm } from "@/components/site/AddressForm";
