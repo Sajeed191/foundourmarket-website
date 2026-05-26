@@ -44,10 +44,10 @@ function CheckoutPage() {
           user_id: user.id,
           status: "confirmed",
           currency: "USD",
-          subtotal: subtotalUSD.toFixed(2),
-          shipping: shipping.toFixed(2),
-          tax: tax.toFixed(2),
-          total: total.toFixed(2),
+          subtotal: Number(subtotalUSD.toFixed(2)),
+          shipping: Number(shipping.toFixed(2)),
+          tax: Number(tax.toFixed(2)),
+          total: Number(total.toFixed(2)),
           contact_email: user.email,
           shipping_address: form,
         })
@@ -62,7 +62,7 @@ function CheckoutPage() {
         image: i.product.image,
         unit_price: i.product.price,
         quantity: i.qty,
-        line_total: (i.product.price * i.qty).toFixed(2),
+        line_total: Number((i.product.price * i.qty).toFixed(2)),
       }));
       const { error: iErr } = await supabase.from("order_items").insert(items);
       if (iErr) throw iErr;
