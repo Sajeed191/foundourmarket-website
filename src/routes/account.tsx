@@ -1,18 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import {
   LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
-  ShoppingBag, Wallet, ChevronRight, Shield, Settings, Award, Eye, Plus, User as UserIcon,
+  ShoppingBag, Wallet, ChevronRight, Shield, Settings, Award, Eye, User as UserIcon,
+  HelpCircle, LifeBuoy, MessageCircle, TrendingUp, Gift, ArrowRight, Star,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { useWishlist } from "@/lib/wishlist";
 import { useNotifications } from "@/lib/notifications";
-import { useAddresses } from "@/lib/use-addresses";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useProducts } from "@/lib/use-products";
+import { useCart } from "@/lib/cart";
 import { ProductCard } from "@/components/site/ProductCard";
 
 export const Route = createFileRoute("/account")({
@@ -29,10 +30,11 @@ type Order = {
   order_items: { name: string; quantity: number; image: string | null }[];
 };
 
+const ease = [0.16, 1, 0.3, 1] as const;
 const fadeUp = {
-  initial: { opacity: 0, y: 16 },
+  initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const },
+  transition: { duration: 0.5, ease },
 };
 
 function greeting() {
@@ -50,9 +52,9 @@ function AccountPage() {
   const [orders, setOrders] = useState<Order[] | null>(null);
   const { slugs: wishSlugs } = useWishlist();
   const { unread, items: notifs } = useNotifications();
-  const { addresses, defaultShipping } = useAddresses();
   const { slugs: recentSlugs } = useRecentlyViewed();
   const { products } = useProducts();
+  const cart = useCart();
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -73,41 +75,41 @@ function AccountPage() {
     return full.split(" ")[0] || user?.email?.split("@")[0] || "there";
   }, [user]);
 
+  const avatarUrl = (user?.user_metadata?.avatar_url as string | undefined) ?? "";
+
   const stats = useMemo(() => {
     const list = orders ?? [];
     const spent = list.reduce((s, o) => s + Number(o.total || 0), 0);
     const active = list.filter((o) => !["delivered", "cancelled", "refunded"].includes(String(o.status).toLowerCase())).length;
-    return { count: list.length, spent, active };
-  }, [orders]);
+    const saved = Math.round(spent * 0.08);
+    const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—";
+    const categoryCount = new Map<string, number>();
+    for (const o of list) for (const it of o.order_items) categoryCount.set(it.name, (categoryCount.get(it.name) ?? 0) + it.quantity);
+    const topCategory = [...categoryCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+    return { count: list.length, spent, active, saved, memberSince, topCategory };
+  }, [orders, user]);
+
+  const cartCount = cart.items.reduce((s, i) => s + i.qty, 0);
 
   const wishlistProducts = useMemo(
-    () => products.filter((p) => wishSlugs.has(p.slug)).slice(0, 4),
+    () => products.filter((p) => wishSlugs.has(p.slug)).slice(0, 8),
     [products, wishSlugs],
   );
   const recentProducts = useMemo(
-    () => recentSlugs.map((s) => products.find((p) => p.slug === s)).filter(Boolean).slice(0, 4) as typeof products,
+    () => recentSlugs.map((s) => products.find((p) => p.slug === s)).filter(Boolean).slice(0, 8) as typeof products,
     [products, recentSlugs],
   );
   const recommended = useMemo(
     () => products
       .filter((p) => !wishSlugs.has(p.slug) && !recentSlugs.includes(p.slug))
       .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-      .slice(0, 4),
+      .slice(0, 8),
     [products, wishSlugs, recentSlugs],
   );
-
-  const profileFields = useMemo(() => {
-    const fullName = (user?.user_metadata?.full_name as string | undefined) ?? "";
-    const phone = (user?.user_metadata?.phone as string | undefined) ?? "";
-    return [
-      { label: "Name", done: !!fullName },
-      { label: "Email", done: !!user?.email },
-      { label: "Phone", done: !!phone },
-      { label: "Default address", done: !!defaultShipping },
-      { label: "Wishlist", done: wishSlugs.size > 0 },
-    ];
-  }, [user, defaultShipping, wishSlugs]);
-  const completion = Math.round((profileFields.filter((f) => f.done).length / profileFields.length) * 100);
+  const trending = useMemo(
+    () => [...products].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 6),
+    [products],
+  );
 
   if (loading || !user) {
     return (
@@ -118,291 +120,234 @@ function AccountPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-      {/* Greeting */}
-      <motion.header {...fadeUp} className="mb-8 sm:mb-12">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2 sm:mb-3">Your dashboard</p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold leading-tight">
-              {greeting()}, <span className="text-accent">{firstName}</span>.
-            </h1>
-            <p className="text-sm text-muted-foreground mt-2">{user.email}</p>
-          </div>
-          <button
-            onClick={signOut}
-            className="self-start sm:self-auto inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40 hover:text-accent transition-colors"
-          >
-            <LogOut className="size-3.5" /> Sign out
-          </button>
-        </div>
-      </motion.header>
-
-      {/* Stats */}
-      <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10">
-        <StatCard icon={ShoppingBag} label="Orders" value={orders ? String(stats.count) : "—"} hint="lifetime" />
-        <StatCard icon={Wallet} label="Spent" value={orders ? format(stats.spent) : "—"} hint="total" />
-        <StatCard icon={Package} label="In transit" value={orders ? String(stats.active) : "—"} hint="active" accent />
-        <StatCard icon={Heart} label="Wishlist" value={String(wishSlugs.size)} hint="saved" />
-      </motion.section>
-
-      {/* Quick actions */}
-      <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }} className="mb-10">
-        <h2 className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3">Quick actions</h2>
-        <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
-          <QuickAction to="/account/profile" icon={UserIcon} label="Edit profile" />
-          <QuickAction to="/account/addresses" icon={MapPin} label="Addresses" />
-          <QuickAction to="/account/returns" icon={RotateCcw} label="Returns" />
-          <QuickAction to="/account/notifications" icon={Bell} label="Inbox" badge={unread} />
-          <QuickAction to="/wishlist" icon={Heart} label="Wishlist" badge={wishSlugs.size} />
-          <QuickAction to="/track" icon={Package} label="Track order" />
-          <QuickAction to="/" icon={Sparkles} label="Continue shopping" />
-        </div>
-      </motion.section>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        {/* Main column */}
-        <div className="lg:col-span-2 space-y-6 lg:space-y-8">
-          {/* Recent orders */}
-          <Section
-            title="Recent orders"
-            icon={Package}
-            action={<Link to="/account" hash="orders" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">View all</Link>}
-          >
-            {orders === null ? (
-              <SkeletonRows />
-            ) : orders.length === 0 ? (
-              <EmptyState
-                title="No orders yet"
-                body="Your premium finds will appear here."
-                cta={<Link to="/" className="inline-block bg-accent text-accent-foreground rounded-full px-6 py-3 text-xs uppercase tracking-widest font-bold">Start shopping</Link>}
-              />
-            ) : (
-              <div className="space-y-3" id="orders">
-                {orders.slice(0, 5).map((o) => (
-                  <Link
-                    key={o.id}
-                    to="/orders/$id"
-                    params={{ id: o.id }}
-                    className="group bg-card border border-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 hover:border-accent/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                      <div className="hidden sm:flex -space-x-2 shrink-0">
-                        {o.order_items.slice(0, 3).map((it, i) => (
-                          <div key={i} className="size-10 rounded-xl border border-border bg-black/40 overflow-hidden">
-                            {it.image && <img src={it.image} alt="" className="w-full h-full object-cover" loading="lazy" />}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                          #{o.id.slice(0, 8)} · {new Date(o.created_at).toLocaleDateString()}
-                        </p>
-                        <p className="font-medium mt-1 truncate">
-                          {o.order_items.length} item{o.order_items.length === 1 ? "" : "s"}{" "}
-                          · <span className="text-accent capitalize">{o.status}</span>
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {o.order_items.map((i) => i.name).join(", ")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-mono text-sm text-accent">{format(Number(o.total))}</span>
-                      <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent transition-colors" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </Section>
-
-          {/* Wishlist preview */}
-          <Section
-            title="Saved for later"
-            icon={Heart}
-            action={<Link to="/wishlist" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">View wishlist</Link>}
-          >
-            {wishlistProducts.length === 0 ? (
-              <EmptyState
-                title="Nothing saved yet"
-                body="Tap the heart on any product to save it for later."
-              />
-            ) : (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {wishlistProducts.map((p) => <ProductCard key={p.slug} product={p} />)}
-              </div>
-            )}
-          </Section>
-
-          {/* Recently viewed */}
-          {recentProducts.length > 0 && (
-            <Section
-              title="Recently viewed"
-              icon={Eye}
-            >
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {recentProducts.map((p) => <ProductCard key={p.slug} product={p} />)}
-              </div>
-            </Section>
-          )}
-
-          {/* Recommendations */}
-          {recommended.length > 0 && (
-            <Section
-              title="Picked for you"
-              icon={Sparkles}
-            >
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {recommended.map((p) => <ProductCard key={p.slug} product={p} />)}
-              </div>
-            </Section>
-          )}
-        </div>
-
-        {/* Side column */}
-        <aside className="space-y-6 lg:space-y-8">
-          {/* Profile completion */}
-          <motion.div {...fadeUp} className="bg-card border border-border rounded-2xl p-5 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent">
-                  <UserIcon className="size-4" />
+    <div className="min-h-screen pb-24 sm:pb-16">
+      <div className="container-page py-5 sm:py-10 lg:py-14 space-y-6 sm:space-y-10">
+        {/* 1 — HEADER */}
+        <motion.header {...fadeUp} className="relative overflow-hidden rounded-3xl border border-border bg-card">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,oklch(0.72_0.18_49/0.18),transparent_60%)]" />
+          <div className="absolute -top-24 -left-16 size-64 rounded-full bg-accent/10 blur-3xl" />
+          <div className="relative p-5 sm:p-7 lg:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="relative">
+                <div className="size-14 sm:size-16 rounded-2xl border border-border bg-secondary overflow-hidden grid place-items-center shrink-0">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-lg font-display font-semibold text-accent">
+                      {firstName.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
                 </div>
-                <h3 className="text-sm font-medium">Profile</h3>
+                <span className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-500 border-2 border-card" />
               </div>
-              <span className="font-mono text-sm text-accent">{completion}%</span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-1">{greeting()}</p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-semibold truncate">
+                  Welcome back, {firstName} <span className="inline-block">👋</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>
+              </div>
             </div>
-            <div className="h-1.5 rounded-full bg-white/5 overflow-hidden mb-4">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${completion}%` }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full bg-gradient-to-r from-accent to-primary"
-              />
-            </div>
-            <ul className="space-y-2 mb-4">
-              {profileFields.map((f) => (
-                <li key={f.label} className="flex items-center justify-between text-xs">
-                  <span className={f.done ? "text-foreground" : "text-muted-foreground"}>{f.label}</span>
-                  <span className={`size-4 rounded-full grid place-items-center text-[10px] ${f.done ? "bg-accent/20 text-accent" : "bg-white/5 text-muted-foreground"}`}>
-                    {f.done ? "✓" : "—"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              to="/account/profile"
-              className="w-full inline-flex items-center justify-center gap-2 border border-border rounded-full px-4 py-2.5 text-[10px] font-mono uppercase tracking-widest hover:border-accent/40 hover:text-accent transition-colors"
-            >
-              Edit profile <ChevronRight className="size-3" />
-            </Link>
-          </motion.div>
-
-          {/* Addresses preview */}
-          <Section title="Default address" icon={MapPin} action={<Link to="/account/addresses" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">Manage</Link>}>
-            {defaultShipping ? (
-              <div className="bg-card border border-border rounded-2xl p-5 text-sm">
-                <p className="font-medium">{defaultShipping.full_name}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-2">
-                  {defaultShipping.line1}{defaultShipping.line2 ? `, ${defaultShipping.line2}` : ""}<br />
-                  {defaultShipping.city}{defaultShipping.state ? `, ${defaultShipping.state}` : ""} {defaultShipping.postal}<br />
-                  {defaultShipping.country}
-                </p>
-                {addresses.length > 1 && (
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-3">
-                    +{addresses.length - 1} more saved
-                  </p>
+            <div className="flex items-center gap-2 sm:gap-3 self-start sm:self-auto">
+              <Link
+                to="/account/notifications"
+                aria-label="Notifications"
+                className="relative size-10 sm:size-11 grid place-items-center rounded-full border border-border bg-background/40 hover:border-accent/40 hover:text-accent transition-colors"
+              >
+                <Bell className="size-4" />
+                {unread > 0 && (
+                  <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse" />
                 )}
-              </div>
-            ) : (
-              <Link to="/account/addresses" className="block bg-card border border-dashed border-border rounded-2xl p-6 text-center hover:border-accent/40 transition-colors">
-                <Plus className="size-5 mx-auto mb-2 text-accent" />
-                <p className="text-sm">Add your first address</p>
-                <p className="text-xs text-muted-foreground mt-1">Faster checkout next time</p>
               </Link>
-            )}
-          </Section>
-
-          {/* Notifications preview */}
-          <Section title="Inbox" icon={Bell} action={<Link to="/account/notifications" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">All</Link>}>
-            {notifs.length === 0 ? (
-              <div className="bg-card border border-border rounded-2xl p-6 text-center">
-                <p className="text-sm text-muted-foreground">All caught up.</p>
-              </div>
-            ) : (
-              <ul className="bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
-                {notifs.slice(0, 3).map((n) => (
-                  <li key={n.id} className={`p-4 ${!n.read_at ? "bg-accent/5" : ""}`}>
-                    <p className="text-sm font-medium truncate">{n.title}</p>
-                    {n.body && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{n.body}</p>}
-                    <p className="text-[10px] font-mono text-muted-foreground mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Section>
-
-          {/* Loyalty placeholder */}
-          <motion.div {...fadeUp} className="relative overflow-hidden bg-card border border-border rounded-2xl p-5 sm:p-6">
-            <div className="absolute -top-12 -right-12 size-40 rounded-full bg-accent/20 blur-3xl" />
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-3">
-                <Award className="size-4 text-accent" />
-                <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent">Founders Club</p>
-              </div>
-              <h3 className="text-lg font-display font-semibold">Earn rewards on every order.</h3>
-              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                Loyalty perks, early access drops, and member-only pricing are coming soon.
-              </p>
-              <div className="mt-4 flex items-baseline gap-2">
-                <span className="font-mono text-2xl text-accent">{Math.round(stats.spent)}</span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">pts (preview)</span>
-              </div>
+              <Link
+                to="/account/profile"
+                aria-label="Settings"
+                className="size-10 sm:size-11 grid place-items-center rounded-full border border-border bg-background/40 hover:border-accent/40 hover:text-accent transition-colors"
+              >
+                <Settings className="size-4" />
+              </Link>
             </div>
-          </motion.div>
+          </div>
+        </motion.header>
 
-          {/* Security & Preferences shortcuts */}
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/auth" className="bg-card border border-border rounded-2xl p-4 hover:border-accent/40 transition-colors group">
-              <Shield className="size-4 text-accent mb-2" />
-              <p className="text-sm font-medium">Security</p>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-1 group-hover:text-accent">Password & sessions</p>
-            </Link>
-            <Link to="/account/notifications" className="bg-card border border-border rounded-2xl p-4 hover:border-accent/40 transition-colors group">
-              <Settings className="size-4 text-accent mb-2" />
-              <p className="text-sm font-medium">Preferences</p>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-1 group-hover:text-accent">Email & alerts</p>
-            </Link>
+        {/* 2 — OVERVIEW CARDS */}
+        <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }}>
+          <SectionHeader title="Overview" eyebrow="Your account at a glance" />
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible">
+            <OverviewCard icon={Package} label="Active orders" value={stats.active} loading={!orders} accent />
+            <OverviewCard icon={Heart} label="Wishlist" value={wishSlugs.size} to="/wishlist" />
+            <OverviewCard icon={ShoppingBag} label="Cart items" value={cartCount} to="/cart" />
+            <OverviewCard icon={Wallet} label="Total saved" value={stats.saved} formatter={format} loading={!orders} />
+            <OverviewCard icon={Eye} label="Recently viewed" value={recentSlugs.length} />
+            <OverviewCard icon={Gift} label="Reward points" value={Math.round(stats.spent)} hint="preview" />
+          </div>
+        </motion.section>
+
+        {/* 3 — QUICK ACTIONS */}
+        <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }}>
+          <SectionHeader title="Quick actions" eyebrow="Jump to" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
+            <ActionCard to="/account/profile" icon={UserIcon} title="Edit profile" subtitle="Name, photo, phone" />
+            <ActionCard to="/account/addresses" icon={MapPin} title="Addresses" subtitle="Shipping & billing" />
+            <ActionCard to="/account" icon={Package} title="Orders" subtitle="Track & invoices" />
+            <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Refunds & RMA" />
+            <ActionCard to="/account/notifications" icon={Bell} title="Notifications" subtitle="Inbox & alerts" badge={unread} />
+            <ActionCard to="/auth" icon={Shield} title="Security" subtitle="Password & sessions" />
+            <ActionCard to="/account/notifications" icon={Settings} title="Preferences" subtitle="Email & locale" />
+            <ActionCard to="/" icon={HelpCircle} title="Help center" subtitle="Guides & FAQ" />
+          </div>
+        </motion.section>
+
+        {/* DESKTOP GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
+            {/* 4 — RECENT ORDERS */}
+            <SectionBlock
+              title="Recent orders"
+              icon={Package}
+              action={<Link to="/account" hash="orders" className="action-link">View all <ArrowRight className="size-3" /></Link>}
+            >
+              {orders === null ? (
+                <SkeletonRows />
+              ) : orders.length === 0 ? (
+                <EmptyState
+                  title="No orders yet"
+                  body="Your premium finds will appear here. Start exploring our curated picks."
+                  cta={<Link to="/" className="cta-primary">Start shopping <ArrowRight className="size-3.5" /></Link>}
+                  extra={
+                    trending.length > 0 ? (
+                      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
+                        {trending.slice(0, 3).map((p) => <ProductCard key={p.slug} product={p} />)}
+                      </div>
+                    ) : null
+                  }
+                />
+              ) : (
+                <div className="space-y-3" id="orders">
+                  {orders.slice(0, 4).map((o) => <OrderRow key={o.id} o={o} format={format} />)}
+                </div>
+              )}
+            </SectionBlock>
+
+            {/* 5 — WISHLIST */}
+            <SectionBlock
+              title="Saved for later"
+              icon={Heart}
+              action={<Link to="/wishlist" className="action-link">View wishlist <ArrowRight className="size-3" /></Link>}
+            >
+              {wishlistProducts.length === 0 ? (
+                <EmptyState
+                  title="Nothing saved yet"
+                  body="Tap the heart on any product to keep it here for later."
+                  extra={
+                    recommended.length > 0 ? (
+                      <div className="mt-6 w-full">
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3 text-left">You might love</p>
+                        <ProductScroller items={recommended.slice(0, 6)} />
+                      </div>
+                    ) : null
+                  }
+                />
+              ) : (
+                <ProductScroller items={wishlistProducts} />
+              )}
+            </SectionBlock>
+
+            {/* 6 — RECENTLY VIEWED */}
+            {recentProducts.length > 0 && (
+              <SectionBlock title="Recently viewed" icon={Eye} action={<Link to="/" className="action-link">Continue browsing <ArrowRight className="size-3" /></Link>}>
+                <ProductScroller items={recentProducts} />
+              </SectionBlock>
+            )}
+
+            {/* 7 — RECOMMENDATIONS */}
+            {recommended.length > 0 && (
+              <SectionBlock title="Picked for you" icon={Sparkles}>
+                <ProductScroller items={recommended} />
+              </SectionBlock>
+            )}
           </div>
 
-          {/* Recently activity */}
-          <Section title="Activity" icon={Clock}>
-            <ol className="bg-card border border-border rounded-2xl p-5 space-y-3 text-xs">
-              {(orders ?? []).slice(0, 3).map((o) => (
-                <li key={o.id} className="flex items-start gap-3">
-                  <span className="size-1.5 rounded-full bg-accent mt-1.5" />
-                  <div className="min-w-0">
-                    <p className="text-foreground">Order <span className="font-mono">#{o.id.slice(0, 6)}</span> {o.status}</p>
-                    <p className="text-muted-foreground">{new Date(o.created_at).toLocaleString()}</p>
-                  </div>
-                </li>
-              ))}
-              {wishSlugs.size > 0 && (
-                <li className="flex items-start gap-3">
-                  <span className="size-1.5 rounded-full bg-accent/50 mt-1.5" />
-                  <div className="min-w-0">
-                    <p className="text-foreground">{wishSlugs.size} item{wishSlugs.size === 1 ? "" : "s"} on your wishlist</p>
-                    <p className="text-muted-foreground">Last updated recently</p>
-                  </div>
-                </li>
+          {/* SIDEBAR */}
+          <aside className="space-y-6 lg:space-y-8">
+            {/* 8 — NOTIFICATION CENTER */}
+            <SectionBlock
+              title="Notifications"
+              icon={Bell}
+              action={<Link to="/account/notifications" className="action-link">All <ArrowRight className="size-3" /></Link>}
+            >
+              {notifs.length === 0 ? (
+                <div className="bg-card border border-border rounded-2xl p-6 text-center">
+                  <Bell className="size-5 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm">All caught up</p>
+                  <p className="text-xs text-muted-foreground mt-1">You'll see order, shipment & promo alerts here.</p>
+                </div>
+              ) : (
+                <ul className="bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
+                  {notifs.slice(0, 4).map((n) => (
+                    <li key={n.id} className={`p-4 flex gap-3 ${!n.read_at ? "bg-accent/5" : ""}`}>
+                      <span className={`mt-1.5 size-1.5 rounded-full shrink-0 ${!n.read_at ? "bg-accent animate-pulse" : "bg-muted-foreground/30"}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{n.title}</p>
+                        {n.body && <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>}
+                        <p className="text-[10px] font-mono text-muted-foreground mt-1.5">{new Date(n.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               )}
-              {(orders ?? []).length === 0 && wishSlugs.size === 0 && (
-                <li className="text-muted-foreground">No activity yet — explore the shop to get started.</li>
-              )}
-            </ol>
-          </Section>
-        </aside>
+            </SectionBlock>
+
+            {/* 9 — ACCOUNT INSIGHTS */}
+            <SectionBlock title="Account insights" icon={TrendingUp}>
+              <div className="grid grid-cols-2 gap-2.5">
+                <InsightStat label="Total orders" value={String(stats.count)} />
+                <InsightStat label="Total spent" value={format(stats.spent)} accent />
+                <InsightStat label="Saved" value={format(stats.saved)} />
+                <InsightStat label="Wishlist" value={String(wishSlugs.size)} />
+                <InsightStat label="Member since" value={stats.memberSince} small />
+                <InsightStat label="Top item" value={stats.topCategory} small truncate />
+              </div>
+            </SectionBlock>
+
+            {/* Founders Club */}
+            <motion.div {...fadeUp} className="relative overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-card to-card p-5 sm:p-6">
+              <div className="absolute -top-16 -right-12 size-44 rounded-full bg-accent/25 blur-3xl" />
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-3">
+                  <Award className="size-4 text-accent" />
+                  <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent">Founders Club</p>
+                </div>
+                <h3 className="text-base sm:text-lg font-display font-semibold leading-snug">Earn rewards on every order.</h3>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                  Loyalty perks, early drops & member-only pricing — coming soon.
+                </p>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <AnimatedNumber value={Math.round(stats.spent)} className="font-mono text-2xl text-accent" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">pts preview</span>
+                </div>
+              </div>
+            </motion.div>
+          </aside>
+        </div>
+
+        {/* 10 — FOOTER ACTIONS */}
+        <motion.footer {...fadeUp} className="pt-2">
+          <div className="rounded-3xl border border-border bg-card p-5 sm:p-7">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <FooterAction icon={LifeBuoy} label="Support" to="/" />
+              <FooterAction icon={HelpCircle} label="FAQ" to="/" />
+              <FooterAction icon={MessageCircle} label="Contact" to="/" />
+              <button
+                onClick={signOut}
+                className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-background/40 p-4 hover:border-destructive/40 hover:text-destructive transition-colors"
+              >
+                <LogOut className="size-4" />
+                <span className="text-xs uppercase tracking-widest">Sign out</span>
+              </button>
+            </div>
+          </div>
+        </motion.footer>
       </div>
     </div>
   );
@@ -410,47 +355,26 @@ function AccountPage() {
 
 /* ---------- helpers ---------- */
 
-function StatCard({ icon: Icon, label, value, hint, accent }: { icon: typeof Package; label: string; value: string; hint?: string; accent?: boolean }) {
+function SectionHeader({ title, eyebrow }: { title: string; eyebrow?: string }) {
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 ${accent ? "border-accent/30 bg-accent/5" : "border-border bg-card"}`}
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground">{label}</span>
-        <Icon className={`size-4 ${accent ? "text-accent" : "text-muted-foreground"}`} />
-      </div>
-      <p className={`mt-3 text-2xl sm:text-3xl font-display font-semibold ${accent ? "text-accent" : ""}`}>{value}</p>
-      {hint && <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-1">{hint}</p>}
-    </motion.div>
+    <div className="mb-4 sm:mb-5">
+      {eyebrow && <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-1.5">{eyebrow}</p>}
+      <h2 className="text-lg sm:text-xl font-display font-semibold">{title}</h2>
+    </div>
   );
 }
 
-function QuickAction({ to, icon: Icon, label, badge }: { to: string; icon: typeof Package; label: string; badge?: number }) {
-  return (
-    <Link
-      to={to}
-      className="shrink-0 inline-flex items-center gap-2 bg-card border border-border rounded-full pl-3 pr-4 py-2.5 text-xs uppercase tracking-widest hover:border-accent/40 hover:text-accent transition-colors"
-    >
-      <span className="relative size-7 grid place-items-center rounded-full bg-accent/10 text-accent">
-        <Icon className="size-3.5" />
-        {typeof badge === "number" && badge > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
-            {badge > 9 ? "9+" : badge}
-          </span>
-        )}
-      </span>
-      {label}
-    </Link>
-  );
-}
-
-function Section({ title, icon: Icon, action, children }: { title: string; icon: typeof Package; action?: React.ReactNode; children: React.ReactNode }) {
+function SectionBlock({
+  title, icon: Icon, action, children,
+}: { title: string; icon: typeof Package; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <motion.section {...fadeUp}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm sm:text-base font-medium flex items-center gap-2">
-          <Icon className="size-4 text-accent" /> {title}
+          <span className="size-7 rounded-lg bg-accent/10 text-accent grid place-items-center">
+            <Icon className="size-3.5" />
+          </span>
+          {title}
         </h2>
         {action}
       </div>
@@ -459,12 +383,173 @@ function Section({ title, icon: Icon, action, children }: { title: string; icon:
   );
 }
 
-function EmptyState({ title, body, cta }: { title: string; body: string; cta?: React.ReactNode }) {
+function OverviewCard({
+  icon: Icon, label, value, hint, accent, loading, to, formatter,
+}: { icon: typeof Package; label: string; value: number; hint?: string; accent?: boolean; loading?: boolean; to?: string; formatter?: (n: number) => string }) {
+  const inner = (
+    <motion.div
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ duration: 0.25, ease }}
+      className={`snap-start shrink-0 w-[44%] sm:w-auto h-full relative overflow-hidden rounded-2xl border p-4 sm:p-5 backdrop-blur-md transition-colors ${
+        accent ? "border-accent/40 bg-gradient-to-br from-accent/15 to-card" : "border-border bg-card hover:border-accent/30"
+      }`}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <span className={`size-8 rounded-lg grid place-items-center ${accent ? "bg-accent/20 text-accent" : "bg-white/5 text-muted-foreground"}`}>
+          <Icon className="size-4" />
+        </span>
+        {hint && <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{hint}</span>}
+      </div>
+      {loading ? (
+        <div className="h-7 w-12 rounded-md bg-white/5 animate-pulse" />
+      ) : (
+        <AnimatedNumber
+          value={value}
+          formatter={formatter}
+          className={`block text-2xl sm:text-3xl font-display font-semibold ${accent ? "text-accent" : ""}`}
+        />
+      )}
+      <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted-foreground mt-1.5">{label}</p>
+    </motion.div>
+  );
+  return to ? <Link to={to} className="contents">{inner}</Link> : inner;
+}
+
+function ActionCard({
+  to, icon: Icon, title, subtitle, badge,
+}: { to: string; icon: typeof Package; title: string; subtitle: string; badge?: number }) {
   return (
-    <div className="bg-card border border-dashed border-border rounded-2xl p-8 sm:p-10 text-center">
+    <Link to={to} className="group">
+      <motion.div
+        whileHover={{ y: -2 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.2, ease }}
+        className="relative h-full rounded-2xl border border-border bg-card p-3.5 sm:p-4 hover:border-accent/40 transition-colors"
+      >
+        <div className="flex items-start gap-3">
+          <span className="relative size-9 rounded-xl bg-accent/10 text-accent grid place-items-center shrink-0 group-hover:bg-accent/20 transition-colors">
+            <Icon className="size-4" />
+            {typeof badge === "number" && badge > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
+                {badge > 9 ? "9+" : badge}
+              </span>
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium truncate">{title}</p>
+            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
+          </div>
+          <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all shrink-0" />
+        </div>
+      </motion.div>
+    </Link>
+  );
+}
+
+function OrderRow({ o, format }: { o: Order; format: (n: number) => string }) {
+  const status = String(o.status).toLowerCase();
+  const stepMap: Record<string, number> = { pending: 25, processing: 50, shipped: 75, in_transit: 75, delivered: 100, cancelled: 0, refunded: 0 };
+  const progress = stepMap[status] ?? 50;
+  return (
+    <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2, ease }}>
+      <Link
+        to="/orders/$id"
+        params={{ id: o.id }}
+        className="group block bg-card border border-border rounded-2xl p-4 sm:p-5 hover:border-accent/40 transition-colors"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="flex -space-x-2 shrink-0">
+              {o.order_items.slice(0, 3).map((it, i) => (
+                <div key={i} className="size-10 sm:size-11 rounded-xl border border-border bg-black/40 overflow-hidden">
+                  {it.image && <img src={it.image} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                </div>
+              ))}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                #{o.id.slice(0, 8)} · {new Date(o.created_at).toLocaleDateString()}
+              </p>
+              <p className="text-sm font-medium mt-1 truncate">
+                {o.order_items.length} item{o.order_items.length === 1 ? "" : "s"}
+              </p>
+              <StatusBadge status={o.status} />
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className="font-mono text-sm text-accent">{format(Number(o.total))}</span>
+            <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent transition-colors" />
+          </div>
+        </div>
+        <div className="mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.8, ease }}
+            className="h-full bg-gradient-to-r from-accent to-primary"
+          />
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const s = status.toLowerCase();
+  const tone = s === "delivered" ? "bg-emerald-500/15 text-emerald-400"
+    : s === "cancelled" || s === "refunded" ? "bg-destructive/15 text-destructive"
+    : "bg-accent/15 text-accent";
+  return (
+    <span className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider ${tone}`}>
+      <span className="size-1.5 rounded-full bg-current" /> {status}
+    </span>
+  );
+}
+
+function ProductScroller({ items }: { items: Array<{ slug: string }> }) {
+  return (
+    <div className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+      {items.map((p) => (
+        <div key={p.slug} className="snap-start shrink-0 w-[60%] xs:w-[48%] sm:w-[32%] lg:w-[31%]">
+          <ProductCard product={p as never} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function InsightStat({ label, value, accent, small, truncate }: { label: string; value: string; accent?: boolean; small?: boolean; truncate?: boolean }) {
+  return (
+    <div className={`rounded-xl border border-border bg-card p-3.5 ${accent ? "border-accent/30" : ""}`}>
+      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className={`mt-1 font-display font-semibold ${small ? "text-sm" : "text-lg"} ${accent ? "text-accent" : ""} ${truncate ? "truncate" : ""}`}>{value}</p>
+    </div>
+  );
+}
+
+function FooterAction({ icon: Icon, label, to }: { icon: typeof Package; label: string; to: string }) {
+  return (
+    <Link
+      to={to}
+      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-background/40 p-4 hover:border-accent/40 hover:text-accent transition-colors"
+    >
+      <Icon className="size-4" />
+      <span className="text-xs uppercase tracking-widest">{label}</span>
+    </Link>
+  );
+}
+
+function EmptyState({ title, body, cta, extra }: { title: string; body: string; cta?: React.ReactNode; extra?: React.ReactNode }) {
+  return (
+    <div className="bg-card border border-dashed border-border rounded-2xl p-7 sm:p-10 flex flex-col items-center text-center">
+      <div className="size-12 rounded-2xl bg-accent/10 text-accent grid place-items-center mb-4">
+        <Star className="size-5" />
+      </div>
       <p className="text-sm font-medium">{title}</p>
-      <p className="text-xs text-muted-foreground mt-1 mb-4">{body}</p>
-      {cta}
+      <p className="text-xs text-muted-foreground mt-1.5 max-w-xs">{body}</p>
+      {cta && <div className="mt-5">{cta}</div>}
+      {extra}
     </div>
   );
 }
@@ -473,8 +558,20 @@ function SkeletonRows() {
   return (
     <div className="space-y-3">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="bg-card border border-border rounded-2xl p-5 h-20 animate-pulse" />
+        <div key={i} className="bg-card border border-border rounded-2xl p-5 h-24 animate-pulse" />
       ))}
     </div>
   );
+}
+
+function AnimatedNumber({
+  value, className, formatter,
+}: { value: number; className?: string; formatter?: (n: number) => string }) {
+  const mv = useMotionValue(0);
+  const display = useTransform(mv, (v) => (formatter ? formatter(Math.round(v)) : Math.round(v).toLocaleString()));
+  useEffect(() => {
+    const controls = animate(mv, value, { duration: 0.9, ease });
+    return () => controls.stop();
+  }, [value, mv]);
+  return <motion.span className={className}>{display}</motion.span>;
 }
