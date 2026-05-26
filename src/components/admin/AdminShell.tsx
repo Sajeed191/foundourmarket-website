@@ -210,10 +210,9 @@ export function AdminShell({
 
 export function logActivity(action: string, entity_type?: string, entity_id?: string, metadata?: Record<string, unknown>) {
   supabase.from("admin_activity_logs").insert({
-    actor_id: undefined,
     action,
     entity_type: entity_type ?? null,
     entity_id: entity_id ?? null,
-    metadata: metadata ?? {},
+    metadata: (metadata ?? {}) as never,
   }).then(() => {}, () => {});
 }
