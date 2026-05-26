@@ -21,9 +21,21 @@ export type Product = {
   inStock: boolean;
   discount?: number;
   featured: boolean;
+  sku?: string | null;
+  stockQuantity: number;
+  lowStockThreshold: number;
 };
 
-// Bundled assets keyed by filename so DB rows can reference them by basename.
+export type ProductImage = { id: string; url: string; alt: string | null; sortOrder: number };
+export type ProductVariant = {
+  id: string;
+  name: string;
+  sku: string | null;
+  priceOverride: number | null;
+  stockQuantity: number;
+  sortOrder: number;
+};
+
 const ASSET_MAP: Record<string, string> = {
   "product-earbuds.jpg": earbuds,
   "product-watch.jpg": watch,
@@ -42,14 +54,12 @@ export function resolveImage(raw: string | null | undefined): string {
   return ASSET_MAP[base] ?? raw;
 }
 
-// Categories are now managed in the database — see src/lib/use-categories.ts
-
-
 type Row = {
   slug: string; name: string; tagline: string | null; category: string;
   price: number | string; rating: number | string; reviews: number;
   image: string | null; description: string | null; in_stock: boolean;
   discount: number | null; featured?: boolean | null;
+  sku?: string | null; stock_quantity?: number | null; low_stock_threshold?: number | null;
 };
 
 function rowToProduct(r: Row): Product {
@@ -66,10 +76,13 @@ function rowToProduct(r: Row): Product {
     inStock: r.in_stock,
     discount: r.discount ?? undefined,
     featured: r.featured ?? false,
+    sku: r.sku ?? null,
+    stockQuantity: r.stock_quantity ?? 0,
+    lowStockThreshold: r.low_stock_threshold ?? 5,
   };
 }
 
-const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured";
+const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold";
 
 export async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
@@ -87,4 +100,28 @@ export async function fetchProduct(slug: string): Promise<Product | null> {
     .eq("slug", slug)
     .maybeSingle();
   return data ? rowToProduct(data as Row) : null;
+}
+
+export async function fetchProductImages(slug: string): Promise<ProductImage[]> {
+  const { data } = await supabase
+    .from("product_images")
+    .select("id,url,alt,sort_order")
+    .eq("product_slug", slug)
+    .order("sort_order", { ascending: true });
+  return (data ?? []).map((r: any) => ({
+    id: r.id, url: resolveImage(r.url), alt: r.alt, sortOrder: r.sort_order,
+  }));
+}
+
+export async function fetchProductVariants(slug: string): Promise<ProductVariant[]> {
+  const { data } = await supabase
+    .from("product_variants")
+    .select("id,name,sku,price_override,stock_quantity,sort_order")
+    .eq("product_slug", slug)
+    .order("sort_order", { ascending: true });
+  return (data ?? []).map((r: any) => ({
+    id: r.id, name: r.name, sku: r.sku,
+    priceOverride: r.price_override != null ? Number(r.price_override) : null,
+    stockQuantity: r.stock_quantity, sortOrder: r.sort_order,
+  }));
 }
