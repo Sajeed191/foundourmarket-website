@@ -225,9 +225,9 @@ function AccountPage() {
             <ActionCard to="/account" icon={Package} title="Orders" subtitle="Track & invoices" />
             <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Refunds & RMA" />
             <ActionCard to="/account/notifications" icon={Bell} title="Notifications" subtitle="Inbox & alerts" badge={unread} />
-            <ActionCard to="/auth" icon={Shield} title="Security" subtitle="Password & sessions" />
-            <ActionCard to="/account/notifications" icon={Settings} title="Preferences" subtitle="Email & locale" />
-            <ActionCard to="/" icon={HelpCircle} title="Help center" subtitle="Guides & FAQ" />
+            <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Password & sessions" />
+            <ActionCard to="/account/preferences" icon={Settings} title="Preferences" subtitle="Email & locale" />
+            <ActionCard to="/help" icon={HelpCircle} title="Help center" subtitle="Guides & FAQ" />
           </div>
         </motion.section>
 
