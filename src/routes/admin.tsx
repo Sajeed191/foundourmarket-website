@@ -467,6 +467,59 @@ function AdminPage() {
         />
       )}
 
+      {tab === "subscribers" && (
+        <>
+          <div className="flex justify-between items-center mb-6 gap-3 flex-wrap">
+            <h2 className="text-xl font-medium">Newsletter Subscribers {subscribers && <span className="text-muted-foreground text-sm font-mono">· {subscribers.length}</span>}</h2>
+            <button
+              onClick={exportSubscribersCSV}
+              disabled={!subscribers?.length}
+              className="inline-flex items-center gap-2 border border-border px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold hover:bg-white/5 transition-all disabled:opacity-50"
+            >
+              <Download className="size-3.5" /> Export CSV
+            </button>
+          </div>
+          {subscribers === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
+            subscribers.length === 0 ? <p className="text-sm text-muted-foreground">No subscribers yet.</p> :
+            <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+              <table className="w-full text-sm min-w-[640px]">
+                <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
+                  <tr>
+                    <th className="text-left px-5 py-3">Email</th>
+                    <th className="text-left px-5 py-3">Source</th>
+                    <th className="text-left px-5 py-3">Status</th>
+                    <th className="text-left px-5 py-3">Subscribed</th>
+                    <th className="px-5 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subscribers.map((s) => (
+                    <tr key={s.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="size-9 rounded-lg bg-background border border-border grid place-items-center"><Mail className="size-4 text-muted-foreground" /></div>
+                          <p className="text-xs">{s.email}</p>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{s.source ?? "—"}</td>
+                      <td className="px-5 py-3 text-[11px] font-mono uppercase tracking-widest">
+                        <span className={s.status === "subscribed" ? "text-accent" : "text-muted-foreground"}>{s.status}</span>
+                      </td>
+                      <td className="px-5 py-3 text-[11px] font-mono text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</td>
+                      <td className="px-5 py-3 text-right">
+                        <button onClick={() => deleteSubscriber(s.id)} className="size-8 grid place-items-center rounded-full hover:bg-white/5 hover:text-accent transition-colors" aria-label="Delete"><Trash2 className="size-3.5" /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          }
+        </>
+      )}
+
+
+
       {editingPromo && (
         <PromoEditor
           row={editingPromo === "new" ? null : editingPromo}
