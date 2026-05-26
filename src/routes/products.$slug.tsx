@@ -10,7 +10,7 @@ import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { RelatedProducts } from "@/components/site/RelatedProducts";
-import { RecentlyViewed } from "@/components/site/RecentlyViewed";
+
 import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
 import { useCompare } from "@/hooks/use-compare";
