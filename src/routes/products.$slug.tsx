@@ -39,8 +39,16 @@ function ProductPage() {
   const [activeImg, setActiveImg] = useState(0);
   const [variantId, setVariantId] = useState<string | null>(null);
 
+  const [fbtSlugs, setFbtSlugs] = useState<string[]>([]);
+  const [alsoViewed, setAlsoViewed] = useState<string[]>([]);
+
   useEffect(() => {
-    if (product) record(product.slug);
+    if (product) {
+      record(product.slug);
+      recordEvent({ type: "view", productSlug: product.slug, category: product.category });
+      fetchFBT(product.slug, 4).then(setFbtSlugs);
+      fetchAlsoViewed(product.slug, 6).then(setAlsoViewed);
+    }
   }, [product?.slug, record]);
 
   useEffect(() => {
