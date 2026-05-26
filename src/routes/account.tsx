@@ -239,13 +239,14 @@ function AccountPage() {
             >
               {wishlistProducts.length === 0 ? (
                 <EmptyState
+                  icon={Heart}
                   title="Nothing saved yet"
-                  body="Tap the heart on any product to keep it here for later."
+                  body="Tap the heart on any product to save it."
                   extra={
                     recommended.length > 0 ? (
-                      <div className="mt-6 w-full">
-                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3 text-left">You might love</p>
-                        <ProductScroller items={recommended.slice(0, 6)} />
+                      <div className="mt-5 w-full">
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2.5 text-left">You might love</p>
+                        <MiniProductRow items={recommended.slice(0, 6)} format={format} />
                       </div>
                     ) : null
                   }
