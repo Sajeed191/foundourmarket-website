@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          full_name: string
+          id: string
+          is_default_billing: boolean
+          is_default_shipping: boolean
+          label: string | null
+          line1: string
+          line2: string | null
+          phone: string | null
+          postal: string
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          full_name: string
+          id?: string
+          is_default_billing?: boolean
+          is_default_shipping?: boolean
+          label?: string | null
+          line1: string
+          line2?: string | null
+          phone?: string | null
+          postal: string
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_default_billing?: boolean
+          is_default_shipping?: boolean
+          label?: string | null
+          line1?: string
+          line2?: string | null
+          phone?: string | null
+          postal?: string
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           cart_id: string
@@ -21,6 +75,7 @@ export type Database = {
           id: string
           product_slug: string
           quantity: number
+          saved_for_later: boolean
           updated_at: string
           variant_id: string | null
         }
@@ -30,6 +85,7 @@ export type Database = {
           id?: string
           product_slug: string
           quantity?: number
+          saved_for_later?: boolean
           updated_at?: string
           variant_id?: string | null
         }
@@ -39,6 +95,7 @@ export type Database = {
           id?: string
           product_slug?: string
           quantity?: number
+          saved_for_later?: boolean
           updated_at?: string
           variant_id?: string | null
         }
@@ -191,6 +248,8 @@ export type Database = {
           currency: string
           discount: number
           id: string
+          payment_method: string | null
+          payment_status: string
           promo_code: string | null
           shipping: number
           shipping_address: Json | null
@@ -207,6 +266,8 @@ export type Database = {
           currency?: string
           discount?: number
           id?: string
+          payment_method?: string | null
+          payment_status?: string
           promo_code?: string | null
           shipping?: number
           shipping_address?: Json | null
@@ -223,6 +284,8 @@ export type Database = {
           currency?: string
           discount?: number
           id?: string
+          payment_method?: string | null
+          payment_status?: string
           promo_code?: string | null
           shipping?: number
           shipping_address?: Json | null
@@ -231,6 +294,48 @@ export type Database = {
           tax?: number
           total?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          demo: boolean
+          id: string
+          meta: Json | null
+          method: string
+          order_id: string
+          status: string
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          demo?: boolean
+          id?: string
+          meta?: Json | null
+          method: string
+          order_id: string
+          status: string
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          demo?: boolean
+          id?: string
+          meta?: Json | null
+          method?: string
+          order_id?: string
+          status?: string
+          transaction_id?: string
           user_id?: string
         }
         Relationships: []

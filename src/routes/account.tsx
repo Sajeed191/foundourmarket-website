@@ -56,9 +56,14 @@ function AccountPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-2">{user.email}</p>
         </div>
-        <button onClick={signOut} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
-          <LogOut className="size-3.5" /> Sign out
-        </button>
+        <div className="flex items-center gap-2">
+          <Link to="/account/addresses" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
+            <Package className="size-3.5" /> Addresses
+          </Link>
+          <button onClick={signOut} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
+            <LogOut className="size-3.5" /> Sign out
+          </button>
+        </div>
       </div>
 
       <section>
