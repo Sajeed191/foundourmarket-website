@@ -168,6 +168,51 @@ function OrderDetailPage() {
           {order.contact_email && <p className="text-xs text-muted-foreground font-mono mt-3">{order.contact_email}</p>}
         </div>
       )}
+
+      {shipments.length > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 mt-6">
+          <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4 flex items-center gap-2">
+            <Truck className="size-3.5" /> Tracking
+          </h3>
+          {shipments.map((s) => (
+            <div key={s.id} className="mb-5 last:mb-0">
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                <p className="text-sm">
+                  {s.carrier ?? "Shipment"}{s.tracking_number ? <span className="font-mono text-muted-foreground"> · {s.tracking_number}</span> : null}
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-accent bg-accent/10 px-2 py-1 rounded-full">{s.status.replace(/_/g, " ")}</span>
+                  {s.tracking_url && (
+                    <a href={s.tracking_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-accent hover:underline">
+                      Track <ExternalLink className="size-3" />
+                    </a>
+                  )}
+                </div>
+              </div>
+              {s.shipment_events.length > 0 && (
+                <ol className="relative border-l border-border/60 pl-4 space-y-3">
+                  {[...s.shipment_events].sort((a, b) => +new Date(b.occurred_at) - +new Date(a.occurred_at)).map((e) => (
+                    <li key={e.id} className="relative">
+                      <span className="absolute -left-[21px] top-1 size-2 rounded-full bg-accent" />
+                      <p className="text-xs font-medium">{e.description ?? e.status.replace(/_/g, " ")}</p>
+                      <p className="text-[10px] font-mono text-muted-foreground">{new Date(e.occurred_at).toLocaleString()}{e.location ? ` · ${e.location}` : ""}</p>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(order.status === "delivered" || shipments.some((s) => s.status === "delivered")) && (
+        <div className="mt-6">
+          <Link to="/account/returns" search={{ order: order.id }}
+            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
+            <RotateCcw className="size-3.5" /> Request return
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
