@@ -212,7 +212,7 @@ function AccountPage() {
             <OverviewCard icon={ShoppingBag} label="Cart items" value={cartCount} to="/cart" />
             <OverviewCard icon={Wallet} label="Total saved" value={stats.saved} formatter={format} loading={!orders} />
             <OverviewCard icon={Eye} label="Recently viewed" value={recentSlugs.length} />
-            <OverviewCard icon={Gift} label="Reward points" value={Math.round(stats.spent)} hint="preview" />
+            
           </div>
         </motion.section>
 
