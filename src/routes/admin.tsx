@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, ShieldAlert, TrendingUp, ShoppingBag, Users, Package, Plus, Pencil, Trash2, X, Upload, Tag } from "lucide-react";
+import { Loader2, ShieldAlert, TrendingUp, ShoppingBag, Users, Package, Plus, Pencil, Trash2, X, Upload, Tag, Ticket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { invalidateProducts } from "@/lib/use-products";
@@ -26,8 +26,14 @@ type ProductRow = {
   discount: number | null; sort_order: number; featured: boolean;
 };
 
+type PromoRow = {
+  id: string; code: string; kind: "percent" | "fixed"; value: number | string;
+  active: boolean; max_uses: number | null; uses: number;
+  min_subtotal: number | string; expires_at: string | null;
+};
+
 const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
-type Tab = "overview" | "orders" | "customers" | "products" | "categories";
+type Tab = "overview" | "orders" | "customers" | "products" | "categories" | "promos";
 
 function AdminPage() {
   const { user, loading } = useAuth();
@@ -40,6 +46,8 @@ function AdminPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [editing, setEditing] = useState<ProductRow | "new" | null>(null);
   const [editingCat, setEditingCat] = useState<Category | "new" | null>(null);
+  const [promos, setPromos] = useState<PromoRow[] | null>(null);
+  const [editingPromo, setEditingPromo] = useState<PromoRow | "new" | null>(null);
 
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
@@ -58,11 +66,17 @@ function AdminPage() {
       .then(({ data }) => setOrders((data as Order[]) ?? []));
     loadProducts();
     loadCategories();
+    loadPromos();
   }, [isAdmin]);
 
   async function loadProducts() {
     const { data } = await supabase.from("products").select("*").order("sort_order", { ascending: true });
     setProducts((data as ProductRow[]) ?? []);
+  }
+
+  async function loadPromos() {
+    const { data } = await supabase.from("promo_codes").select("*").order("created_at", { ascending: false });
+    setPromos((data as PromoRow[]) ?? []);
   }
 
   async function loadCategories() {
@@ -89,6 +103,12 @@ function AdminPage() {
     await supabase.from("categories").delete().eq("id", id);
     await loadCategories();
     invalidateCategories();
+  }
+
+  async function deletePromo(id: string) {
+    if (!confirm("Delete this promo code?")) return;
+    await supabase.from("promo_codes").delete().eq("id", id);
+    await loadPromos();
   }
 
 
@@ -140,7 +160,7 @@ function AdminPage() {
       </div>
 
       <div className="flex gap-1 mb-10 border-b border-border overflow-x-auto">
-        {(["overview", "orders", "products", "categories", "customers"] as Tab[]).map((t) => (
+        {(["overview", "orders", "products", "categories", "promos", "customers"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-5 py-3 text-xs uppercase tracking-widest font-mono transition-colors border-b-2 -mb-px whitespace-nowrap ${tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             {t}
@@ -342,6 +362,60 @@ function AdminPage() {
         </>
       )}
 
+      {tab === "promos" && (
+        <>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-medium">Promo Codes</h2>
+            <button onClick={() => setEditingPromo("new")} className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold hover:brightness-110 transition-all">
+              <Plus className="size-3.5" /> New Code
+            </button>
+          </div>
+          {promos === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
+            promos.length === 0 ? <p className="text-sm text-muted-foreground">No promo codes yet.</p> :
+            <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+              <table className="w-full text-sm min-w-[760px]">
+                <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
+                  <tr>
+                    <th className="text-left px-5 py-3">Code</th>
+                    <th className="text-left px-5 py-3">Discount</th>
+                    <th className="text-right px-5 py-3">Min Subtotal</th>
+                    <th className="text-right px-5 py-3">Uses</th>
+                    <th className="text-left px-5 py-3">Expires</th>
+                    <th className="text-left px-5 py-3">Status</th>
+                    <th className="px-5 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {promos.map((p) => (
+                    <tr key={p.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="size-9 rounded-lg bg-background border border-border grid place-items-center"><Ticket className="size-4 text-muted-foreground" /></div>
+                          <p className="font-mono uppercase tracking-widest text-xs">{p.code}</p>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-xs">{p.kind === "percent" ? `${Number(p.value)}%` : `$${Number(p.value).toFixed(2)}`}</td>
+                      <td className="px-5 py-3 text-right font-mono text-xs">${Number(p.min_subtotal).toFixed(2)}</td>
+                      <td className="px-5 py-3 text-right font-mono text-xs">{p.uses}{p.max_uses != null ? ` / ${p.max_uses}` : ""}</td>
+                      <td className="px-5 py-3 text-[11px] font-mono text-muted-foreground">{p.expires_at ? new Date(p.expires_at).toLocaleDateString() : "—"}</td>
+                      <td className="px-5 py-3 text-[11px] font-mono uppercase tracking-widest">
+                        <span className={p.active ? "text-accent" : "text-muted-foreground"}>{p.active ? "Active" : "Inactive"}</span>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button onClick={() => setEditingPromo(p)} className="size-8 grid place-items-center rounded-full hover:bg-white/5 transition-colors" aria-label="Edit"><Pencil className="size-3.5" /></button>
+                          <button onClick={() => deletePromo(p.id)} className="size-8 grid place-items-center rounded-full hover:bg-white/5 hover:text-accent transition-colors" aria-label="Delete"><Trash2 className="size-3.5" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          }
+        </>
+      )}
+
       {editing && (
         <ProductEditor
           row={editing === "new" ? null : editing}
@@ -360,6 +434,85 @@ function AdminPage() {
           onSaved={async () => { setEditingCat(null); await loadCategories(); invalidateCategories(); }}
         />
       )}
+
+      {editingPromo && (
+        <PromoEditor
+          row={editingPromo === "new" ? null : editingPromo}
+          onClose={() => setEditingPromo(null)}
+          onSaved={async () => { setEditingPromo(null); await loadPromos(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function PromoEditor({ row, onClose, onSaved }: { row: PromoRow | null; onClose: () => void; onSaved: () => void }) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    code: row?.code ?? "",
+    kind: (row?.kind ?? "percent") as "percent" | "fixed",
+    value: row ? String(row.value) : "10",
+    active: row?.active ?? true,
+    min_subtotal: row ? String(row.min_subtotal) : "0",
+    max_uses: row?.max_uses != null ? String(row.max_uses) : "",
+    expires_at: row?.expires_at ? row.expires_at.slice(0, 10) : "",
+  });
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true); setError(null);
+    const payload = {
+      code: form.code.trim().toUpperCase(),
+      kind: form.kind,
+      value: Number(form.value) || 0,
+      active: form.active,
+      min_subtotal: Number(form.min_subtotal) || 0,
+      max_uses: form.max_uses ? Number(form.max_uses) : null,
+      expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
+    };
+    const { error } = row
+      ? await supabase.from("promo_codes").update(payload).eq("id", row.id)
+      : await supabase.from("promo_codes").insert(payload);
+    setSaving(false);
+    if (error) { setError(error.message); return; }
+    onSaved();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-card border border-border rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-display">{row ? "Edit Promo Code" : "New Promo Code"}</h2>
+          <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Code" required value={form.code} onChange={(v) => setForm({ ...form, code: v.toUpperCase() })} />
+          <div>
+            <label className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Kind</label>
+            <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as "percent" | "fixed" })}
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
+              <option value="percent">Percent off</option>
+              <option value="fixed">Fixed amount (USD)</option>
+            </select>
+          </div>
+          <Field label={form.kind === "percent" ? "Value (%)" : "Value (USD)"} type="number" required value={form.value} onChange={(v) => setForm({ ...form, value: v })} />
+          <Field label="Min Subtotal (USD)" type="number" value={form.min_subtotal} onChange={(v) => setForm({ ...form, min_subtotal: v })} />
+          <Field label="Max Uses (blank = ∞)" type="number" value={form.max_uses} onChange={(v) => setForm({ ...form, max_uses: v })} />
+          <Field label="Expires" type="date" value={form.expires_at} onChange={(v) => setForm({ ...form, expires_at: v })} />
+          <label className="flex items-center gap-2 text-sm col-span-2">
+            <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} className="accent-[var(--accent)]" />
+            Active
+          </label>
+        </div>
+        {error && <p className="text-xs text-red-400 mt-4">{error}</p>}
+        <div className="flex justify-end gap-2 mt-6">
+          <button type="button" onClick={onClose} className="px-5 py-2 rounded-full text-xs uppercase tracking-widest border border-border hover:bg-white/5">Cancel</button>
+          <button type="submit" disabled={saving} className="px-5 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground hover:brightness-110 disabled:opacity-50">
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

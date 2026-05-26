@@ -96,7 +96,9 @@ export type Database = {
           contact_email: string | null
           created_at: string
           currency: string
+          discount: number
           id: string
+          promo_code: string | null
           shipping: number
           shipping_address: Json | null
           status: string
@@ -110,7 +112,9 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           currency?: string
+          discount?: number
           id?: string
+          promo_code?: string | null
           shipping?: number
           shipping_address?: Json | null
           status?: string
@@ -124,7 +128,9 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           currency?: string
+          discount?: number
           id?: string
+          promo_code?: string | null
           shipping?: number
           shipping_address?: Json | null
           status?: string
@@ -253,6 +259,48 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      promo_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          kind: string
+          max_uses: number | null
+          min_subtotal: number
+          updated_at: string
+          uses: number
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind: string
+          max_uses?: number | null
+          min_subtotal?: number
+          updated_at?: string
+          uses?: number
+          value: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          max_uses?: number | null
+          min_subtotal?: number
+          updated_at?: string
+          uses?: number
+          value?: number
         }
         Relationships: []
       }
