@@ -160,7 +160,7 @@ function AdminPage() {
       </div>
 
       <div className="flex gap-1 mb-10 border-b border-border overflow-x-auto">
-        {(["overview", "orders", "products", "categories", "customers"] as Tab[]).map((t) => (
+        {(["overview", "orders", "products", "categories", "promos", "customers"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-5 py-3 text-xs uppercase tracking-widest font-mono transition-colors border-b-2 -mb-px whitespace-nowrap ${tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             {t}
