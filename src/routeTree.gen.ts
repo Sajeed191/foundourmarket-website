@@ -45,6 +45,7 @@ import { Route as AccountProfileRouteImport } from './routes/account_.profile'
 import { Route as AccountSecurityRouteImport } from './routes/account.security'
 import { Route as AccountReturnsRouteImport } from './routes/account.returns'
 import { Route as AccountPreferencesRouteImport } from './routes/account.preferences'
+import { Route as AccountOrdersRouteImport } from './routes/account.orders'
 import { Route as AccountNotificationsRouteImport } from './routes/account.notifications'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
 
@@ -228,6 +229,11 @@ const AccountPreferencesRoute = AccountPreferencesRouteImport.update({
   path: '/preferences',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountOrdersRoute = AccountOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountNotificationsRoute = AccountNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -269,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/orders': typeof AccountOrdersRoute
   '/account/preferences': typeof AccountPreferencesRoute
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/orders': typeof AccountOrdersRoute
   '/account/preferences': typeof AccountPreferencesRoute
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
@@ -350,6 +358,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/notifications': typeof AccountNotificationsRoute
+  '/account/orders': typeof AccountOrdersRoute
   '/account/preferences': typeof AccountPreferencesRoute
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
@@ -392,6 +401,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
+    | '/account/orders'
     | '/account/preferences'
     | '/account/returns'
     | '/account/security'
@@ -432,6 +442,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
+    | '/account/orders'
     | '/account/preferences'
     | '/account/returns'
     | '/account/security'
@@ -472,6 +483,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/account/addresses'
     | '/account/notifications'
+    | '/account/orders'
     | '/account/preferences'
     | '/account/returns'
     | '/account/security'
@@ -772,6 +784,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountPreferencesRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/orders': {
+      id: '/account/orders'
+      path: '/orders'
+      fullPath: '/account/orders'
+      preLoaderRoute: typeof AccountOrdersRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/notifications': {
       id: '/account/notifications'
       path: '/notifications'
@@ -792,6 +811,7 @@ declare module '@tanstack/react-router' {
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
   AccountNotificationsRoute: typeof AccountNotificationsRoute
+  AccountOrdersRoute: typeof AccountOrdersRoute
   AccountPreferencesRoute: typeof AccountPreferencesRoute
   AccountReturnsRoute: typeof AccountReturnsRoute
   AccountSecurityRoute: typeof AccountSecurityRoute
@@ -800,6 +820,7 @@ interface AccountRouteChildren {
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
   AccountNotificationsRoute: AccountNotificationsRoute,
+  AccountOrdersRoute: AccountOrdersRoute,
   AccountPreferencesRoute: AccountPreferencesRoute,
   AccountReturnsRoute: AccountReturnsRoute,
   AccountSecurityRoute: AccountSecurityRoute,
