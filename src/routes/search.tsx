@@ -16,7 +16,7 @@ export const Route = createFileRoute("/search")({
     max: typeof s.max === "number" ? s.max : s.max ? Number(s.max) : undefined,
     stock: typeof s.stock === "string" ? s.stock : undefined,
   }),
-  head: ({ search }) => ({
+  head: ({ search }: { search: SearchParams }) => ({
     meta: [{ title: `${search.q ? `"${search.q}" — ` : ""}Search — FoundOurMarket™` }],
   }),
   component: SearchPage,
@@ -57,7 +57,7 @@ function SearchPage() {
   }, [products, search]);
 
   function update(patch: Partial<SearchParams>) {
-    nav({ search: (prev) => ({ ...prev, ...patch }), replace: true });
+    nav({ search: (prev: SearchParams) => ({ ...prev, ...patch }), replace: true });
   }
 
   const activeFilterCount = [search.cat, search.stock, search.min, search.max].filter(Boolean).length;

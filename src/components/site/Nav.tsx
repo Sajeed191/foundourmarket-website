@@ -22,9 +22,9 @@ export function Nav() {
           <Link to="/category/$slug" params={{ slug: "home" }} className="hover:text-foreground transition-colors">Home</Link>
         </div>
         <div className="flex items-center gap-3">
-          <button aria-label="Search" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
+          <Link to="/search" aria-label="Search" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
             <Search className="size-4" />
-          </button>
+          </Link>
           <button
             onClick={() => setRegion(region === "IN" ? "INTL" : "IN")}
             className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-full border border-border"
