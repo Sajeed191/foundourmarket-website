@@ -5,6 +5,7 @@ import { useCategories } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 
 import { ProductCard } from "@/components/site/ProductCard";
+import { NewsletterForm } from "@/components/site/NewsletterForm";
 
 export const Route = createFileRoute("/")({
   head: () => ({
