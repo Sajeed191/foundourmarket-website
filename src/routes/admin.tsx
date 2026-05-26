@@ -434,6 +434,85 @@ function AdminPage() {
           onSaved={async () => { setEditingCat(null); await loadCategories(); invalidateCategories(); }}
         />
       )}
+
+      {editingPromo && (
+        <PromoEditor
+          row={editingPromo === "new" ? null : editingPromo}
+          onClose={() => setEditingPromo(null)}
+          onSaved={async () => { setEditingPromo(null); await loadPromos(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function PromoEditor({ row, onClose, onSaved }: { row: PromoRow | null; onClose: () => void; onSaved: () => void }) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    code: row?.code ?? "",
+    kind: (row?.kind ?? "percent") as "percent" | "fixed",
+    value: row ? String(row.value) : "10",
+    active: row?.active ?? true,
+    min_subtotal: row ? String(row.min_subtotal) : "0",
+    max_uses: row?.max_uses != null ? String(row.max_uses) : "",
+    expires_at: row?.expires_at ? row.expires_at.slice(0, 10) : "",
+  });
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true); setError(null);
+    const payload = {
+      code: form.code.trim().toUpperCase(),
+      kind: form.kind,
+      value: Number(form.value) || 0,
+      active: form.active,
+      min_subtotal: Number(form.min_subtotal) || 0,
+      max_uses: form.max_uses ? Number(form.max_uses) : null,
+      expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
+    };
+    const { error } = row
+      ? await supabase.from("promo_codes").update(payload).eq("id", row.id)
+      : await supabase.from("promo_codes").insert(payload);
+    setSaving(false);
+    if (error) { setError(error.message); return; }
+    onSaved();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-card border border-border rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-display">{row ? "Edit Promo Code" : "New Promo Code"}</h2>
+          <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Code" required value={form.code} onChange={(v) => setForm({ ...form, code: v.toUpperCase() })} />
+          <div>
+            <label className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Kind</label>
+            <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as "percent" | "fixed" })}
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
+              <option value="percent">Percent off</option>
+              <option value="fixed">Fixed amount (USD)</option>
+            </select>
+          </div>
+          <Field label={form.kind === "percent" ? "Value (%)" : "Value (USD)"} type="number" required value={form.value} onChange={(v) => setForm({ ...form, value: v })} />
+          <Field label="Min Subtotal (USD)" type="number" value={form.min_subtotal} onChange={(v) => setForm({ ...form, min_subtotal: v })} />
+          <Field label="Max Uses (blank = ∞)" type="number" value={form.max_uses} onChange={(v) => setForm({ ...form, max_uses: v })} />
+          <Field label="Expires" type="date" value={form.expires_at} onChange={(v) => setForm({ ...form, expires_at: v })} />
+          <label className="flex items-center gap-2 text-sm col-span-2">
+            <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} className="accent-[var(--accent)]" />
+            Active
+          </label>
+        </div>
+        {error && <p className="text-xs text-red-400 mt-4">{error}</p>}
+        <div className="flex justify-end gap-2 mt-6">
+          <button type="button" onClick={onClose} className="px-5 py-2 rounded-full text-xs uppercase tracking-widest border border-border hover:bg-white/5">Cancel</button>
+          <button type="submit" disabled={saving} className="px-5 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground hover:brightness-110 disabled:opacity-50">
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
