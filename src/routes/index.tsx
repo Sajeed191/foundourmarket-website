@@ -316,20 +316,6 @@ function Home() {
               </div>
             </Link>
           </Reveal>
-          <Reveal delay={1}>
-            <Link to="/category/$slug" params={{ slug: "fashion" }} className="group relative block rounded-3xl overflow-hidden border border-border bg-card aspect-[4/5] sm:aspect-[5/6] md:aspect-[4/5]">
-              <div className="absolute inset-0 bg-gradient-to-br from-foreground/10 via-transparent to-accent/10" />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-              <div className="relative h-full flex flex-col justify-end p-6 sm:p-10">
-                <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Collection 02</p>
-                <h3 className="text-3xl sm:text-4xl md:text-5xl font-display tracking-tight mb-3">Quiet Luxury<br/>For Every Day</h3>
-                <p className="text-sm text-muted-foreground max-w-sm mb-5">Fashion and accessories chosen for craft, material and longevity.</p>
-                <span className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-accent group-hover:gap-3 transition-all">
-                  Browse the drop <ArrowRight className="size-3.5" />
-                </span>
-              </div>
-            </Link>
-          </Reveal>
         </div>
       </section>
 
