@@ -211,19 +211,21 @@ function AccountPage() {
                 <SkeletonRows />
               ) : orders.length === 0 ? (
                 <EmptyState
+                  icon={Package}
                   title="No orders yet"
-                  body="Your premium finds will appear here. Start exploring our curated picks."
+                  body="Discover curated premium products."
                   cta={<Link to="/" className="cta-primary">Start shopping <ArrowRight className="size-3.5" /></Link>}
                   extra={
                     trending.length > 0 ? (
-                      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
-                        {trending.slice(0, 3).map((p) => <ProductCard key={p.slug} product={p} />)}
+                      <div className="mt-5 w-full">
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2.5 text-left">Trending now</p>
+                        <MiniProductRow items={trending.slice(0, 6)} format={format} />
                       </div>
                     ) : null
                   }
                 />
               ) : (
-                <div className="space-y-3" id="orders">
+                <div className="space-y-2.5" id="orders">
                   {orders.slice(0, 4).map((o) => <OrderRow key={o.id} o={o} format={format} />)}
                 </div>
               )}
