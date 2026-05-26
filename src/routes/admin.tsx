@@ -200,6 +200,9 @@ function AdminPage() {
           <Link to="/admin-returns" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-4 py-2 hover:border-accent/40">
             <RotateCcw className="size-3.5" /> Returns
           </Link>
+          <Link to="/admin-cms" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-4 py-2 hover:border-accent/40">
+            <Pencil className="size-3.5" /> Content
+          </Link>
         </div>
       </div>
 

@@ -27,9 +27,10 @@ export function Footer() {
           <h5 className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">Support</h5>
           <ul className="text-xs space-y-2 text-muted-foreground">
             <li><Link to="/track" className="hover:text-foreground transition-colors">Track Order</Link></li>
-            <li className="hover:text-foreground transition-colors cursor-pointer">Shipping Policy</li>
-            <li className="hover:text-foreground transition-colors cursor-pointer">Returns</li>
-            <li className="hover:text-foreground transition-colors cursor-pointer">Contact</li>
+            <li><Link to="/pages/$slug" params={{ slug: "shipping" }} className="hover:text-foreground transition-colors">Shipping Policy</Link></li>
+            <li><Link to="/pages/$slug" params={{ slug: "returns" }} className="hover:text-foreground transition-colors">Returns</Link></li>
+            <li><Link to="/pages/$slug" params={{ slug: "about" }} className="hover:text-foreground transition-colors">About</Link></li>
+            <li><Link to="/blog" className="hover:text-foreground transition-colors">Journal</Link></li>
           </ul>
         </div>
         <div className="space-y-4">
@@ -50,9 +51,9 @@ export function Footer() {
       <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between gap-4">
         <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">© 2026 FoundOurMarket. All rights reserved.</p>
         <div className="flex gap-6 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-          <span className="hover:text-foreground cursor-pointer">Privacy</span>
-          <span className="hover:text-foreground cursor-pointer">Terms</span>
-          <span className="hover:text-foreground cursor-pointer">Refunds</span>
+          <Link to="/pages/$slug" params={{ slug: "privacy" }} className="hover:text-foreground">Privacy</Link>
+          <Link to="/pages/$slug" params={{ slug: "terms" }} className="hover:text-foreground">Terms</Link>
+          <Link to="/pages/$slug" params={{ slug: "returns" }} className="hover:text-foreground">Refunds</Link>
         </div>
       </div>
     </footer>
