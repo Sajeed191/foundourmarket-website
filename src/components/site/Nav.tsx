@@ -64,9 +64,9 @@ export function Nav() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-3">
-            <Link to="/search" aria-label="Search" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
+            <button onClick={() => setSearchOpen(true)} aria-label="Search" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
               <Search className="size-4" />
-            </Link>
+            </button>
             <button
               onClick={() => setRegion(region === "IN" ? "INTL" : "IN")}
               className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-full border border-border"
