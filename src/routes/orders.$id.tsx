@@ -144,50 +144,79 @@ function OrderDetailPage() {
         )}
       </motion.div>
 
-      <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 mb-6">
-        <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4">Items</h3>
-        <ul className="space-y-3">
-          {order.order_items.map((it) => (
-            <li key={it.id} className="flex items-center gap-3">
-              {it.image && <img src={it.image} alt="" className="size-14 rounded-lg object-cover border border-border" />}
-              <div className="flex-1 min-w-0">
-                <Link to="/products/$slug" params={{ slug: it.product_slug }} className="text-sm font-medium truncate hover:text-accent block">{it.name}</Link>
-                <p className="text-xs text-muted-foreground font-mono">Qty {it.quantity} · {format(Number(it.unit_price))} ea</p>
-              </div>
-              <p className="font-mono text-sm">{format(Number(it.line_total))}</p>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-5 pt-5 border-t border-border space-y-1.5 text-sm">
-          <Row label="Subtotal" value={format(Number(order.subtotal))} />
-          {Number(order.discount) > 0 && <Row label={`Discount${order.promo_code ? ` (${order.promo_code})` : ""}`} value={`− ${format(Number(order.discount))}`} />}
-          <Row label="Shipping" value={format(Number(order.shipping))} />
-          <Row label="Tax" value={format(Number(order.tax))} />
-          <div className="flex justify-between pt-2 border-t border-border font-bold">
-            <span>Total</span>
-            <span className="font-mono text-accent">{format(Number(order.total))}</span>
+      <div className="grid lg:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="lg:col-span-2 bg-card border border-border rounded-2xl p-5 sm:p-6"
+        >
+          <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4">Items</h3>
+          <ul className="space-y-3">
+            {order.order_items.map((it) => (
+              <li key={it.id} className="flex items-center gap-3">
+                {it.image && <img src={it.image} alt="" className="size-14 rounded-lg object-cover border border-border" loading="lazy" />}
+                <div className="flex-1 min-w-0">
+                  <Link to="/products/$slug" params={{ slug: it.product_slug }} className="text-sm font-medium truncate hover:text-accent block">{it.name}</Link>
+                  <p className="text-xs text-muted-foreground font-mono">Qty {it.quantity} · {format(Number(it.unit_price))} ea</p>
+                </div>
+                <p className="font-mono text-sm whitespace-nowrap">{format(Number(it.line_total))}</p>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-5 pt-5 border-t border-border space-y-1.5 text-sm">
+            <Row label="Subtotal" value={format(Number(order.subtotal))} />
+            {Number(order.discount) > 0 && <Row label={`Discount${order.promo_code ? ` (${order.promo_code})` : ""}`} value={`− ${format(Number(order.discount))}`} />}
+            <Row label="Shipping" value={format(Number(order.shipping))} />
+            <Row label="Tax" value={format(Number(order.tax))} />
+            <div className="flex justify-between pt-2 border-t border-border font-bold text-base">
+              <span>Total</span>
+              <span className="font-mono text-accent">{format(Number(order.total))}</span>
+            </div>
           </div>
+        </motion.div>
+
+        <div className="space-y-6">
+          {addr && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className="bg-card border border-border rounded-2xl p-5 sm:p-6"
+            >
+              <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4 flex items-center gap-2">
+                <MapPin className="size-3.5" /> Shipping Address
+              </h3>
+              <div className="text-sm space-y-0.5">
+                {addr.name && <p className="font-medium">{addr.name}</p>}
+                {addr.line1 && <p>{addr.line1}</p>}
+                {addr.line2 && <p>{addr.line2}</p>}
+                <p>{[addr.city, addr.region, addr.postal_code].filter(Boolean).join(", ")}</p>
+                {addr.country && <p>{addr.country}</p>}
+              </div>
+              {order.contact_email && <p className="text-xs text-muted-foreground font-mono mt-3 break-all">{order.contact_email}</p>}
+            </motion.div>
+          )}
+
+          {(order.status === "delivered" || shipments.some((s) => s.status === "delivered")) && (
+            <Link
+              to="/account/returns"
+              search={{ order: order.id }}
+              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-3 hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              <RotateCcw className="size-3.5" /> Request return
+            </Link>
+          )}
         </div>
       </div>
 
-      {addr && (
-        <div className="bg-card border border-border rounded-2xl p-5 sm:p-6">
-          <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4 flex items-center gap-2">
-            <MapPin className="size-3.5" /> Shipping Address
-          </h3>
-          <div className="text-sm space-y-0.5">
-            {addr.name && <p className="font-medium">{addr.name}</p>}
-            {addr.line1 && <p>{addr.line1}</p>}
-            {addr.line2 && <p>{addr.line2}</p>}
-            <p>{[addr.city, addr.region, addr.postal_code].filter(Boolean).join(", ")}</p>
-            {addr.country && <p>{addr.country}</p>}
-          </div>
-          {order.contact_email && <p className="text-xs text-muted-foreground font-mono mt-3">{order.contact_email}</p>}
-        </div>
-      )}
-
       {shipments.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 mt-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-card border border-border rounded-2xl p-5 sm:p-6 mt-6"
+        >
           <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4 flex items-center gap-2">
             <Truck className="size-3.5" /> Tracking
           </h3>
@@ -219,16 +248,7 @@ function OrderDetailPage() {
               )}
             </div>
           ))}
-        </div>
-      )}
-
-      {(order.status === "delivered" || shipments.some((s) => s.status === "delivered")) && (
-        <div className="mt-6">
-          <Link to="/account/returns" search={{ order: order.id }}
-            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
-            <RotateCcw className="size-3.5" /> Request return
-          </Link>
-        </div>
+        </motion.div>
       )}
     </div>
   );
