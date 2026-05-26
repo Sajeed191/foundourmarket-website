@@ -52,6 +52,7 @@ function AdminPage() {
   const [editingCat, setEditingCat] = useState<Category | "new" | null>(null);
   const [promos, setPromos] = useState<PromoRow[] | null>(null);
   const [editingPromo, setEditingPromo] = useState<PromoRow | "new" | null>(null);
+  const [subscribers, setSubscribers] = useState<Subscriber[] | null>(null);
 
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
