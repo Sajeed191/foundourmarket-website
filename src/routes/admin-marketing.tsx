@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2, ChevronLeft, ChevronRight, Rocket, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2, ChevronLeft, ChevronRight, Rocket, AlertCircle, CheckCircle2, Upload, History, Image as ImageIcon } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { PublishConfirm } from "@/components/admin/PublishConfirm";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,13 +16,37 @@ type Banner = {
   link: string | null; cta_text: string | null; active: boolean;
   starts_at: string | null; ends_at: string | null; sort_order: number;
   draft_data: any; has_draft: boolean; last_published_at: string | null;
+  width_px: number | null; height_px: number | null;
 };
 type Flash = {
   id: string; name: string; discount_percent: number; starts_at: string; ends_at: string | null;
   active: boolean; product_slugs: string[];
 };
+type ActivityLog = {
+  id: number; action: string; entity_type: string | null; entity_id: string | null;
+  actor_id: string | null; created_at: string; metadata: any;
+};
 
-const BANNER_FIELDS = ["type","title","subtitle","image","link","cta_text","active","starts_at","ends_at","sort_order"] as const;
+const BANNER_SIZE_PRESETS: { label: string; w: number; h: number; note: string }[] = [
+  { label: "Hero — Wide", w: 1920, h: 720, note: "Desktop hero" },
+  { label: "Hero — Standard", w: 1600, h: 600, note: "Default hero" },
+  { label: "Hero — Compact", w: 1440, h: 480, note: "Mid hero" },
+  { label: "Announcement bar", w: 1920, h: 64, note: "Slim top bar" },
+  { label: "Promo card", w: 1200, h: 600, note: "Promo block" },
+  { label: "Offer tile — Square", w: 1080, h: 1080, note: "Square tile" },
+  { label: "Mobile banner", w: 750, h: 1000, note: "Mobile portrait" },
+];
+
+const ACTION_LABELS: Record<string, string> = {
+  banner_publish: "Published banner",
+  banner_draft_create: "Created banner draft",
+  banner_draft_update: "Updated banner draft",
+  banner_delete: "Deleted banner",
+  banner_reorder: "Reordered banners",
+  flash_create: "Created flash sale",
+  flash_update: "Updated flash sale",
+  flash_delete: "Deleted flash sale",
+};
 
 function MarketingPage() {
   const [tab, setTab] = useState<"banners" | "flash">("banners");
@@ -31,15 +55,22 @@ function MarketingPage() {
   const [editingB, setEditingB] = useState<Banner | "new" | null>(null);
   const [editingF, setEditingF] = useState<Flash | "new" | null>(null);
   const [publishing, setPublishing] = useState<Banner | null>(null);
+  const [history, setHistory] = useState<ActivityLog[]>([]);
 
   useEffect(() => { load(); }, []);
   async function load() {
-    const [{ data: b }, { data: f }] = await Promise.all([
+    const [{ data: b }, { data: f }, { data: h }] = await Promise.all([
       supabase.from("banners").select("*").order("sort_order"),
       supabase.from("flash_sales").select("*").order("starts_at", { ascending: false }),
+      supabase.from("admin_activity_logs")
+        .select("*")
+        .in("entity_type", ["banner", "flash_sale"])
+        .order("created_at", { ascending: false })
+        .limit(25),
     ]);
     setBanners((b as Banner[]) ?? []);
     setFlash((f as Flash[]) ?? []);
+    setHistory((h as ActivityLog[]) ?? []);
   }
 
   async function deleteBanner(id: string) {
@@ -197,6 +228,50 @@ function MarketingPage() {
         </>
       )}
 
+      <section className="mt-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-medium flex items-center gap-2">
+            <History className="size-4 text-muted-foreground" /> Publish & update history
+          </h2>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{history.length} events</span>
+        </div>
+        <div className="card-premium rounded-2xl divide-y divide-border/40">
+          {history.length === 0 ? (
+            <p className="text-sm text-muted-foreground px-5 py-8 text-center">No activity yet. Edit a banner or publish a change to see it logged here.</p>
+          ) : history.map((h) => {
+            const isBanner = h.entity_type === "banner";
+            const target = isBanner
+              ? banners?.find((b) => b.id === h.entity_id)
+              : flash?.find((f) => f.id === h.entity_id);
+            const label = ACTION_LABELS[h.action] ?? h.action.replace(/_/g, " ");
+            const tone = h.action.includes("publish") ? "text-emerald-400" : h.action.includes("delete") ? "text-destructive" : "text-accent";
+            return (
+              <div key={h.id} className="flex items-center gap-3 px-5 py-3">
+                <span className={`size-8 grid place-items-center rounded-full bg-white/5 ${tone}`}>
+                  {h.action.includes("publish") ? <Rocket className="size-3.5" /> :
+                   h.action.includes("delete") ? <Trash2 className="size-3.5" /> :
+                   h.action.includes("create") ? <Plus className="size-3.5" /> :
+                   <Pencil className="size-3.5" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium truncate">
+                    <span className={tone}>{label}</span>
+                    <span className="text-muted-foreground"> · {isBanner ? "banner" : "flash sale"}</span>
+                    {target && <span className="text-foreground"> — {(target as any).title ?? (target as any).name}</span>}
+                  </p>
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-0.5">
+                    {new Date(h.created_at).toLocaleString()}
+                    {h.entity_id && <> · #{h.entity_id.slice(0, 8)}</>}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+
+
       {editingB && <BannerEditor row={editingB === "new" ? null : editingB} onClose={() => setEditingB(null)} onSaved={() => { setEditingB(null); load(); }} />}
       {editingF && <FlashEditor row={editingF === "new" ? null : editingF} onClose={() => setEditingF(null)} onSaved={() => { setEditingF(null); load(); }} />}
 
@@ -212,15 +287,32 @@ function MarketingPage() {
 }
 
 function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: () => void; onSaved: () => void }) {
-  // When editing, prefer the staged draft over the live values
   const src: any = row?.draft_data ?? row ?? {};
   const [f, setF] = useState({
     type: src.type ?? "hero", title: src.title ?? "", subtitle: src.subtitle ?? "",
     image: src.image ?? "", link: src.link ?? "", cta_text: src.cta_text ?? "",
     active: src.active ?? true, starts_at: src.starts_at?.slice(0, 10) ?? "",
     ends_at: src.ends_at?.slice(0, 10) ?? "", sort_order: src.sort_order ?? 0,
+    width_px: src.width_px ?? row?.width_px ?? 1600,
+    height_px: src.height_px ?? row?.height_px ?? 600,
   });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(file: File) {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 8 * 1024 * 1024) { toast.error("Max 8MB"); return; }
+    setUploading(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage.from("banners").upload(path, file, { cacheControl: "3600", upsert: false });
+    if (error) { setUploading(false); toast.error(error.message); return; }
+    const { data } = supabase.storage.from("banners").getPublicUrl(path);
+    setF((prev) => ({ ...prev, image: data.publicUrl }));
+    setUploading(false);
+    toast.success("Image uploaded");
+  }
 
   async function saveDraft(e: React.FormEvent) {
     e.preventDefault();
@@ -231,10 +323,11 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
       starts_at: f.starts_at ? new Date(f.starts_at).toISOString() : null,
       ends_at: f.ends_at ? new Date(f.ends_at).toISOString() : null,
       sort_order: Number(f.sort_order),
+      width_px: Number(f.width_px) || null,
+      height_px: Number(f.height_px) || null,
     };
     const { error } = row
-      ? await supabase.from("banners").update({ draft_data: draft, has_draft: true }).eq("id", row.id)
-      // brand-new row: create as inactive draft so it doesn't go live until publish
+      ? await supabase.from("banners").update({ draft_data: draft, has_draft: true, width_px: draft.width_px, height_px: draft.height_px }).eq("id", row.id)
       : await supabase.from("banners").insert({ ...draft, active: false, draft_data: draft, has_draft: true });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -256,7 +349,50 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
           <Field label="Sort"><input type="number" value={f.sort_order} onChange={(e) => setF({ ...f, sort_order: Number(e.target.value) })} className="input" /></Field>
           <Field label="Title" className="col-span-2"><input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} required className="input" /></Field>
           <Field label="Subtitle" className="col-span-2"><input value={f.subtitle ?? ""} onChange={(e) => setF({ ...f, subtitle: e.target.value })} className="input" /></Field>
-          <Field label="Image URL" className="col-span-2"><input value={f.image ?? ""} onChange={(e) => setF({ ...f, image: e.target.value })} className="input" /></Field>
+
+          <Field label="Banner image" className="col-span-2">
+            <div className="flex flex-col gap-2">
+              {f.image && (
+                <div className="relative rounded-xl overflow-hidden border border-border bg-black/40">
+                  <img src={f.image} alt="" className="w-full max-h-40 object-cover" />
+                  <button type="button" onClick={() => setF({ ...f, image: "" })} className="absolute top-2 right-2 size-7 grid place-items-center rounded-full bg-black/70 hover:bg-destructive text-white"><X className="size-3.5" /></button>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => { const file = e.target.files?.[0]; if (file) handleUpload(file); e.target.value = ""; }}
+                />
+                <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-border text-[11px] uppercase tracking-widest font-mono hover:border-accent/40 disabled:opacity-50">
+                  {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+                  {uploading ? "Uploading…" : f.image ? "Replace image" : "Upload image"}
+                </button>
+                <input value={f.image} onChange={(e) => setF({ ...f, image: e.target.value })} placeholder="…or paste image URL" className="input flex-1" />
+              </div>
+            </div>
+          </Field>
+
+          <Field label="Size preset" className="col-span-2">
+            <select
+              value={`${f.width_px}x${f.height_px}`}
+              onChange={(e) => {
+                const preset = BANNER_SIZE_PRESETS.find((p) => `${p.w}x${p.h}` === e.target.value);
+                if (preset) setF({ ...f, width_px: preset.w, height_px: preset.h });
+              }}
+              className="input"
+            >
+              <option value="custom">Custom…</option>
+              {BANNER_SIZE_PRESETS.map((p) => (
+                <option key={p.label} value={`${p.w}x${p.h}`}>{p.label} — {p.w}×{p.h}px ({p.note})</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Width (px)"><input type="number" min={1} value={f.width_px} onChange={(e) => setF({ ...f, width_px: Number(e.target.value) })} className="input" /></Field>
+          <Field label="Height (px)"><input type="number" min={1} value={f.height_px} onChange={(e) => setF({ ...f, height_px: Number(e.target.value) })} className="input" /></Field>
+
           <Field label="Link"><input value={f.link ?? ""} onChange={(e) => setF({ ...f, link: e.target.value })} className="input" /></Field>
           <Field label="CTA"><input value={f.cta_text ?? ""} onChange={(e) => setF({ ...f, cta_text: e.target.value })} className="input" /></Field>
           <Field label="Starts"><input type="date" value={f.starts_at} onChange={(e) => setF({ ...f, starts_at: e.target.value })} className="input" /></Field>

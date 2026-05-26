@@ -145,6 +145,7 @@ export type Database = {
           draft_data: Json | null
           ends_at: string | null
           has_draft: boolean
+          height_px: number | null
           id: string
           image: string | null
           last_published_at: string | null
@@ -155,6 +156,7 @@ export type Database = {
           title: string
           type: string
           updated_at: string
+          width_px: number | null
         }
         Insert: {
           active?: boolean
@@ -163,6 +165,7 @@ export type Database = {
           draft_data?: Json | null
           ends_at?: string | null
           has_draft?: boolean
+          height_px?: number | null
           id?: string
           image?: string | null
           last_published_at?: string | null
@@ -173,6 +176,7 @@ export type Database = {
           title: string
           type?: string
           updated_at?: string
+          width_px?: number | null
         }
         Update: {
           active?: boolean
@@ -181,6 +185,7 @@ export type Database = {
           draft_data?: Json | null
           ends_at?: string | null
           has_draft?: boolean
+          height_px?: number | null
           id?: string
           image?: string | null
           last_published_at?: string | null
@@ -191,6 +196,7 @@ export type Database = {
           title?: string
           type?: string
           updated_at?: string
+          width_px?: number | null
         }
         Relationships: []
       }
