@@ -113,6 +113,7 @@ function RootComponent() {
                 </main>
                 <Footer />
                 <MobileBottomNav />
+                <CompareTray />
               </div>
             </CartProvider>
           </RegionProvider>
