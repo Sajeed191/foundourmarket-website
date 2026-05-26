@@ -44,15 +44,22 @@ function MarketingPage() {
   const [editingB, setEditingB] = useState<Banner | "new" | null>(null);
   const [editingF, setEditingF] = useState<Flash | "new" | null>(null);
   const [publishing, setPublishing] = useState<Banner | null>(null);
+  const [history, setHistory] = useState<ActivityLog[]>([]);
 
   useEffect(() => { load(); }, []);
   async function load() {
-    const [{ data: b }, { data: f }] = await Promise.all([
+    const [{ data: b }, { data: f }, { data: h }] = await Promise.all([
       supabase.from("banners").select("*").order("sort_order"),
       supabase.from("flash_sales").select("*").order("starts_at", { ascending: false }),
+      supabase.from("admin_activity_logs")
+        .select("*")
+        .in("entity_type", ["banner", "flash_sale"])
+        .order("created_at", { ascending: false })
+        .limit(25),
     ]);
     setBanners((b as Banner[]) ?? []);
     setFlash((f as Flash[]) ?? []);
+    setHistory((h as ActivityLog[]) ?? []);
   }
 
   async function deleteBanner(id: string) {
