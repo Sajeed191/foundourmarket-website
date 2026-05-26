@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { RegionProvider } from "@/lib/region";
 import { CartProvider } from "@/lib/cart";
+import { AuthProvider } from "@/lib/auth";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 
@@ -98,17 +99,19 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <RegionProvider>
-        <CartProvider>
-          <div className="min-h-screen flex flex-col">
-            <Nav />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <Footer />
-          </div>
-        </CartProvider>
-      </RegionProvider>
+      <AuthProvider>
+        <RegionProvider>
+          <CartProvider>
+            <div className="min-h-screen flex flex-col">
+              <Nav />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <Footer />
+            </div>
+          </CartProvider>
+        </RegionProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

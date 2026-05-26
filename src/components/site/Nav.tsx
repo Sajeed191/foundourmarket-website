@@ -2,10 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Search, User, Globe } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useRegion } from "@/lib/region";
+import { useAuth } from "@/lib/auth";
 
 export function Nav() {
   const { count } = useCart();
   const { region, setRegion } = useRegion();
+  const { user } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -31,7 +33,7 @@ export function Nav() {
             <Globe className="size-3" />
             {region === "IN" ? "IN · ₹" : "INTL · $"}
           </button>
-          <Link to="/auth" aria-label="Account" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
+          <Link to={user ? "/account" : "/auth"} aria-label="Account" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
             <User className="size-4" />
           </Link>
           <Link to="/cart" className="relative flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-accent/40 transition-colors">

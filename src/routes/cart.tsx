@@ -82,9 +82,9 @@ function CartPage() {
               placeholder="Promo code"
               className="w-full mt-6 bg-black/40 border border-border rounded-full px-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-accent"
             />
-            <button className="w-full mt-4 bg-accent text-accent-foreground font-bold py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all">
+            <Link to="/checkout" className="w-full mt-4 bg-accent text-accent-foreground font-bold py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all inline-flex items-center justify-center">
               Secure Checkout
-            </button>
+            </Link>
             <p className="text-[10px] text-muted-foreground text-center mt-4 font-mono uppercase tracking-widest">
               {region === "IN" ? "Razorpay · UPI · Cards" : "Stripe · PayPal · International cards"}
             </p>
