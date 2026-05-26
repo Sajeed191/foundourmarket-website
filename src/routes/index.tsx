@@ -80,7 +80,7 @@ function Home() {
 
       {/* Trust Strip */}
       <section className="border-y border-border bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { icon: Truck, label: "Worldwide Shipping" },
             { icon: Shield, label: "Secure Payments" },
@@ -98,14 +98,14 @@ function Home() {
       </section>
 
       {/* Categories */}
-      <section id="categories" className="px-6 py-24 max-w-7xl mx-auto">
-        <div className="flex justify-between items-end mb-12">
+      <section id="categories" className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
+        <div className="flex justify-between items-end mb-8 sm:mb-12 gap-4">
           <div>
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Browse</p>
-            <h2 className="text-3xl md:text-4xl font-display tracking-tight">Featured Categories</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight">Featured Categories</h2>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {categories.map((cat, i) => (
             <Link
               key={cat.slug}
@@ -133,14 +133,14 @@ function Home() {
 
       {/* Featured Products */}
       {products.some((p) => p.featured) && (
-        <section className="px-6 py-24 max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-12">
+        <section className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
+          <div className="flex justify-between items-end mb-8 sm:mb-12 gap-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Handpicked</p>
-              <h2 className="text-3xl md:text-4xl font-display tracking-tight">Featured Products</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight">Featured Products</h2>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
             {products.filter((p) => p.featured).slice(0, 4).map((p) => (
               <ProductCard key={p.slug} product={p} />
             ))}
@@ -149,17 +149,17 @@ function Home() {
       )}
 
       {/* New Arrivals */}
-      <section className="px-6 py-24 max-w-7xl mx-auto">
-        <div className="flex justify-between items-end mb-12">
+      <section className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
+        <div className="flex justify-between items-end mb-8 sm:mb-12 gap-4">
           <div>
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Curated</p>
-            <h2 className="text-3xl md:text-4xl font-display tracking-tight">New Arrivals</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight">New Arrivals</h2>
           </div>
           <Link to="/" className="text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-foreground hover:border-foreground transition-colors">
             View All
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
           {products.filter((p) => !p.featured).slice(0, 8).map((p) => (
             <ProductCard key={p.slug} product={p} />
           ))}
@@ -167,12 +167,12 @@ function Home() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="px-6 py-24 max-w-7xl mx-auto">
+      <section className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Why FoundOurMarket</p>
-          <h2 className="text-3xl md:text-4xl font-display tracking-tight">Built for the modern buyer</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight">Built for the modern buyer</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {[
             { title: "Secure Payments", desc: "Bank-grade encryption on every transaction with trusted global gateways." },
             { title: "Worldwide Shipping", desc: "Fast, tracked delivery to 180+ countries from our global distribution hubs." },
@@ -190,10 +190,10 @@ function Home() {
       </section>
 
       {/* Testimonial */}
-      <section className="px-6 py-32 overflow-hidden">
+      <section className="px-4 sm:px-6 py-20 sm:py-28 md:py-32 overflow-hidden">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-block size-1 bg-accent mb-12" />
-          <blockquote className="text-2xl md:text-4xl font-display text-pretty leading-tight mb-8">
+          <blockquote className="text-xl sm:text-2xl md:text-4xl font-display text-pretty leading-tight mb-8">
             "FoundOurMarket has completely redefined how I source premium goods. The quality of the marketplace is unmatched."
           </blockquote>
           <cite className="not-italic font-mono text-xs uppercase tracking-widest text-accent">
@@ -203,10 +203,10 @@ function Home() {
       </section>
 
       {/* Newsletter */}
-      <section className="px-6 py-24">
-        <div className="max-w-3xl mx-auto bg-card border border-border p-12 rounded-3xl text-center relative overflow-hidden">
+      <section className="px-4 sm:px-6 py-14 sm:py-20 md:py-24">
+        <div className="max-w-3xl mx-auto bg-card border border-border p-6 sm:p-10 md:p-12 rounded-3xl text-center relative overflow-hidden">
           <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-display tracking-tight mb-4">Join the Inner Circle</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display tracking-tight mb-4">Join the Inner Circle</h2>
             <p className="text-muted-foreground mb-8 text-pretty">
               Exclusive drops and curator insights — plus 10% off your first order.
             </p>
