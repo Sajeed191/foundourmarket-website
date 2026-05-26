@@ -67,8 +67,8 @@ function AdminPage() {
   useEffect(() => {
     if (!isAdmin) return;
     supabase.from("orders")
-      .select("id,user_id,status,total,currency,contact_email,created_at,order_items(name,quantity)")
-      .order("created_at", { ascending: false }).limit(200)
+      .select("id,user_id,status,total,currency,contact_email,created_at,order_items(name,quantity,product_slug,unit_price,line_total)")
+      .order("created_at", { ascending: false }).limit(500)
       .then(({ data }) => setOrders((data as Order[]) ?? []));
     loadProducts();
     loadCategories();
