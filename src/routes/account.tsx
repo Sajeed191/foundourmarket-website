@@ -186,7 +186,7 @@ function AccountPage() {
         {/* 3 — QUICK ACTIONS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }}>
           <SectionHeader title="Quick actions" eyebrow="Jump to" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-2.5">
             <ActionCard to="/account/profile" icon={UserIcon} title="Edit profile" subtitle="Name, photo, phone" />
             <ActionCard to="/account/addresses" icon={MapPin} title="Addresses" subtitle="Shipping & billing" />
             <ActionCard to="/account" icon={Package} title="Orders" subtitle="Track & invoices" />
@@ -211,19 +211,21 @@ function AccountPage() {
                 <SkeletonRows />
               ) : orders.length === 0 ? (
                 <EmptyState
+                  icon={Package}
                   title="No orders yet"
-                  body="Your premium finds will appear here. Start exploring our curated picks."
+                  body="Discover curated premium products."
                   cta={<Link to="/" className="cta-primary">Start shopping <ArrowRight className="size-3.5" /></Link>}
                   extra={
                     trending.length > 0 ? (
-                      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
-                        {trending.slice(0, 3).map((p) => <ProductCard key={p.slug} product={p} />)}
+                      <div className="mt-5 w-full">
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2.5 text-left">Trending now</p>
+                        <MiniProductRow items={trending.slice(0, 6)} format={format} />
                       </div>
                     ) : null
                   }
                 />
               ) : (
-                <div className="space-y-3" id="orders">
+                <div className="space-y-2.5" id="orders">
                   {orders.slice(0, 4).map((o) => <OrderRow key={o.id} o={o} format={format} />)}
                 </div>
               )}
@@ -237,13 +239,14 @@ function AccountPage() {
             >
               {wishlistProducts.length === 0 ? (
                 <EmptyState
+                  icon={Heart}
                   title="Nothing saved yet"
-                  body="Tap the heart on any product to keep it here for later."
+                  body="Tap the heart on any product to save it."
                   extra={
                     recommended.length > 0 ? (
-                      <div className="mt-6 w-full">
-                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3 text-left">You might love</p>
-                        <ProductScroller items={recommended.slice(0, 6)} />
+                      <div className="mt-5 w-full">
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2.5 text-left">You might love</p>
+                        <MiniProductRow items={recommended.slice(0, 6)} format={format} />
                       </div>
                     ) : null
                   }
@@ -420,27 +423,24 @@ function ActionCard({
   to, icon: Icon, title, subtitle, badge,
 }: { to: string; icon: typeof Package; title: string; subtitle: string; badge?: number }) {
   return (
-    <Link to={to} className="group">
+    <Link to={to} className="group block h-full">
       <motion.div
         whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: 0.97 }}
         transition={{ duration: 0.2, ease }}
-        className="relative h-full rounded-2xl border border-border bg-card p-3.5 sm:p-4 hover:border-accent/40 transition-colors"
+        className="h-full min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center text-center gap-2 rounded-2xl border border-border bg-card/80 backdrop-blur-sm px-3 py-4 sm:py-5 hover:border-accent/40 hover:bg-card hover:shadow-[0_8px_30px_-12px_oklch(0.72_0.18_49/0.35)] transition-all"
       >
-        <div className="flex items-start gap-3">
-          <span className="relative size-9 rounded-xl bg-accent/10 text-accent grid place-items-center shrink-0 group-hover:bg-accent/20 transition-colors">
-            <Icon className="size-4" />
-            {typeof badge === "number" && badge > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
-                {badge > 9 ? "9+" : badge}
-              </span>
-            )}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium truncate">{title}</p>
-            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all shrink-0" />
+        <span className="relative size-10 rounded-xl bg-accent/10 text-accent grid place-items-center group-hover:bg-accent/20 transition-colors">
+          <Icon className="size-[18px]" />
+          {typeof badge === "number" && badge > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
+              {badge > 9 ? "9+" : badge}
+            </span>
+          )}
+        </span>
+        <div className="min-w-0 w-full">
+          <p className="text-[13px] font-medium leading-tight truncate">{title}</p>
+          <p className="text-[10.5px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
         </div>
       </motion.div>
     </Link>
@@ -540,16 +540,60 @@ function FooterAction({ icon: Icon, label, to }: { icon: typeof Package; label: 
   );
 }
 
-function EmptyState({ title, body, cta, extra }: { title: string; body: string; cta?: React.ReactNode; extra?: React.ReactNode }) {
+function EmptyState({ icon: Icon = Star, title, body, cta, extra }: { icon?: typeof Package; title: string; body: string; cta?: React.ReactNode; extra?: React.ReactNode }) {
   return (
-    <div className="bg-card border border-dashed border-border rounded-2xl p-7 sm:p-10 flex flex-col items-center text-center">
-      <div className="size-12 rounded-2xl bg-accent/10 text-accent grid place-items-center mb-4">
-        <Star className="size-5" />
+    <div className="bg-card border border-dashed border-border rounded-2xl p-5 sm:p-6 flex flex-col items-center text-center">
+      <div className="size-10 rounded-xl bg-accent/10 text-accent grid place-items-center mb-3">
+        <Icon className="size-[18px]" />
       </div>
       <p className="text-sm font-medium">{title}</p>
-      <p className="text-xs text-muted-foreground mt-1.5 max-w-xs">{body}</p>
-      {cta && <div className="mt-5">{cta}</div>}
+      <p className="text-xs text-muted-foreground mt-1 max-w-xs">{body}</p>
+      {cta && <div className="mt-4">{cta}</div>}
       {extra}
+    </div>
+  );
+}
+
+function MiniProductRow({ items, format }: { items: Array<{ slug: string; name: string; image: string; price: number; tagline?: string }>; format: (n: number) => string }) {
+  const { add } = useCart();
+  const { has, toggle } = useWishlist();
+  return (
+    <div className="flex gap-2.5 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+      {items.map((p) => {
+        const saved = has(p.slug);
+        return (
+          <div
+            key={p.slug}
+            className="snap-start shrink-0 w-[150px] sm:w-[160px] group bg-card border border-border rounded-xl p-2 hover:border-accent/40 transition-colors"
+          >
+            <Link to="/products/$slug" params={{ slug: p.slug }} className="block relative">
+              <div className="aspect-square rounded-lg overflow-hidden bg-black/40">
+                <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <button
+                onClick={(e) => { e.preventDefault(); toggle(p.slug); }}
+                aria-label={saved ? "Remove from wishlist" : "Save"}
+                className={`absolute top-1.5 right-1.5 size-6 grid place-items-center rounded-full bg-black/50 backdrop-blur-md ${saved ? "text-accent" : "text-white/70 hover:text-accent"}`}
+              >
+                <Heart className={`size-3 ${saved ? "fill-accent" : ""}`} />
+              </button>
+            </Link>
+            <div className="px-0.5 pt-2 pb-1">
+              <p className="text-[11.5px] font-medium truncate">{p.name}</p>
+              <div className="mt-1 flex items-center justify-between gap-1">
+                <span className="font-mono text-[11px] text-accent truncate">{format(p.price)}</span>
+                <button
+                  onClick={() => add(p.slug)}
+                  aria-label="Add to cart"
+                  className="size-6 grid place-items-center rounded-full bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors text-[10px] font-bold"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
