@@ -107,7 +107,7 @@ function AccountPage() {
     [products, wishSlugs, recentSlugs],
   );
   const trending = useMemo(
-    () => [...products].sort((a, b) => (b.views_count ?? 0) - (a.views_count ?? 0)).slice(0, 6),
+    () => [...products].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 6),
     [products],
   );
 
