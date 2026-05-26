@@ -195,15 +195,19 @@ function AdminPage() {
           <h1 className="text-3xl md:text-5xl font-display font-semibold">Admin Dashboard</h1>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Link to="/admin-shipments" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-4 py-2 hover:border-accent/40">
-            <Truck className="size-3.5" /> Shipments
-          </Link>
-          <Link to="/admin-returns" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-4 py-2 hover:border-accent/40">
-            <RotateCcw className="size-3.5" /> Returns
-          </Link>
-          <Link to="/admin-cms" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-4 py-2 hover:border-accent/40">
-            <Pencil className="size-3.5" /> Content
-          </Link>
+          <Link to="/admin-live" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Activity className="size-3.5" /> Live</Link>
+          <Link to="/admin-analytics" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><BarChart3 className="size-3.5" /> Analytics</Link>
+          <Link to="/admin-financial" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Wallet className="size-3.5" /> Financial</Link>
+          <Link to="/admin-traffic" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Globe className="size-3.5" /> Traffic</Link>
+          <Link to="/admin-shipments" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Truck className="size-3.5" /> Shipments</Link>
+          <Link to="/admin-returns" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><RotateCcw className="size-3.5" /> Returns</Link>
+          <Link to="/admin-inventory" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Boxes className="size-3.5" /> Inventory</Link>
+          <Link to="/admin-customers" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Users className="size-3.5" /> Customers</Link>
+          <Link to="/admin-marketing" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Megaphone className="size-3.5" /> Marketing</Link>
+          <Link to="/admin-search" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Search className="size-3.5" /> Search</Link>
+          <Link to="/admin-cms" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Pencil className="size-3.5" /> CMS</Link>
+          <Link to="/admin-reports" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><FileText className="size-3.5" /> Reports</Link>
+          <Link to="/admin-activity" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Activity className="size-3.5" /> Activity</Link>
         </div>
       </div>
 
