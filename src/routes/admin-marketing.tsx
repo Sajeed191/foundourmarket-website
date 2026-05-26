@@ -287,15 +287,32 @@ function MarketingPage() {
 }
 
 function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: () => void; onSaved: () => void }) {
-  // When editing, prefer the staged draft over the live values
   const src: any = row?.draft_data ?? row ?? {};
   const [f, setF] = useState({
     type: src.type ?? "hero", title: src.title ?? "", subtitle: src.subtitle ?? "",
     image: src.image ?? "", link: src.link ?? "", cta_text: src.cta_text ?? "",
     active: src.active ?? true, starts_at: src.starts_at?.slice(0, 10) ?? "",
     ends_at: src.ends_at?.slice(0, 10) ?? "", sort_order: src.sort_order ?? 0,
+    width_px: src.width_px ?? row?.width_px ?? 1600,
+    height_px: src.height_px ?? row?.height_px ?? 600,
   });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(file: File) {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 8 * 1024 * 1024) { toast.error("Max 8MB"); return; }
+    setUploading(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage.from("banners").upload(path, file, { cacheControl: "3600", upsert: false });
+    if (error) { setUploading(false); toast.error(error.message); return; }
+    const { data } = supabase.storage.from("banners").getPublicUrl(path);
+    setF((prev) => ({ ...prev, image: data.publicUrl }));
+    setUploading(false);
+    toast.success("Image uploaded");
+  }
 
   async function saveDraft(e: React.FormEvent) {
     e.preventDefault();
@@ -306,10 +323,11 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
       starts_at: f.starts_at ? new Date(f.starts_at).toISOString() : null,
       ends_at: f.ends_at ? new Date(f.ends_at).toISOString() : null,
       sort_order: Number(f.sort_order),
+      width_px: Number(f.width_px) || null,
+      height_px: Number(f.height_px) || null,
     };
     const { error } = row
-      ? await supabase.from("banners").update({ draft_data: draft, has_draft: true }).eq("id", row.id)
-      // brand-new row: create as inactive draft so it doesn't go live until publish
+      ? await supabase.from("banners").update({ draft_data: draft, has_draft: true, width_px: draft.width_px, height_px: draft.height_px }).eq("id", row.id)
       : await supabase.from("banners").insert({ ...draft, active: false, draft_data: draft, has_draft: true });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -331,7 +349,50 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
           <Field label="Sort"><input type="number" value={f.sort_order} onChange={(e) => setF({ ...f, sort_order: Number(e.target.value) })} className="input" /></Field>
           <Field label="Title" className="col-span-2"><input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} required className="input" /></Field>
           <Field label="Subtitle" className="col-span-2"><input value={f.subtitle ?? ""} onChange={(e) => setF({ ...f, subtitle: e.target.value })} className="input" /></Field>
-          <Field label="Image URL" className="col-span-2"><input value={f.image ?? ""} onChange={(e) => setF({ ...f, image: e.target.value })} className="input" /></Field>
+
+          <Field label="Banner image" className="col-span-2">
+            <div className="flex flex-col gap-2">
+              {f.image && (
+                <div className="relative rounded-xl overflow-hidden border border-border bg-black/40">
+                  <img src={f.image} alt="" className="w-full max-h-40 object-cover" />
+                  <button type="button" onClick={() => setF({ ...f, image: "" })} className="absolute top-2 right-2 size-7 grid place-items-center rounded-full bg-black/70 hover:bg-destructive text-white"><X className="size-3.5" /></button>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => { const file = e.target.files?.[0]; if (file) handleUpload(file); e.target.value = ""; }}
+                />
+                <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-border text-[11px] uppercase tracking-widest font-mono hover:border-accent/40 disabled:opacity-50">
+                  {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+                  {uploading ? "Uploading…" : f.image ? "Replace image" : "Upload image"}
+                </button>
+                <input value={f.image} onChange={(e) => setF({ ...f, image: e.target.value })} placeholder="…or paste image URL" className="input flex-1" />
+              </div>
+            </div>
+          </Field>
+
+          <Field label="Size preset" className="col-span-2">
+            <select
+              value={`${f.width_px}x${f.height_px}`}
+              onChange={(e) => {
+                const preset = BANNER_SIZE_PRESETS.find((p) => `${p.w}x${p.h}` === e.target.value);
+                if (preset) setF({ ...f, width_px: preset.w, height_px: preset.h });
+              }}
+              className="input"
+            >
+              <option value="custom">Custom…</option>
+              {BANNER_SIZE_PRESETS.map((p) => (
+                <option key={p.label} value={`${p.w}x${p.h}`}>{p.label} — {p.w}×{p.h}px ({p.note})</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Width (px)"><input type="number" min={1} value={f.width_px} onChange={(e) => setF({ ...f, width_px: Number(e.target.value) })} className="input" /></Field>
+          <Field label="Height (px)"><input type="number" min={1} value={f.height_px} onChange={(e) => setF({ ...f, height_px: Number(e.target.value) })} className="input" /></Field>
+
           <Field label="Link"><input value={f.link ?? ""} onChange={(e) => setF({ ...f, link: e.target.value })} className="input" /></Field>
           <Field label="CTA"><input value={f.cta_text ?? ""} onChange={(e) => setF({ ...f, cta_text: e.target.value })} className="input" /></Field>
           <Field label="Starts"><input type="date" value={f.starts_at} onChange={(e) => setF({ ...f, starts_at: e.target.value })} className="input" /></Field>
