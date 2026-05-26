@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_items: {
+        Row: {
+          cart_id: string
+          created_at: string
+          id: string
+          product_slug: string
+          quantity: number
+          updated_at: string
+          variant_id: string | null
+        }
+        Insert: {
+          cart_id: string
+          created_at?: string
+          id?: string
+          product_slug: string
+          quantity?: number
+          updated_at?: string
+          variant_id?: string | null
+        }
+        Update: {
+          cart_id?: string
+          created_at?: string
+          id?: string
+          product_slug?: string
+          quantity?: number
+          updated_at?: string
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carts: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -169,6 +235,33 @@ export type Database = {
         }
         Relationships: []
       }
+      product_images: {
+        Row: {
+          alt: string | null
+          created_at: string
+          id: string
+          product_slug: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          alt?: string | null
+          created_at?: string
+          id?: string
+          product_slug: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          alt?: string | null
+          created_at?: string
+          id?: string
+          product_slug?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: []
+      }
       product_questions: {
         Row: {
           answer: string | null
@@ -238,6 +331,42 @@ export type Database = {
         }
         Relationships: []
       }
+      product_variants: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          price_override: number | null
+          product_slug: string
+          sku: string | null
+          sort_order: number
+          stock_quantity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          price_override?: number | null
+          product_slug: string
+          sku?: string | null
+          sort_order?: number
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          price_override?: number | null
+          product_slug?: string
+          sku?: string | null
+          sort_order?: number
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string
@@ -248,12 +377,16 @@ export type Database = {
           id: string
           image: string | null
           in_stock: boolean
+          low_stock_threshold: number
           name: string
           price: number
           rating: number
           reviews: number
+          search_vector: unknown
+          sku: string | null
           slug: string
           sort_order: number
+          stock_quantity: number
           tagline: string | null
           updated_at: string
         }
@@ -266,12 +399,16 @@ export type Database = {
           id?: string
           image?: string | null
           in_stock?: boolean
+          low_stock_threshold?: number
           name: string
           price?: number
           rating?: number
           reviews?: number
+          search_vector?: unknown
+          sku?: string | null
           slug: string
           sort_order?: number
+          stock_quantity?: number
           tagline?: string | null
           updated_at?: string
         }
@@ -284,12 +421,16 @@ export type Database = {
           id?: string
           image?: string | null
           in_stock?: boolean
+          low_stock_threshold?: number
           name?: string
           price?: number
           rating?: number
           reviews?: number
+          search_vector?: unknown
+          sku?: string | null
           slug?: string
           sort_order?: number
+          stock_quantity?: number
           tagline?: string | null
           updated_at?: string
         }
@@ -422,6 +563,46 @@ export type Database = {
         Returns: boolean
       }
       refresh_product_rating: { Args: { _slug: string }; Returns: undefined }
+      search_products: {
+        Args: {
+          category_filter?: string
+          max_price?: number
+          min_price?: number
+          min_rating?: number
+          page_limit?: number
+          page_offset?: number
+          q?: string
+          sort_by?: string
+        }
+        Returns: {
+          category: string
+          created_at: string
+          description: string | null
+          discount: number | null
+          featured: boolean
+          id: string
+          image: string | null
+          in_stock: boolean
+          low_stock_threshold: number
+          name: string
+          price: number
+          rating: number
+          reviews: number
+          search_vector: unknown
+          sku: string | null
+          slug: string
+          sort_order: number
+          stock_quantity: number
+          tagline: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "customer"
