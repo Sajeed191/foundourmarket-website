@@ -20,6 +20,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { CompareTray } from "@/components/site/CompareTray";
+import { InstallPrompt } from "@/components/site/InstallPrompt";
 import { registerServiceWorker } from "@/lib/pwa";
 import { trackPageView } from "@/lib/analytics";
 
