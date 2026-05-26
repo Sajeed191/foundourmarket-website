@@ -35,7 +35,7 @@ function WishlistPage() {
   const items = products.filter((p) => slugs.has(p.slug));
 
   const addAll = () => {
-    items.filter((p) => p.in_stock).forEach((p) => add(p.slug, 1));
+    items.filter((p) => p.inStock).forEach((p) => add(p.slug, 1));
   };
 
   return (
@@ -75,7 +75,7 @@ function WishlistPage() {
                 </Link>
                 <div className="mt-2 flex items-center gap-3">
                   <span className="font-mono text-sm text-accent">{format(p.price)}</span>
-                  {!p.in_stock && (
+                  {!p.inStock && (
                     <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Out of stock</span>
                   )}
                 </div>
@@ -83,14 +83,14 @@ function WishlistPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => add(p.slug, 1)}
-                  disabled={!p.in_stock}
+                  disabled={!p.inStock}
                   className="hidden sm:inline-flex items-center gap-2 bg-accent text-accent-foreground font-bold px-4 py-2.5 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag className="size-3.5" /> Add
                 </button>
                 <button
                   onClick={() => add(p.slug, 1)}
-                  disabled={!p.in_stock}
+                  disabled={!p.inStock}
                   aria-label="Add to cart"
                   className="sm:hidden size-10 grid place-items-center bg-accent text-accent-foreground rounded-full disabled:opacity-40"
                 >
