@@ -27,7 +27,7 @@ type ProductRow = {
 };
 
 const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
-type Tab = "overview" | "orders" | "customers" | "products";
+type Tab = "overview" | "orders" | "customers" | "products" | "categories";
 
 function AdminPage() {
   const { user, loading } = useAuth();
@@ -35,9 +35,12 @@ function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [products, setProducts] = useState<ProductRow[] | null>(null);
+  const [categories, setCategories] = useState<Category[] | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [updating, setUpdating] = useState<string | null>(null);
   const [editing, setEditing] = useState<ProductRow | "new" | null>(null);
+  const [editingCat, setEditingCat] = useState<Category | "new" | null>(null);
+
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
 
