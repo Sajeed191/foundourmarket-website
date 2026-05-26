@@ -57,11 +57,17 @@ function AdminPage() {
       .order("created_at", { ascending: false }).limit(200)
       .then(({ data }) => setOrders((data as Order[]) ?? []));
     loadProducts();
+    loadCategories();
   }, [isAdmin]);
 
   async function loadProducts() {
     const { data } = await supabase.from("products").select("*").order("sort_order", { ascending: true });
     setProducts((data as ProductRow[]) ?? []);
+  }
+
+  async function loadCategories() {
+    const { data } = await supabase.from("categories").select("*").order("sort_order", { ascending: true });
+    setCategories((data as Category[]) ?? []);
   }
 
   async function updateStatus(id: string, status: string) {
@@ -77,6 +83,15 @@ function AdminPage() {
     await loadProducts();
     invalidateProducts();
   }
+
+  async function deleteCategory(id: string) {
+    if (!confirm("Delete this category? Products in it will keep their category slug.")) return;
+    await supabase.from("categories").delete().eq("id", id);
+    await loadCategories();
+    invalidateCategories();
+  }
+
+
 
   if (loading || isAdmin === null) {
     return <div className="min-h-[60vh] grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
