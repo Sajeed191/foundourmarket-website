@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Heart, Truck, Shield, RotateCcw, Star, Minus, Plus, Loader2 } from "lucide-react";
+import { Heart, Truck, Shield, RotateCcw, Star, Minus, Plus, Loader2, Scale } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useProduct, invalidateProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
@@ -9,6 +9,7 @@ import { RelatedProducts } from "@/components/site/RelatedProducts";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
+import { useCompare } from "@/hooks/use-compare";
 
 
 
@@ -25,6 +26,7 @@ function ProductPage() {
   const { format } = useRegion();
   const { add } = useCart();
   const { record } = useRecentlyViewed();
+  const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
   const [qty, setQty] = useState(1);
 
   useEffect(() => {
@@ -109,6 +111,16 @@ function ProductPage() {
               </button>
               <button aria-label="Wishlist" className="size-12 grid place-items-center border border-border rounded-full hover:text-accent transition-colors">
                 <Heart className="size-4" />
+              </button>
+              <button
+                aria-label={inCompare(product.slug) ? "Remove from compare" : "Add to compare"}
+                aria-pressed={inCompare(product.slug)}
+                onClick={() => toggleCompare(product.slug)}
+                disabled={!inCompare(product.slug) && compareFull}
+                title={!inCompare(product.slug) && compareFull ? "Compare list is full" : undefined}
+                className={`size-12 grid place-items-center border rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${inCompare(product.slug) ? "border-accent text-accent bg-accent/10" : "border-border hover:text-accent"}`}
+              >
+                <Scale className="size-4" />
               </button>
             </div>
 
