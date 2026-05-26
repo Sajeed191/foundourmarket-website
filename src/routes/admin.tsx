@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, ShieldAlert, TrendingUp, ShoppingBag, Users, Package, Plus, Pencil, Trash2, X, Upload, Tag, Ticket, Mail, Download } from "lucide-react";
+import { Loader2, ShieldAlert, Package, Plus, Pencil, Trash2, X, Upload, Tag, Ticket, Mail, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { invalidateProducts } from "@/lib/use-products";
 import { invalidateCategories, type Category } from "@/lib/use-categories";
 import { resolveImage } from "@/lib/products";
+import { DashboardOverview } from "@/components/admin/DashboardOverview";
 
 
 export const Route = createFileRoute("/admin")({
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/admin")({
 type Order = {
   id: string; user_id: string; status: string; total: number; currency: string;
   contact_email: string | null; created_at: string;
-  order_items: { name: string; quantity: number }[];
+  order_items: { name: string; quantity: number; product_slug?: string; unit_price?: number; line_total?: number }[];
 };
 
 type ProductRow = {
@@ -66,8 +67,8 @@ function AdminPage() {
   useEffect(() => {
     if (!isAdmin) return;
     supabase.from("orders")
-      .select("id,user_id,status,total,currency,contact_email,created_at,order_items(name,quantity)")
-      .order("created_at", { ascending: false }).limit(200)
+      .select("id,user_id,status,total,currency,contact_email,created_at,order_items(name,quantity,product_slug,unit_price,line_total)")
+      .order("created_at", { ascending: false }).limit(500)
       .then(({ data }) => setOrders((data as Order[]) ?? []));
     loadProducts();
     loadCategories();
@@ -202,13 +203,8 @@ function AdminPage() {
 
       {tab === "overview" && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-12">
-            <Stat icon={<TrendingUp className="size-4" />} label="Revenue" value={`$${totalRevenue.toFixed(2)}`} />
-            <Stat icon={<ShoppingBag className="size-4" />} label="Orders" value={list.length} />
-            <Stat icon={<Users className="size-4" />} label="Customers" value={customers.length} />
-            <Stat icon={<Package className="size-4" />} label="Products" value={products?.length ?? 0} />
-          </div>
-          <h2 className="text-xl font-medium mb-6">Recent Activity</h2>
+          <DashboardOverview orders={orders} products={products} customersCount={customers.length} />
+          <h2 className="text-xl font-medium mb-6">Recent orders</h2>
           {orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             list.length === 0 ? <p className="text-sm text-muted-foreground">No orders yet.</p> :
             <div className="bg-card border border-border rounded-2xl divide-y divide-border/40">
