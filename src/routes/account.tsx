@@ -95,16 +95,12 @@ function AccountPage() {
     () => products.filter((p) => wishSlugs.has(p.slug)).slice(0, 8),
     [products, wishSlugs],
   );
-  const recentProducts = useMemo(
-    () => recentSlugs.map((s) => products.find((p) => p.slug === s)).filter(Boolean).slice(0, 8) as typeof products,
-    [products, recentSlugs],
-  );
   const recommended = useMemo(
     () => products
-      .filter((p) => !wishSlugs.has(p.slug) && !recentSlugs.includes(p.slug))
+      .filter((p) => !wishSlugs.has(p.slug))
       .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
       .slice(0, 8),
-    [products, wishSlugs, recentSlugs],
+    [products, wishSlugs],
   );
   const trending = useMemo(
     () => [...products].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 6),
