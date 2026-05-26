@@ -6,6 +6,7 @@ import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductReviews } from "@/components/site/ProductReviews";
+import { ProductQA } from "@/components/site/ProductQA";
 
 export const Route = createFileRoute("/products/$slug")({
   head: ({ params }) => ({
