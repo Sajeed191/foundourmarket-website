@@ -105,6 +105,12 @@ function AdminPage() {
     invalidateCategories();
   }
 
+  async function deletePromo(id: string) {
+    if (!confirm("Delete this promo code?")) return;
+    await supabase.from("promo_codes").delete().eq("id", id);
+    await loadPromos();
+  }
+
 
 
   if (loading || isAdmin === null) {
