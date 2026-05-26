@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Clock, CheckCircle2, Truck, Package, XCircle, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle2, Truck, Package, XCircle, Loader2, MapPin, RotateCcw, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
@@ -35,12 +35,16 @@ type Order = {
   order_items: OrderItem[];
 };
 
+type ShipmentEvent = { id: string; status: string; description: string | null; location: string | null; occurred_at: string };
+type Shipment = { id: string; status: string; carrier: string | null; tracking_number: string | null; tracking_url: string | null; shipped_at: string | null; delivered_at: string | null; shipment_events: ShipmentEvent[] };
+
 function OrderDetailPage() {
   const { id } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const { format } = useRegion();
   const nav = useNavigate();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) nav({ to: "/auth" });
@@ -54,6 +58,12 @@ function OrderDetailPage() {
       .eq("id", id)
       .maybeSingle()
       .then(({ data }) => setOrder((data as Order) ?? null));
+    supabase
+      .from("shipments")
+      .select("id,status,carrier,tracking_number,tracking_url,shipped_at,delivered_at,shipment_events(id,status,description,location,occurred_at)")
+      .eq("order_id", id)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => setShipments((data as Shipment[]) ?? []));
   }, [user, id]);
 
   if (authLoading || order === undefined) {
@@ -156,6 +166,51 @@ function OrderDetailPage() {
             {addr.country && <p>{addr.country}</p>}
           </div>
           {order.contact_email && <p className="text-xs text-muted-foreground font-mono mt-3">{order.contact_email}</p>}
+        </div>
+      )}
+
+      {shipments.length > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 mt-6">
+          <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4 flex items-center gap-2">
+            <Truck className="size-3.5" /> Tracking
+          </h3>
+          {shipments.map((s) => (
+            <div key={s.id} className="mb-5 last:mb-0">
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                <p className="text-sm">
+                  {s.carrier ?? "Shipment"}{s.tracking_number ? <span className="font-mono text-muted-foreground"> · {s.tracking_number}</span> : null}
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-accent bg-accent/10 px-2 py-1 rounded-full">{s.status.replace(/_/g, " ")}</span>
+                  {s.tracking_url && (
+                    <a href={s.tracking_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-accent hover:underline">
+                      Track <ExternalLink className="size-3" />
+                    </a>
+                  )}
+                </div>
+              </div>
+              {s.shipment_events.length > 0 && (
+                <ol className="relative border-l border-border/60 pl-4 space-y-3">
+                  {[...s.shipment_events].sort((a, b) => +new Date(b.occurred_at) - +new Date(a.occurred_at)).map((e) => (
+                    <li key={e.id} className="relative">
+                      <span className="absolute -left-[21px] top-1 size-2 rounded-full bg-accent" />
+                      <p className="text-xs font-medium">{e.description ?? e.status.replace(/_/g, " ")}</p>
+                      <p className="text-[10px] font-mono text-muted-foreground">{new Date(e.occurred_at).toLocaleString()}{e.location ? ` · ${e.location}` : ""}</p>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(order.status === "delivered" || shipments.some((s) => s.status === "delivered")) && (
+        <div className="mt-6">
+          <Link to="/account/returns" search={{ order: order.id }}
+            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
+            <RotateCcw className="size-3.5" /> Request return
+          </Link>
         </div>
       )}
     </div>

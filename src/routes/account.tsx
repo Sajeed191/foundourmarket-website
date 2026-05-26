@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, Package, Loader2 } from "lucide-react";
+import { LogOut, Package, Loader2, RotateCcw, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
@@ -58,7 +58,10 @@ function AccountPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link to="/account/addresses" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
-            <Package className="size-3.5" /> Addresses
+            <MapPin className="size-3.5" /> Addresses
+          </Link>
+          <Link to="/account/returns" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
+            <RotateCcw className="size-3.5" /> Returns
           </Link>
           <button onClick={signOut} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
             <LogOut className="size-3.5" /> Sign out

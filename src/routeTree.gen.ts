@@ -16,12 +16,15 @@ import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminShipmentsRouteImport } from './routes/admin-shipments'
+import { Route as AdminReturnsRouteImport } from './routes/admin-returns'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as AccountReturnsRouteImport } from './routes/account.returns'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
 
 const WishlistRoute = WishlistRouteImport.update({
@@ -59,6 +62,16 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminShipmentsRoute = AdminShipmentsRouteImport.update({
+  id: '/admin-shipments',
+  path: '/admin-shipments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReturnsRoute = AdminReturnsRouteImport.update({
+  id: '/admin-returns',
+  path: '/admin-returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -89,6 +102,11 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
   path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountReturnsRoute = AccountReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountAddressesRoute = AccountAddressesRouteImport.update({
   id: '/addresses',
   path: '/addresses',
@@ -99,6 +117,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
+  '/admin-returns': typeof AdminReturnsRoute
+  '/admin-shipments': typeof AdminShipmentsRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -107,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -115,6 +136,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
+  '/admin-returns': typeof AdminReturnsRoute
+  '/admin-shipments': typeof AdminShipmentsRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -123,6 +146,7 @@ export interface FileRoutesByTo {
   '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -132,6 +156,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
+  '/admin-returns': typeof AdminReturnsRoute
+  '/admin-shipments': typeof AdminShipmentsRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -140,6 +166,7 @@ export interface FileRoutesById {
   '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -150,6 +177,8 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/admin'
+    | '/admin-returns'
+    | '/admin-shipments'
     | '/auth'
     | '/cart'
     | '/checkout'
@@ -158,6 +187,7 @@ export interface FileRouteTypes {
     | '/track'
     | '/wishlist'
     | '/account/addresses'
+    | '/account/returns'
     | '/category/$slug'
     | '/orders/$id'
     | '/products/$slug'
@@ -166,6 +196,8 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/admin'
+    | '/admin-returns'
+    | '/admin-shipments'
     | '/auth'
     | '/cart'
     | '/checkout'
@@ -174,6 +206,7 @@ export interface FileRouteTypes {
     | '/track'
     | '/wishlist'
     | '/account/addresses'
+    | '/account/returns'
     | '/category/$slug'
     | '/orders/$id'
     | '/products/$slug'
@@ -182,6 +215,8 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/admin'
+    | '/admin-returns'
+    | '/admin-shipments'
     | '/auth'
     | '/cart'
     | '/checkout'
@@ -190,6 +225,7 @@ export interface FileRouteTypes {
     | '/track'
     | '/wishlist'
     | '/account/addresses'
+    | '/account/returns'
     | '/category/$slug'
     | '/orders/$id'
     | '/products/$slug'
@@ -199,6 +235,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRouteWithChildren
   AdminRoute: typeof AdminRoute
+  AdminReturnsRoute: typeof AdminReturnsRoute
+  AdminShipmentsRoute: typeof AdminShipmentsRoute
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
@@ -262,6 +300,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-shipments': {
+      id: '/admin-shipments'
+      path: '/admin-shipments'
+      fullPath: '/admin-shipments'
+      preLoaderRoute: typeof AdminShipmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-returns': {
+      id: '/admin-returns'
+      path: '/admin-returns'
+      fullPath: '/admin-returns'
+      preLoaderRoute: typeof AdminReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -304,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/returns': {
+      id: '/account/returns'
+      path: '/returns'
+      fullPath: '/account/returns'
+      preLoaderRoute: typeof AccountReturnsRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/addresses': {
       id: '/account/addresses'
       path: '/addresses'
@@ -316,10 +375,12 @@ declare module '@tanstack/react-router' {
 
 interface AccountRouteChildren {
   AccountAddressesRoute: typeof AccountAddressesRoute
+  AccountReturnsRoute: typeof AccountReturnsRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountAddressesRoute: AccountAddressesRoute,
+  AccountReturnsRoute: AccountReturnsRoute,
 }
 
 const AccountRouteWithChildren =
@@ -329,6 +390,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRouteWithChildren,
   AdminRoute: AdminRoute,
+  AdminReturnsRoute: AdminReturnsRoute,
+  AdminShipmentsRoute: AdminShipmentsRoute,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
