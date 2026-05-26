@@ -75,8 +75,13 @@ function AccountPage() {
         ) : (
           <div className="space-y-3">
             {orders.map((o) => (
-              <div key={o.id} className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
-                <div>
+              <Link
+                key={o.id}
+                to="/orders/$id"
+                params={{ id: o.id }}
+                className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap hover:border-accent/40 transition-colors"
+              >
+                <div className="min-w-0">
                   <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
                     #{o.id.slice(0, 8)} · {new Date(o.created_at).toLocaleDateString()}
                   </p>
@@ -88,7 +93,7 @@ function AccountPage() {
                   </p>
                 </div>
                 <span className="font-mono text-sm text-accent">{format(Number(o.total))}</span>
-              </div>
+              </Link>
             ))}
           </div>
         )}
