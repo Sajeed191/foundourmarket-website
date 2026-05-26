@@ -128,6 +128,8 @@ function ProductPage() {
         </div>
       </div>
 
+      <ProductReviews productSlug={product.slug} onAggregateChange={invalidateProducts} />
+
       {related.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 py-24">
           <h2 className="text-2xl font-display tracking-tight mb-8">You may also like</h2>
