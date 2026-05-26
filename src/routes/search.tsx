@@ -74,24 +74,26 @@ function SearchPage() {
   const activeFilterCount = [search.cat, search.stock, search.min, search.max].filter(Boolean).length;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      <div className="mb-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="mb-6 sm:mb-8">
         <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Discover</p>
-        <h1 className="text-3xl md:text-5xl font-display font-semibold mb-6">Search the marketplace</h1>
+        <h1 className="text-fluid-2xl font-display font-semibold mb-5 sm:mb-6">Search the marketplace</h1>
 
         <form onSubmit={(e) => { e.preventDefault(); update({ q: query }); }} className="relative max-w-2xl">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products, categories, brands…"
-            className="w-full bg-card border border-border rounded-full pl-12 pr-28 py-4 text-base focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+            placeholder="Search products, categories…"
+            className="w-full bg-card border border-border rounded-full pl-11 sm:pl-12 pr-24 sm:pr-28 py-3.5 sm:py-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
           />
-          <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-bold px-5 py-2.5 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all">
+          <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-bold px-4 sm:px-5 py-2.5 rounded-full text-[10px] sm:text-[11px] uppercase tracking-widest hover:brightness-110 transition-all">
             Search
           </button>
         </form>
       </div>
+
+
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
@@ -114,26 +116,26 @@ function SearchPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-8">
-        <aside className={`${filtersOpen ? "block" : "hidden"} lg:block space-y-8`}>
+      <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-6 lg:gap-8">
+        <aside className={`${filtersOpen ? "block" : "hidden"} lg:block space-y-6 lg:space-y-8 bg-card lg:bg-transparent border lg:border-0 border-border rounded-2xl p-4 lg:p-0`}>
           <div>
             <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Category</h3>
-            <div className="space-y-1.5">
+            <div className="grid grid-cols-2 lg:block gap-1.5 lg:space-y-1.5">
               <button onClick={() => update({ cat: undefined })}
-                className={`block text-sm hover:text-accent transition-colors ${!search.cat ? "text-accent" : "text-foreground"}`}>All</button>
+                className={`text-left text-sm hover:text-accent transition-colors ${!search.cat ? "text-accent" : "text-foreground"}`}>All</button>
               {categories.map((c) => (
                 <button key={c.slug} onClick={() => update({ cat: c.slug })}
-                  className={`block text-sm hover:text-accent transition-colors ${search.cat === c.slug ? "text-accent" : "text-foreground"}`}>{c.name}</button>
+                  className={`text-left text-sm hover:text-accent transition-colors ${search.cat === c.slug ? "text-accent" : "text-foreground"}`}>{c.name}</button>
               ))}
             </div>
           </div>
           <div>
             <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Price (USD)</h3>
             <div className="flex gap-2">
-              <input type="number" placeholder="Min" defaultValue={search.min ?? ""}
+              <input type="number" inputMode="numeric" placeholder="Min" defaultValue={search.min ?? ""}
                 onBlur={(e) => update({ min: e.target.value ? Number(e.target.value) : undefined })}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent" />
-              <input type="number" placeholder="Max" defaultValue={search.max ?? ""}
+              <input type="number" inputMode="numeric" placeholder="Max" defaultValue={search.max ?? ""}
                 onBlur={(e) => update({ max: e.target.value ? Number(e.target.value) : undefined })}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent" />
             </div>
@@ -153,7 +155,7 @@ function SearchPage() {
           {loading ? (
             <div className="py-24 grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
           ) : results.length === 0 ? (
-            <div className="py-24 text-center border border-dashed border-border rounded-2xl">
+            <div className="py-16 sm:py-24 px-6 text-center border border-dashed border-border rounded-2xl">
               <div className="size-14 mx-auto mb-5 grid place-items-center rounded-full border border-border">
                 <X className="size-5 text-muted-foreground" />
               </div>
@@ -161,12 +163,13 @@ function SearchPage() {
               <Link to="/" className="inline-block mt-6 text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1">Browse all</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6">
               {results.map((p) => <ProductCard key={p.slug} product={p} />)}
             </div>
           )}
         </div>
       </div>
+
     </div>
   );
 }
