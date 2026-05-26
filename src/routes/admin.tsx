@@ -565,5 +565,3 @@ function CategoryEditor({ row, nextSort, onClose, onSaved }: { row: Category | n
     </div>
   );
 }
-
-}
