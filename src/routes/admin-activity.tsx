@@ -33,7 +33,7 @@ function ActivityPage() {
       </span>
     }>
       {logs === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
-        <div className="bg-card border border-border rounded-2xl divide-y divide-border/40">
+        <div className="card-premium rounded-2xl divide-y divide-border/40">
           {logs.map((l) => (
             <div key={l.id} className="px-5 py-3 flex items-center gap-4">
               <Activity className="size-4 text-accent shrink-0" />

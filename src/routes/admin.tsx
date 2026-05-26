@@ -249,7 +249,7 @@ function AdminPage() {
           <h2 className="text-xl font-medium mb-6">Recent orders</h2>
           {orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             list.length === 0 ? <p className="text-sm text-muted-foreground">No orders yet.</p> :
-            <div className="bg-card border border-border rounded-2xl divide-y divide-border/40">
+            <div className="card-premium rounded-2xl divide-y divide-border/40">
               {list.slice(0, 8).map((o) => (
                 <div key={o.id} className="px-5 py-4 flex items-center justify-between">
                   <div>
@@ -271,14 +271,14 @@ function AdminPage() {
       {tab === "orders" && (
         orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
         list.length === 0 ? <p className="text-sm text-muted-foreground">No orders yet.</p> :
-        <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+        <div className="overflow-x-auto card-premium rounded-2xl">
           <table className="w-full text-sm min-w-[800px]">
             <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
               <tr><th className="text-left px-5 py-3">Order</th><th className="text-left px-5 py-3">Customer</th><th className="text-left px-5 py-3">Items</th><th className="text-left px-5 py-3">Status</th><th className="text-right px-5 py-3">Total</th><th className="text-right px-5 py-3">Date</th></tr>
             </thead>
             <tbody>
               {list.map((o) => (
-                <tr key={o.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                <tr key={o.id} className="border-b border-border/40 last:border-0 hover:bg-accent/5">
                   <td className="px-5 py-3 font-mono text-[11px]">#{o.id.slice(0, 8)}</td>
                   <td className="px-5 py-3 text-xs truncate max-w-[180px]">{o.contact_email ?? "—"}</td>
                   <td className="px-5 py-3 text-xs text-muted-foreground">{o.order_items.reduce((s, i) => s + i.quantity, 0)} units</td>
@@ -310,14 +310,14 @@ function AdminPage() {
           </div>
           {products === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             products.length === 0 ? <p className="text-sm text-muted-foreground">No products yet.</p> :
-            <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+            <div className="overflow-x-auto card-premium rounded-2xl">
               <table className="w-full text-sm min-w-[720px]">
                 <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
                   <tr><th className="text-left px-5 py-3">Product</th><th className="text-left px-5 py-3">Category</th><th className="text-right px-5 py-3">Price</th><th className="text-right px-5 py-3">Stock</th><th className="px-5 py-3"></th></tr>
                 </thead>
                 <tbody>
                   {products.map((p) => (
-                    <tr key={p.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                    <tr key={p.id} className="border-b border-border/40 last:border-0 hover:bg-accent/5">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <div className="size-10 rounded-lg overflow-hidden bg-background border border-border shrink-0">
@@ -367,14 +367,14 @@ function AdminPage() {
       {tab === "customers" && (
         orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
         customers.length === 0 ? <p className="text-sm text-muted-foreground">No customers yet.</p> :
-        <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+        <div className="overflow-x-auto card-premium rounded-2xl">
           <table className="w-full text-sm min-w-[640px]">
             <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
               <tr><th className="text-left px-5 py-3">Customer</th><th className="text-right px-5 py-3">Orders</th><th className="text-right px-5 py-3">Spent</th><th className="text-right px-5 py-3">Last Order</th></tr>
             </thead>
             <tbody>
               {customers.map(([uid, c]) => (
-                <tr key={uid} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                <tr key={uid} className="border-b border-border/40 last:border-0 hover:bg-accent/5">
                   <td className="px-5 py-3 text-xs">{c.email ?? <span className="font-mono text-muted-foreground">{uid.slice(0, 8)}</span>}</td>
                   <td className="px-5 py-3 text-right font-mono text-xs">{c.orders}</td>
                   <td className="px-5 py-3 text-right font-mono text-accent">${c.spent.toFixed(2)}</td>
@@ -396,7 +396,7 @@ function AdminPage() {
           </div>
           {categories === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             categories.length === 0 ? <p className="text-sm text-muted-foreground">No categories yet.</p> :
-            <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+            <div className="overflow-x-auto card-premium rounded-2xl">
               <table className="w-full text-sm min-w-[640px]">
                 <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
                   <tr><th className="text-left px-5 py-3">Category</th><th className="text-left px-5 py-3">Slug</th><th className="text-right px-5 py-3">Products</th><th className="text-right px-5 py-3">Order</th><th className="px-5 py-3"></th></tr>
@@ -405,7 +405,7 @@ function AdminPage() {
                   {categories.map((c) => {
                     const count = products?.filter((p) => p.category === c.slug).length ?? 0;
                     return (
-                      <tr key={c.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                      <tr key={c.id} className="border-b border-border/40 last:border-0 hover:bg-accent/5">
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-3">
                             <div className="size-9 rounded-lg overflow-hidden bg-background border border-border shrink-0 grid place-items-center">
@@ -447,7 +447,7 @@ function AdminPage() {
           </div>
           {promos === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             promos.length === 0 ? <p className="text-sm text-muted-foreground">No promo codes yet.</p> :
-            <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+            <div className="overflow-x-auto card-premium rounded-2xl">
               <table className="w-full text-sm min-w-[760px]">
                 <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
                   <tr>
@@ -462,7 +462,7 @@ function AdminPage() {
                 </thead>
                 <tbody>
                   {promos.map((p) => (
-                    <tr key={p.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                    <tr key={p.id} className="border-b border-border/40 last:border-0 hover:bg-accent/5">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <div className="size-9 rounded-lg bg-background border border-border grid place-items-center"><Ticket className="size-4 text-muted-foreground" /></div>
@@ -524,7 +524,7 @@ function AdminPage() {
           </div>
           {subscribers === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             subscribers.length === 0 ? <p className="text-sm text-muted-foreground">No subscribers yet.</p> :
-            <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+            <div className="overflow-x-auto card-premium rounded-2xl">
               <table className="w-full text-sm min-w-[640px]">
                 <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
                   <tr>
@@ -537,7 +537,7 @@ function AdminPage() {
                 </thead>
                 <tbody>
                   {subscribers.map((s) => (
-                    <tr key={s.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                    <tr key={s.id} className="border-b border-border/40 last:border-0 hover:bg-accent/5">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <div className="size-9 rounded-lg bg-background border border-border grid place-items-center"><Mail className="size-4 text-muted-foreground" /></div>
@@ -609,7 +609,7 @@ function PromoEditor({ row, onClose, onSaved }: { row: PromoRow | null; onClose:
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
-      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-card border border-border rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
+      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl card-premium rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-display">{row ? "Edit Promo Code" : "New Promo Code"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
@@ -700,7 +700,7 @@ function ProductEditor({ row, nextSort, categories, onClose, onSaved }: { row: P
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
-      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-3xl bg-card border border-border rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
+      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-3xl card-premium rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-display">{row ? "Edit Product" : "New Product"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
@@ -954,7 +954,7 @@ function Field({ label, value, onChange, type = "text", required }: { label: str
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-5">
+    <div className="card-premium rounded-2xl p-5">
       <div className="flex items-center justify-between mb-3 text-muted-foreground">
         <span className="text-[10px] font-mono uppercase tracking-widest">{label}</span>
         <span className="text-accent">{icon}</span>
@@ -995,7 +995,7 @@ function CategoryEditor({ row, nextSort, onClose, onSaved }: { row: Category | n
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
-      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-card border border-border rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
+      <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="w-full max-w-xl card-premium rounded-2xl p-8 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-display">{row ? "Edit Category" : "New Category"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>

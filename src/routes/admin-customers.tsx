@@ -107,7 +107,7 @@ function CustomersPage() {
       </div>
 
       {customers === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="card-premium rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[720px]">
               <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
@@ -115,7 +115,7 @@ function CustomersPage() {
               </thead>
               <tbody>
                 {filtered.map((c) => (
-                  <tr key={c.user_id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                  <tr key={c.user_id} className="border-b border-border/40 last:border-0 hover:bg-accent/5">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent font-mono text-xs uppercase">
@@ -150,7 +150,7 @@ function CustomersPage() {
 
 function Stat({ label, value, icon }: { label: string; value: React.ReactNode; icon?: React.ReactNode }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-4">
+    <div className="card-premium rounded-2xl p-4">
       <div className="flex items-center gap-2 text-muted-foreground mb-2">{icon}<span className="text-[10px] font-mono uppercase tracking-[0.3em]">{label}</span></div>
       <p className="text-xl font-display font-semibold">{value}</p>
     </div>
@@ -201,7 +201,7 @@ function CustomerDetail({ customer, onClose }: { customer: Customer; onClose: ()
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 grid place-items-center" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl bg-card border border-border rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl card-premium rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start mb-6">
           <div>
             <h2 className="text-xl font-display">{customer.full_name || customer.email || customer.user_id.slice(0, 8)}</h2>

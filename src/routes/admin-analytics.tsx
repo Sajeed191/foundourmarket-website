@@ -107,7 +107,7 @@ function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-5">
+        <div className="lg:col-span-2 card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-4">Revenue vs profit</h2>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart data={stats.daily}>
@@ -124,7 +124,7 @@ function AnalyticsPage() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-4">Order status</h2>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
@@ -139,7 +139,7 @@ function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-4">Orders per day</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={stats.dailyOrders}>
@@ -151,7 +151,7 @@ function AnalyticsPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-4">Cost trend</h2>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={stats.daily}>
@@ -165,7 +165,7 @@ function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-5">
+      <div className="card-premium rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-medium">Top products</h2>
           <Users className="size-4 text-muted-foreground" />

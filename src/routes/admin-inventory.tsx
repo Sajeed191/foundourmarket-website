@@ -55,7 +55,7 @@ function InventoryPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="lg:col-span-2 card-premium rounded-2xl overflow-hidden">
           <div className="px-5 py-3 border-b border-border flex items-center gap-2"><Boxes className="size-4 text-muted-foreground" /><h2 className="text-sm font-medium">Stock levels</h2></div>
           {products === null ? <div className="p-8"><Loader2 className="size-4 animate-spin text-muted-foreground" /></div> :
             <div className="overflow-x-auto">
@@ -87,7 +87,7 @@ function InventoryPage() {
           }
         </div>
 
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="card-premium rounded-2xl overflow-hidden">
           <div className="px-5 py-3 border-b border-border flex items-center gap-2"><TrendingDown className="size-4 text-muted-foreground" /><h2 className="text-sm font-medium">Movement log</h2></div>
           <ul className="max-h-[500px] overflow-y-auto divide-y divide-border/40">
             {(logs ?? []).map((l) => (
@@ -129,7 +129,7 @@ function AdjustModal({ product, onClose, onDone }: { product: ProductRow; onClos
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-card border border-border rounded-2xl p-6">
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md card-premium rounded-2xl p-6">
         <h2 className="text-lg font-display mb-1">Adjust stock</h2>
         <p className="text-xs text-muted-foreground mb-4">{product.name} · current {product.stock_quantity}</p>
         <div className="space-y-3">

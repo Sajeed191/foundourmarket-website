@@ -63,7 +63,7 @@ function FinancialPage() {
         <KpiCard label="Net earnings" value={`$${f.net.toFixed(0)}`} icon={<Wallet className="size-4" />} sub={<p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Tax collected ${f.tax.toFixed(0)}</p>} />
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+      <div className="card-premium rounded-2xl p-5 mb-6">
         <h2 className="text-sm font-medium mb-4">Monthly P&amp;L</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={f.rows}>
@@ -78,7 +78,7 @@ function FinancialPage() {
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+      <div className="card-premium rounded-2xl p-5 mb-6">
         <h2 className="text-sm font-medium mb-4">Cumulative net profit</h2>
         <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={f.rows.reduce((acc, r, i) => { const prev = acc[i - 1]?.cumulative ?? 0; acc.push({ month: r.month, cumulative: prev + (r.revenue - r.cost - r.refunds - r.shipping) }); return acc; }, [] as { month: string; cumulative: number }[])}>
@@ -92,7 +92,7 @@ function FinancialPage() {
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+      <div className="card-premium rounded-2xl overflow-hidden">
         <div className="p-5 border-b border-border flex items-center gap-2"><Receipt className="size-4 text-muted-foreground" /><h2 className="text-sm font-medium">Monthly breakdown</h2></div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[720px]">

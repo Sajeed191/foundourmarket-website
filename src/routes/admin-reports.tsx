@@ -88,7 +88,7 @@ function ReportsPage() {
     }>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {REPORTS.map((r) => (
-          <div key={r.id} className="bg-card border border-border rounded-2xl p-5 flex flex-col">
+          <div key={r.id} className="card-premium rounded-2xl p-5 flex flex-col">
             <FileText className="size-5 text-accent mb-3" />
             <h3 className="text-sm font-medium">{r.label}</h3>
             <p className="text-xs text-muted-foreground mt-1 flex-1">{r.desc}</p>
@@ -100,7 +100,7 @@ function ReportsPage() {
       </div>
 
       {history.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="card-premium rounded-2xl p-5">
           <h2 className="text-sm font-medium mb-3">Recent exports</h2>
           <ul className="divide-y divide-border/40">
             {history.map((h, i) => (

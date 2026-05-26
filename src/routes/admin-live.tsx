@@ -253,7 +253,7 @@ function AdminLivePage() {
             const m = KIND_META[e.kind];
             const Icon = m.icon;
             const row = (
-              <div className="flex items-start gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors">
+              <div className="flex items-start gap-3 px-4 py-3 hover:bg-accent/5 transition-colors">
                 <div className={`size-9 rounded-full grid place-items-center shrink-0 ${m.tone}`}>
                   <Icon className="size-4" />
                 </div>
