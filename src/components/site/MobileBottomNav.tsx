@@ -12,8 +12,7 @@ export function MobileBottomNav() {
 
   const items: { to: string; label: string; icon: typeof Home; match: (p: string) => boolean; badge?: number }[] = [
     { to: "/", label: "Home", icon: Home, match: (p) => p === "/" },
-    { to: "/search", label: "Browse", icon: LayoutGrid, match: (p) => p.startsWith("/category") },
-    { to: "/search", label: "Search", icon: Search, match: (p) => p === "/search" },
+    { to: "/search", label: "Search", icon: Search, match: (p) => p === "/search" || p.startsWith("/category") },
     { to: "/wishlist", label: "Saved", icon: Heart, match: (p) => p === "/wishlist", badge: slugs.size },
     { to: "/cart", label: "Cart", icon: ShoppingBag, match: (p) => p === "/cart", badge: count },
     { to: user ? "/account" : "/auth", label: user ? "Me" : "Sign in", icon: User, match: (p) => p === "/account" || p === "/auth" },
@@ -22,9 +21,9 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Primary mobile navigation"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border safe-bottom"
     >
-      <ul className="grid grid-cols-6">
+      <ul className="grid grid-cols-5">
         {items.map(({ to, label, icon: Icon, match, badge }) => {
           const active = match(pathname);
           return (
