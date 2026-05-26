@@ -170,6 +170,45 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_logs: {
+        Row: {
+          actor_id: string | null
+          change: number
+          created_at: string
+          id: string
+          notes: string | null
+          product_slug: string
+          reason: string
+          reference_id: string | null
+          reference_type: string | null
+          variant_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          change: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_slug: string
+          reason: string
+          reference_id?: string | null
+          reference_type?: string | null
+          variant_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          change?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_slug?: string
+          reason?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          variant_id?: string | null
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string
@@ -243,10 +282,12 @@ export type Database = {
       }
       orders: {
         Row: {
+          carrier: string | null
           contact_email: string | null
           created_at: string
           currency: string
           discount: number
+          fulfillment_status: string
           id: string
           payment_method: string | null
           payment_status: string
@@ -257,14 +298,17 @@ export type Database = {
           subtotal: number
           tax: number
           total: number
+          tracking_number: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          carrier?: string | null
           contact_email?: string | null
           created_at?: string
           currency?: string
           discount?: number
+          fulfillment_status?: string
           id?: string
           payment_method?: string | null
           payment_status?: string
@@ -275,14 +319,17 @@ export type Database = {
           subtotal?: number
           tax?: number
           total?: number
+          tracking_number?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          carrier?: string | null
           contact_email?: string | null
           created_at?: string
           currency?: string
           discount?: number
+          fulfillment_status?: string
           id?: string
           payment_method?: string | null
           payment_status?: string
@@ -293,6 +340,7 @@ export type Database = {
           subtotal?: number
           tax?: number
           total?: number
+          tracking_number?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -486,6 +534,7 @@ export type Database = {
           name: string
           price: number
           rating: number
+          reserved_quantity: number
           reviews: number
           search_vector: unknown
           sku: string | null
@@ -508,6 +557,7 @@ export type Database = {
           name: string
           price?: number
           rating?: number
+          reserved_quantity?: number
           reviews?: number
           search_vector?: unknown
           sku?: string | null
@@ -530,6 +580,7 @@ export type Database = {
           name?: string
           price?: number
           rating?: number
+          reserved_quantity?: number
           reviews?: number
           search_vector?: unknown
           sku?: string | null
@@ -613,6 +664,195 @@ export type Database = {
         }
         Relationships: []
       }
+      return_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_item_id: string
+          product_slug: string
+          quantity: number
+          reason: string | null
+          return_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_item_id: string
+          product_slug: string
+          quantity: number
+          reason?: string | null
+          return_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_item_id?: string
+          product_slug?: string
+          quantity?: number
+          reason?: string | null
+          return_id?: string
+        }
+        Relationships: []
+      }
+      returns: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          order_id: string
+          reason: string
+          refund_amount: number
+          refund_status: string
+          resolved_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          reason: string
+          refund_amount?: number
+          refund_status?: string
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          reason?: string
+          refund_amount?: number
+          refund_status?: string
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shipment_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          occurred_at: string
+          shipment_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          occurred_at?: string
+          shipment_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          occurred_at?: string
+          shipment_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      shipments: {
+        Row: {
+          carrier: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          shipped_at: string | null
+          status: string
+          tracking_number: string | null
+          tracking_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          carrier?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          shipped_at?: string | null
+          status?: string
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          carrier?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          shipped_at?: string | null
+          status?: string
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shipping_zones: {
+        Row: {
+          active: boolean
+          base_rate: number
+          countries: string[]
+          created_at: string
+          estimated_days_max: number
+          estimated_days_min: number
+          free_threshold: number | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          base_rate?: number
+          countries?: string[]
+          created_at?: string
+          estimated_days_max?: number
+          estimated_days_min?: number
+          free_threshold?: number | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          base_rate?: number
+          countries?: string[]
+          created_at?: string
+          estimated_days_max?: number
+          estimated_days_min?: number
+          free_threshold?: number | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -692,6 +932,7 @@ export type Database = {
           name: string
           price: number
           rating: number
+          reserved_quantity: number
           reviews: number
           search_vector: unknown
           sku: string | null
