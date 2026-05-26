@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { PRODUCTS, type Product } from "./products";
+import { type Product } from "./products";
+import { useProducts } from "./use-products";
 
 type CartItem = { slug: string; qty: number };
 type Ctx = {
@@ -17,6 +18,7 @@ const CartContext = createContext<Ctx | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { products } = useProducts();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -42,7 +44,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const detailed = items
     .map((i) => {
-      const product = PRODUCTS.find((p) => p.slug === i.slug);
+      const product = products.find((p) => p.slug === i.slug);
       return product ? { ...i, product } : null;
     })
     .filter(Boolean) as (CartItem & { product: Product })[];
