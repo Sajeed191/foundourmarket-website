@@ -388,7 +388,7 @@ function ProductPage() {
       </div>
       <ProductQA productSlug={product.slug} />
       <RelatedProducts product={product} />
-      <RecentlyViewed excludeSlug={product.slug} />
+      
 
       {/* Sticky mobile CTA */}
       <div className="sm:hidden fixed bottom-[5.25rem] inset-x-0 z-40 px-3 pb-[env(safe-area-inset-bottom)]">
