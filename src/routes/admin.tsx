@@ -402,6 +402,7 @@ function ProductEditor({ row, nextSort, categories, onClose, onSaved }: { row: P
       rating: Number(form.rating) || 0,
       reviews: Number(form.reviews) || 0,
       sort_order: Number(form.sort_order) || 0,
+      featured: form.featured,
     };
     const { error } = row
       ? await supabase.from("products").update(payload).eq("id", row.id)
