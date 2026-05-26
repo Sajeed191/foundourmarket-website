@@ -63,6 +63,9 @@ function AccountPage() {
           <Link to="/account/returns" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
             <RotateCcw className="size-3.5" /> Returns
           </Link>
+          <Link to="/account/notifications" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
+            <Bell className="size-3.5" /> Notifications
+          </Link>
           <button onClick={signOut} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
             <LogOut className="size-3.5" /> Sign out
           </button>
