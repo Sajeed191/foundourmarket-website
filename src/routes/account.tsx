@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, Package, Loader2, RotateCcw, MapPin } from "lucide-react";
+import { LogOut, Package, Loader2, RotateCcw, MapPin, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
