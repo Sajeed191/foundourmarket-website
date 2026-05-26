@@ -79,16 +79,28 @@ function ProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-4">
             <div className="aspect-square bg-card rounded-3xl overflow-hidden border border-border">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              <img
+                src={images[activeImg]?.url || product.image}
+                alt={images[activeImg]?.alt || product.name}
+                className="w-full h-full object-cover transition-opacity"
+              />
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className={`aspect-square rounded-xl overflow-hidden border ${i === 0 ? "border-accent" : "border-border opacity-50 hover:opacity-100 transition-opacity"} bg-card cursor-pointer`}>
-                  <img src={product.image} alt="" className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
+            {(images.length > 1 || (images.length === 0 && product.image)) && (
+              <div className="grid grid-cols-4 gap-3">
+                {(images.length > 0 ? images : [{ id: "main", url: product.image, alt: product.name, sortOrder: 0 }]).map((img, i) => (
+                  <button
+                    key={img.id}
+                    onClick={() => setActiveImg(i)}
+                    aria-label={`View image ${i + 1}`}
+                    className={`aspect-square rounded-xl overflow-hidden border transition-all bg-card ${i === activeImg ? "border-accent" : "border-border opacity-50 hover:opacity-100"}`}
+                  >
+                    <img src={img.url} alt={img.alt || ""} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
 
           <div>
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">{product.tagline}</p>
