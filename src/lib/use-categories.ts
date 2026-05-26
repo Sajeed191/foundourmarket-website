@@ -17,20 +17,21 @@ const subscribers = new Set<(c: Category[]) => void>();
 export async function loadCategories(force = false): Promise<Category[]> {
   if (cache && !force) return cache;
   if (!inflight) {
-    inflight = supabase
-      .from("categories")
-      .select("id,slug,name,description,image,sort_order")
-      .order("sort_order", { ascending: true })
-      .then(({ data }) => {
-        const list = (data as Category[]) ?? [];
-        cache = list;
-        inflight = null;
-        subscribers.forEach((s) => s(list));
-        return list;
-      });
+    inflight = (async () => {
+      const { data } = await supabase
+        .from("categories")
+        .select("id,slug,name,description,image,sort_order")
+        .order("sort_order", { ascending: true });
+      const list = (data as Category[] | null) ?? [];
+      cache = list;
+      inflight = null;
+      subscribers.forEach((s) => s(list));
+      return list;
+    })();
   }
   return inflight;
 }
+
 
 export function invalidateCategories() {
   cache = null;
