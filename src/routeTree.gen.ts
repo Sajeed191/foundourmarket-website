@@ -17,6 +17,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminShipmentsRouteImport } from './routes/admin-shipments'
+import { Route as AdminReturnsRouteImport } from './routes/admin-returns'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
@@ -65,6 +66,11 @@ const AdminShipmentsRoute = AdminShipmentsRouteImport.update({
   path: '/admin-shipments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminReturnsRoute = AdminReturnsRouteImport.update({
+  id: '/admin-returns',
+  path: '/admin-returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
+  '/admin-returns': typeof AdminReturnsRoute
   '/admin-shipments': typeof AdminShipmentsRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
+  '/admin-returns': typeof AdminReturnsRoute
   '/admin-shipments': typeof AdminShipmentsRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
+  '/admin-returns': typeof AdminReturnsRoute
   '/admin-shipments': typeof AdminShipmentsRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/admin'
+    | '/admin-returns'
     | '/admin-shipments'
     | '/auth'
     | '/cart'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/admin'
+    | '/admin-returns'
     | '/admin-shipments'
     | '/auth'
     | '/cart'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/admin'
+    | '/admin-returns'
     | '/admin-shipments'
     | '/auth'
     | '/cart'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRouteWithChildren
   AdminRoute: typeof AdminRoute
+  AdminReturnsRoute: typeof AdminReturnsRoute
   AdminShipmentsRoute: typeof AdminShipmentsRoute
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
@@ -282,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminShipmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-returns': {
+      id: '/admin-returns'
+      path: '/admin-returns'
+      fullPath: '/admin-returns'
+      preLoaderRoute: typeof AdminReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRouteWithChildren,
   AdminRoute: AdminRoute,
+  AdminReturnsRoute: AdminReturnsRoute,
   AdminShipmentsRoute: AdminShipmentsRoute,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
