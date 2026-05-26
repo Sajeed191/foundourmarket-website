@@ -122,14 +122,8 @@ export function Nav() {
                 <li><Link to="/cart" onClick={() => setOpen(false)} className="block px-5 py-3 text-sm uppercase tracking-widest font-medium hover:bg-white/5">Cart · {count}</Link></li>
               </ul>
             </div>
-            <div className="px-5 py-4 border-t border-border">
-              <button
-                onClick={() => setRegion(region === "IN" ? "INTL" : "IN")}
-                className="w-full inline-flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors px-3 py-2.5 rounded-full border border-border"
-              >
-                <Globe className="size-3" />
-                Region · {region === "IN" ? "India ₹" : "International $"}
-              </button>
+            <div className="px-5 py-4 border-t border-border flex justify-center">
+              <CurrencySwitcher />
             </div>
           </div>
         </div>
