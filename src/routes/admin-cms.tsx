@@ -141,20 +141,27 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
   const [editing, setEditing] = useState<Partial<Post> | null>(null);
 
   async function save() {
-    if (!editing?.slug || !editing.title) return;
+    if (!editing?.slug || !editing.title) { toast.error("Slug and title are required"); return; }
     const payload = {
       slug: editing.slug, title: editing.title, excerpt: editing.excerpt ?? null,
       body: editing.body ?? "", cover_image: editing.cover_image ?? null, author: editing.author ?? null,
       meta_title: editing.meta_title ?? null, meta_description: editing.meta_description ?? null,
       published_at: editing.published_at ?? null,
     };
-    if (editing.id) await supabase.from("cms_posts").update(payload).eq("id", editing.id);
-    else await supabase.from("cms_posts").insert(payload);
+    const { error } = editing.id
+      ? await supabase.from("cms_posts").update(payload).eq("id", editing.id)
+      : await supabase.from("cms_posts").insert(payload);
+    if (error) { toast.error(error.message); return; }
+    toast.success(editing.id ? "Post updated" : "Post created");
+    logActivity(editing.id ? "post_update" : "post_create", "cms_post", editing.id, { slug: payload.slug });
     setEditing(null); reload();
   }
   async function del(id: string) {
     if (!confirm("Delete this post?")) return;
-    await supabase.from("cms_posts").delete().eq("id", id); reload();
+    const { error } = await supabase.from("cms_posts").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    logActivity("post_delete", "cms_post", id);
+    reload();
   }
 
   return (
