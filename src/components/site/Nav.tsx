@@ -10,7 +10,7 @@ export function Nav() {
   const { count } = useCart();
   const { region, setRegion } = useRegion();
   const { user } = useAuth();
-  const { items: wishItems } = useWishlist();
+  const { slugs: wishSlugs } = useWishlist();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -64,8 +64,8 @@ export function Nav() {
             </button>
             <Link to="/wishlist" aria-label="Wishlist" className="relative hidden xs:grid sm:grid size-9 rounded-full place-items-center hover:bg-white/5 transition-colors">
               <Heart className="size-4" />
-              {wishItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono grid place-items-center">{wishItems.length}</span>
+              {wishSlugs.size > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono grid place-items-center">{wishSlugs.size}</span>
               )}
             </Link>
             <Link to={user ? "/account" : "/auth"} aria-label="Account" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
@@ -111,7 +111,7 @@ export function Nav() {
               <p className="px-5 mt-6 mb-3 text-[10px] font-mono uppercase tracking-[0.3em] text-accent">Account</p>
               <ul className="flex flex-col">
                 <li><Link to={user ? "/account" : "/auth"} onClick={() => setOpen(false)} className="block px-5 py-3 text-sm uppercase tracking-widest font-medium hover:bg-white/5">{user ? "My Account" : "Sign In"}</Link></li>
-                <li><Link to="/wishlist" onClick={() => setOpen(false)} className="block px-5 py-3 text-sm uppercase tracking-widest font-medium hover:bg-white/5">Wishlist · {wishItems.length}</Link></li>
+                <li><Link to="/wishlist" onClick={() => setOpen(false)} className="block px-5 py-3 text-sm uppercase tracking-widest font-medium hover:bg-white/5">Wishlist · {wishSlugs.size}</Link></li>
                 <li><Link to="/cart" onClick={() => setOpen(false)} className="block px-5 py-3 text-sm uppercase tracking-widest font-medium hover:bg-white/5">Cart · {count}</Link></li>
               </ul>
             </div>
