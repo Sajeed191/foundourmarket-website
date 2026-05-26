@@ -203,13 +203,8 @@ function AdminPage() {
 
       {tab === "overview" && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-12">
-            <Stat icon={<TrendingUp className="size-4" />} label="Revenue" value={`$${totalRevenue.toFixed(2)}`} />
-            <Stat icon={<ShoppingBag className="size-4" />} label="Orders" value={list.length} />
-            <Stat icon={<Users className="size-4" />} label="Customers" value={customers.length} />
-            <Stat icon={<Package className="size-4" />} label="Products" value={products?.length ?? 0} />
-          </div>
-          <h2 className="text-xl font-medium mb-6">Recent Activity</h2>
+          <DashboardOverview orders={orders} products={products} customersCount={customers.length} />
+          <h2 className="text-xl font-medium mb-6">Recent orders</h2>
           {orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             list.length === 0 ? <p className="text-sm text-muted-foreground">No orders yet.</p> :
             <div className="bg-card border border-border rounded-2xl divide-y divide-border/40">
