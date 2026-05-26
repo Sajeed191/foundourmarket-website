@@ -1,12 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShoppingBag, Search, User, Heart, Menu, X } from "lucide-react";
+import { ShoppingBag, Search, User, Heart, Menu, X, LayoutDashboard } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
 import { SearchCommand } from "@/components/site/SearchCommand";
 import { NotificationBell } from "@/components/site/NotificationBell";
 import { CurrencySwitcher } from "@/components/site/CurrencySwitcher";
+import { supabase } from "@/integrations/supabase/client";
+
+const ADMIN_ROLES = ["admin","super_admin","manager","support","fulfillment","warehouse_staff","editor"];
 
 export function Nav() {
   const { count } = useCart();
