@@ -4,13 +4,13 @@ import { useRegion } from "@/lib/region";
 export function Footer() {
   const { region, setRegion } = useRegion();
   return (
-    <footer className="px-6 py-16 border-t border-border bg-background">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div className="space-y-6">
-          <div className="text-xl font-display tracking-tighter uppercase font-semibold">
+    <footer className="px-4 sm:px-6 py-12 sm:py-16 border-t border-border bg-background safe-bottom">
+      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
+        <div className="col-span-2 md:col-span-1 space-y-4 sm:space-y-6">
+          <div className="text-lg sm:text-xl font-display tracking-tighter uppercase font-semibold">
             FoundOurMarket<span className="text-accent">™</span>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed max-w-[30ch]">
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-[34ch]">
             Everything you need. All in one place. A premium independent marketplace sourcing top-quality products worldwide.
           </p>
         </div>
@@ -48,9 +48,9 @@ export function Footer() {
           </p>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between gap-4">
+      <div className="max-w-7xl mx-auto mt-10 sm:mt-16 pt-6 sm:pt-8 border-t border-border flex flex-col md:flex-row justify-between gap-4 text-center md:text-left">
         <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">© 2026 FoundOurMarket. All rights reserved.</p>
-        <div className="flex gap-6 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+        <div className="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
           <Link to="/pages/$slug" params={{ slug: "privacy" }} className="hover:text-foreground">Privacy</Link>
           <Link to="/pages/$slug" params={{ slug: "terms" }} className="hover:text-foreground">Terms</Link>
           <Link to="/pages/$slug" params={{ slug: "returns" }} className="hover:text-foreground">Refunds</Link>
