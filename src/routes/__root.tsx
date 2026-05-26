@@ -109,24 +109,31 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => { registerServiceWorker(); }, []);
+  useEffect(() => { trackPageView(pathname); }, [pathname]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WishlistProvider>
-          <RegionProvider>
-            <CartProvider>
-              <div className="min-h-screen flex flex-col">
-                <Nav />
-                <main className="flex-1 pb-16 md:pb-0">
-                  <Outlet />
-                </main>
-                <Footer />
-                <MobileBottomNav />
-                <CompareTray />
-              </div>
-            </CartProvider>
-          </RegionProvider>
-        </WishlistProvider>
+        <NotificationsProvider>
+          <WishlistProvider>
+            <RegionProvider>
+              <CartProvider>
+                <div className="min-h-screen flex flex-col">
+                  <Nav />
+                  <main className="flex-1 pb-16 md:pb-0">
+                    <Outlet />
+                  </main>
+                  <Footer />
+                  <MobileBottomNav />
+                  <CompareTray />
+                </div>
+              </CartProvider>
+            </RegionProvider>
+          </WishlistProvider>
+        </NotificationsProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
