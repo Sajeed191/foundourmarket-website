@@ -217,6 +217,50 @@ function MarketingPage() {
         </>
       )}
 
+      <section className="mt-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-medium flex items-center gap-2">
+            <History className="size-4 text-muted-foreground" /> Publish & update history
+          </h2>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{history.length} events</span>
+        </div>
+        <div className="card-premium rounded-2xl divide-y divide-border/40">
+          {history.length === 0 ? (
+            <p className="text-sm text-muted-foreground px-5 py-8 text-center">No activity yet. Edit a banner or publish a change to see it logged here.</p>
+          ) : history.map((h) => {
+            const isBanner = h.entity_type === "banner";
+            const target = isBanner
+              ? banners?.find((b) => b.id === h.entity_id)
+              : flash?.find((f) => f.id === h.entity_id);
+            const label = ACTION_LABELS[h.action] ?? h.action.replace(/_/g, " ");
+            const tone = h.action.includes("publish") ? "text-emerald-400" : h.action.includes("delete") ? "text-destructive" : "text-accent";
+            return (
+              <div key={h.id} className="flex items-center gap-3 px-5 py-3">
+                <span className={`size-8 grid place-items-center rounded-full bg-white/5 ${tone}`}>
+                  {h.action.includes("publish") ? <Rocket className="size-3.5" /> :
+                   h.action.includes("delete") ? <Trash2 className="size-3.5" /> :
+                   h.action.includes("create") ? <Plus className="size-3.5" /> :
+                   <Pencil className="size-3.5" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium truncate">
+                    <span className={tone}>{label}</span>
+                    <span className="text-muted-foreground"> · {isBanner ? "banner" : "flash sale"}</span>
+                    {target && <span className="text-foreground"> — {(target as any).title ?? (target as any).name}</span>}
+                  </p>
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-0.5">
+                    {new Date(h.created_at).toLocaleString()}
+                    {h.entity_id && <> · #{h.entity_id.slice(0, 8)}</>}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+
+
       {editingB && <BannerEditor row={editingB === "new" ? null : editingB} onClose={() => setEditingB(null)} onSaved={() => { setEditingB(null); load(); }} />}
       {editingF && <FlashEditor row={editingF === "new" ? null : editingF} onClose={() => setEditingF(null)} onSaved={() => { setEditingF(null); load(); }} />}
 
