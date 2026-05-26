@@ -430,17 +430,35 @@ function OverviewCard({
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.25, ease }}
-      className={`h-full w-full relative overflow-hidden rounded-2xl p-3.5 sm:p-5 transition-all ${
-        accent
-          ? "border border-accent/40 bg-gradient-to-br from-accent/15 via-card to-card shadow-[var(--shadow-glow)]"
-          : "card-premium"
+      className={`group h-full w-full relative overflow-hidden rounded-2xl p-3.5 sm:p-5 card-premium transition-all ${
+        accent ? "ring-1 ring-accent/40 shadow-[var(--shadow-glow)]" : "hover:ring-1 hover:ring-accent/25"
       }`}
     >
-      {accent && (
-        <div aria-hidden className="absolute -top-10 -right-10 size-32 rounded-full opacity-50" style={{ background: "var(--gradient-ember)", filter: "blur(40px)" }} />
-      )}
+      {/* Ambient ember edge glow — always present, stronger on accent / hover */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute -top-12 -right-12 size-32 rounded-full blur-3xl transition-opacity duration-500 ${
+          accent ? "opacity-70" : "opacity-0 group-hover:opacity-50"
+        }`}
+        style={{ background: "var(--gradient-ember)" }}
+      />
+      {/* Subtle grid texture */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "linear-gradient(oklch(1 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.6) 1px, transparent 1px)",
+          backgroundSize: "22px 22px",
+          maskImage: "radial-gradient(ellipse at top right, black 0%, transparent 70%)",
+        }}
+      />
       <div className="relative flex items-center justify-between mb-3">
-        <span className={`size-9 rounded-xl grid place-items-center ${accent ? "bg-accent/25 text-accent" : "bg-white/5 text-muted-foreground"}`}>
+        <span className={`size-9 rounded-xl grid place-items-center transition-all ${
+          accent
+            ? "bg-accent/25 text-accent shadow-[0_0_18px_-4px_var(--color-accent)]"
+            : "bg-white/[0.06] text-accent/90 group-hover:bg-accent/15 group-hover:text-accent group-hover:shadow-[0_0_18px_-6px_var(--color-accent)]"
+        }`}>
           <Icon className="size-4" />
         </span>
         {hint && <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{hint}</span>}
@@ -451,7 +469,7 @@ function OverviewCard({
         <AnimatedNumber
           value={value}
           formatter={formatter}
-          className={`relative block text-xl sm:text-3xl font-display font-semibold tabular-nums ${accent ? "text-gradient-ember" : ""}`}
+          className={`relative block text-xl sm:text-3xl font-display font-semibold tabular-nums ${accent ? "text-gradient-ember" : "text-foreground"}`}
         />
       )}
       <p className="relative text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted-foreground mt-1.5 truncate">{label}</p>
