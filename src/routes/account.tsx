@@ -350,17 +350,20 @@ function AccountPage() {
 
         {/* 10 — FOOTER ACTIONS */}
         <motion.footer {...fadeUp} className="pt-2">
-          <div className="rounded-3xl border border-border bg-card p-5 sm:p-7">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="relative overflow-hidden rounded-3xl glass-strong p-5 sm:p-7">
+            <div aria-hidden className="absolute -top-20 -left-10 size-64 rounded-full opacity-40" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
+            <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
               <FooterAction icon={LifeBuoy} label="Support" to="/" />
               <FooterAction icon={HelpCircle} label="FAQ" to="/" />
               <FooterAction icon={MessageCircle} label="Contact" to="/" />
               <button
                 onClick={signOut}
-                className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-background/40 p-4 hover:border-destructive/40 hover:text-destructive transition-colors"
+                className="group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-destructive/50 hover:text-destructive hover:-translate-y-0.5 transition-all"
               >
-                <LogOut className="size-4" />
-                <span className="text-xs uppercase tracking-widest">Sign out</span>
+                <span className="size-9 rounded-xl bg-destructive/10 text-destructive grid place-items-center group-hover:bg-destructive/20 transition-colors">
+                  <LogOut className="size-4" />
+                </span>
+                <span className="text-[11px] uppercase tracking-widest">Sign out</span>
               </button>
             </div>
           </div>
