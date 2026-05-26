@@ -383,6 +383,7 @@ function ProductEditor({ row, nextSort, categories, onClose, onSaved }: { row: P
     rating: row ? String(row.rating) : "5",
     reviews: row?.reviews ?? 0,
     sort_order: row?.sort_order ?? nextSort,
+    featured: row?.featured ?? false,
   });
 
   async function save(e: React.FormEvent) {
