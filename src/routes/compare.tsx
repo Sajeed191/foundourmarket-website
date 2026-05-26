@@ -153,7 +153,7 @@ function ComparePage() {
                 {items.map((p) => (
                   <td key={p.slug} className="py-4 align-top">
                     <button
-                      onClick={() => p.inStock && add(p, 1)}
+                      onClick={() => p.inStock && add(p.slug, 1)}
                       disabled={!p.inStock}
                       className="w-full inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground px-4 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
