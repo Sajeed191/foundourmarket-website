@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
-export const Route = createFileRoute("/account/profile")({
+export const Route = createFileRoute("/account_/profile")({
   head: () => ({ meta: [{ title: "Edit Profile — FoundOurMarket™" }] }),
   component: EditProfilePage,
 });
