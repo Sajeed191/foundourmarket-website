@@ -16,13 +16,26 @@ type Banner = {
   link: string | null; cta_text: string | null; active: boolean;
   starts_at: string | null; ends_at: string | null; sort_order: number;
   draft_data: any; has_draft: boolean; last_published_at: string | null;
+  width_px: number | null; height_px: number | null;
 };
 type Flash = {
   id: string; name: string; discount_percent: number; starts_at: string; ends_at: string | null;
   active: boolean; product_slugs: string[];
 };
+type ActivityLog = {
+  id: number; action: string; entity_type: string | null; entity_id: string | null;
+  actor_id: string | null; created_at: string; metadata: any;
+};
 
-const BANNER_FIELDS = ["type","title","subtitle","image","link","cta_text","active","starts_at","ends_at","sort_order"] as const;
+const BANNER_SIZE_PRESETS: { label: string; w: number; h: number; note: string }[] = [
+  { label: "Hero — Wide", w: 1920, h: 720, note: "Desktop hero" },
+  { label: "Hero — Standard", w: 1600, h: 600, note: "Default hero" },
+  { label: "Hero — Compact", w: 1440, h: 480, note: "Mid hero" },
+  { label: "Announcement bar", w: 1920, h: 64, note: "Slim top bar" },
+  { label: "Promo card", w: 1200, h: 600, note: "Promo block" },
+  { label: "Offer tile — Square", w: 1080, h: 1080, note: "Square tile" },
+  { label: "Mobile banner", w: 750, h: 1000, note: "Mobile portrait" },
+];
 
 function MarketingPage() {
   const [tab, setTab] = useState<"banners" | "flash">("banners");
