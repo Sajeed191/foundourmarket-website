@@ -23,7 +23,7 @@ type ProductRow = {
   id: string; slug: string; name: string; tagline: string | null; category: string;
   price: number | string; rating: number | string; reviews: number;
   image: string | null; description: string | null; in_stock: boolean;
-  discount: number | null; sort_order: number;
+  discount: number | null; sort_order: number; featured: boolean;
 };
 
 const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
