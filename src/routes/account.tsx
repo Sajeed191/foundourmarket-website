@@ -423,27 +423,24 @@ function ActionCard({
   to, icon: Icon, title, subtitle, badge,
 }: { to: string; icon: typeof Package; title: string; subtitle: string; badge?: number }) {
   return (
-    <Link to={to} className="group">
+    <Link to={to} className="group block h-full">
       <motion.div
         whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: 0.97 }}
         transition={{ duration: 0.2, ease }}
-        className="relative h-full rounded-2xl border border-border bg-card p-3.5 sm:p-4 hover:border-accent/40 transition-colors"
+        className="h-full min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center text-center gap-2 rounded-2xl border border-border bg-card/80 backdrop-blur-sm px-3 py-4 sm:py-5 hover:border-accent/40 hover:bg-card hover:shadow-[0_8px_30px_-12px_oklch(0.72_0.18_49/0.35)] transition-all"
       >
-        <div className="flex items-start gap-3">
-          <span className="relative size-9 rounded-xl bg-accent/10 text-accent grid place-items-center shrink-0 group-hover:bg-accent/20 transition-colors">
-            <Icon className="size-4" />
-            {typeof badge === "number" && badge > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
-                {badge > 9 ? "9+" : badge}
-              </span>
-            )}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium truncate">{title}</p>
-            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all shrink-0" />
+        <span className="relative size-10 rounded-xl bg-accent/10 text-accent grid place-items-center group-hover:bg-accent/20 transition-colors">
+          <Icon className="size-[18px]" />
+          {typeof badge === "number" && badge > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
+              {badge > 9 ? "9+" : badge}
+            </span>
+          )}
+        </span>
+        <div className="min-w-0 w-full">
+          <p className="text-[13px] font-medium leading-tight truncate">{title}</p>
+          <p className="text-[10.5px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
         </div>
       </motion.div>
     </Link>
