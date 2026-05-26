@@ -19,6 +19,10 @@ function CheckoutPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ fullName: "", address: "", city: "", postal: "", country: region === "IN" ? "India" : "" });
+  const [promoInput, setPromoInput] = useState("");
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [promo, setPromo] = useState<{ code: string; kind: "percent" | "fixed"; value: number } | null>(null);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -30,7 +34,30 @@ function CheckoutPage() {
 
   const shipping = subtotalUSD > 50 ? 0 : 9.99;
   const tax = subtotalUSD * 0.08;
-  const total = subtotalUSD + shipping + tax;
+  const discount = promo
+    ? Math.min(subtotalUSD, promo.kind === "percent" ? +(subtotalUSD * (promo.value / 100)).toFixed(2) : promo.value)
+    : 0;
+  const total = Math.max(0, subtotalUSD + shipping + tax - discount);
+
+  async function applyPromo() {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+    setPromoBusy(true); setPromoError(null);
+    const { data, error } = await supabase
+      .from("promo_codes")
+      .select("code,kind,value,min_subtotal,max_uses,uses")
+      .ilike("code", code)
+      .maybeSingle();
+    setPromoBusy(false);
+    if (error || !data) { setPromoError("Invalid or expired code"); return; }
+    if (Number(data.min_subtotal) > subtotalUSD) {
+      setPromoError(`Requires subtotal of at least $${Number(data.min_subtotal).toFixed(2)}`); return;
+    }
+    if (data.max_uses != null && data.uses >= data.max_uses) {
+      setPromoError("This code has reached its usage limit"); return;
+    }
+    setPromo({ code: data.code, kind: data.kind as "percent" | "fixed", value: Number(data.value) });
+  }
 
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
