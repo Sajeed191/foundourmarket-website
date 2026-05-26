@@ -140,6 +140,7 @@ export function Nav() {
           </div>
         </div>
       )}
+      <SearchCommand open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }
