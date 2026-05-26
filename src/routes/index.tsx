@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Search, Shield, Truck, Headset, ArrowRight, Star } from "lucide-react";
 import { CATEGORIES } from "@/lib/products";
 import { useProducts } from "@/lib/use-products";
@@ -16,6 +17,8 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { products } = useProducts();
+  const nav = useNavigate();
+  const [query, setQuery] = useState("");
   const categoryCounts = products.reduce<Record<string, number>>((acc, p) => {
     acc[p.category] = (acc[p.category] ?? 0) + 1;
     return acc;
@@ -38,17 +41,22 @@ function Home() {
           </p>
 
           {/* Smart Search */}
-          <div className="animate-fade-up [animation-delay:200ms] max-w-2xl mx-auto relative">
+          <form
+            onSubmit={(e) => { e.preventDefault(); nav({ to: "/search", search: { q: query } }); }}
+            className="animate-fade-up [animation-delay:200ms] max-w-2xl mx-auto relative"
+          >
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <input
               type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Search the global marketplace..."
               className="w-full bg-card border border-border rounded-full pl-14 pr-32 py-5 text-base focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all placeholder:text-muted-foreground/60"
             />
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-bold px-6 py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all">
+            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-bold px-6 py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all">
               Search
             </button>
-          </div>
+          </form>
 
           <div className="animate-fade-up [animation-delay:300ms] mt-10 flex flex-wrap justify-center gap-4">
             <Link to="/category/$slug" params={{ slug: "electronics" }} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-foreground text-background text-xs uppercase tracking-widest font-semibold hover:brightness-110 transition-all">
