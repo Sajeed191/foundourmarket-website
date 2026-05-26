@@ -35,12 +35,16 @@ type Order = {
   order_items: OrderItem[];
 };
 
+type ShipmentEvent = { id: string; status: string; description: string | null; location: string | null; occurred_at: string };
+type Shipment = { id: string; status: string; carrier: string | null; tracking_number: string | null; tracking_url: string | null; shipped_at: string | null; delivered_at: string | null; shipment_events: ShipmentEvent[] };
+
 function OrderDetailPage() {
   const { id } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const { format } = useRegion();
   const nav = useNavigate();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) nav({ to: "/auth" });
@@ -54,6 +58,12 @@ function OrderDetailPage() {
       .eq("id", id)
       .maybeSingle()
       .then(({ data }) => setOrder((data as Order) ?? null));
+    supabase
+      .from("shipments")
+      .select("id,status,carrier,tracking_number,tracking_url,shipped_at,delivered_at,shipment_events(id,status,description,location,occurred_at)")
+      .eq("order_id", id)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => setShipments((data as Shipment[]) ?? []));
   }, [user, id]);
 
   if (authLoading || order === undefined) {
