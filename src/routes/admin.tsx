@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, ShieldAlert, TrendingUp, ShoppingBag, Users, Package, Plus, Pencil, Trash2, X, Upload, Tag, Ticket } from "lucide-react";
+import { Loader2, ShieldAlert, TrendingUp, ShoppingBag, Users, Package, Plus, Pencil, Trash2, X, Upload, Tag, Ticket, Mail, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { invalidateProducts } from "@/lib/use-products";
@@ -32,8 +32,12 @@ type PromoRow = {
   min_subtotal: number | string; expires_at: string | null;
 };
 
+type Subscriber = {
+  id: string; email: string; source: string | null; status: string; created_at: string;
+};
+
 const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
-type Tab = "overview" | "orders" | "customers" | "products" | "categories" | "promos";
+type Tab = "overview" | "orders" | "customers" | "products" | "categories" | "promos" | "subscribers";
 
 function AdminPage() {
   const { user, loading } = useAuth();
@@ -48,6 +52,7 @@ function AdminPage() {
   const [editingCat, setEditingCat] = useState<Category | "new" | null>(null);
   const [promos, setPromos] = useState<PromoRow[] | null>(null);
   const [editingPromo, setEditingPromo] = useState<PromoRow | "new" | null>(null);
+  const [subscribers, setSubscribers] = useState<Subscriber[] | null>(null);
 
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
@@ -67,12 +72,39 @@ function AdminPage() {
     loadProducts();
     loadCategories();
     loadPromos();
+    loadSubscribers();
   }, [isAdmin]);
 
   async function loadProducts() {
     const { data } = await supabase.from("products").select("*").order("sort_order", { ascending: true });
     setProducts((data as ProductRow[]) ?? []);
   }
+
+  async function loadSubscribers() {
+    const { data } = await supabase.from("newsletter_subscribers").select("*").order("created_at", { ascending: false });
+    setSubscribers((data as Subscriber[]) ?? []);
+  }
+
+  async function deleteSubscriber(id: string) {
+    if (!confirm("Remove this subscriber?")) return;
+    await supabase.from("newsletter_subscribers").delete().eq("id", id);
+    setSubscribers((prev) => prev?.filter((s) => s.id !== id) ?? null);
+  }
+
+  function exportSubscribersCSV() {
+    if (!subscribers?.length) return;
+    const rows = [["email", "source", "status", "created_at"]].concat(
+      subscribers.map((s) => [s.email, s.source ?? "", s.status, s.created_at])
+    );
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `subscribers-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
 
   async function loadPromos() {
     const { data } = await supabase.from("promo_codes").select("*").order("created_at", { ascending: false });
@@ -160,7 +192,7 @@ function AdminPage() {
       </div>
 
       <div className="flex gap-1 mb-10 border-b border-border overflow-x-auto">
-        {(["overview", "orders", "products", "categories", "promos", "customers"] as Tab[]).map((t) => (
+        {(["overview", "orders", "products", "categories", "promos", "customers", "subscribers"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-5 py-3 text-xs uppercase tracking-widest font-mono transition-colors border-b-2 -mb-px whitespace-nowrap ${tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             {t}
@@ -434,6 +466,59 @@ function AdminPage() {
           onSaved={async () => { setEditingCat(null); await loadCategories(); invalidateCategories(); }}
         />
       )}
+
+      {tab === "subscribers" && (
+        <>
+          <div className="flex justify-between items-center mb-6 gap-3 flex-wrap">
+            <h2 className="text-xl font-medium">Newsletter Subscribers {subscribers && <span className="text-muted-foreground text-sm font-mono">· {subscribers.length}</span>}</h2>
+            <button
+              onClick={exportSubscribersCSV}
+              disabled={!subscribers?.length}
+              className="inline-flex items-center gap-2 border border-border px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold hover:bg-white/5 transition-all disabled:opacity-50"
+            >
+              <Download className="size-3.5" /> Export CSV
+            </button>
+          </div>
+          {subscribers === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
+            subscribers.length === 0 ? <p className="text-sm text-muted-foreground">No subscribers yet.</p> :
+            <div className="overflow-x-auto bg-card border border-border rounded-2xl">
+              <table className="w-full text-sm min-w-[640px]">
+                <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
+                  <tr>
+                    <th className="text-left px-5 py-3">Email</th>
+                    <th className="text-left px-5 py-3">Source</th>
+                    <th className="text-left px-5 py-3">Status</th>
+                    <th className="text-left px-5 py-3">Subscribed</th>
+                    <th className="px-5 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subscribers.map((s) => (
+                    <tr key={s.id} className="border-b border-border/40 last:border-0 hover:bg-white/[0.02]">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="size-9 rounded-lg bg-background border border-border grid place-items-center"><Mail className="size-4 text-muted-foreground" /></div>
+                          <p className="text-xs">{s.email}</p>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{s.source ?? "—"}</td>
+                      <td className="px-5 py-3 text-[11px] font-mono uppercase tracking-widest">
+                        <span className={s.status === "subscribed" ? "text-accent" : "text-muted-foreground"}>{s.status}</span>
+                      </td>
+                      <td className="px-5 py-3 text-[11px] font-mono text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</td>
+                      <td className="px-5 py-3 text-right">
+                        <button onClick={() => deleteSubscriber(s.id)} className="size-8 grid place-items-center rounded-full hover:bg-white/5 hover:text-accent transition-colors" aria-label="Delete"><Trash2 className="size-3.5" /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          }
+        </>
+      )}
+
+
 
       {editingPromo && (
         <PromoEditor
