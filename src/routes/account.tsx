@@ -294,13 +294,13 @@ function AccountPage() {
               action={<Link to="/account/notifications" className="action-link">All <ArrowRight className="size-3" /></Link>}
             >
               {notifs.length === 0 ? (
-                <div className="bg-card border border-border rounded-2xl p-6 text-center">
+                <div className="card-premium rounded-2xl p-6 text-center">
                   <Bell className="size-5 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm">All caught up</p>
                   <p className="text-xs text-muted-foreground mt-1">You'll see order, shipment & promo alerts here.</p>
                 </div>
               ) : (
-                <ul className="bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
+                <ul className="card-premium rounded-2xl overflow-hidden divide-y divide-border">
                   {notifs.slice(0, 4).map((n) => (
                     <li key={n.id} className={`p-4 flex gap-3 ${!n.read_at ? "bg-accent/5" : ""}`}>
                       <span className={`mt-1.5 size-1.5 rounded-full shrink-0 ${!n.read_at ? "bg-accent animate-pulse" : "bg-muted-foreground/30"}`} />
@@ -350,17 +350,20 @@ function AccountPage() {
 
         {/* 10 — FOOTER ACTIONS */}
         <motion.footer {...fadeUp} className="pt-2">
-          <div className="rounded-3xl border border-border bg-card p-5 sm:p-7">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="relative overflow-hidden rounded-3xl glass-strong p-5 sm:p-7">
+            <div aria-hidden className="absolute -top-20 -left-10 size-64 rounded-full opacity-40" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
+            <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
               <FooterAction icon={LifeBuoy} label="Support" to="/" />
               <FooterAction icon={HelpCircle} label="FAQ" to="/" />
               <FooterAction icon={MessageCircle} label="Contact" to="/" />
               <button
                 onClick={signOut}
-                className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-background/40 p-4 hover:border-destructive/40 hover:text-destructive transition-colors"
+                className="group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-destructive/50 hover:text-destructive hover:-translate-y-0.5 transition-all"
               >
-                <LogOut className="size-4" />
-                <span className="text-xs uppercase tracking-widest">Sign out</span>
+                <span className="size-9 rounded-xl bg-destructive/10 text-destructive grid place-items-center group-hover:bg-destructive/20 transition-colors">
+                  <LogOut className="size-4" />
+                </span>
+                <span className="text-[11px] uppercase tracking-widest">Sign out</span>
               </button>
             </div>
           </div>
@@ -476,13 +479,18 @@ function OrderRow({ o, format }: { o: Order; format: (n: number) => string }) {
       <Link
         to="/orders/$id"
         params={{ id: o.id }}
-        className="group block bg-card border border-border rounded-2xl p-4 sm:p-5 hover:border-accent/40 transition-colors"
+        className="group relative block card-premium rounded-2xl p-4 sm:p-5 overflow-hidden"
       >
-        <div className="flex items-center justify-between gap-3">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-px rounded-[inherit] opacity-0 group-hover:opacity-60 transition-opacity duration-500"
+          style={{ background: "var(--gradient-ember-soft)", filter: "blur(24px)" }}
+        />
+        <div className="relative flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <div className="flex -space-x-2 shrink-0">
               {o.order_items.slice(0, 3).map((it, i) => (
-                <div key={i} className="size-10 sm:size-11 rounded-xl border border-border bg-black/40 overflow-hidden">
+                <div key={i} className="size-10 sm:size-11 rounded-xl ring-1 ring-white/10 bg-black/40 overflow-hidden">
                   {it.image && <img src={it.image} alt="" className="w-full h-full object-cover" loading="lazy" />}
                 </div>
               ))}
@@ -498,16 +506,16 @@ function OrderRow({ o, format }: { o: Order; format: (n: number) => string }) {
             </div>
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
-            <span className="font-mono text-sm text-accent">{format(Number(o.total))}</span>
-            <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent transition-colors" />
+            <span className="font-mono text-sm text-accent tabular-nums">{format(Number(o.total))}</span>
+            <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all" />
           </div>
         </div>
-        <div className="mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
+        <div className="relative mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.8, ease }}
-            className="h-full bg-gradient-to-r from-accent to-primary"
+            className="h-full bg-gradient-to-r from-accent to-primary shadow-[0_0_12px_var(--color-accent)]"
           />
         </div>
       </Link>
@@ -541,9 +549,9 @@ function ProductScroller({ items }: { items: Array<{ slug: string }> }) {
 
 function InsightStat({ label, value, accent, small, truncate }: { label: string; value: string; accent?: boolean; small?: boolean; truncate?: boolean }) {
   return (
-    <div className={`rounded-xl border border-border bg-card p-3.5 ${accent ? "border-accent/30" : ""}`}>
+    <div className={`rounded-xl glass p-3.5 transition-colors hover:border-accent/30 ${accent ? "border-accent/30 bg-accent/5" : ""}`}>
       <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className={`mt-1 font-display font-semibold ${small ? "text-sm" : "text-lg"} ${accent ? "text-accent" : ""} ${truncate ? "truncate" : ""}`}>{value}</p>
+      <p className={`mt-1 font-display font-semibold tabular-nums ${small ? "text-sm" : "text-lg"} ${accent ? "text-gradient-ember" : ""} ${truncate ? "truncate" : ""}`}>{value}</p>
     </div>
   );
 }
@@ -552,17 +560,19 @@ function FooterAction({ icon: Icon, label, to }: { icon: typeof Package; label: 
   return (
     <Link
       to={to}
-      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-background/40 p-4 hover:border-accent/40 hover:text-accent transition-colors"
+      className="group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-accent/40 hover:text-accent hover:-translate-y-0.5 transition-all"
     >
-      <Icon className="size-4" />
-      <span className="text-xs uppercase tracking-widest">{label}</span>
+      <span className="size-9 rounded-xl bg-accent/10 text-accent grid place-items-center group-hover:bg-accent/20 transition-colors">
+        <Icon className="size-4" />
+      </span>
+      <span className="text-[11px] uppercase tracking-widest">{label}</span>
     </Link>
   );
 }
 
 function EmptyState({ icon: Icon = Star, title, body, cta, extra }: { icon?: typeof Package; title: string; body: string; cta?: React.ReactNode; extra?: React.ReactNode }) {
   return (
-    <div className="bg-card border border-dashed border-border rounded-2xl p-5 sm:p-6 flex flex-col items-center text-center">
+    <div className="card-premium rounded-2xl border-dashed p-5 sm:p-6 flex flex-col items-center text-center">
       <div className="size-10 rounded-xl bg-accent/10 text-accent grid place-items-center mb-3">
         <Icon className="size-[18px]" />
       </div>
@@ -622,7 +632,7 @@ function SkeletonRows() {
   return (
     <div className="space-y-3">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="bg-card border border-border rounded-2xl p-5 h-24 animate-pulse" />
+        <div key={i} className="card-premium rounded-2xl p-5 h-24 animate-pulse" />
       ))}
     </div>
   );
