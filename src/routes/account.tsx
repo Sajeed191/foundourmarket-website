@@ -123,13 +123,24 @@ function AccountPage() {
     <div className="min-h-screen pb-24 sm:pb-16">
       <div className="container-page py-5 sm:py-10 lg:py-14 space-y-6 sm:space-y-10">
         {/* 1 — HEADER */}
-        <motion.header {...fadeUp} className="relative overflow-hidden rounded-3xl border border-border bg-card">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,oklch(0.72_0.18_49/0.18),transparent_60%)]" />
-          <div className="absolute -top-24 -left-16 size-64 rounded-full bg-accent/10 blur-3xl" />
-          <div className="relative p-5 sm:p-7 lg:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+        <motion.header {...fadeUp} className="relative overflow-hidden rounded-3xl glass-strong">
+          <div aria-hidden className="absolute inset-0 -z-10">
+            <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
+            <div className="absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60" style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
+            <div
+              className="absolute inset-0 opacity-[0.05]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(oklch(1 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.6) 1px, transparent 1px)",
+                backgroundSize: "48px 48px",
+                maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+              }}
+            />
+          </div>
+          <div className="relative p-5 sm:p-7 lg:p-9 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-center gap-4 min-w-0">
               <div className="relative">
-                <div className="size-14 sm:size-16 rounded-2xl border border-border bg-secondary overflow-hidden grid place-items-center shrink-0">
+                <div className="size-14 sm:size-16 rounded-2xl border border-white/10 bg-secondary overflow-hidden grid place-items-center shrink-0 shadow-[var(--shadow-float)]">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -138,37 +149,40 @@ function AccountPage() {
                     </span>
                   )}
                 </div>
-                <span className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-500 border-2 border-card" />
+                <span className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-500 border-2 border-card shadow-[0_0_10px_oklch(0.7_0.18_150)]" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-1">{greeting()}</p>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-semibold truncate">
-                  Welcome back, {firstName} <span className="inline-block">👋</span>
+                <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-1.5 flex items-center gap-1.5">
+                  <span className="size-1 rounded-full bg-accent animate-glow" /> {greeting()}
+                </p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-semibold truncate tracking-tight">
+                  Welcome back, <span className="text-gradient-ember">{firstName}</span>
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate mt-1">{user.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 self-start sm:self-auto">
               <Link
                 to="/account/notifications"
                 aria-label="Notifications"
-                className="relative size-10 sm:size-11 grid place-items-center rounded-full border border-border bg-background/40 hover:border-accent/40 hover:text-accent transition-colors"
+                className="relative size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
               >
                 <Bell className="size-4" />
                 {unread > 0 && (
-                  <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse" />
+                  <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />
                 )}
               </Link>
               <Link
                 to="/account/profile"
                 aria-label="Settings"
-                className="size-10 sm:size-11 grid place-items-center rounded-full border border-border bg-background/40 hover:border-accent/40 hover:text-accent transition-colors"
+                className="size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
               >
                 <Settings className="size-4" />
               </Link>
             </div>
           </div>
         </motion.header>
+
 
         {/* 2 — OVERVIEW CARDS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }}>
@@ -391,15 +405,20 @@ function OverviewCard({
 }: { icon: typeof Package; label: string; value: number; hint?: string; accent?: boolean; loading?: boolean; to?: string; formatter?: (n: number) => string }) {
   const inner = (
     <motion.div
-      whileHover={{ y: -3 }}
+      whileHover={{ y: -4 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.25, ease }}
-      className={`snap-start shrink-0 w-[44%] sm:w-auto h-full relative overflow-hidden rounded-2xl border p-4 sm:p-5 backdrop-blur-md transition-colors ${
-        accent ? "border-accent/40 bg-gradient-to-br from-accent/15 to-card" : "border-border bg-card hover:border-accent/30"
+      className={`snap-start shrink-0 w-[44%] sm:w-auto h-full relative overflow-hidden rounded-2xl p-4 sm:p-5 transition-all ${
+        accent
+          ? "border border-accent/40 bg-gradient-to-br from-accent/15 via-card to-card shadow-[var(--shadow-glow)]"
+          : "card-premium"
       }`}
     >
-      <div className="flex items-center justify-between mb-3">
-        <span className={`size-8 rounded-lg grid place-items-center ${accent ? "bg-accent/20 text-accent" : "bg-white/5 text-muted-foreground"}`}>
+      {accent && (
+        <div aria-hidden className="absolute -top-10 -right-10 size-32 rounded-full opacity-50" style={{ background: "var(--gradient-ember)", filter: "blur(40px)" }} />
+      )}
+      <div className="relative flex items-center justify-between mb-3">
+        <span className={`size-9 rounded-xl grid place-items-center ${accent ? "bg-accent/25 text-accent" : "bg-white/5 text-muted-foreground"}`}>
           <Icon className="size-4" />
         </span>
         {hint && <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{hint}</span>}
@@ -410,10 +429,10 @@ function OverviewCard({
         <AnimatedNumber
           value={value}
           formatter={formatter}
-          className={`block text-2xl sm:text-3xl font-display font-semibold ${accent ? "text-accent" : ""}`}
+          className={`relative block text-2xl sm:text-3xl font-display font-semibold tabular-nums ${accent ? "text-gradient-ember" : ""}`}
         />
       )}
-      <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted-foreground mt-1.5">{label}</p>
+      <p className="relative text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted-foreground mt-1.5">{label}</p>
     </motion.div>
   );
   return to ? <Link to={to} className="contents">{inner}</Link> : inner;
@@ -425,27 +444,28 @@ function ActionCard({
   return (
     <Link to={to} className="group block h-full">
       <motion.div
-        whileHover={{ y: -2 }}
+        whileHover={{ y: -3 }}
         whileTap={{ scale: 0.97 }}
         transition={{ duration: 0.2, ease }}
-        className="h-full min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center text-center gap-2 rounded-2xl border border-border bg-card/80 backdrop-blur-sm px-3 py-4 sm:py-5 hover:border-accent/40 hover:bg-card hover:shadow-[0_8px_30px_-12px_oklch(0.72_0.18_49/0.35)] transition-all"
+        className="h-full min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center text-center gap-2.5 card-premium px-3 py-4 sm:py-5"
       >
-        <span className="relative size-10 rounded-xl bg-accent/10 text-accent grid place-items-center group-hover:bg-accent/20 transition-colors">
+        <span className="relative size-10 rounded-xl bg-accent/10 text-accent grid place-items-center group-hover:bg-accent/25 group-hover:shadow-[0_0_20px_oklch(0.74_0.19_49/0.4)] transition-all">
           <Icon className="size-[18px]" />
           {typeof badge === "number" && badge > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center shadow-[var(--shadow-ember)]">
               {badge > 9 ? "9+" : badge}
             </span>
           )}
         </span>
         <div className="min-w-0 w-full">
-          <p className="text-[13px] font-medium leading-tight truncate">{title}</p>
+          <p className="text-[13px] font-medium leading-tight truncate group-hover:text-accent transition-colors">{title}</p>
           <p className="text-[10.5px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
         </div>
       </motion.div>
     </Link>
   );
 }
+
 
 function OrderRow({ o, format }: { o: Order; format: (n: number) => string }) {
   const status = String(o.status).toLowerCase();
