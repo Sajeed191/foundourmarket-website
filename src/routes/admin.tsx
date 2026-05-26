@@ -195,6 +195,10 @@ function AdminPage() {
           <h1 className="text-3xl md:text-5xl font-display font-semibold">Admin Dashboard</h1>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <button onClick={() => { setTab("products"); setEditing("new"); }} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest bg-accent text-accent-foreground rounded-full px-3 py-2 font-bold hover:brightness-110"><Plus className="size-3.5" /> New Product</button>
+          <button onClick={() => { setTab("categories"); setEditingCat("new"); }} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-accent/40 text-accent rounded-full px-3 py-2 hover:bg-accent/10"><Plus className="size-3.5" /> New Category</button>
+          <button onClick={() => setTab("products")} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Package className="size-3.5" /> Manage Products</button>
+          <button onClick={() => setTab("categories")} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Tag className="size-3.5" /> Manage Categories</button>
           <Link to="/admin-live" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Activity className="size-3.5" /> Live</Link>
           <Link to="/admin-analytics" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><BarChart3 className="size-3.5" /> Analytics</Link>
           <Link to="/admin-financial" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-3 py-2 hover:border-accent/40"><Wallet className="size-3.5" /> Financial</Link>
