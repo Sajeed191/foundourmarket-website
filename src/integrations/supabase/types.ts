@@ -838,6 +838,24 @@ export type Database = {
         }
         Relationships: []
       }
+      personalized_feed_cache: {
+        Row: {
+          payload: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          payload?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          payload?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           alt: string | null
@@ -1117,6 +1135,66 @@ export type Database = {
           updated_at?: string
           uses?: number
           value?: number
+        }
+        Relationships: []
+      }
+      recommendation_events: {
+        Row: {
+          category: string | null
+          created_at: string
+          event_type: string
+          id: number
+          product_slug: string | null
+          query: string | null
+          session_id: string | null
+          user_id: string | null
+          weight: number
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          event_type: string
+          id?: number
+          product_slug?: string | null
+          query?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          weight?: number
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          event_type?: string
+          id?: number
+          product_slug?: string | null
+          query?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          weight?: number
+        }
+        Relationships: []
+      }
+      recommendation_scores: {
+        Row: {
+          product_slug: string
+          reason: string | null
+          score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          product_slug: string
+          reason?: string | null
+          score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          product_slug?: string
+          reason?: string | null
+          score?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1451,9 +1529,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      frequently_bought_together: {
+        Row: {
+          co_count: number | null
+          slug_a: string | null
+          slug_b: string | null
+        }
+        Relationships: []
+      }
+      trending_products: {
+        Row: {
+          atc_7d: number | null
+          product_slug: string | null
+          purchases_7d: number | null
+          trend_score: number | null
+          views_7d: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      get_fbt: {
+        Args: { _limit?: number; _slug: string }
+        Returns: {
+          co_count: number
+          product_slug: string
+        }[]
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]

@@ -93,6 +93,13 @@ export async function fetchProducts(): Promise<Product[]> {
   return (data as Row[]).map(rowToProduct);
 }
 
+export async function fetchProductsBySlugs(slugs: string[]): Promise<Product[]> {
+  if (!slugs.length) return [];
+  const { data } = await supabase.from("products").select(SELECT_COLS).in("slug", slugs);
+  const map = new Map((data as Row[] ?? []).map((r) => [r.slug, rowToProduct(r)]));
+  return slugs.map((s) => map.get(s)).filter((p): p is Product => !!p);
+}
+
 export async function fetchProduct(slug: string): Promise<Product | null> {
   const { data } = await supabase
     .from("products")

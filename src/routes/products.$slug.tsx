@@ -12,6 +12,9 @@ import { ProductQA } from "@/components/site/ProductQA";
 import { useCompare } from "@/hooks/use-compare";
 import { useWishlist } from "@/lib/wishlist";
 import { fetchProductImages, fetchProductVariants, type ProductImage, type ProductVariant } from "@/lib/products";
+import { recordEvent, fetchFBT, fetchAlsoViewed } from "@/lib/personalization";
+import { RecommendationStrip } from "@/components/site/RecommendationStrip";
+import { Users, ShoppingBag as ShoppingBagIcon } from "lucide-react";
 
 
 
@@ -36,8 +39,16 @@ function ProductPage() {
   const [activeImg, setActiveImg] = useState(0);
   const [variantId, setVariantId] = useState<string | null>(null);
 
+  const [fbtSlugs, setFbtSlugs] = useState<string[]>([]);
+  const [alsoViewed, setAlsoViewed] = useState<string[]>([]);
+
   useEffect(() => {
-    if (product) record(product.slug);
+    if (product) {
+      record(product.slug);
+      recordEvent({ type: "view", productSlug: product.slug, category: product.category });
+      fetchFBT(product.slug, 4).then(setFbtSlugs);
+      fetchAlsoViewed(product.slug, 6).then(setAlsoViewed);
+    }
   }, [product?.slug, record]);
 
   useEffect(() => {
@@ -227,6 +238,24 @@ function ProductPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6">
+        {fbtSlugs.length > 0 && (
+          <RecommendationStrip
+            title="Frequently bought together"
+            subtitle="Customers commonly purchase these in the same order"
+            icon={<ShoppingBagIcon className="size-3" />}
+            slugs={fbtSlugs}
+          />
+        )}
+        {alsoViewed.length > 0 && (
+          <RecommendationStrip
+            title="Customers also viewed"
+            icon={<Users className="size-3" />}
+            slugs={alsoViewed}
+          />
+        )}
       </div>
 
       <ProductReviews productSlug={product.slug} onAggregateChange={invalidateProducts} />

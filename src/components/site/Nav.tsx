@@ -1,16 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShoppingBag, Search, User, Globe, Heart, Menu, X } from "lucide-react";
+import { ShoppingBag, Search, User, Heart, Menu, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { useRegion } from "@/lib/region";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
 import { SearchCommand } from "@/components/site/SearchCommand";
 import { NotificationBell } from "@/components/site/NotificationBell";
+import { CurrencySwitcher } from "@/components/site/CurrencySwitcher";
 
 export function Nav() {
   const { count } = useCart();
-  const { region, setRegion } = useRegion();
   const { user } = useAuth();
   const { slugs: wishSlugs } = useWishlist();
   const [open, setOpen] = useState(false);
@@ -68,14 +67,7 @@ export function Nav() {
             <button onClick={() => setSearchOpen(true)} aria-label="Search" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
               <Search className="size-4" />
             </button>
-            <button
-              onClick={() => setRegion(region === "IN" ? "INTL" : "IN")}
-              className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-full border border-border"
-              aria-label="Switch region"
-            >
-              <Globe className="size-3" />
-              {region === "IN" ? "IN · ₹" : "INTL · $"}
-            </button>
+            <div className="hidden sm:block"><CurrencySwitcher /></div>
             <Link to="/wishlist" aria-label="Wishlist" className="relative hidden xs:grid sm:grid size-9 rounded-full place-items-center hover:bg-white/5 transition-colors">
               <Heart className="size-4" />
               {wishSlugs.size > 0 && (
@@ -130,14 +122,8 @@ export function Nav() {
                 <li><Link to="/cart" onClick={() => setOpen(false)} className="block px-5 py-3 text-sm uppercase tracking-widest font-medium hover:bg-white/5">Cart · {count}</Link></li>
               </ul>
             </div>
-            <div className="px-5 py-4 border-t border-border">
-              <button
-                onClick={() => setRegion(region === "IN" ? "INTL" : "IN")}
-                className="w-full inline-flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors px-3 py-2.5 rounded-full border border-border"
-              >
-                <Globe className="size-3" />
-                Region · {region === "IN" ? "India ₹" : "International $"}
-              </button>
+            <div className="px-5 py-4 border-t border-border flex justify-center">
+              <CurrencySwitcher />
             </div>
           </div>
         </div>
