@@ -242,6 +242,10 @@ function Home() {
         </div>
       </section>
 
+      {/* Promo banners carousel (managed in Admin → Marketing) */}
+      <PromoBannerCarousel />
+
+
 
       {/* Categories */}
       <section id="categories" className="px-4 sm:px-6 py-14 sm:py-20 md:py-24 max-w-7xl mx-auto">
