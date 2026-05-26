@@ -89,7 +89,7 @@ function AccountPage() {
     return { count: list.length, spent, active, saved, memberSince, topCategory };
   }, [orders, user]);
 
-  const cartCount = cart.items.reduce((s, i) => s + i.quantity, 0);
+  const cartCount = cart.items.reduce((s, i) => s + i.qty, 0);
 
   const wishlistProducts = useMemo(
     () => products.filter((p) => wishSlugs.has(p.slug)).slice(0, 8),
