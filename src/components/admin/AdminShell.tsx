@@ -1,9 +1,10 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   LayoutDashboard, ShoppingBag, Package, Users, BarChart3, Megaphone,
   FileText, Truck, RotateCcw, Pencil, Activity, Wallet, Globe, Search,
-  Boxes, Loader2, ShieldAlert, Menu, X,
+  Boxes, Loader2, ShieldAlert, Menu, X, Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -96,12 +97,28 @@ export function AdminShell({
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
   useEffect(() => { setOpen(false); }, [path]);
 
+  const groupTitle = useMemo(() => {
+    for (const g of NAV) for (const it of g.items) {
+      const [base] = it.to.split("?");
+      if (base === path) return g.group;
+    }
+    return "Admin";
+  }, [path]);
+
   if (loading || roles === null) {
-    return <div className="min-h-[60vh] grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
+    return (
+      <div className="min-h-[60vh] grid place-items-center">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3">
+          <Loader2 className="size-5 animate-spin text-accent" />
+          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Verifying access…</p>
+        </motion.div>
+      </div>
+    );
   }
 
   const allowedDefault: Role[] = ["admin", "super_admin", "manager", "support", "fulfillment", "warehouse_staff", "editor"];
@@ -111,9 +128,13 @@ export function AdminShell({
   if (!hasAccess) {
     return (
       <div className="min-h-[60vh] grid place-items-center px-6">
-        <div className="text-center max-w-md">
-          <div className="size-14 mx-auto mb-5 grid place-items-center rounded-full border border-border">
-            <ShieldAlert className="size-5 text-accent" />
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center max-w-md"
+        >
+          <div className="size-14 mx-auto mb-5 grid place-items-center rounded-full border border-border bg-destructive/5">
+            <ShieldAlert className="size-5 text-destructive" />
           </div>
           <h1 className="text-2xl font-display font-semibold mb-2">Access restricted</h1>
           <p className="text-sm text-muted-foreground mb-6">
@@ -122,8 +143,8 @@ export function AdminShell({
           <code className="block text-left text-[11px] bg-card border border-border rounded-xl p-4 font-mono text-muted-foreground overflow-x-auto">
             insert into user_roles (user_id, role) values ('{user?.id}', 'admin');
           </code>
-          <Link to="/" className="inline-block mt-6 text-xs uppercase tracking-widest text-accent">← Back to shop</Link>
-        </div>
+          <Link to="/" className="inline-block mt-6 text-xs uppercase tracking-widest text-accent hover:underline">← Back to shop</Link>
+        </motion.div>
       </div>
     );
   }
@@ -138,17 +159,41 @@ export function AdminShell({
     return roles!.some((r) => it.roles!.includes(r));
   }
 
+  const q = query.trim().toLowerCase();
+
   return (
-    <div className="min-h-screen flex w-full">
+    <div className="min-h-screen flex w-full bg-background">
       {/* Sidebar */}
-      <aside className={`fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform lg:transform-none ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"} h-screen overflow-y-auto`}>
-        <div className="px-5 py-5 border-b border-border flex items-center justify-between">
-          <Link to="/" className="font-display text-base tracking-tight">FoundOurMarket™</Link>
-          <button onClick={() => setOpen(false)} className="lg:hidden size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
+      <aside className={`fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40 w-64 bg-card/95 backdrop-blur-xl border-r border-border transform transition-transform duration-300 ease-out lg:transform-none ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"} h-screen overflow-y-auto flex flex-col`}>
+        <div className="px-5 py-5 border-b border-border flex items-center justify-between shrink-0">
+          <Link to="/" className="group inline-flex items-center gap-2">
+            <span className="size-7 rounded-lg bg-gradient-to-br from-accent to-primary grid place-items-center">
+              <Sparkles className="size-3.5 text-accent-foreground" />
+            </span>
+            <span className="font-display text-base tracking-tight">FoundOurMarket™</span>
+          </Link>
+          <button onClick={() => setOpen(false)} className="lg:hidden size-8 grid place-items-center rounded-full hover:bg-white/5">
+            <X className="size-4" />
+          </button>
         </div>
-        <nav className="px-3 py-4 space-y-6">
+
+        <div className="px-3 pt-4 pb-2 shrink-0">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Filter menu…"
+              className="w-full bg-background/60 border border-border rounded-lg pl-9 pr-3 py-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:border-accent/40"
+            />
+          </div>
+        </div>
+
+        <nav className="px-3 py-3 space-y-5 flex-1">
           {NAV.map((g) => {
-            const items = g.items.filter(visibleItem);
+            const items = g.items
+              .filter(visibleItem)
+              .filter((it) => !q || it.label.toLowerCase().includes(q) || g.group.toLowerCase().includes(q));
             if (!items.length) return null;
             return (
               <div key={g.group}>
@@ -160,10 +205,19 @@ export function AdminShell({
                       <li key={it.to}>
                         <Link
                           to={it.to as string}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                            active ? "bg-accent/10 text-accent" : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
+                          className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
+                            active
+                              ? "bg-gradient-to-r from-accent/15 to-transparent text-accent"
+                              : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
                           }`}
                         >
+                          {active && (
+                            <motion.span
+                              layoutId="admin-active-indicator"
+                              className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r bg-accent"
+                              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                            />
+                          )}
                           <it.icon className="size-4 shrink-0" />
                           <span className="truncate">{it.label}</span>
                         </Link>
@@ -175,26 +229,45 @@ export function AdminShell({
             );
           })}
         </nav>
-        <div className="px-5 py-4 mt-2 border-t border-border">
+
+        <div className="px-5 py-4 border-t border-border shrink-0">
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">Signed in</p>
           <p className="text-xs truncate">{user?.email}</p>
           <div className="mt-2 flex flex-wrap gap-1">
             {roles.map((r) => (
-              <span key={r} className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-accent/10 text-accent">{r}</span>
+              <span key={r} className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">{r}</span>
             ))}
           </div>
         </div>
       </aside>
 
-      {open && <button onClick={() => setOpen(false)} className="lg:hidden fixed inset-0 z-30 bg-black/60" aria-label="Close menu" />}
+      <AnimatePresence>
+        {open && (
+          <motion.button
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setOpen(false)}
+            className="lg:hidden fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
+            aria-label="Close menu"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Main */}
       <div className="flex-1 min-w-0 flex flex-col">
-        <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="px-5 lg:px-10 h-14 flex items-center gap-3">
-            <button onClick={() => setOpen(true)} className="lg:hidden size-9 grid place-items-center rounded-full hover:bg-white/5 border border-border"><Menu className="size-4" /></button>
+        <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border">
+          <div className="px-5 lg:px-10 h-16 flex items-center gap-3">
+            <button
+              onClick={() => setOpen(true)}
+              className="lg:hidden size-9 grid place-items-center rounded-full hover:bg-white/5 border border-border"
+            >
+              <Menu className="size-4" />
+            </button>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent">Operator</p>
+              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">
+                <span className="text-accent">Operator</span>
+                <span>/</span>
+                <span>{groupTitle}</span>
+              </div>
               <h1 className="text-base md:text-lg font-display font-semibold truncate">{title}</h1>
             </div>
             <div className="flex items-center gap-2 flex-wrap">{actions}</div>
@@ -202,7 +275,14 @@ export function AdminShell({
           {subtitle && <p className="px-5 lg:px-10 pb-3 text-xs text-muted-foreground">{subtitle}</p>}
         </header>
         <main className="flex-1 px-5 lg:px-10 py-8">
-          {children}
+          <motion.div
+            key={path}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {children}
+          </motion.div>
         </main>
       </div>
     </div>
