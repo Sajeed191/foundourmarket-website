@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, ShieldAlert, Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
+import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin-cms")({
   head: () => ({ meta: [{ title: "CMS — FoundOurMarket™" }] }),
@@ -22,48 +23,25 @@ type Post = {
 };
 
 function AdminCmsPage() {
-  const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [tab, setTab] = useState<"pages" | "posts">("pages");
   const [pages, setPages] = useState<Page[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
 
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
-      .then(({ data }) => setIsAdmin(!!data));
-  }, [user]);
-
   async function load() {
-    const [{ data: p }, { data: b }] = await Promise.all([
+    const [{ data: p, error: pe }, { data: b, error: be }] = await Promise.all([
       supabase.from("cms_pages").select("*").order("sort_order"),
       supabase.from("cms_posts").select("*").order("created_at", { ascending: false }),
     ]);
+    if (pe) toast.error(pe.message);
+    if (be) toast.error(be.message);
     setPages((p as Page[]) ?? []);
     setPosts((b as Post[]) ?? []);
   }
 
-  useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
-
-  if (loading || isAdmin === null) {
-    return <div className="min-h-[60vh] grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
-  }
-  if (!user || !isAdmin) {
-    return (
-      <div className="max-w-md mx-auto mt-24 text-center p-8 border border-border rounded-2xl">
-        <ShieldAlert className="size-8 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-sm">Admin access required.</p>
-        <Link to="/" className="text-xs font-mono uppercase tracking-widest text-accent mt-4 inline-block">Home</Link>
-      </div>
-    );
-  }
+  useEffect(() => { void load(); }, []);
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-display font-semibold">Content</h1>
-        <Link to="/admin" className="text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">← Admin</Link>
-      </div>
+    <AdminShell title="Content" subtitle="Pages and journal posts" allow={["admin","super_admin","editor"]}>
       <div className="flex gap-2 mb-8 border-b border-border">
         {(["pages", "posts"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
@@ -73,7 +51,7 @@ function AdminCmsPage() {
         ))}
       </div>
       {tab === "pages" ? <PagesTab pages={pages} reload={load} /> : <PostsTab posts={posts} reload={load} />}
-    </div>
+    </AdminShell>
   );
 }
 
