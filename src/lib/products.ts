@@ -63,6 +63,7 @@ type Row = {
   image: string | null; description: string | null; in_stock: boolean;
   discount: number | null; featured?: boolean | null;
   sku?: string | null; stock_quantity?: number | null; low_stock_threshold?: number | null;
+  views_count?: number | null; created_at?: string | null;
 };
 
 function rowToProduct(r: Row): Product {
@@ -82,10 +83,13 @@ function rowToProduct(r: Row): Product {
     sku: r.sku ?? null,
     stockQuantity: r.stock_quantity ?? 0,
     lowStockThreshold: r.low_stock_threshold ?? 5,
+    viewsCount: r.views_count ?? 0,
+    createdAt: r.created_at ?? "",
   };
 }
 
-const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold";
+const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at";
+
 
 export async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
