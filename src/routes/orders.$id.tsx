@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Clock, CheckCircle2, Truck, Package, XCircle, Loader2, MapPin, RotateCcw, ExternalLink } from "lucide-react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
@@ -90,34 +91,50 @@ function OrderDetailPage() {
   const addr = order.shipping_address;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <div className="container-page py-10 sm:py-16 max-w-4xl">
       <Link to="/account" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="size-3.5" /> Back to Orders
       </Link>
 
-      <div className="mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-8"
+      >
         <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Order</p>
-        <h1 className="text-2xl sm:text-4xl font-display font-semibold tracking-tight break-all">#{order.id.slice(0, 8)}</h1>
+        <h1 className="text-fluid-2xl font-display font-semibold tracking-tight break-all">#{order.id.slice(0, 8)}</h1>
         <p className="text-sm text-muted-foreground mt-2 font-mono">Placed {new Date(order.created_at).toLocaleString()}</p>
-      </div>
+      </motion.div>
 
-      <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.05 }}
+        className="bg-card border border-border rounded-2xl p-5 sm:p-6 mb-6"
+      >
         {cancelled ? (
           <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/30 rounded-xl">
             <XCircle className="size-5 text-destructive" />
             <span className="text-sm font-medium">This order was cancelled.</span>
           </div>
         ) : (
-          <ol className="grid grid-cols-4 gap-2">
+          <ol className="grid grid-cols-4 gap-1 sm:gap-2 relative">
+            <div className="absolute top-5 left-[12.5%] right-[12.5%] h-px bg-border -z-0" aria-hidden />
+            <div
+              className="absolute top-5 left-[12.5%] h-px bg-accent -z-0 transition-all duration-700"
+              style={{ width: `${Math.max(0, currentIdx) / 3 * 75}%` }}
+              aria-hidden
+            />
             {STATUSES.map((s, i) => {
               const done = i <= currentIdx;
               const Icon = s.icon;
               return (
-                <li key={s.key} className="flex flex-col items-center text-center">
-                  <div className={`size-10 rounded-full grid place-items-center border-2 transition-colors ${done ? "bg-accent border-accent text-accent-foreground" : "border-border text-muted-foreground"}`}>
+                <li key={s.key} className="flex flex-col items-center text-center relative z-10">
+                  <div className={`size-10 rounded-full grid place-items-center border-2 bg-card transition-colors ${done ? "bg-accent border-accent text-accent-foreground" : "border-border text-muted-foreground"}`}>
                     <Icon className="size-4" />
                   </div>
-                  <span className={`mt-2 text-[10px] font-mono uppercase tracking-widest ${done ? "text-foreground" : "text-muted-foreground"}`}>
+                  <span className={`mt-2 text-[9px] sm:text-[10px] font-mono uppercase tracking-widest leading-tight ${done ? "text-foreground" : "text-muted-foreground"}`}>
                     {s.label}
                   </span>
                 </li>
@@ -125,52 +142,81 @@ function OrderDetailPage() {
             })}
           </ol>
         )}
-      </div>
+      </motion.div>
 
-      <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 mb-6">
-        <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4">Items</h3>
-        <ul className="space-y-3">
-          {order.order_items.map((it) => (
-            <li key={it.id} className="flex items-center gap-3">
-              {it.image && <img src={it.image} alt="" className="size-14 rounded-lg object-cover border border-border" />}
-              <div className="flex-1 min-w-0">
-                <Link to="/products/$slug" params={{ slug: it.product_slug }} className="text-sm font-medium truncate hover:text-accent block">{it.name}</Link>
-                <p className="text-xs text-muted-foreground font-mono">Qty {it.quantity} · {format(Number(it.unit_price))} ea</p>
+      <div className="grid lg:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="lg:col-span-2 bg-card border border-border rounded-2xl p-5 sm:p-6"
+        >
+          <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4">Items</h3>
+          <ul className="space-y-3">
+            {order.order_items.map((it) => (
+              <li key={it.id} className="flex items-center gap-3">
+                {it.image && <img src={it.image} alt="" className="size-14 rounded-lg object-cover border border-border" loading="lazy" />}
+                <div className="flex-1 min-w-0">
+                  <Link to="/products/$slug" params={{ slug: it.product_slug }} className="text-sm font-medium truncate hover:text-accent block">{it.name}</Link>
+                  <p className="text-xs text-muted-foreground font-mono">Qty {it.quantity} · {format(Number(it.unit_price))} ea</p>
+                </div>
+                <p className="font-mono text-sm whitespace-nowrap">{format(Number(it.line_total))}</p>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-5 pt-5 border-t border-border space-y-1.5 text-sm">
+            <Row label="Subtotal" value={format(Number(order.subtotal))} />
+            {Number(order.discount) > 0 && <Row label={`Discount${order.promo_code ? ` (${order.promo_code})` : ""}`} value={`− ${format(Number(order.discount))}`} />}
+            <Row label="Shipping" value={format(Number(order.shipping))} />
+            <Row label="Tax" value={format(Number(order.tax))} />
+            <div className="flex justify-between pt-2 border-t border-border font-bold text-base">
+              <span>Total</span>
+              <span className="font-mono text-accent">{format(Number(order.total))}</span>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="space-y-6">
+          {addr && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className="bg-card border border-border rounded-2xl p-5 sm:p-6"
+            >
+              <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4 flex items-center gap-2">
+                <MapPin className="size-3.5" /> Shipping Address
+              </h3>
+              <div className="text-sm space-y-0.5">
+                {addr.name && <p className="font-medium">{addr.name}</p>}
+                {addr.line1 && <p>{addr.line1}</p>}
+                {addr.line2 && <p>{addr.line2}</p>}
+                <p>{[addr.city, addr.region, addr.postal_code].filter(Boolean).join(", ")}</p>
+                {addr.country && <p>{addr.country}</p>}
               </div>
-              <p className="font-mono text-sm">{format(Number(it.line_total))}</p>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-5 pt-5 border-t border-border space-y-1.5 text-sm">
-          <Row label="Subtotal" value={format(Number(order.subtotal))} />
-          {Number(order.discount) > 0 && <Row label={`Discount${order.promo_code ? ` (${order.promo_code})` : ""}`} value={`− ${format(Number(order.discount))}`} />}
-          <Row label="Shipping" value={format(Number(order.shipping))} />
-          <Row label="Tax" value={format(Number(order.tax))} />
-          <div className="flex justify-between pt-2 border-t border-border font-bold">
-            <span>Total</span>
-            <span className="font-mono text-accent">{format(Number(order.total))}</span>
-          </div>
+              {order.contact_email && <p className="text-xs text-muted-foreground font-mono mt-3 break-all">{order.contact_email}</p>}
+            </motion.div>
+          )}
+
+          {(order.status === "delivered" || shipments.some((s) => s.status === "delivered")) && (
+            <Link
+              to="/account/returns"
+              search={{ order: order.id }}
+              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-3 hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              <RotateCcw className="size-3.5" /> Request return
+            </Link>
+          )}
         </div>
       </div>
-
-      {addr && (
-        <div className="bg-card border border-border rounded-2xl p-5 sm:p-6">
-          <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4 flex items-center gap-2">
-            <MapPin className="size-3.5" /> Shipping Address
-          </h3>
-          <div className="text-sm space-y-0.5">
-            {addr.name && <p className="font-medium">{addr.name}</p>}
-            {addr.line1 && <p>{addr.line1}</p>}
-            {addr.line2 && <p>{addr.line2}</p>}
-            <p>{[addr.city, addr.region, addr.postal_code].filter(Boolean).join(", ")}</p>
-            {addr.country && <p>{addr.country}</p>}
-          </div>
-          {order.contact_email && <p className="text-xs text-muted-foreground font-mono mt-3">{order.contact_email}</p>}
-        </div>
-      )}
 
       {shipments.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 mt-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-card border border-border rounded-2xl p-5 sm:p-6 mt-6"
+        >
           <h3 className="text-[10px] font-mono uppercase tracking-widest text-accent mb-4 flex items-center gap-2">
             <Truck className="size-3.5" /> Tracking
           </h3>
@@ -202,16 +248,7 @@ function OrderDetailPage() {
               )}
             </div>
           ))}
-        </div>
-      )}
-
-      {(order.status === "delivered" || shipments.some((s) => s.status === "delivered")) && (
-        <div className="mt-6">
-          <Link to="/account/returns" search={{ order: order.id }}
-            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-2.5 hover:border-accent/40">
-            <RotateCcw className="size-3.5" /> Request return
-          </Link>
-        </div>
+        </motion.div>
       )}
     </div>
   );
