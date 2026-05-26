@@ -132,59 +132,63 @@ function ProductPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:sticky lg:top-24 lg:self-start"
+            className="lg:sticky lg:top-28 lg:self-start"
           >
-            <div className="relative aspect-square bg-card rounded-2xl sm:rounded-3xl overflow-hidden border border-border group">
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={activeImage?.id}
-                  src={activeImage?.url || product.image}
-                  alt={activeImage?.alt || product.name}
-                  initial={{ opacity: 0, scale: 1.02 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </AnimatePresence>
-              {/* badges */}
-              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-col gap-2 items-start z-10">
-                {product.featured && (
-                  <span className="bg-foreground text-background text-[10px] font-bold font-mono px-2.5 py-1 rounded-full uppercase tracking-widest">Featured</span>
-                )}
-                {product.discount && (
-                  <span className="bg-accent text-accent-foreground text-[10px] font-bold font-mono px-2.5 py-1 rounded-full">−{product.discount}% Sale</span>
-                )}
-                {lowStock && (
-                  <span className="bg-destructive/90 text-destructive-foreground text-[10px] font-bold font-mono px-2.5 py-1 rounded-full uppercase tracking-widest">Only {effectiveStock} left</span>
-                )}
-              </div>
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex flex-col gap-2 z-10">
-                <button
-                  onClick={() => toggleWishlist(product.slug)}
-                  aria-label="Wishlist"
-                  className={`size-10 grid place-items-center bg-black/50 backdrop-blur-md rounded-full transition-colors ${inWishlist(product.slug) ? "text-accent" : "text-white/80 hover:text-accent"}`}
-                >
-                  <Heart className={`size-4 ${inWishlist(product.slug) ? "fill-accent" : ""}`} />
-                </button>
-                <button
-                  onClick={handleShare}
-                  aria-label="Share"
-                  className="size-10 grid place-items-center bg-black/50 backdrop-blur-md rounded-full text-white/80 hover:text-accent transition-colors"
-                >
-                  <Share2 className="size-4" />
-                </button>
+            <div className="relative">
+              {/* Ambient halo */}
+              <div aria-hidden className="absolute -inset-6 -z-10 rounded-[2.5rem] opacity-60" style={{ background: "var(--gradient-ember-soft)", filter: "blur(60px)" }} />
+              <div className="relative aspect-square card-premium rounded-3xl overflow-hidden group">
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={activeImage?.id}
+                    src={activeImage?.url || product.image}
+                    alt={activeImage?.alt || product.name}
+                    initial={{ opacity: 0, scale: 1.04 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] group-hover:scale-110"
+                  />
+                </AnimatePresence>
+                {/* badges */}
+                <div className="absolute top-4 left-4 flex flex-col gap-2 items-start z-10">
+                  {product.featured && (
+                    <span className="backdrop-blur-md bg-white/10 border border-white/15 text-white text-[10px] font-semibold font-mono px-2.5 py-1 rounded-full tracking-wider">FEATURED</span>
+                  )}
+                  {product.discount && (
+                    <span className="bg-accent text-accent-foreground text-[10px] font-bold font-mono px-2.5 py-1 rounded-full shadow-[var(--shadow-ember)]">−{product.discount}% SALE</span>
+                  )}
+                  {lowStock && (
+                    <span className="bg-destructive/90 text-destructive-foreground text-[10px] font-bold font-mono px-2.5 py-1 rounded-full uppercase tracking-widest">Only {effectiveStock} left</span>
+                  )}
+                </div>
+                <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                  <button
+                    onClick={() => toggleWishlist(product.slug)}
+                    aria-label="Wishlist"
+                    className={`size-10 grid place-items-center backdrop-blur-md rounded-full border transition-all ${inWishlist(product.slug) ? "bg-accent/20 border-accent/50 text-accent" : "bg-black/40 border-white/10 text-white/80 hover:text-accent hover:border-accent/50"}`}
+                  >
+                    <Heart className={`size-4 ${inWishlist(product.slug) ? "fill-accent" : ""}`} />
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    aria-label="Share"
+                    className="size-10 grid place-items-center backdrop-blur-md bg-black/40 border border-white/10 rounded-full text-white/80 hover:text-accent hover:border-accent/50 transition-all"
+                  >
+                    <Share2 className="size-4" />
+                  </button>
+                </div>
               </div>
             </div>
 
             {galleryImages.length > 1 && (
-              <div className="mt-3 sm:mt-4 grid grid-cols-5 sm:grid-cols-6 gap-2 sm:gap-3">
+              <div className="mt-4 grid grid-cols-5 sm:grid-cols-6 gap-2 sm:gap-3">
                 {galleryImages.map((img, i) => (
                   <button
                     key={img.id}
                     onClick={() => setActiveImg(i)}
                     aria-label={`View image ${i + 1}`}
-                    className={`aspect-square rounded-lg sm:rounded-xl overflow-hidden border transition-all bg-card ${i === activeImg ? "border-accent ring-1 ring-accent/40" : "border-border opacity-60 hover:opacity-100"}`}
+                    className={`aspect-square rounded-xl overflow-hidden border transition-all bg-card ${i === activeImg ? "border-accent ring-2 ring-accent/30 shadow-[var(--shadow-ember)]" : "border-border opacity-60 hover:opacity-100 hover:border-accent/40"}`}
                   >
                     <img src={img.url} alt={img.alt || ""} className="w-full h-full object-cover" loading="lazy" />
                   </button>
@@ -193,6 +197,7 @@ function ProductPage() {
             )}
           </motion.div>
 
+
           {/* Info */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -200,12 +205,12 @@ function ProductPage() {
             transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">{product.tagline}</p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-4 text-balance">{product.name}</h1>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-4 text-balance leading-[1.05]">{product.name}</h1>
 
             <div className="flex items-center gap-3 mb-6 flex-wrap">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={`size-3.5 ${i < Math.round(product.rating) ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                  <Star key={i} className={`size-3.5 ${i < Math.round(product.rating) ? "fill-accent text-accent" : "text-muted-foreground/40"}`} />
                 ))}
               </div>
               <span className="text-xs font-mono text-muted-foreground">{product.rating} · {product.reviews} reviews</span>
@@ -213,7 +218,7 @@ function ProductPage() {
             </div>
 
             <div className="flex items-baseline gap-3 sm:gap-4 mb-4 flex-wrap">
-              <span className="text-3xl sm:text-4xl font-mono text-accent">{format(effectivePrice)}</span>
+              <span className="text-4xl sm:text-5xl font-display font-semibold tracking-tight text-gradient-ember tabular-nums">{format(effectivePrice)}</span>
               {originalPrice && (
                 <span className="text-sm font-mono text-muted-foreground line-through">{format(originalPrice)}</span>
               )}
@@ -221,6 +226,7 @@ function ProductPage() {
                 <span className="text-[10px] font-mono uppercase tracking-widest bg-accent/15 text-accent px-2 py-1 rounded-full">Save {product.discount}%</span>
               )}
             </div>
+
 
             <div className="flex flex-wrap items-center gap-2 mb-6 text-[10px] font-mono uppercase tracking-widest">
               {isOOS ? (
@@ -275,12 +281,12 @@ function ProductPage() {
             </div>
 
             {/* CTA row (desktop) */}
-            <div className="hidden sm:flex items-center gap-3 mb-4">
-              <div className="flex items-center border border-border rounded-full">
+            <div className="hidden sm:flex items-center gap-3 mb-3">
+              <div className="flex items-center glass rounded-full">
                 <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease" className="size-12 grid place-items-center hover:text-accent transition-colors">
                   <Minus className="size-4" />
                 </button>
-                <span className="w-10 text-center font-mono text-sm">{qty}</span>
+                <span className="w-10 text-center font-mono text-sm tabular-nums">{qty}</span>
                 <button onClick={() => setQty(qty + 1)} aria-label="Increase" className="size-12 grid place-items-center hover:text-accent transition-colors">
                   <Plus className="size-4" />
                 </button>
@@ -288,7 +294,7 @@ function ProductPage() {
               <button
                 onClick={handleAdd}
                 disabled={isOOS}
-                className="flex-1 bg-accent text-accent-foreground font-bold py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50"
+                className="flex-1 bg-accent text-accent-foreground font-semibold py-3.5 rounded-full text-xs uppercase tracking-widest hover:brightness-110 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 shadow-[var(--shadow-ember)]"
               >
                 {isOOS ? "Out of stock" : "Add to Cart"}
               </button>
@@ -296,7 +302,7 @@ function ProductPage() {
                 aria-label="Compare"
                 onClick={() => toggleCompare(product.slug)}
                 disabled={!inCompare(product.slug) && compareFull}
-                className={`size-12 grid place-items-center border rounded-full transition-colors disabled:opacity-40 ${inCompare(product.slug) ? "border-accent text-accent bg-accent/10" : "border-border hover:text-accent"}`}
+                className={`size-12 grid place-items-center glass rounded-full transition-all hover:-translate-y-0.5 disabled:opacity-40 ${inCompare(product.slug) ? "text-accent border-accent/40" : "hover:text-accent"}`}
               >
                 <Scale className="size-4" />
               </button>
@@ -305,24 +311,27 @@ function ProductPage() {
             <Link
               to="/cart"
               onClick={() => add(product.slug, qty)}
-              className="hidden sm:block text-center w-full bg-foreground text-background font-bold py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all mb-8"
+              className="hidden sm:block text-center w-full glass-strong text-foreground font-semibold py-3.5 rounded-full text-xs uppercase tracking-widest hover:bg-white/10 hover:-translate-y-0.5 transition-all mb-8"
             >
               Buy Now
             </Link>
 
             {/* Trust grid */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-6 sm:pt-8 border-t border-border">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-6 sm:pt-8 border-t border-border">
               {[
                 { icon: Truck, label: "Free shipping over $50" },
                 { icon: RotateCcw, label: "30-day returns" },
                 { icon: Shield, label: "Secure checkout" },
               ].map(({ icon: Icon, label }) => (
-                <div key={label} className="text-center">
-                  <Icon className="size-4 mx-auto mb-2 text-accent" />
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground leading-relaxed">{label}</p>
+                <div key={label} className="glass rounded-2xl p-3 sm:p-4 text-center">
+                  <div className="size-8 mx-auto mb-2 rounded-lg bg-accent/10 text-accent grid place-items-center">
+                    <Icon className="size-3.5" />
+                  </div>
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground leading-tight">{label}</p>
                 </div>
               ))}
             </div>
+
 
             {/* Specs */}
             <Accordion title="Specifications" icon={Package} defaultOpen>
@@ -382,13 +391,13 @@ function ProductPage() {
       <RecentlyViewed excludeSlug={product.slug} />
 
       {/* Sticky mobile CTA */}
-      <div className="sm:hidden fixed bottom-16 inset-x-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border border-border rounded-full">
+      <div className="sm:hidden fixed bottom-16 inset-x-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
+        <div className="glass-strong rounded-2xl px-2.5 py-2.5 flex items-center gap-2">
+          <div className="flex items-center bg-white/5 rounded-full">
             <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease" className="size-10 grid place-items-center">
               <Minus className="size-4" />
             </button>
-            <span className="w-7 text-center font-mono text-sm">{qty}</span>
+            <span className="w-7 text-center font-mono text-sm tabular-nums">{qty}</span>
             <button onClick={() => setQty(qty + 1)} aria-label="Increase" className="size-10 grid place-items-center">
               <Plus className="size-4" />
             </button>
@@ -396,12 +405,13 @@ function ProductPage() {
           <button
             onClick={handleAdd}
             disabled={isOOS}
-            className="flex-1 bg-accent text-accent-foreground font-bold py-3 rounded-full text-xs uppercase tracking-widest disabled:opacity-50"
+            className="flex-1 bg-accent text-accent-foreground font-semibold py-3 rounded-full text-xs uppercase tracking-widest disabled:opacity-50 shadow-[var(--shadow-ember)]"
           >
             {isOOS ? "Out of stock" : `Add — ${format(effectivePrice * qty)}`}
           </button>
         </div>
       </div>
+
     </>
   );
 }
