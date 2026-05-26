@@ -473,10 +473,15 @@ function ProductEditor({ row, nextSort, categories, onClose, onSaved }: { row: P
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent" />
           </div>
-          <label className="flex items-center gap-2 text-sm col-span-2">
+          <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.in_stock} onChange={(e) => setForm({ ...form, in_stock: e.target.checked })}
               className="accent-[var(--accent)]" />
             In stock
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+              className="accent-[var(--accent)]" />
+            Featured
           </label>
         </div>
         {error && <p className="text-xs text-red-400 mt-4">{error}</p>}
