@@ -32,8 +32,12 @@ type PromoRow = {
   min_subtotal: number | string; expires_at: string | null;
 };
 
+type Subscriber = {
+  id: string; email: string; source: string | null; status: string; created_at: string;
+};
+
 const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
-type Tab = "overview" | "orders" | "customers" | "products" | "categories" | "promos";
+type Tab = "overview" | "orders" | "customers" | "products" | "categories" | "promos" | "subscribers";
 
 function AdminPage() {
   const { user, loading } = useAuth();
