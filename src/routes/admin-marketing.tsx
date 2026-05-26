@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2 } from "lucide-react";
+import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,6 +42,26 @@ function MarketingPage() {
     logActivity("banner_delete", "banner", id);
     load();
   }
+  async function moveBanner(id: string, dir: -1 | 1) {
+    if (!banners) return;
+    const i = banners.findIndex((x) => x.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= banners.length) return;
+    const a = banners[i], b = banners[j];
+    const next = [...banners];
+    next[i] = { ...b, sort_order: a.sort_order };
+    next[j] = { ...a, sort_order: b.sort_order };
+    setBanners(next);
+    await Promise.all([
+      supabase.from("banners").update({ sort_order: b.sort_order }).eq("id", a.id),
+      supabase.from("banners").update({ sort_order: a.sort_order }).eq("id", b.id),
+    ]);
+    logActivity("banner_reorder", "banner", id);
+    load();
+  }
+
+
+
   async function deleteFlash(id: string) {
     if (!confirm("Delete this flash sale?")) return;
     await supabase.from("flash_sales").delete().eq("id", id);
@@ -81,9 +101,12 @@ function MarketingPage() {
                         {b.subtitle && <p className="text-xs text-muted-foreground mt-1">{b.subtitle}</p>}
                       </div>
                       <div className="flex gap-1">
+                        <button onClick={() => moveBanner(b.id, -1)} title="Move left" className="size-8 grid place-items-center rounded-full hover:bg-white/5 disabled:opacity-30" disabled={banners.indexOf(b) === 0}><ChevronLeft className="size-3.5" /></button>
+                        <button onClick={() => moveBanner(b.id, 1)} title="Move right" className="size-8 grid place-items-center rounded-full hover:bg-white/5 disabled:opacity-30" disabled={banners.indexOf(b) === banners.length - 1}><ChevronRight className="size-3.5" /></button>
                         <button onClick={() => setEditingB(b)} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><Pencil className="size-3.5" /></button>
                         <button onClick={() => deleteBanner(b.id)} className="size-8 grid place-items-center rounded-full hover:bg-white/5 hover:text-destructive"><Trash2 className="size-3.5" /></button>
                       </div>
+
                     </div>
                     <div className="flex items-center gap-2 mt-3 text-[10px] font-mono uppercase tracking-widest">
                       <span className={b.active ? "text-accent" : "text-muted-foreground"}>{b.active ? "Active" : "Inactive"}</span>
