@@ -421,7 +421,7 @@ function ProductEditor({ row, nextSort, categories, onClose, onSaved }: { row: P
             <label className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Category</label>
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
-              {CATEGORIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+              {categories.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
             </select>
           </div>
           <Field label="Price (USD)" type="number" required value={form.price} onChange={(v) => setForm({ ...form, price: v })} />
