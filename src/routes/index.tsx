@@ -159,15 +159,23 @@ function Home() {
             onSubmit={(e) => { e.preventDefault(); nav({ to: "/search", search: { q: query } }); }}
             className="max-w-2xl mx-auto relative group"
           >
-            <div className="absolute -inset-px rounded-full bg-gradient-to-r from-accent/40 via-transparent to-accent/40 opacity-0 group-focus-within:opacity-100 blur-md transition-opacity" />
-            <div className="relative glass-strong rounded-full">
-              <Search className="absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <motion.div
+              aria-hidden
+              animate={{ opacity: searchFocused ? 1 : 0.35 }}
+              transition={{ duration: 0.4 }}
+              className="absolute -inset-1 rounded-full blur-xl"
+              style={{ background: "conic-gradient(from 0deg, oklch(0.74 0.19 49 / 0.45), transparent 30%, oklch(0.55 0.18 290 / 0.35) 60%, transparent 80%, oklch(0.74 0.19 49 / 0.45))" }}
+            />
+            <div className="relative glass-strong rounded-full ring-1 ring-white/10">
+              <Search className={`absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 size-4 transition-colors ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search 2,400+ curated products..."
-                className="w-full bg-transparent rounded-full pl-12 sm:pl-14 pr-24 sm:pr-32 py-4 sm:py-5 text-sm sm:text-base focus:outline-none placeholder:text-muted-foreground/60"
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                placeholder={rotatingPlaceholder}
+                className="w-full bg-transparent rounded-full pl-12 sm:pl-14 pr-24 sm:pr-32 py-4 sm:py-5 text-sm sm:text-base focus:outline-none placeholder:text-muted-foreground/60 transition-[placeholder] duration-500"
               />
               <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-[11px] sm:text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-[var(--shadow-ember)]">
                 Search
