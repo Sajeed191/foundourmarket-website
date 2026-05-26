@@ -280,7 +280,7 @@ function AccountPage() {
                 className="h-full bg-gradient-to-r from-accent to-primary"
               />
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-2 mb-4">
               {profileFields.map((f) => (
                 <li key={f.label} className="flex items-center justify-between text-xs">
                   <span className={f.done ? "text-foreground" : "text-muted-foreground"}>{f.label}</span>
@@ -290,6 +290,12 @@ function AccountPage() {
                 </li>
               ))}
             </ul>
+            <Link
+              to="/account/profile"
+              className="w-full inline-flex items-center justify-center gap-2 border border-border rounded-full px-4 py-2.5 text-[10px] font-mono uppercase tracking-widest hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              Edit profile <ChevronRight className="size-3" />
+            </Link>
           </motion.div>
 
           {/* Addresses preview */}
