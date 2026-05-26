@@ -42,6 +42,23 @@ function MarketingPage() {
     logActivity("banner_delete", "banner", id);
     load();
   }
+  async function moveBanner(id: string, dir: -1 | 1) {
+    if (!banners) return;
+    const i = banners.findIndex((x) => x.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= banners.length) return;
+    const a = banners[i], b = banners[j];
+    const next = [...banners];
+    next[i] = { ...b, sort_order: a.sort_order };
+    next[j] = { ...a, sort_order: b.sort_order };
+    setBanners(next);
+    await Promise.all([
+      supabase.from("banners").update({ sort_order: b.sort_order }).eq("id", a.id),
+      supabase.from("banners").update({ sort_order: a.sort_order }).eq("id", b.id),
+    ]);
+    logActivity("banner_reorder", "banner", id);
+    load();
+
   async function deleteFlash(id: string) {
     if (!confirm("Delete this flash sale?")) return;
     await supabase.from("flash_sales").delete().eq("id", id);
