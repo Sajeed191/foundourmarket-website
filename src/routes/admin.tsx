@@ -242,9 +242,13 @@ function AdminPage() {
                       <td className="px-5 py-3 text-xs text-muted-foreground capitalize">{p.category}</td>
                       <td className="px-5 py-3 text-right font-mono text-accent">${Number(p.price).toFixed(2)}</td>
                       <td className="px-5 py-3 text-right">
-                        <span className={`text-[10px] font-mono uppercase tracking-widest ${p.in_stock ? "text-accent" : "text-muted-foreground"}`}>
-                          {p.in_stock ? "In stock" : "Out"}
-                        </span>
+                        <div className="flex flex-wrap gap-1 justify-end">
+                          {p.featured && <span className="text-[9px] font-mono uppercase tracking-widest bg-foreground/10 text-foreground px-2 py-0.5 rounded-full">Featured</span>}
+                          {p.discount && <span className="text-[9px] font-mono uppercase tracking-widest bg-accent/15 text-accent px-2 py-0.5 rounded-full">Sale −{p.discount}%</span>}
+                          <span className={`text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full ${p.in_stock ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}>
+                            {p.in_stock ? "In stock" : "Out"}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-5 py-3 text-right">
                         <div className="flex justify-end gap-1">
