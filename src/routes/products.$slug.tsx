@@ -29,6 +29,7 @@ function ProductPage() {
   const { add } = useCart();
   const { record } = useRecentlyViewed();
   const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
+  const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   const [qty, setQty] = useState(1);
   const [images, setImages] = useState<ProductImage[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
