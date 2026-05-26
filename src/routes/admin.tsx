@@ -46,6 +46,8 @@ function AdminPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [editing, setEditing] = useState<ProductRow | "new" | null>(null);
   const [editingCat, setEditingCat] = useState<Category | "new" | null>(null);
+  const [promos, setPromos] = useState<PromoRow[] | null>(null);
+  const [editingPromo, setEditingPromo] = useState<PromoRow | "new" | null>(null);
 
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
