@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2, ChevronLeft, ChevronRight, Rocket, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2, ChevronLeft, ChevronRight, Rocket, AlertCircle, CheckCircle2, Upload, History, Image as ImageIcon } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { PublishConfirm } from "@/components/admin/PublishConfirm";
 import { supabase } from "@/integrations/supabase/client";
