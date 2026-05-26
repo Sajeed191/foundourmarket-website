@@ -3,10 +3,13 @@ import { Heart, Star } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
+import { useWishlist } from "@/lib/wishlist";
 
 export function ProductCard({ product }: { product: Product }) {
   const { format } = useRegion();
   const { add } = useCart();
+  const { has, toggle } = useWishlist();
+  const saved = has(product.slug);
   return (
     <div className="group bg-card border border-border rounded-2xl p-4 hover:border-accent/40 transition-all duration-500 hover:-translate-y-1">
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
@@ -25,11 +28,11 @@ export function ProductCard({ product }: { product: Product }) {
             </span>
           )}
           <button
-            onClick={(e) => { e.preventDefault(); }}
-            aria-label="Add to wishlist"
-            className="absolute top-3 right-3 size-9 grid place-items-center bg-black/50 backdrop-blur-md rounded-full text-white/70 hover:text-accent transition-colors"
+            onClick={(e) => { e.preventDefault(); toggle(product.slug); }}
+            aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+            className={`absolute top-3 right-3 size-9 grid place-items-center bg-black/50 backdrop-blur-md rounded-full transition-colors ${saved ? "text-accent" : "text-white/70 hover:text-accent"}`}
           >
-            <Heart className="size-4" />
+            <Heart className={`size-4 ${saved ? "fill-accent" : ""}`} />
           </button>
         </div>
       </Link>

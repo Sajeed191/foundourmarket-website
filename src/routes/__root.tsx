@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { RegionProvider } from "@/lib/region";
 import { CartProvider } from "@/lib/cart";
 import { AuthProvider } from "@/lib/auth";
+import { WishlistProvider } from "@/lib/wishlist";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 
@@ -100,17 +101,19 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <RegionProvider>
-          <CartProvider>
-            <div className="min-h-screen flex flex-col">
-              <Nav />
-              <main className="flex-1">
-                <Outlet />
-              </main>
-              <Footer />
-            </div>
-          </CartProvider>
-        </RegionProvider>
+        <WishlistProvider>
+          <RegionProvider>
+            <CartProvider>
+              <div className="min-h-screen flex flex-col">
+                <Nav />
+                <main className="flex-1">
+                  <Outlet />
+                </main>
+                <Footer />
+              </div>
+            </CartProvider>
+          </RegionProvider>
+        </WishlistProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
