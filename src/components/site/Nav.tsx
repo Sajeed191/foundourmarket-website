@@ -84,6 +84,11 @@ export function Nav() {
                 <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono grid place-items-center">{wishSlugs.size}</span>
               )}
             </Link>
+            {isAdmin && (
+              <Link to="/admin" aria-label="Admin" className="hidden sm:grid size-9 rounded-full place-items-center hover:bg-white/5 transition-colors text-accent" title="Admin">
+                <LayoutDashboard className="size-4" />
+              </Link>
+            )}
             {user && <NotificationBell />}
             <Link to={user ? "/account" : "/auth"} aria-label="Account" className="size-9 rounded-full grid place-items-center hover:bg-white/5 transition-colors">
               <User className="size-4" />
