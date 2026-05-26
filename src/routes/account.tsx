@@ -476,13 +476,18 @@ function OrderRow({ o, format }: { o: Order; format: (n: number) => string }) {
       <Link
         to="/orders/$id"
         params={{ id: o.id }}
-        className="group block bg-card border border-border rounded-2xl p-4 sm:p-5 hover:border-accent/40 transition-colors"
+        className="group relative block card-premium rounded-2xl p-4 sm:p-5 overflow-hidden"
       >
-        <div className="flex items-center justify-between gap-3">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-px rounded-[inherit] opacity-0 group-hover:opacity-60 transition-opacity duration-500"
+          style={{ background: "var(--gradient-ember-soft)", filter: "blur(24px)" }}
+        />
+        <div className="relative flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <div className="flex -space-x-2 shrink-0">
               {o.order_items.slice(0, 3).map((it, i) => (
-                <div key={i} className="size-10 sm:size-11 rounded-xl border border-border bg-black/40 overflow-hidden">
+                <div key={i} className="size-10 sm:size-11 rounded-xl ring-1 ring-white/10 bg-black/40 overflow-hidden">
                   {it.image && <img src={it.image} alt="" className="w-full h-full object-cover" loading="lazy" />}
                 </div>
               ))}
@@ -498,16 +503,16 @@ function OrderRow({ o, format }: { o: Order; format: (n: number) => string }) {
             </div>
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
-            <span className="font-mono text-sm text-accent">{format(Number(o.total))}</span>
-            <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent transition-colors" />
+            <span className="font-mono text-sm text-accent tabular-nums">{format(Number(o.total))}</span>
+            <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all" />
           </div>
         </div>
-        <div className="mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
+        <div className="relative mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.8, ease }}
-            className="h-full bg-gradient-to-r from-accent to-primary"
+            className="h-full bg-gradient-to-r from-accent to-primary shadow-[0_0_12px_var(--color-accent)]"
           />
         </div>
       </Link>
