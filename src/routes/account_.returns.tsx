@@ -423,53 +423,62 @@ function ReturnsPage() {
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55 }}
-              className="relative rounded-2xl ring-1 ring-white/[0.07] bg-white/[0.03] backdrop-blur-xl px-6 py-10 sm:py-12 text-center overflow-hidden"
-            >
-              <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF7A00]/50 to-transparent" />
-              <div aria-hidden className="absolute -bottom-20 left-1/2 -translate-x-1/2 size-64 rounded-full blur-3xl opacity-20"
-                style={{ background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)" }} />
-              <motion.div
-                initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 18 }}
-                className="relative size-16 mx-auto mb-5 grid place-items-center rounded-2xl bg-[#FF7A00]/10 ring-1 ring-[#FF7A00]/25"
-              >
-                <Package className="size-6 text-[#FF9F43]" />
-              </motion.div>
-              <p className="relative text-base font-semibold">
-                {filter === "all" ? "No refund requests yet" : `No ${filter} refunds`}
-              </p>
-              <p className="relative text-[13px] text-white/55 mt-1.5 max-w-sm mx-auto leading-relaxed">
-                Eligible products may be refunded within 4 days after successful delivery.
-              </p>
-              <p className="relative text-[11px] text-white/35 mt-2 max-w-sm mx-auto">
-                Refund eligibility is available from your Orders page.
-              </p>
-              <div className="relative mt-6 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-center">
-                <Link
-                  to="/account/orders"
-                  className="inline-flex items-center justify-center gap-1.5 bg-[#FF7A00] text-white rounded-full px-5 py-2.5 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 shadow-[0_8px_20px_-8px_#FF7A00] transition-all"
+            (() => {
+              const emptyMap: Record<FilterKey, { icon: typeof Package; title: string; sub: string }> = {
+                all:       { icon: Package,      title: "No refund requests yet", sub: "Eligible products may be refunded within 4 days after successful delivery." },
+                processing:{ icon: Hourglass,    title: "No refunds in review",   sub: "Submitted requests under review will appear here." },
+                approved:  { icon: CheckCircle2, title: "No approved refunds yet",sub: "Approved refunds awaiting payout will show up here." },
+                refunded:  { icon: BadgeCheck,   title: "No completed refunds",   sub: "Completed refunds will appear here once processed." },
+                rejected:  { icon: XCircle,      title: "No rejected refund requests", sub: "Declined refund requests will appear here with reasons." },
+              };
+              const E = emptyMap[filter];
+              const Icon = E.icon;
+              return (
+                <motion.div
+                  key={filter}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative rounded-2xl ring-1 ring-white/[0.07] bg-white/[0.03] backdrop-blur-xl px-6 py-10 sm:py-12 text-center overflow-hidden"
                 >
-                  View Eligible Orders <ChevronRight className="size-3.5" />
-                </Link>
-                <Link
-                  to="/returns"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-[11px] uppercase tracking-widest font-semibold text-white/80 hover:text-white ring-1 ring-white/10 hover:ring-white/25 bg-white/[0.03] transition"
-                >
-                  Refund Policy
-                </Link>
-                <Link
-                  to="/help"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-[11px] uppercase tracking-widest font-semibold text-white/60 hover:text-white transition"
-                >
-                  Contact Support
-                </Link>
-              </div>
-            </motion.div>
-          ) : (
+                  <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF7A00]/50 to-transparent" />
+                  <div aria-hidden className="absolute -bottom-20 left-1/2 -translate-x-1/2 size-64 rounded-full blur-3xl opacity-20"
+                    style={{ background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)" }} />
+                  <motion.div
+                    initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.08, type: "spring", stiffness: 220, damping: 18 }}
+                    className="relative size-16 mx-auto mb-5 grid place-items-center rounded-2xl bg-[#FF7A00]/10 ring-1 ring-[#FF7A00]/25"
+                  >
+                    <Icon className="size-6 text-[#FF9F43]" />
+                  </motion.div>
+                  <p className="relative text-base font-semibold">{E.title}</p>
+                  <p className="relative text-[13px] text-white/55 mt-1.5 max-w-sm mx-auto leading-relaxed">{E.sub}</p>
+                  <div className="relative mt-6 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-center">
+                    {filter !== "all" && (
+                      <button
+                        onClick={() => { hapticTap(); setFilter("all"); }}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-[11px] uppercase tracking-widest font-semibold text-white/80 hover:text-white ring-1 ring-white/10 hover:ring-white/25 bg-white/[0.03] transition"
+                      >
+                        Show all refunds
+                      </button>
+                    )}
+                    <Link
+                      to="/account/orders"
+                      className="inline-flex items-center justify-center gap-1.5 bg-[#FF7A00] text-white rounded-full px-5 py-2.5 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 shadow-[0_8px_20px_-8px_#FF7A00] transition-all"
+                    >
+                      View Eligible Orders <ChevronRight className="size-3.5" />
+                    </Link>
+                    <Link
+                      to="/returns"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-[11px] uppercase tracking-widest font-semibold text-white/60 hover:text-white transition"
+                    >
+                      Refund Policy
+                    </Link>
+                  </div>
+                </motion.div>
+              );
+            })()
             <div className="space-y-2.5">
               {filtered.map((r, i) => (
                 <motion.div
