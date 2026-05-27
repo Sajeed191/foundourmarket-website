@@ -13,6 +13,12 @@ import {
   LifeBuoy,
   Mail,
   ChevronRight,
+  CheckCircle2,
+  XCircle,
+  Hourglass,
+  Inbox,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
@@ -20,6 +26,55 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+const SUPPORT_EMAIL = "support@foundourmarket.com";
+const SUPPORT_CC = "returns@foundourmarket.com";
+const SUPPORT_SUBJECT = "Refund Support Request - FoundOurMarket";
+const SUPPORT_BODY = `Hello FoundOurMarket Support,
+
+I need help regarding a refund request.
+
+Order ID:
+Issue:
+Details:
+
+Thank you.`;
+
+function buildMailto() {
+  const params = new URLSearchParams({
+    cc: SUPPORT_CC,
+    subject: SUPPORT_SUBJECT,
+    body: SUPPORT_BODY,
+  });
+  return `mailto:${SUPPORT_EMAIL}?${params.toString()}`;
+}
+
+function buildGmailUrl() {
+  const params = new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    to: SUPPORT_EMAIL,
+    cc: SUPPORT_CC,
+    su: SUPPORT_SUBJECT,
+    body: SUPPORT_BODY,
+  });
+  return `https://mail.google.com/mail/?${params.toString()}`;
+}
+
+function hapticTap() {
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate?.(8);
+    }
+  } catch {}
+}
 
 const searchSchema = z.object({ order: z.string().optional() });
 
