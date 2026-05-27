@@ -326,6 +326,11 @@ function Home() {
       )}
 
       {/* Trending Now */}
+      {productsLoading ? (
+        <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto">
+          <ProductSkeletonGrid count={4} />
+        </section>
+      ) : null}
       {trending.length > 0 && (
         <section className="px-4 sm:px-6 py-10 sm:py-14 md:py-16 max-w-7xl mx-auto">
           <Reveal className="flex justify-between items-end mb-6 sm:mb-8 gap-4">
