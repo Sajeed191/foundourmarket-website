@@ -592,10 +592,17 @@ function StatusBadge({ status }: { status: string }) {
 function ProductScroller({ items }: { items: Array<{ slug: string }> }) {
   return (
     <div className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
-      {items.map((p) => (
-        <div key={p.slug} className="snap-start shrink-0 w-[60%] xs:w-[48%] sm:w-[32%] lg:w-[31%]">
+      {items.map((p, i) => (
+        <motion.div
+          key={p.slug}
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.4, ease, delay: Math.min(i * 0.05, 0.3) }}
+          className="snap-start shrink-0 w-[46%] xs:w-[44%] sm:w-[32%] lg:w-[31%]"
+        >
           <ProductCard product={p as never} />
-        </div>
+        </motion.div>
       ))}
     </div>
   );
