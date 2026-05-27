@@ -44,10 +44,10 @@ const fadeUp = {
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 5) return "Still up";
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+  if (h < 5) return { text: "Still up", emoji: "🌙" };
+  if (h < 12) return { text: "Good morning", emoji: "☀️" };
+  if (h < 18) return { text: "Good afternoon", emoji: "🌤️" };
+  return { text: "Good evening", emoji: "🌙" };
 }
 
 function AccountPage() {
