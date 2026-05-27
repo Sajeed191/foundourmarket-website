@@ -44,7 +44,6 @@ import { Route as PagesSlugRouteImport } from './routes/pages.$slug'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
-import { Route as AuthConnectRouteImport } from './routes/auth.connect'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AccountSecurityRouteImport } from './routes/account_.security'
 import { Route as AccountReturnsRouteImport } from './routes/account_.returns'
@@ -230,11 +229,6 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BlogRoute,
 } as any)
-const AuthConnectRoute = AuthConnectRouteImport.update({
-  id: '/connect',
-  path: '/connect',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/callback',
   path: '/callback',
@@ -320,7 +314,6 @@ export interface FileRoutesByFullPath {
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/auth/connect': typeof AuthConnectRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -367,7 +360,6 @@ export interface FileRoutesByTo {
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/auth/connect': typeof AuthConnectRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -415,7 +407,6 @@ export interface FileRoutesById {
   '/account_/returns': typeof AccountReturnsRoute
   '/account_/security': typeof AccountSecurityRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/auth/connect': typeof AuthConnectRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -464,7 +455,6 @@ export interface FileRouteTypes {
     | '/account/returns'
     | '/account/security'
     | '/auth/callback'
-    | '/auth/connect'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -511,7 +501,6 @@ export interface FileRouteTypes {
     | '/account/returns'
     | '/account/security'
     | '/auth/callback'
-    | '/auth/connect'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -558,7 +547,6 @@ export interface FileRouteTypes {
     | '/account_/returns'
     | '/account_/security'
     | '/auth/callback'
-    | '/auth/connect'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -859,13 +847,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
     }
-    '/auth/connect': {
-      id: '/auth/connect'
-      path: '/connect'
-      fullPath: '/auth/connect'
-      preLoaderRoute: typeof AuthConnectRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/callback'
@@ -934,12 +915,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
-  AuthConnectRoute: typeof AuthConnectRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
-  AuthConnectRoute: AuthConnectRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
