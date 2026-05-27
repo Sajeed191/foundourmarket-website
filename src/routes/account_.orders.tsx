@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, Package, Search, ArrowRight, Calendar, ArrowLeft, ShoppingBag, Bell,
   Truck, CheckCircle2, Clock, RotateCcw, XCircle, Sparkles, ShieldCheck, Mic,
-  X, FileText, HelpCircle, RefreshCw, MapPin, Star,
+  X, FileText, HelpCircle, RefreshCw, MapPin, Star, Zap, TrendingUp, Tag, Gift, Flame,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -12,6 +12,8 @@ import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { fetchPersonalizedSlugs, fetchTrendingSlugs } from "@/lib/personalization";
+import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
+import { useCategories } from "@/lib/use-categories";
 
 export const Route = createFileRoute("/account_/orders")({
   head: () => ({ meta: [{ title: "Your Orders — FoundOurMarket™" }] }),
