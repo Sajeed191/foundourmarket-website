@@ -316,14 +316,15 @@ function Home() {
 
       {/* Featured Products */}
       {products.some((p) => p.featured) && (
-        <section className="px-4 sm:px-6 py-10 sm:py-14 md:py-16 max-w-7xl mx-auto">
-          <Reveal className="flex justify-between items-end mb-6 sm:mb-8 gap-4">
+        <section className="px-4 sm:px-6 py-10 sm:py-14 md:py-16 max-w-7xl mx-auto scroll-mt-24">
+          <Reveal className="flex justify-between items-end mb-5 sm:mb-8 gap-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Handpicked</p>
               <h2 className="text-fluid-2xl font-display tracking-tight">Featured Products</h2>
             </div>
           </Reveal>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
+          <ProductRail products={products.filter((p) => p.featured).slice(0, 8)} />
+          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
             {products.filter((p) => p.featured).slice(0, 4).map((p, i) => (
               <Reveal key={p.slug} delay={i}>
                 <ProductCard product={p} />
