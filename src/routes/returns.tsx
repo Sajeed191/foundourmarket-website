@@ -234,7 +234,7 @@ function ReturnsPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/40">Total</p>
-                    <p className="text-base font-semibold text-white mt-1 font-mono">{format(Number(order.total), order.currency)}</p>
+                    <p className="text-base font-semibold text-white mt-1 font-mono">{format(Number(order.total))}</p>
                   </div>
                 </div>
               </div>
