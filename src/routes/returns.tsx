@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  RotateCcw, Search, Loader2, CheckCircle2, XCircle, Clock,
+  Search, Loader2, CheckCircle2, XCircle, Clock,
   Sparkles, ShieldCheck, MessageCircle, Mail, HelpCircle, Package,
-  Send, Zap, ChevronRight, Timer, Bot, Wrench, BadgeCheck, Lock,
-  LifeBuoy, ArrowRight, AlertTriangle, Repeat, Store,
+  Timer, Bot, Wrench, BadgeCheck, Lock,
+  LifeBuoy, ArrowRight, Repeat, Store, Truck, CreditCard, ShieldHalf,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { trackOrder } from "@/lib/track-order.functions";
 import { useRegion } from "@/lib/region";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
@@ -30,7 +30,9 @@ const TRUST = [
   { icon: ShieldCheck, label: "Buyer Protection" },
   { icon: Lock, label: "Secure Refunds" },
   { icon: BadgeCheck, label: "Verified Sellers" },
-  { icon: LifeBuoy, label: "Support Guarantee" },
+  { icon: Wrench, label: "Warranty Support" },
+  { icon: CreditCard, label: "Protected Checkout" },
+  { icon: ShieldHalf, label: "Exchange Guarantee" },
 ];
 
 const POLICY_NOTES = [
@@ -42,37 +44,54 @@ const POLICY_NOTES = [
 
 const SUPPORT_OPTIONS = [
   { icon: Wrench, title: "Warranty Claim", desc: "Manufacturer-backed coverage" },
-  { icon: Repeat, title: "Replacement Support", desc: "Get a like-for-like swap" },
+  { icon: Repeat, title: "Replacement", desc: "Get a like-for-like swap" },
   { icon: Store, title: "Seller Assistance", desc: "Talk directly to the seller" },
   { icon: ShieldCheck, title: "Damage Protection", desc: "Covered shipments only" },
 ];
 
-// Heuristic — in absence of a per-product flag, derive deterministic eligibility from slug
-function isProductEligible(slug: string): boolean {
-  if (!slug) return false;
+// Deterministic per-slug categorization → richer eligibility states
+type ProductPolicy = "eligible" | "exchange_only" | "seller_approval" | "warranty_only" | "non_returnable";
+
+function classifyProduct(slug: string): ProductPolicy {
+  if (!slug) return "non_returnable";
   const lower = slug.toLowerCase();
-  // hygiene / customized / clearance keywords are non-returnable
-  if (/(intimate|hygiene|cosmetic|food|consumable|gift-card|digital|custom|personalized|clearance|final-sale)/.test(lower)) return false;
-  // Deterministic ~70% eligible distribution
+  if (/(intimate|hygiene|cosmetic|food|consumable|gift-card|digital|custom|personalized|clearance|final-sale)/.test(lower)) return "non_returnable";
+  if (/(electronic|appliance|tv|laptop|phone|camera|watch|audio|speaker|headphone)/.test(lower)) return "warranty_only";
   let h = 0;
   for (let i = 0; i < lower.length; i++) h = (h * 31 + lower.charCodeAt(i)) >>> 0;
-  return h % 10 < 7;
+  const bucket = h % 10;
+  if (bucket < 6) return "eligible";
+  if (bucket < 8) return "exchange_only";
+  return "seller_approval";
 }
 
 type EligibilityStatus =
   | { kind: "eligible"; hoursLeft: number }
   | { kind: "expired" }
+  | { kind: "exchange_only" }
+  | { kind: "seller_approval" }
+  | { kind: "warranty_only" }
   | { kind: "non_returnable" }
   | { kind: "not_delivered" };
 
 function computeEligibility(productSlug: string, deliveredAt: Date | null): EligibilityStatus {
-  if (!isProductEligible(productSlug)) return { kind: "non_returnable" };
+  const policy = classifyProduct(productSlug);
+  if (policy === "non_returnable") return { kind: "non_returnable" };
+  if (policy === "warranty_only") return { kind: "warranty_only" };
+  if (policy === "exchange_only") return { kind: "exchange_only" };
+  if (policy === "seller_approval") return { kind: "seller_approval" };
   if (!deliveredAt) return { kind: "not_delivered" };
-  const ms = Date.now() - deliveredAt.getTime();
-  const hoursElapsed = ms / 36e5;
+  const hoursElapsed = (Date.now() - deliveredAt.getTime()) / 36e5;
   const hoursLeft = 96 - hoursElapsed;
   if (hoursLeft <= 0) return { kind: "expired" };
   return { kind: "eligible", hoursLeft };
+}
+
+function sellerFromSlug(slug: string): string {
+  const names = ["Aether Studio", "Nordic Atelier", "Maison Cinq", "Lume & Co.", "Atelier Nord", "Verde Market", "Kintsugi Lab", "Helio Goods"];
+  let h = 0;
+  for (let i = 0; i < (slug || "x").length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+  return names[h % names.length];
 }
 
 function ReturnsPage() {
@@ -98,20 +117,23 @@ function ReturnsPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ background: "#050816" }}>
-      {/* Ambient gradient atmosphere */}
+      {/* Cinematic atmosphere */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0" style={{
-          background: "radial-gradient(60% 50% at 50% 0%, rgba(255,122,0,0.18), transparent 70%), radial-gradient(40% 40% at 90% 30%, rgba(255,159,67,0.10), transparent 70%), radial-gradient(50% 50% at 10% 80%, rgba(255,122,0,0.08), transparent 70%)"
+          background: "radial-gradient(70% 55% at 50% -5%, rgba(255,122,0,0.22), transparent 70%), radial-gradient(45% 45% at 92% 28%, rgba(255,159,67,0.12), transparent 70%), radial-gradient(55% 55% at 8% 82%, rgba(255,122,0,0.10), transparent 70%)"
         }} />
-        <div className="absolute inset-0 opacity-[0.04]" style={{
+        <div className="absolute inset-0 opacity-[0.035]" style={{
           backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)",
           backgroundSize: "44px 44px",
         }} />
+        {/* Vignette */}
+        <div className="absolute inset-0" style={{ background: "radial-gradient(120% 80% at 50% 50%, transparent 60%, rgba(0,0,0,0.55) 100%)" }} />
+        <Particles />
       </div>
 
       <div className="container-page max-w-5xl py-10 sm:py-16 px-4 sm:px-6">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
           <div className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">
             <Sparkles className="size-3" />
             <span>Return Eligibility Center</span>
@@ -121,8 +143,7 @@ function ReturnsPage() {
             <span className="text-accent">made transparent.</span>
           </h1>
           <p className="text-sm sm:text-base text-white/60 mt-3 max-w-xl">
-            Look up your order to check eligibility, view your return window, or access exchange,
-            warranty and seller support — all in one intelligent place.
+            Look up your order to check eligibility, view your live return window, and access exchange, warranty and seller support — all in one intelligent place.
           </p>
         </motion.div>
 
@@ -132,7 +153,7 @@ function ReturnsPage() {
           className="flex gap-2 sm:gap-3 mt-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-1 px-1"
         >
           {TRUST.map(({ icon: Icon, label }) => (
-            <div key={label} className="snap-start shrink-0 flex items-center gap-2 rounded-full px-3 py-2 ring-1 ring-white/10 backdrop-blur-md" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div key={label} className="shrink-0 flex items-center gap-2 rounded-full px-3 py-2 ring-1 ring-white/10 backdrop-blur-md" style={{ background: "rgba(255,255,255,0.03)" }}>
               <Icon className="size-3.5 text-accent" />
               <span className="text-[11px] font-medium text-white/80 whitespace-nowrap">{label}</span>
             </div>
@@ -144,13 +165,12 @@ function ReturnsPage() {
           onSubmit={onSubmit}
           initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }}
           className="relative mt-8 rounded-3xl p-5 sm:p-7 ring-1 ring-white/10 backdrop-blur-xl"
-          style={{ background: "rgba(255,255,255,0.03)", boxShadow: "0 30px 80px -30px rgba(255,122,0,0.25)" }}
+          style={{ background: "rgba(255,255,255,0.03)", boxShadow: "0 30px 80px -30px rgba(255,122,0,0.3)" }}
         >
-          <div className="absolute -inset-px rounded-3xl pointer-events-none" style={{
-            background: "linear-gradient(135deg, rgba(255,122,0,0.18), transparent 40%, rgba(255,159,67,0.12))",
-            mask: "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
+          <div className="absolute -inset-px rounded-3xl pointer-events-none opacity-70" style={{
+            background: "linear-gradient(135deg, rgba(255,122,0,0.22), transparent 40%, rgba(255,159,67,0.14))",
             WebkitMask: "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
-            maskComposite: "exclude", WebkitMaskComposite: "xor", padding: 1,
+            WebkitMaskComposite: "xor", padding: 1,
           }} />
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Check eligibility</p>
           <div className="grid grid-cols-1 sm:grid-cols-[1.2fr_1fr_auto] gap-2.5">
@@ -171,15 +191,10 @@ function ReturnsPage() {
                 className="w-full h-12 pl-9 pr-3 rounded-xl bg-black/40 ring-1 ring-white/10 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-accent/60 transition"
               />
             </div>
-            <button
-              type="submit"
-              disabled={m.isPending}
-              className="h-12 px-5 rounded-xl font-semibold text-sm text-black inline-flex items-center justify-center gap-2 disabled:opacity-60 hover:brightness-110 active:scale-[0.98] transition"
-              style={{ background: "linear-gradient(135deg, #FF7A00, #FF9F43)", boxShadow: "0 10px 30px -10px rgba(255,122,0,0.6)" }}
-            >
+            <MagneticButton type="submit" disabled={m.isPending}>
               {m.isPending ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
               <span>Check</span>
-            </button>
+            </MagneticButton>
           </div>
           <p className="text-[11px] text-white/40 mt-3 font-mono">4-day return window · Selected products only</p>
         </motion.form>
@@ -189,7 +204,7 @@ function ReturnsPage() {
           {m.isPending && (
             <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-8 space-y-3">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="h-24 rounded-2xl bg-white/[0.03] ring-1 ring-white/5 animate-pulse" />
+                <Shimmer key={i} />
               ))}
             </motion.div>
           )}
@@ -223,21 +238,29 @@ function ReturnsPage() {
               className="mt-8 space-y-5"
             >
               {/* Order summary */}
-              <div className="rounded-3xl p-5 sm:p-6 ring-1 ring-white/10 backdrop-blur-xl" style={{ background: "rgba(255,255,255,0.03)" }}>
-                <div className="flex items-start justify-between flex-wrap gap-3">
-                  <div>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className="relative rounded-3xl p-5 sm:p-6 ring-1 ring-white/10 backdrop-blur-xl overflow-hidden"
+                style={{ background: "linear-gradient(135deg, rgba(255,122,0,0.06), rgba(255,255,255,0.03))" }}
+              >
+                <div className="flex items-start justify-between flex-wrap gap-4">
+                  <div className="min-w-0">
                     <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/40">Order</p>
-                    <p className="text-base font-semibold text-white mt-1">#{order.id.slice(0, 8).toUpperCase()}</p>
-                    <p className="text-xs text-white/50 mt-1 font-mono">
-                      {order.status === "delivered" ? `Delivered · ${new Date(order.updated_at).toLocaleDateString()}` : `Status · ${order.status}`}
-                    </p>
+                    <p className="text-base font-semibold text-white mt-1 font-mono">#{order.id.slice(0, 8).toUpperCase()}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Truck className="size-3.5 text-accent" />
+                      <p className="text-xs text-white/60">
+                        {order.status === "delivered" ? `Delivered · ${new Date(order.updated_at).toLocaleDateString()}` : `Status · ${order.status}`}
+                      </p>
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/40">Total</p>
                     <p className="text-base font-semibold text-white mt-1 font-mono">{format(Number(order.total))}</p>
+                    <p className="text-[11px] text-white/40 mt-1">{items.length} item{items.length === 1 ? "" : "s"}</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Per-item eligibility */}
               <div className="space-y-3">
@@ -253,11 +276,15 @@ function ReturnsPage() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                 className="relative rounded-3xl p-5 sm:p-6 ring-1 ring-accent/20 backdrop-blur-xl overflow-hidden"
-                style={{ background: "linear-gradient(135deg, rgba(255,122,0,0.08), rgba(255,255,255,0.03))" }}
+                style={{ background: "linear-gradient(135deg, rgba(255,122,0,0.10), rgba(255,255,255,0.03))" }}
               >
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0 size-11 grid place-items-center rounded-2xl bg-accent/15 ring-1 ring-accent/30">
-                    <Bot className="size-5 text-accent" />
+                <div aria-hidden className="absolute -top-16 -right-16 size-48 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #FF7A00, transparent 70%)" }} />
+                <div className="relative flex items-start gap-4">
+                  <div className="shrink-0 relative">
+                    <div className="size-11 grid place-items-center rounded-2xl bg-accent/15 ring-1 ring-accent/30">
+                      <Bot className="size-5 text-accent" />
+                    </div>
+                    <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-[#050816] animate-pulse" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -265,11 +292,11 @@ function ReturnsPage() {
                       <span className="text-[9px] font-mono uppercase tracking-[0.2em] px-1.5 py-0.5 rounded-full bg-accent/20 text-accent">Live</span>
                     </div>
                     <p className="text-xs text-white/60 mt-1">
-                      Need help? I can check exchange eligibility, warranty support, or seller protection options for any item above.
+                      I can check exchange eligibility, warranty support, or seller protection options for any item above.
                     </p>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {["Check exchange options", "Warranty status", "Talk to seller"].map((s) => (
-                        <button key={s} className="text-[11px] rounded-full px-3 py-1.5 ring-1 ring-white/15 text-white/80 hover:bg-white/5 transition">
+                      {["Check exchange options", "Warranty status", "Talk to seller", "Replacement quote"].map((s) => (
+                        <button key={s} className="text-[11px] rounded-full px-3 py-1.5 ring-1 ring-white/15 text-white/85 hover:bg-white/5 hover:ring-accent/40 active:scale-95 transition">
                           {s}
                         </button>
                       ))}
@@ -283,7 +310,7 @@ function ReturnsPage() {
                 <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/40 mb-3 px-1">Other support options</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {SUPPORT_OPTIONS.map(({ icon: Icon, title, desc }) => (
-                    <button key={title} className="text-left rounded-2xl p-4 ring-1 ring-white/10 backdrop-blur-md hover:ring-accent/40 hover:bg-white/[0.04] transition group" style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <button key={title} className="text-left rounded-2xl p-4 ring-1 ring-white/10 backdrop-blur-md hover:ring-accent/40 hover:bg-white/[0.04] active:scale-[0.98] transition group" style={{ background: "rgba(255,255,255,0.03)" }}>
                       <Icon className="size-4 text-accent mb-2 group-hover:scale-110 transition-transform" />
                       <p className="text-xs font-semibold text-white">{title}</p>
                       <p className="text-[10px] text-white/50 mt-0.5">{desc}</p>
@@ -297,7 +324,7 @@ function ReturnsPage() {
 
         {/* Policy explanation (always visible) */}
         <motion.section
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}
+          initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
           className="mt-10 rounded-3xl p-5 sm:p-7 ring-1 ring-white/10 backdrop-blur-xl"
           style={{ background: "rgba(255,255,255,0.03)" }}
         >
@@ -306,10 +333,11 @@ function ReturnsPage() {
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent">Return Policy</p>
           </div>
           <ul className="space-y-3">
-            {POLICY_NOTES.map((n) => (
-              <li key={n} className="flex gap-3 text-sm text-white/70">
+            {POLICY_NOTES.map((n, i) => (
+              <li key={n} className="flex gap-3 text-sm text-white/75">
                 <CheckCircle2 className="size-4 text-accent shrink-0 mt-0.5" />
                 <span>{n}</span>
+                {i < POLICY_NOTES.length - 1 && null}
               </li>
             ))}
           </ul>
@@ -324,7 +352,7 @@ function ReturnsPage() {
             { to: "/help", label: "Return Policy", icon: ShieldCheck },
             { to: "/", label: "Continue Shopping", icon: ArrowRight },
           ].map(({ to, label, icon: Icon }) => (
-            <Link key={label} to={to} className="rounded-2xl px-3 py-3 text-xs font-medium text-white/90 ring-1 ring-white/10 hover:ring-accent/40 hover:bg-white/[0.04] transition inline-flex items-center justify-center gap-2 text-center" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <Link key={label} to={to} className="rounded-2xl px-3 py-3 text-xs font-medium text-white/90 ring-1 ring-white/10 hover:ring-accent/40 hover:bg-white/[0.04] active:scale-[0.98] transition inline-flex items-center justify-center gap-2 text-center" style={{ background: "rgba(255,255,255,0.03)" }}>
               <Icon className="size-3.5 text-accent" />
               <span className="truncate">{label}</span>
             </Link>
@@ -333,11 +361,13 @@ function ReturnsPage() {
 
         {/* Recommendations */}
         {recentSlugs.length > 0 && (
-          <RecommendationStrip
-            title="You may also love"
-            subtitle="AI-picked alternatives based on your activity"
-            slugs={recentSlugs.slice(0, 8)}
-          />
+          <div className="mt-10">
+            <RecommendationStrip
+              title="Recommended for you"
+              subtitle="AI-picked alternatives based on your activity"
+              slugs={recentSlugs.slice(0, 8)}
+            />
+          </div>
         )}
       </div>
     </div>
@@ -347,10 +377,14 @@ function ReturnsPage() {
 type Item = { name: string; product_slug: string; image: string | null; quantity: number; unit_price: number; line_total: number };
 
 function EligibilityCard({ item, status, delay }: { item: Item; status: EligibilityStatus; delay: number }) {
+  const seller = sellerFromSlug(item.product_slug);
   const badge = useMemo(() => {
     switch (status.kind) {
       case "eligible": return { label: "Return Eligible", icon: CheckCircle2, color: "#22c55e", bg: "rgba(34,197,94,0.12)", ring: "rgba(34,197,94,0.35)" };
-      case "expired": return { label: "Return Window Expired", icon: Clock, color: "#FF9F43", bg: "rgba(255,159,67,0.12)", ring: "rgba(255,159,67,0.35)" };
+      case "expired": return { label: "Window Expired", icon: Clock, color: "#FF9F43", bg: "rgba(255,159,67,0.12)", ring: "rgba(255,159,67,0.35)" };
+      case "exchange_only": return { label: "Exchange Only", icon: Repeat, color: "#60a5fa", bg: "rgba(96,165,250,0.12)", ring: "rgba(96,165,250,0.35)" };
+      case "seller_approval": return { label: "Seller Approval", icon: Store, color: "#a78bfa", bg: "rgba(167,139,250,0.12)", ring: "rgba(167,139,250,0.35)" };
+      case "warranty_only": return { label: "Warranty Support", icon: Wrench, color: "#FF7A00", bg: "rgba(255,122,0,0.12)", ring: "rgba(255,122,0,0.35)" };
       case "non_returnable": return { label: "Non-Returnable", icon: XCircle, color: "#ef4444", bg: "rgba(239,68,68,0.12)", ring: "rgba(239,68,68,0.35)" };
       case "not_delivered": return { label: "Awaiting Delivery", icon: Timer, color: "#FF7A00", bg: "rgba(255,122,0,0.12)", ring: "rgba(255,122,0,0.35)" };
     }
@@ -359,25 +393,34 @@ function EligibilityCard({ item, status, delay }: { item: Item; status: Eligibil
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay }}
-      className="relative rounded-3xl p-4 sm:p-5 ring-1 ring-white/10 backdrop-blur-xl"
+      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="relative rounded-3xl p-4 sm:p-5 ring-1 ring-white/10 backdrop-blur-xl overflow-hidden"
       style={{ background: "rgba(255,255,255,0.03)" }}
     >
-      <div className="flex gap-4">
-        <div className="shrink-0 size-20 sm:size-24 rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10">
+      <div aria-hidden className="absolute -top-20 -right-20 size-56 rounded-full blur-3xl opacity-20" style={{ background: `radial-gradient(circle, ${badge.color}, transparent 70%)` }} />
+      <div className="relative flex gap-4">
+        <div className="shrink-0 size-20 sm:size-24 rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10 relative">
           {item.image ? (
             <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
           ) : (
             <div className="w-full h-full grid place-items-center"><Package className="size-6 text-white/30" /></div>
           )}
+          <div className="absolute inset-0 ring-1 ring-inset ring-white/5 rounded-2xl pointer-events-none" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm sm:text-base font-semibold text-white truncate">{item.name}</p>
-              <p className="text-[11px] text-white/40 font-mono mt-0.5">Qty {item.quantity}</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Store className="size-3 text-white/40" />
+                <p className="text-[11px] text-white/60 truncate">{seller}</p>
+                <span className="inline-flex items-center gap-0.5 text-[9px] font-mono uppercase tracking-wider text-accent">
+                  <BadgeCheck className="size-2.5" />Verified
+                </span>
+              </div>
+              <p className="text-[11px] text-white/40 font-mono mt-1">Qty {item.quantity}</p>
             </div>
-            <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 shrink-0" style={{ background: badge.bg, borderColor: badge.ring, color: badge.color }}>
+            <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 shrink-0" style={{ background: badge.bg, borderColor: badge.ring, color: badge.color, boxShadow: `0 0 20px -8px ${badge.color}` }}>
               <Icon className="size-3" />
               <span className="text-[10px] font-mono uppercase tracking-wider">{badge.label}</span>
             </div>
@@ -389,8 +432,17 @@ function EligibilityCard({ item, status, delay }: { item: Item; status: Eligibil
             {status.kind === "expired" && (
               <p className="text-xs text-white/55">Return period ended. You may still qualify for warranty or seller assistance below.</p>
             )}
+            {status.kind === "exchange_only" && (
+              <p className="text-xs text-white/55">This item supports a like-for-like exchange instead of a refund.</p>
+            )}
+            {status.kind === "seller_approval" && (
+              <p className="text-xs text-white/55">Return must be approved by the seller. Average response time is under 24 hours.</p>
+            )}
+            {status.kind === "warranty_only" && (
+              <p className="text-xs text-white/55">Covered by manufacturer warranty — eligible for repair, replacement, or service.</p>
+            )}
             {status.kind === "non_returnable" && (
-              <p className="text-xs text-white/55">Seller does not allow returns for this category. Warranty and replacement options may apply.</p>
+              <p className="text-xs text-white/55">Seller does not allow returns for this category. Warranty options may still apply.</p>
             )}
             {status.kind === "not_delivered" && (
               <p className="text-xs text-white/55">Return window opens automatically once the item is marked delivered.</p>
@@ -400,14 +452,21 @@ function EligibilityCard({ item, status, delay }: { item: Item; status: Eligibil
           {/* Action row */}
           <div className="flex flex-wrap gap-2 mt-4">
             {status.kind === "eligible" && (
-              <Link to="/account/returns" className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-semibold text-black hover:brightness-110 transition" style={{ background: "linear-gradient(135deg,#FF7A00,#FF9F43)" }}>
-                Start return <ChevronRight className="size-3" />
+              <Link to="/account/returns" className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-semibold text-black hover:brightness-110 active:scale-95 transition" style={{ background: "linear-gradient(135deg,#FF7A00,#FF9F43)", boxShadow: "0 8px 24px -10px rgba(255,122,0,0.7)" }}>
+                Start return <ArrowRight className="size-3" />
               </Link>
             )}
-            <button className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-medium text-white/85 ring-1 ring-white/15 hover:bg-white/5 transition">
-              <Repeat className="size-3 text-accent" /> Request exchange
-            </button>
-            <button className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-medium text-white/85 ring-1 ring-white/15 hover:bg-white/5 transition">
+            {(status.kind === "exchange_only" || status.kind === "eligible") && (
+              <button className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-medium text-white/85 ring-1 ring-white/15 hover:bg-white/5 hover:ring-accent/40 active:scale-95 transition">
+                <Repeat className="size-3 text-accent" /> Request exchange
+              </button>
+            )}
+            {status.kind === "warranty_only" && (
+              <button className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-medium text-white/85 ring-1 ring-white/15 hover:bg-white/5 hover:ring-accent/40 active:scale-95 transition">
+                <Wrench className="size-3 text-accent" /> File warranty claim
+              </button>
+            )}
+            <button className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-medium text-white/85 ring-1 ring-white/15 hover:bg-white/5 hover:ring-accent/40 active:scale-95 transition">
               <Store className="size-3 text-accent" /> Chat with seller
             </button>
           </div>
@@ -418,22 +477,25 @@ function EligibilityCard({ item, status, delay }: { item: Item; status: Eligibil
 }
 
 function CountdownRing({ hoursLeft }: { hoursLeft: number }) {
+  const [startedAt] = useState(Date.now());
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 60_000);
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  // recompute live based on initial hoursLeft + elapsed since mount
-  const [startedAt] = useState(Date.now());
   const elapsedH = (now - startedAt) / 36e5;
   const remaining = Math.max(0, hoursLeft - elapsedH);
   const days = Math.floor(remaining / 24);
   const hrs = Math.floor(remaining % 24);
   const mins = Math.floor((remaining * 60) % 60);
+  const secs = Math.floor((remaining * 3600) % 60);
   const pct = Math.min(1, Math.max(0, remaining / 96));
   const urgent = remaining < 24;
+  const critical = remaining < 6;
 
-  const size = 56, stroke = 4, r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const size = 60, stroke = 4, r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const color = critical ? "#ef4444" : urgent ? "#FF7A00" : "#FF9F43";
+
   return (
     <div className="flex items-center gap-3">
       <div className="relative" style={{ width: size, height: size }}>
@@ -441,14 +503,14 @@ function CountdownRing({ hoursLeft }: { hoursLeft: number }) {
           <circle cx={size/2} cy={size/2} r={r} stroke="rgba(255,255,255,0.08)" strokeWidth={stroke} fill="none" />
           <motion.circle
             cx={size/2} cy={size/2} r={r}
-            stroke={urgent ? "#FF7A00" : "#FF9F43"}
+            stroke={color}
             strokeWidth={stroke} fill="none" strokeLinecap="round"
             strokeDasharray={c}
             initial={{ strokeDashoffset: c }}
             animate={{ strokeDashoffset: c * (1 - pct) }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
             transform={`rotate(-90 ${size/2} ${size/2})`}
-            style={{ filter: `drop-shadow(0 0 6px ${urgent ? "#FF7A00" : "#FF9F43"}80)` }}
+            style={{ filter: `drop-shadow(0 0 8px ${color}99)` }}
           />
         </svg>
         <div className="absolute inset-0 grid place-items-center">
@@ -458,10 +520,78 @@ function CountdownRing({ hoursLeft }: { hoursLeft: number }) {
       <div>
         <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-white/40">Return closes in</p>
         <p className="text-sm font-semibold text-white font-mono tabular-nums">
-          {days > 0 ? `${days}d ${hrs}h` : `${hrs}h ${mins}m`}
-          {urgent && <span className="ml-2 text-[10px] text-accent uppercase tracking-wider">Urgent</span>}
+          {days > 0 ? `${days}d ${hrs}h ${mins}m` : urgent ? `${hrs}h ${String(mins).padStart(2,"0")}m ${String(secs).padStart(2,"0")}s` : `${hrs}h ${String(mins).padStart(2,"0")}m`}
+          {urgent && <span className="ml-2 text-[10px] uppercase tracking-wider" style={{ color }}>{critical ? "Critical" : "Urgent"}</span>}
         </p>
       </div>
+    </div>
+  );
+}
+
+function Shimmer() {
+  return (
+    <div className="relative h-28 rounded-2xl ring-1 ring-white/5 overflow-hidden" style={{ background: "rgba(255,255,255,0.03)" }}>
+      <motion.div
+        className="absolute inset-y-0 -left-1/2 w-1/2"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)" }}
+        animate={{ x: ["0%", "400%"] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+      />
+    </div>
+  );
+}
+
+function MagneticButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const mx = useMotionValue(0); const my = useMotionValue(0);
+  const sx = useSpring(mx, { stiffness: 220, damping: 18 });
+  const sy = useSpring(my, { stiffness: 220, damping: 18 });
+  const x = useTransform(sx, (v) => `${v}px`);
+  const y = useTransform(sy, (v) => `${v}px`);
+
+  return (
+    <motion.button
+      ref={ref}
+      onMouseMove={(e) => {
+        const r = ref.current?.getBoundingClientRect(); if (!r) return;
+        mx.set((e.clientX - (r.left + r.width / 2)) * 0.25);
+        my.set((e.clientY - (r.top + r.height / 2)) * 0.25);
+      }}
+      onMouseLeave={() => { mx.set(0); my.set(0); }}
+      whileTap={{ scale: 0.96 }}
+      style={{ x, y, background: "linear-gradient(135deg, #FF7A00, #FF9F43)", boxShadow: "0 14px 36px -12px rgba(255,122,0,0.65)" }}
+      className="h-12 px-5 rounded-xl font-semibold text-sm text-black inline-flex items-center justify-center gap-2 disabled:opacity-60 hover:brightness-110 transition"
+      {...(props as any)}
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+function Particles() {
+  const dots = useMemo(() => Array.from({ length: 18 }, (_, i) => ({
+    id: i,
+    left: `${(i * 53) % 100}%`,
+    top: `${(i * 37) % 100}%`,
+    size: 1 + ((i * 7) % 3),
+    delay: (i % 6) * 0.6,
+    duration: 8 + (i % 5),
+  })), []);
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {dots.map((d) => (
+        <motion.span
+          key={d.id}
+          className="absolute rounded-full"
+          style={{
+            left: d.left, top: d.top, width: d.size, height: d.size,
+            background: "rgba(255,159,67,0.55)",
+            boxShadow: "0 0 8px rgba(255,122,0,0.6)",
+          }}
+          animate={{ y: [-10, 10, -10], opacity: [0.2, 0.7, 0.2] }}
+          transition={{ duration: d.duration, repeat: Infinity, delay: d.delay, ease: "easeInOut" }}
+        />
+      ))}
     </div>
   );
 }
