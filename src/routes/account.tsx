@@ -5,6 +5,7 @@ import {
   LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
+  Search, Zap, Gift, Tag, Truck, Headphones, Flame,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -197,32 +198,53 @@ function AccountPage() {
           </div>
         </motion.header>
 
+        {/* SEARCH BAR */}
+        <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.03 }}>
+          <Link
+            to="/search"
+            className="group relative flex items-center gap-3 glass-strong rounded-2xl px-4 py-3 sm:py-3.5 hover:border-accent/40 transition-colors"
+          >
+            <Search className="size-4 text-accent shrink-0" />
+            <span className="text-sm text-muted-foreground flex-1 truncate">
+              Search products, brands, categories…
+            </span>
+            <span className="hidden sm:inline text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-2 py-1 rounded-md bg-white/5">
+              ⌘ K
+            </span>
+          </Link>
+        </motion.div>
+
+        {/* FLASH SALE COUNTDOWN */}
+        <FlashSaleStrip />
 
         {/* 2 — OVERVIEW CARDS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }}>
           <SectionHeader title="Overview" eyebrow="Your account at a glance" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            <OverviewCard icon={Package} label="Active orders" value={stats.active} loading={!orders} accent to="/account/orders" />
+            <OverviewCard icon={Package} label="Total orders" value={stats.count} loading={!orders} accent to="/account/orders" />
             <OverviewCard icon={Heart} label="Wishlist" value={wishSlugs.size} to="/wishlist" />
             <OverviewCard icon={ShoppingBag} label="Cart items" value={cartCount} to="/cart" />
             <OverviewCard icon={Wallet} label="Total saved" value={stats.saved} formatter={format} loading={!orders} />
           </div>
         </motion.section>
 
+        {/* REWARDS & COUPONS STRIP */}
+        <RewardsStrip saved={stats.saved} format={format} />
+
+
         {/* 3 — QUICK ACTIONS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }}>
           <SectionHeader title="Quick actions" eyebrow="Jump to" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5">
             <ActionCard to="/account/orders" icon={Package} title="Orders" subtitle="Track & invoices" badge={stats.active || undefined} />
-            <ActionCard to="/wishlist" icon={Heart} title="Wishlist" subtitle="Saved for later" badge={wishSlugs.size || undefined} />
-            <ActionCard to="/cart" icon={ShoppingBag} title="Cart" subtitle="Review & checkout" badge={cartCount || undefined} />
-            <ActionCard to="/account/addresses" icon={MapPin} title="Addresses" subtitle="Shipping & billing" />
-            <ActionCard to="/account/notifications" icon={Bell} title="Notifications" subtitle="Inbox & alerts" badge={unread} />
-            <ActionCard to="/account/history" icon={Clock} title="History" subtitle="Activity timeline" />
-            <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Password & sessions" />
-            <ActionCard to="/help" icon={HelpCircle} title="Help center" subtitle="Guides & FAQ" />
+            <ActionCard to="/wishlist" icon={Heart} title="Wishlist" subtitle="Saved items" badge={wishSlugs.size || undefined} />
+            <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
+            <ActionCard to="/search" icon={Gift} title="Offers" subtitle="Deals & promos" />
+            <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 help" />
+            <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
           </div>
         </motion.section>
+
 
         {/* DESKTOP GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -291,7 +313,15 @@ function AccountPage() {
                 <ProductScroller items={recommended} />
               </SectionBlock>
             )}
+
+            {/* TRENDING */}
+            {trending.length > 0 && (
+              <SectionBlock title="Trending now" icon={Flame}>
+                <ProductScroller items={trending} />
+              </SectionBlock>
+            )}
           </div>
+
 
           {/* SIDEBAR */}
           <aside className="space-y-6 lg:space-y-8">
@@ -331,9 +361,25 @@ function AccountPage() {
           </div>
         </motion.footer>
       </div>
+
+      {/* FLOATING SUPPORT BUTTON */}
+      <motion.a
+        href="/help"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        aria-label="Chat with support"
+        className="fixed bottom-24 sm:bottom-6 right-4 sm:right-6 z-40 size-14 rounded-full bg-accent text-accent-foreground grid place-items-center shadow-[0_0_30px_var(--color-accent),0_10px_30px_-8px_oklch(0_0_0/0.6)] hover:shadow-[0_0_45px_var(--color-accent)] transition-shadow"
+      >
+        <MessageCircle className="size-6" strokeWidth={2.4} />
+        <span className="absolute inset-0 rounded-full bg-accent/40 animate-ping pointer-events-none" />
+      </motion.a>
     </div>
   );
 }
+
 
 /* ---------- helpers ---------- */
 
@@ -628,4 +674,105 @@ function AnimatedNumber({
     return () => controls.stop();
   }, [value, mv]);
   return <motion.span className={className}>{display}</motion.span>;
+}
+
+function FlashSaleStrip() {
+  const endTime = useMemo(() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.getTime();
+  }, []);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const diff = Math.max(0, endTime - now);
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.04 }}>
+      <Link
+        to="/search"
+        className="relative block overflow-hidden rounded-3xl glass-strong p-4 sm:p-5 group hover:border-accent/50 transition-colors"
+      >
+        <div aria-hidden className="absolute inset-0 -z-10 opacity-70" style={{ background: "var(--gradient-ember-soft)" }} />
+        <div aria-hidden className="absolute -top-16 -right-10 size-56 rounded-full blur-3xl opacity-60" style={{ background: "var(--gradient-ember)" }} />
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <motion.span
+              animate={{ rotate: [0, -8, 8, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              className="size-11 sm:size-12 rounded-2xl bg-accent text-accent-foreground grid place-items-center shadow-[0_0_24px_var(--color-accent)] shrink-0"
+            >
+              <Zap className="size-5" fill="currentColor" />
+            </motion.span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent">Flash sale · Up to 60% off</p>
+              <p className="text-sm sm:text-base font-display font-semibold truncate">Ends tonight — don't miss out</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {[pad(h), pad(m), pad(s)].map((v, i) => (
+              <div key={i} className="flex items-center gap-1 sm:gap-1.5">
+                <span className="min-w-[34px] sm:min-w-[40px] px-1.5 py-1.5 rounded-lg bg-background/60 backdrop-blur text-center font-mono text-sm sm:text-base font-semibold text-accent tabular-nums ring-1 ring-accent/30">
+                  {v}
+                </span>
+                {i < 2 && <span className="text-accent font-bold">:</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+function RewardsStrip({ saved, format }: { saved: number; format: (n: number) => string }) {
+  const points = Math.max(120, Math.round(saved * 10));
+  const nextTier = 5000;
+  const pct = Math.min(100, (points / nextTier) * 100);
+  return (
+    <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.07 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+        <div className="sm:col-span-2 relative overflow-hidden rounded-2xl card-premium p-4 sm:p-5">
+          <div aria-hidden className="absolute -top-16 -right-10 size-48 rounded-full blur-3xl opacity-50" style={{ background: "var(--gradient-ember)" }} />
+          <div className="relative flex items-center gap-3 sm:gap-4">
+            <span className="size-11 rounded-2xl bg-accent/15 text-accent grid place-items-center shadow-[0_0_18px_-4px_var(--color-accent)] shrink-0">
+              <Gift className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Reward points</p>
+                <p className="text-[10px] font-mono text-muted-foreground">{points}/{nextTier}</p>
+              </div>
+              <p className="text-xl sm:text-2xl font-display font-semibold tabular-nums text-gradient-ember">{points.toLocaleString()} pts</p>
+              <div className="mt-2 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 1, ease }}
+                  className="h-full bg-gradient-to-r from-accent to-primary shadow-[0_0_10px_var(--color-accent)]"
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Earn {(nextTier - points).toLocaleString()} more for Gold tier</p>
+            </div>
+          </div>
+        </div>
+        <div className="relative overflow-hidden rounded-2xl card-premium p-4 sm:p-5 flex items-center gap-3">
+          <span className="size-11 rounded-2xl bg-emerald-500/15 text-emerald-400 grid place-items-center shrink-0 shadow-[0_0_18px_-6px_oklch(0.7_0.18_150)]">
+            <Truck className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Fast delivery</p>
+            <p className="text-sm font-medium leading-tight mt-0.5">Free 2-day shipping unlocked</p>
+            <p className="text-[10.5px] text-emerald-400/90 mt-0.5">Secure checkout enabled</p>
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  );
 }
