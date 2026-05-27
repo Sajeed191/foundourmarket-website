@@ -989,3 +989,110 @@ function OrderTimeline({ order, format }: { order: Order; format: (n: number) =>
 
 
 
+function FloatingHeaderBar({ firstName, avatarUrl, unread, cartCount }: { firstName: string; avatarUrl: string; unread: number; cartCount: number }) {
+  const { scrollY } = useScroll();
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    return scrollY.on("change", (v) => setShow(v > 220));
+  }, [scrollY]);
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ y: -60, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -60, opacity: 0 }}
+          transition={{ duration: 0.28, ease }}
+          className="fixed top-2 left-2 right-2 sm:left-4 sm:right-4 z-40"
+        >
+          <div className="mx-auto max-w-7xl glass-strong rounded-2xl px-3 py-2 flex items-center gap-2 ring-1 ring-white/10 shadow-[0_10px_30px_-12px_oklch(0_0_0/0.6)]">
+            <div className="size-9 rounded-xl border border-white/10 bg-secondary overflow-hidden grid place-items-center ring-1 ring-accent/30 shrink-0">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs font-display font-semibold text-accent">{firstName.slice(0, 1).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-mono uppercase tracking-[0.25em] text-accent leading-none">Welcome</p>
+              <p className="text-xs font-medium truncate leading-tight mt-0.5">{firstName}</p>
+            </div>
+            <Link to="/search" aria-label="Search" className="size-9 grid place-items-center rounded-xl glass hover:text-accent transition-all">
+              <Search className="size-4" />
+            </Link>
+            <Link to="/account/notifications" aria-label="Notifications" className="relative size-9 grid place-items-center rounded-xl glass hover:text-accent transition-all">
+              <Bell className="size-4" />
+              {unread > 0 && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent animate-pulse" />}
+            </Link>
+            <Link to="/cart" aria-label="Cart" className="relative size-9 grid place-items-center rounded-xl glass hover:text-accent transition-all">
+              <ShoppingBag className="size-4" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
+            </Link>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+const SEARCH_HINTS = [
+  "Search headphones, sneakers, gadgets…",
+  "Try “wireless earbuds”…",
+  "Discover trending sneakers…",
+  "Find premium watches…",
+  "Search smart home gear…",
+];
+
+function SmartSearchBar() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((p) => (p + 1) % SEARCH_HINTS.length), 3200);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <Link
+      to="/search"
+      className="group relative flex items-center gap-2.5 glass-strong rounded-2xl px-4 py-3 sm:py-3.5 ring-1 ring-transparent hover:ring-accent/40 focus-visible:ring-accent/60 transition-all hover:shadow-[0_0_28px_-10px_var(--color-accent)]"
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: "var(--gradient-ember-soft)", filter: "blur(14px)" }} />
+      <Search className="relative size-4 text-accent shrink-0" />
+      <div className="relative flex-1 min-w-0 h-5 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={idx}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.35, ease }}
+            className="absolute inset-0 text-sm text-muted-foreground truncate"
+          >
+            {SEARCH_HINTS[idx]}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+      <button
+        type="button"
+        onClick={(e) => e.preventDefault()}
+        aria-label="Camera search"
+        className="relative size-8 grid place-items-center rounded-full bg-white/5 text-foreground/80 hover:bg-accent/15 hover:text-accent transition-colors shrink-0"
+      >
+        <Camera className="size-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => e.preventDefault()}
+        aria-label="Voice search"
+        className="relative size-8 grid place-items-center rounded-full bg-accent/15 text-accent hover:bg-accent hover:text-accent-foreground transition-colors shrink-0"
+      >
+        <Mic className="size-3.5" />
+      </button>
+      <span className="relative hidden sm:inline text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-2 py-1 rounded-md bg-white/5">
+        ⌘ K
+      </span>
+    </Link>
+  );
+}
