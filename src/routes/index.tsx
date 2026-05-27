@@ -119,7 +119,7 @@ function Home() {
   return (
     <>
       {/* Hero — cinematic */}
-      <section className="relative pt-12 sm:pt-20 md:pt-28 pb-20 sm:pb-32 md:pb-40 px-4 sm:px-6 overflow-hidden">
+      <section className="relative pt-10 sm:pt-16 md:pt-24 pb-12 sm:pb-20 md:pb-28 px-4 sm:px-6 overflow-hidden">
         {/* Floating gradient orbs */}
         <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
           <div className="orb animate-orb" style={{ width: 520, height: 520, top: "10%", left: "55%", background: "var(--gradient-ember)" }} />
