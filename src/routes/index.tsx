@@ -14,6 +14,7 @@ import { AnnouncementBar } from "@/components/site/AnnouncementBar";
 import { NewsletterForm } from "@/components/site/NewsletterForm";
 import { HomePersonalized } from "@/components/site/HomePersonalized";
 import { PromoBannerCarousel } from "@/components/site/PromoBannerCarousel";
+import { ProductRail } from "@/components/site/ProductRail";
 
 
 
