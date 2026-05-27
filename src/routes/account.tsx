@@ -198,17 +198,39 @@ function AccountPage() {
           </div>
         </motion.header>
 
+        {/* SEARCH BAR */}
+        <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.03 }}>
+          <Link
+            to="/search"
+            className="group relative flex items-center gap-3 glass-strong rounded-2xl px-4 py-3 sm:py-3.5 hover:border-accent/40 transition-colors"
+          >
+            <Search className="size-4 text-accent shrink-0" />
+            <span className="text-sm text-muted-foreground flex-1 truncate">
+              Search products, brands, categories…
+            </span>
+            <span className="hidden sm:inline text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-2 py-1 rounded-md bg-white/5">
+              ⌘ K
+            </span>
+          </Link>
+        </motion.div>
+
+        {/* FLASH SALE COUNTDOWN */}
+        <FlashSaleStrip />
 
         {/* 2 — OVERVIEW CARDS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }}>
           <SectionHeader title="Overview" eyebrow="Your account at a glance" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            <OverviewCard icon={Package} label="Active orders" value={stats.active} loading={!orders} accent to="/account/orders" />
+            <OverviewCard icon={Package} label="Total orders" value={stats.count} loading={!orders} accent to="/account/orders" />
             <OverviewCard icon={Heart} label="Wishlist" value={wishSlugs.size} to="/wishlist" />
             <OverviewCard icon={ShoppingBag} label="Cart items" value={cartCount} to="/cart" />
             <OverviewCard icon={Wallet} label="Total saved" value={stats.saved} formatter={format} loading={!orders} />
           </div>
         </motion.section>
+
+        {/* REWARDS & COUPONS STRIP */}
+        <RewardsStrip saved={stats.saved} format={format} />
+
 
         {/* 3 — QUICK ACTIONS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }}>
