@@ -6,7 +6,7 @@ import {
   LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
-  Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe,
+  Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe, Mic, Crown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -163,12 +163,19 @@ function AccountPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-1 flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-accent animate-glow" /> {greeting()}
+                  <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_oklch(0.7_0.18_150)] animate-pulse" /> Online · {greeting()}
                 </p>
                 <h1 className="text-[20px] leading-tight sm:text-2xl lg:text-3xl font-display font-semibold truncate tracking-tight">
                   Welcome back, <span className="text-gradient-ember">{firstName}</span>
                 </h1>
-                <p className="text-[11px] sm:text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
+                  <p className="text-[11px] sm:text-sm text-muted-foreground truncate">{user.email}</p>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[9px] font-mono uppercase tracking-widest ring-1 ring-accent/30">
+                    <Crown className="size-2.5" /> Premium
+                  </span>
+                </div>
+                {/* Profile completion */}
+                <ProfileCompletion user={user} />
               </div>
               <div className="flex sm:hidden items-center gap-1.5 shrink-0">
                 <Link to="/account/notifications" aria-label="Notifications" className="relative size-10 grid place-items-center rounded-xl glass hover:text-accent transition-all">
@@ -206,17 +213,33 @@ function AccountPage() {
         <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.03 }}>
           <Link
             to="/search"
-            className="group relative flex items-center gap-3 glass-strong rounded-2xl px-4 py-3 sm:py-3.5 hover:border-accent/40 transition-colors"
+            className="group relative flex items-center gap-3 glass-strong rounded-2xl px-4 py-3 sm:py-3.5 ring-1 ring-transparent hover:ring-accent/40 focus-visible:ring-accent/60 transition-all hover:shadow-[0_0_28px_-10px_var(--color-accent)]"
           >
-            <Search className="size-4 text-accent shrink-0" />
-            <span className="text-sm text-muted-foreground flex-1 truncate">
+            <div aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: "var(--gradient-ember-soft)", filter: "blur(14px)" }} />
+            <motion.span
+              animate={{ scale: [1, 1.12, 1] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              className="relative shrink-0"
+            >
+              <Search className="size-4 text-accent" />
+            </motion.span>
+            <span className="relative text-sm text-muted-foreground flex-1 truncate">
               Search products, brands, categories…
             </span>
-            <span className="hidden sm:inline text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-2 py-1 rounded-md bg-white/5">
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); /* voice placeholder */ }}
+              aria-label="Voice search"
+              className="relative size-8 grid place-items-center rounded-full bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <Mic className="size-3.5" />
+            </button>
+            <span className="relative hidden sm:inline text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-2 py-1 rounded-md bg-white/5">
               ⌘ K
             </span>
           </Link>
         </motion.div>
+
 
         {/* FLASH SALE COUNTDOWN */}
         <FlashSaleStrip />
@@ -569,10 +592,17 @@ function StatusBadge({ status }: { status: string }) {
 function ProductScroller({ items }: { items: Array<{ slug: string }> }) {
   return (
     <div className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
-      {items.map((p) => (
-        <div key={p.slug} className="snap-start shrink-0 w-[60%] xs:w-[48%] sm:w-[32%] lg:w-[31%]">
+      {items.map((p, i) => (
+        <motion.div
+          key={p.slug}
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.4, ease, delay: Math.min(i * 0.05, 0.3) }}
+          className="snap-start shrink-0 w-[46%] xs:w-[44%] sm:w-[32%] lg:w-[31%]"
+        >
           <ProductCard product={p as never} />
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -839,5 +869,35 @@ function WhyShopWithUs() {
     </motion.section>
   );
 }
+
+function ProfileCompletion({ user }: { user: { email?: string | null; user_metadata?: Record<string, unknown> } }) {
+  const meta = user.user_metadata ?? {};
+  const checks = [
+    !!user.email,
+    !!meta.full_name,
+    !!meta.avatar_url,
+    !!meta.phone,
+  ];
+  const done = checks.filter(Boolean).length;
+  const pct = Math.round((done / checks.length) * 100);
+  if (pct === 100) return null;
+  return (
+    <div className="mt-2 hidden sm:block">
+      <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
+        <span>Profile {pct}%</span>
+        <Link to="/account/profile" className="text-accent hover:underline">Complete</Link>
+      </div>
+      <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease }}
+          className="h-full bg-gradient-to-r from-accent to-primary shadow-[0_0_10px_var(--color-accent)]"
+        />
+      </div>
+    </div>
+  );
+}
+
 
 
