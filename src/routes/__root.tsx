@@ -144,6 +144,7 @@ function RootComponent() {
                   <MobileBottomNav />
                   <CompareTray />
                   <InstallPrompt />
+                  <Toaster position="bottom-center" richColors />
                 </div>
               </CartProvider>
             </RegionProvider>
