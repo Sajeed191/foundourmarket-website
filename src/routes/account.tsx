@@ -7,6 +7,7 @@ import {
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
   Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe, Mic, Crown,
+  CheckCircle2, Box, Home, X, Plus, Minus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -17,6 +18,8 @@ import { useNotifications } from "@/lib/notifications";
 import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
 import { ProductCard } from "@/components/site/ProductCard";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import type { Product } from "@/lib/products";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "Account — FoundOurMarket™" }] }),
