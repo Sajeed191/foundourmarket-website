@@ -30,7 +30,7 @@ export function MobileBottomNav() {
         className="absolute inset-x-10 bottom-3 h-16 -z-10 blur-3xl opacity-40"
         style={{ background: "var(--gradient-ember-soft)" }}
       />
-      <ul className="pointer-events-auto relative grid grid-cols-5 gap-0.5 glass-strong rounded-[22px] px-2 py-2 shadow-[var(--shadow-float),0_0_24px_-14px_oklch(0.74_0.19_49/0.4)] ring-1 ring-white/10">
+      <ul className="pointer-events-auto relative grid grid-cols-5 gap-0.5 rounded-[24px] px-2 py-2 ring-1 ring-white/[0.07] shadow-[0_18px_50px_-18px_rgba(0,0,0,0.7),0_0_22px_-14px_oklch(0.74_0.19_49/0.35)] backdrop-blur-2xl backdrop-saturate-150" style={{ background: "linear-gradient(180deg, rgba(20,12,8,0.55), rgba(10,6,4,0.7))" }}>
         {items.map(({ to, label, icon: Icon, match, badge }) => {
           const active = match(pathname);
           return (
