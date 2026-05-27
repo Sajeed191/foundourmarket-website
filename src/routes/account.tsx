@@ -625,13 +625,18 @@ function FooterAction({ icon: Icon, label, to }: { icon: typeof Package; label: 
 
 function EmptyState({ icon: Icon = Star, title, body, cta, extra }: { icon?: typeof Package; title: string; body: string; cta?: React.ReactNode; extra?: React.ReactNode }) {
   return (
-    <div className="card-premium rounded-2xl border-dashed p-5 sm:p-6 flex flex-col items-center text-center">
-      <div className="size-10 rounded-xl bg-accent/10 text-accent grid place-items-center mb-3">
-        <Icon className="size-[18px]" />
-      </div>
-      <p className="text-sm font-medium">{title}</p>
-      <p className="text-xs text-muted-foreground mt-1 max-w-xs">{body}</p>
-      {cta && <div className="mt-4">{cta}</div>}
+    <div className="card-premium rounded-2xl border-dashed p-5 sm:p-6 flex flex-col items-center text-center relative overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 size-40 rounded-full blur-3xl opacity-40" style={{ background: "var(--gradient-ember)" }} />
+      <motion.div
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+        className="relative size-12 rounded-2xl bg-accent/10 text-accent grid place-items-center mb-3 ring-1 ring-accent/30 shadow-[0_0_20px_-6px_var(--color-accent)]"
+      >
+        <Icon className="size-5" />
+      </motion.div>
+      <p className="relative text-sm font-medium">{title}</p>
+      <p className="relative text-xs text-muted-foreground mt-1 max-w-xs">{body}</p>
+      {cta && <div className="relative mt-4">{cta}</div>}
       {extra}
     </div>
   );
