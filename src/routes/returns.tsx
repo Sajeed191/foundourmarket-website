@@ -400,7 +400,7 @@ function EligibilityCard({ item, status, delay }: { item: Item; status: Eligibil
           {/* Action row */}
           <div className="flex flex-wrap gap-2 mt-4">
             {status.kind === "eligible" && (
-              <Link to="/account/returns" search={{}} className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-semibold text-black hover:brightness-110 transition" style={{ background: "linear-gradient(135deg,#FF7A00,#FF9F43)" }}>
+              <Link to="/account/returns" className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-semibold text-black hover:brightness-110 transition" style={{ background: "linear-gradient(135deg,#FF7A00,#FF9F43)" }}>
                 Start return <ChevronRight className="size-3" />
               </Link>
             )}
