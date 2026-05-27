@@ -24,13 +24,13 @@ export function MobileBottomNav() {
       aria-label="Primary mobile navigation"
       className="md:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] pt-2 pointer-events-none"
     >
-      {/* Ambient ember glow behind the bar */}
+      {/* Ambient ember glow behind the bar — softened ~50% */}
       <div
         aria-hidden
-        className="absolute inset-x-8 bottom-3 h-20 -z-10 blur-3xl opacity-70"
+        className="absolute inset-x-10 bottom-3 h-16 -z-10 blur-3xl opacity-40"
         style={{ background: "var(--gradient-ember-soft)" }}
       />
-      <ul className="pointer-events-auto relative grid grid-cols-5 gap-0.5 glass-strong rounded-[22px] px-2 py-2 shadow-[var(--shadow-float),0_0_40px_-10px_oklch(0.74_0.19_49/0.35)] ring-1 ring-white/10">
+      <ul className="pointer-events-auto relative grid grid-cols-5 gap-0.5 glass-strong rounded-[22px] px-2 py-2 shadow-[var(--shadow-float),0_0_24px_-14px_oklch(0.74_0.19_49/0.4)] ring-1 ring-white/10">
         {items.map(({ to, label, icon: Icon, match, badge }) => {
           const active = match(pathname);
           return (
