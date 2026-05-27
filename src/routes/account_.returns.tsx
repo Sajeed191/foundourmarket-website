@@ -548,18 +548,22 @@ function ReturnsPage() {
         >
           <h3 className="text-[11px] font-mono uppercase tracking-[0.24em] text-white/50 mb-3">Quick support</h3>
           <div className="grid grid-cols-2 gap-2.5">
-            {[
-              { to: "/help", icon: MessageCircle, label: "Chat Support", hint: "Live agent" },
-              { to: "/returns", icon: FileText, label: "Refund Policy", hint: "Eligibility" },
-              { to: "/help", icon: LifeBuoy, label: "Help Center", hint: "FAQs" },
-              { href: "mailto:support@foundourmarket.com", icon: Mail, label: "Email Support", hint: "support@" },
-            ].map((a) => {
+            {([
+              { kind: "link",   to: "/help",    icon: MessageCircle, label: "Chat Support", hint: "Live agent" },
+              { kind: "link",   to: "/returns", icon: FileText,      label: "Refund Policy", hint: "Eligibility" },
+              { kind: "link",   to: "/help",    icon: LifeBuoy,      label: "Help Center",   hint: "FAQs" },
+              { kind: "email",  icon: Mail,     label: "Email Support", hint: SUPPORT_EMAIL.replace("@foundourmarket.com","@…") },
+            ] as const).map((a) => {
               const inner = (
                 <motion.div
-                  whileTap={{ scale: 0.97 }}
-                  className="group rounded-2xl ring-1 ring-white/[0.07] bg-white/[0.03] backdrop-blur-xl p-3.5 hover:ring-[#FF7A00]/30 hover:bg-white/[0.05] transition-all"
+                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ y: -1 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 26 }}
+                  className="group relative rounded-2xl ring-1 ring-white/[0.07] bg-white/[0.03] backdrop-blur-xl p-3.5 hover:ring-[#FF7A00]/30 hover:bg-white/[0.05] transition-all overflow-hidden"
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div aria-hidden className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: "radial-gradient(120px 60px at var(--x,50%) 0%, rgba(255,122,0,0.18), transparent 70%)" }} />
+                  <div className="flex items-center gap-2.5 relative">
                     <div className="size-8 grid place-items-center rounded-lg bg-[#FF7A00]/10 ring-1 ring-[#FF7A00]/20 text-[#FF9F43] shrink-0">
                       <a.icon className="size-3.5" />
                     </div>
@@ -570,10 +574,21 @@ function ReturnsPage() {
                   </div>
                 </motion.div>
               );
-              return a.href ? (
-                <a key={a.label} href={a.href}>{inner}</a>
-              ) : (
-                <Link key={a.label} to={a.to!}>{inner}</Link>
+              if (a.kind === "email") {
+                return (
+                  <button
+                    key={a.label}
+                    type="button"
+                    onClick={openEmailSupport}
+                    className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF7A00]/40 rounded-2xl"
+                    aria-label="Email FoundOurMarket support"
+                  >
+                    {inner}
+                  </button>
+                );
+              }
+              return (
+                <Link key={a.label} to={a.to} onClick={() => hapticTap()}>{inner}</Link>
               );
             })}
           </div>
