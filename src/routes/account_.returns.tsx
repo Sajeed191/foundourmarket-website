@@ -19,8 +19,6 @@ import {
   Copy,
   ExternalLink,
   Check,
-  ShieldCheck as ShieldCheckIcon,
-  Loader2 as Spinner,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
