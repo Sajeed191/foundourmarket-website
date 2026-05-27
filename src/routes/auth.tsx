@@ -81,76 +81,106 @@ function AuthPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-5 py-10 overflow-hidden" style={{ background: "#050816" }}>
+    <div className="relative min-h-screen flex items-center justify-center px-5 py-6 sm:py-10 overflow-hidden" style={{ background: "#050816" }}>
       {/* Ambient orbs */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute top-[8%] left-1/2 -translate-x-1/2 w-[90vw] max-w-[700px] h-[55vh] rounded-full opacity-[0.22]"
-          style={{ background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)", filter: "blur(110px)" }} />
-        <div className="absolute bottom-[2%] right-[-10%] w-[55vw] max-w-[480px] h-[40vh] rounded-full opacity-[0.15]"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.22 }}
+          transition={{ duration: 1.4, ease }}
+          className="absolute top-[6%] left-1/2 -translate-x-1/2 w-[95vw] max-w-[720px] h-[58vh] rounded-full"
+          style={{ background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)", filter: "blur(120px)" }}
+        />
+        <div className="absolute bottom-[2%] right-[-10%] w-[55vw] max-w-[480px] h-[40vh] rounded-full opacity-[0.14]"
           style={{ background: "radial-gradient(circle, #FF9F43 0%, transparent 70%)", filter: "blur(90px)" }} />
+        {/* subtle grain */}
+        <div className="absolute inset-0 opacity-[0.025] mix-blend-overlay"
+          style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "3px 3px" }} />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 18 }}
+        initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease }}
-        className="relative w-full max-w-md mx-auto"
+        transition={{ duration: 0.55, ease }}
+        className="relative w-full max-w-[400px] mx-auto"
       >
         {/* Brand */}
-        <div className="flex flex-col items-center mb-7">
-          <div className="relative mb-4">
-            <div className="size-[72px] rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-12px_rgba(255,122,0,0.35)] bg-white/[0.04] grid place-items-center">
+        <div className="flex flex-col items-center mb-5">
+          <div className="relative mb-3.5">
+            {/* radial halo */}
+            <motion.div
+              aria-hidden
+              animate={{ opacity: [0.45, 0.8, 0.45], scale: [1, 1.08, 1] }}
+              transition={{ duration: 3.6, ease: "easeInOut", repeat: Infinity }}
+              className="absolute inset-0 -m-8 rounded-full pointer-events-none"
+              style={{ background: "radial-gradient(circle, rgba(255,122,0,0.45) 0%, transparent 65%)", filter: "blur(22px)" }}
+            />
+            <div className="relative size-[76px] rounded-[20px] overflow-hidden ring-1 ring-white/15 shadow-[0_24px_70px_-14px_rgba(255,122,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)] bg-white/[0.04] grid place-items-center">
               <img src="/logo.jpeg" alt="FoundOurMarket" className="w-full h-full object-cover" />
             </div>
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.35, type: "spring", stiffness: 320, damping: 18 }}
-              className="absolute -bottom-1 -right-1 size-6 rounded-full grid place-items-center shadow-[0_0_14px_rgba(255,122,0,0.55)]"
-              style={{ background: "#FF7A00" }}
+              initial={{ scale: 0, rotate: -20 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.4, type: "spring", stiffness: 340, damping: 18 }}
+              className="absolute -bottom-1 -right-1 size-[22px] rounded-full grid place-items-center shadow-[0_0_16px_rgba(255,122,0,0.7),0_2px_6px_rgba(0,0,0,0.4)] ring-2 ring-[#050816]"
+              style={{ background: "linear-gradient(135deg, #FF7A00, #FF9F43)" }}
             >
-              <Check className="size-3.5 text-black" strokeWidth={3} />
+              <Check className="size-3 text-black" strokeWidth={3.2} />
             </motion.div>
           </div>
-          <p className="text-[10px] font-mono uppercase tracking-[0.35em] mb-1" style={{ color: "#FF9F43" }}>
+          <p className="text-[10px] font-mono uppercase tracking-[0.38em] mb-0.5" style={{ color: "#FF9F43" }}>
             FoundOurMarket™
           </p>
-          <p className="text-[10px] text-white/50 tracking-wide">Find It. Shop It. Love It.</p>
+          <p className="text-[10px] text-white/45 tracking-wide">Find It. Shop It. Love It.</p>
         </div>
 
         {/* Headline */}
-        <div className="text-center mb-6">
-          <h1 className="text-[26px] sm:text-[30px] font-display font-semibold tracking-tight text-white mb-2">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.5, ease }}
+          className="text-center mb-5"
+        >
+          <h1 className="text-[30px] sm:text-[34px] font-display font-semibold tracking-[-0.02em] text-white mb-1.5 leading-[1.05]">
             Connect Your Account
           </h1>
-          <p className="text-sm text-white/60 leading-relaxed max-w-xs mx-auto">
-            Securely sign in to personalize shopping, track orders, manage refunds, and access premium support.
+          <p className="text-[13px] text-white/70 leading-[1.5] max-w-[300px] mx-auto">
+            Sign in securely to personalize shopping, track orders, and access premium support.
           </p>
-        </div>
+        </motion.div>
 
         {/* Benefits */}
         {mode === "oauth" && (
-          <div className="mb-6 rounded-2xl p-4 ring-1 ring-white/[0.06]" style={{ background: "rgba(255,255,255,0.03)" }}>
-            <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-white/40 mb-3 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.5, ease }}
+            className="relative mb-5 rounded-2xl p-3.5 ring-1 ring-white/[0.08] backdrop-blur-xl overflow-hidden"
+            style={{ background: "linear-gradient(160deg, rgba(255,159,67,0.06) 0%, rgba(255,255,255,0.025) 50%, rgba(255,122,0,0.04) 100%)" }}
+          >
+            {/* edge light */}
+            <div aria-hidden className="absolute inset-x-6 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(255,159,67,0.5), transparent)" }} />
+            <p className="text-[9.5px] font-mono uppercase tracking-[0.28em] text-white/45 mb-3 text-center">
               FoundOurMarket uses your account to
             </p>
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               {BENEFITS.map(({ icon: Icon, label }, i) => (
                 <motion.li
                   key={label}
                   initial={{ opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + i * 0.07, duration: 0.4, ease }}
-                  className="flex items-center gap-3 text-sm text-white/85"
+                  transition={{ delay: 0.25 + i * 0.06, duration: 0.4, ease }}
+                  className="flex items-center gap-3 text-[13px] text-white/90"
                 >
-                  <span className="shrink-0 size-7 rounded-lg grid place-items-center" style={{ background: "rgba(255,122,0,0.12)", color: "#FF9F43" }}>
-                    <Icon className="size-3.5" />
+                  <span className="shrink-0 size-7 rounded-lg grid place-items-center ring-1 ring-[#FF7A00]/20 shadow-[0_0_12px_-4px_rgba(255,122,0,0.5)]"
+                    style={{ background: "linear-gradient(135deg, rgba(255,122,0,0.18), rgba(255,159,67,0.08))", color: "#FFB369" }}>
+                    <Icon className="size-[14px]" />
                   </span>
                   <span className="leading-snug">{label}</span>
                 </motion.li>
               ))}
             </ul>
-          </div>
+          </motion.div>
         )}
 
         {/* Error */}
@@ -172,7 +202,7 @@ function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease }}
             onSubmit={onSubmit}
-            className="space-y-3 mb-4"
+            className="space-y-2.5 mb-4"
           >
             {isSignup && (
               <div className="relative">
@@ -192,10 +222,10 @@ function AuthPage() {
                 className="w-full bg-white/[0.04] border border-white/10 text-white placeholder:text-white/40 rounded-full pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#FF7A00]" />
             </div>
             <motion.button
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.975 }}
               disabled={busy}
-              className="w-full py-3.5 rounded-full text-sm font-semibold text-black inline-flex items-center justify-center gap-2 shadow-[0_10px_30px_-10px_rgba(255,122,0,0.6)] hover:brightness-110 transition-all disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #FF7A00, #FF9F43)" }}
+              className="w-full py-3.5 rounded-full text-sm font-semibold text-black inline-flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(255,122,0,0.35)] hover:brightness-110 transition-all disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg, #FF7A00 0%, #FF9F43 100%)" }}
             >
               {busy ? <><Loader2 className="size-4 animate-spin" /> Signing in…</> : <>{isSignup ? "Create Account" : "Sign In"} <ArrowRight className="size-4" /></>}
             </motion.button>
@@ -204,53 +234,74 @@ function AuthPage() {
 
         {/* OAuth CTAs */}
         {mode === "oauth" && (
-          <div className="space-y-3 mb-4">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.45, ease }}
+            className="space-y-2.5 mb-3.5"
+          >
             <motion.button
               onClick={onGoogle}
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.975 }}
+              whileHover={{ y: -1 }}
               disabled={googleBusy}
-              className="w-full py-3.5 rounded-full text-sm font-semibold text-black inline-flex items-center justify-center gap-2.5 shadow-[0_12px_36px_-10px_rgba(255,122,0,0.65)] hover:brightness-110 transition-all disabled:opacity-70"
-              style={{ background: "linear-gradient(135deg, #FF7A00, #FF9F43)" }}
+              className="relative group w-full py-[15px] rounded-full text-[14px] font-semibold text-black inline-flex items-center justify-center gap-2.5 shadow-[0_10px_30px_rgba(255,122,0,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] hover:shadow-[0_14px_38px_rgba(255,122,0,0.45),inset_0_1px_0_rgba(255,255,255,0.4)] transition-all disabled:opacity-70 overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #FF7A00 0%, #FF9F43 100%)" }}
             >
+              {/* shine sweep */}
+              <span aria-hidden className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1100ms] ease-out"
+                style={{ background: "linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)" }} />
               {googleBusy ? (
                 <><Loader2 className="size-4 animate-spin" /> Connecting account…</>
               ) : (
                 <>
-                  <GoogleIcon />
+                  <span className="size-6 rounded-full bg-white grid place-items-center shadow-sm">
+                    <GoogleIcon />
+                  </span>
                   Continue with Google
                 </>
               )}
             </motion.button>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.985 }}
               onClick={() => setMode("email")}
-              className="w-full py-3.5 rounded-full text-sm font-medium text-white/90 border border-white/10 hover:bg-white/[0.04] transition-all"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              className="w-full py-[14px] rounded-full text-[13.5px] font-medium text-white/90 border border-white/[0.09] hover:bg-white/[0.05] hover:border-white/[0.14] transition-all backdrop-blur-xl"
+              style={{ background: "rgba(255,255,255,0.025)" }}
             >
               Continue with Email
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         )}
 
         {mode === "email" && (
           <button
             onClick={() => { setMode("oauth"); setError(null); }}
-            className="w-full text-center text-xs text-white/50 hover:text-white/80 transition-colors mb-4"
+            className="w-full text-center text-xs text-white/50 hover:text-white/80 transition-colors mb-3"
           >
             ← Back to all sign-in options
           </button>
         )}
 
-        {/* Trust microcopy */}
-        <div className="flex items-center justify-center gap-1.5 mb-4">
-          <ShieldCheck className="size-3 text-white/40" />
-          <p className="text-[10px] text-white/45 tracking-wide">
-            Protected account · Secure sign in · Trusted support
-          </p>
-        </div>
+        {/* Trust pill */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+          className="flex items-center justify-center gap-1.5 mb-3"
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 ring-white/[0.07] backdrop-blur-md"
+            style={{ background: "rgba(255,255,255,0.025)" }}>
+            <span className="size-1.5 rounded-full" style={{ background: "#FF9F43", boxShadow: "0 0 8px #FF9F43" }} />
+            <ShieldCheck className="size-3 text-white/55" />
+            <p className="text-[10px] text-white/55 tracking-wide">
+              256-bit encrypted · Trusted account protection
+            </p>
+          </span>
+        </motion.div>
 
         {/* Mode toggle for email */}
         {mode === "email" && (
-          <p className="text-center text-xs text-white/55">
+          <p className="text-center text-xs text-white/55 mb-3">
             {isSignup ? "Already have an account?" : "New to FoundOurMarket?"}{" "}
             <button onClick={() => setIsSignup(!isSignup)} className="font-medium hover:underline" style={{ color: "#FF9F43" }}>
               {isSignup ? "Sign in" : "Create account"}
@@ -258,20 +309,22 @@ function AuthPage() {
           </p>
         )}
 
-        {/* Footer */}
-        <p className="text-center text-[10px] text-white/35 mt-6 px-4 leading-relaxed">
-          By continuing, you agree to our{" "}
-          <Link to="/pages/$slug" params={{ slug: "terms" }} className="underline hover:text-white/60">Terms</Link>{" "}
-          &{" "}
-          <Link to="/pages/$slug" params={{ slug: "privacy" }} className="underline hover:text-white/60">Privacy Policy</Link>
-        </p>
-        <p className="text-center mt-4">
-          <Link to="/" className="text-[11px] text-white/40 hover:text-white/70">← Back to shop</Link>
+        {/* Minimal footer */}
+        <div className="flex items-center justify-center gap-3 mt-5 text-[10.5px] text-white/35">
+          <Link to="/pages/$slug" params={{ slug: "privacy" }} className="hover:text-white/70 transition-colors">Privacy</Link>
+          <span className="size-0.5 rounded-full bg-white/20" />
+          <Link to="/pages/$slug" params={{ slug: "terms" }} className="hover:text-white/70 transition-colors">Terms</Link>
+          <span className="size-0.5 rounded-full bg-white/20" />
+          <Link to="/pages/$slug" params={{ slug: "returns" }} className="hover:text-white/70 transition-colors">Refunds</Link>
+        </div>
+        <p className="text-center mt-3">
+          <Link to="/" className="text-[11px] text-white/35 hover:text-white/65 transition-colors">← Back to shop</Link>
         </p>
       </motion.div>
     </div>
   );
 }
+
 
 function GoogleIcon() {
   return (
