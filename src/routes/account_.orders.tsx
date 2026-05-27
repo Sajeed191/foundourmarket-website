@@ -24,6 +24,14 @@ type Order = {
 const FILTERS = ["all", "active", "delivered", "cancelled"] as const;
 type Filter = (typeof FILTERS)[number];
 
+const DATE_PRESETS = [
+  { id: "any", label: "Anytime" },
+  { id: "30d", label: "Last 30 days" },
+  { id: "3m", label: "Last 3 months" },
+  { id: "6m", label: "Last 6 months" },
+] as const;
+type DatePreset = (typeof DATE_PRESETS)[number]["id"] | "year" | "custom";
+
 const STATUS_STEPS: Record<string, number> = {
   pending: 20, processing: 40, shipped: 65, in_transit: 80, delivered: 100, cancelled: 0, refunded: 0,
 };
