@@ -638,63 +638,86 @@ function ReturnsPage() {
         </footer>
       </main>
 
-      {/* EMAIL SUPPORT FALLBACK DIALOG */}
-      <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
-        <DialogContent className="bg-[#0a0f1f] border-white/[0.08] text-white max-w-sm rounded-2xl p-0 overflow-hidden">
-          <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF7A00]/60 to-transparent" />
-          <div aria-hidden className="absolute -top-24 -right-16 size-56 rounded-full blur-3xl opacity-30 pointer-events-none"
+      {/* EMAIL SUPPORT DIALOG */}
+      <Dialog open={emailOpen} onOpenChange={(o) => { setEmailOpen(o); if (!o) setSending(false); }}>
+        <DialogContent className="bg-[#050816] border-white/[0.08] text-white max-w-[22rem] rounded-2xl p-0 overflow-hidden">
+          <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF7A00]/70 to-transparent" />
+          <div aria-hidden className="absolute -top-24 -right-16 size-56 rounded-full blur-3xl opacity-25 pointer-events-none"
             style={{ background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)" }} />
-          <div className="relative p-5">
-            <DialogHeader>
-              <div className="size-10 grid place-items-center rounded-xl bg-[#FF7A00]/15 ring-1 ring-[#FF7A00]/30 text-[#FF9F43] mb-3">
+
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="relative p-5"
+          >
+            <DialogHeader className="space-y-2">
+              <div className="size-9 grid place-items-center rounded-xl bg-[#FF7A00]/15 ring-1 ring-[#FF7A00]/30 text-[#FF9F43]">
                 <Mail className="size-4" />
               </div>
-              <DialogTitle className="text-base font-semibold">Contact Support</DialogTitle>
-              <DialogDescription className="text-white/60 text-[13px] leading-relaxed">
-                Reach FoundOurMarket support directly. Pick the option that works best for you.
+              <DialogTitle className="text-[15px] font-semibold tracking-tight">Contact Support</DialogTitle>
+              <DialogDescription className="text-white/55 text-[12.5px] leading-snug">
+                A real human will reply. Pick the channel that's easiest for you.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="mt-4 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06] px-3 py-2.5 flex items-center justify-between gap-2">
-              <span className="text-[12px] font-mono text-white/80 truncate">{SUPPORT_EMAIL}</span>
-              <button
+            {/* Email pill with copy */}
+            <div className="mt-4 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.07] px-3 py-2 flex items-center justify-between gap-2">
+              <span className="text-[12px] font-mono text-white/85 truncate">{SUPPORT_EMAIL}</span>
+              <motion.button
+                whileTap={{ scale: 0.94 }}
                 onClick={copySupportEmail}
-                className="shrink-0 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-[#FF9F43] hover:text-white transition px-2 py-1 rounded-md hover:bg-white/5"
+                aria-label="Copy support email"
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md transition",
+                  copied ? "text-emerald-300 bg-emerald-400/10" : "text-[#FF9F43] hover:text-white hover:bg-white/5"
+                )}
               >
-                <Copy className="size-3" /> Copy
-              </button>
+                {copied ? <><Check className="size-3" /> Copied</> : <><Copy className="size-3" /> Copy</>}
+              </motion.button>
             </div>
 
+            {/* CTAs */}
             <div className="mt-4 grid gap-2">
-              <a
-                href={buildMailto()}
-                onClick={() => { hapticTap(); setEmailOpen(false); }}
-                className="w-full inline-flex items-center justify-center gap-2 bg-[#FF7A00] text-white rounded-full px-5 py-3 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 shadow-[0_8px_22px_-8px_#FF7A00] transition-all"
+              <motion.button
+                whileTap={{ scale: 0.985 }}
+                onClick={sendEmail}
+                disabled={sending}
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#FF7A00] text-white rounded-full px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] font-bold hover:brightness-110 shadow-[0_10px_28px_-10px_#FF7A00] transition-all disabled:opacity-70"
               >
-                <Mail className="size-3.5" /> Open Email App
-              </a>
-              <a
+                {sending ? (
+                  <><Loader2 className="size-3.5 animate-spin" /> Launching mail app…</>
+                ) : (
+                  <><Mail className="size-3.5" /> Send Email</>
+                )}
+              </motion.button>
+
+              <motion.a
+                whileTap={{ scale: 0.985 }}
                 href={buildGmailUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => { hapticTap(); setEmailOpen(false); }}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-[11px] uppercase tracking-widest font-semibold text-white/85 hover:text-white ring-1 ring-white/10 hover:ring-white/25 bg-white/[0.03] transition"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] font-semibold text-white/90 hover:text-white ring-1 ring-white/12 hover:ring-white/25 bg-white/[0.03] hover:bg-white/[0.06] transition"
               >
-                <ExternalLink className="size-3.5" /> Open in Gmail
-              </a>
+                <ExternalLink className="size-3.5" /> Open Gmail
+              </motion.a>
+
               <Link
                 to="/help"
                 onClick={() => { hapticTap(); setEmailOpen(false); }}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-[11px] uppercase tracking-widest font-semibold text-white/70 hover:text-white transition"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-[11px] uppercase tracking-[0.18em] font-semibold text-white/55 hover:text-white transition"
               >
                 <MessageCircle className="size-3.5" /> Contact Live Chat
               </Link>
             </div>
 
-            <p className="mt-4 text-[10px] font-mono uppercase tracking-[0.22em] text-white/35 text-center">
-              Avg reply · 2 business days
-            </p>
-          </div>
+            {/* Trust footer */}
+            <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-center gap-1.5 text-[10.5px] text-white/45">
+              <ShieldCheck className="size-3 text-emerald-400/80" />
+              <span>Trusted support · Avg reply within 2 business days</span>
+            </div>
+          </motion.div>
         </DialogContent>
       </Dialog>
     </div>
