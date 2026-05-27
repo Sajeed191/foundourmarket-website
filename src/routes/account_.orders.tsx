@@ -631,4 +631,4 @@ function EmptyState({
 
 // minimal SpeechRecognition types (browser-only)
 type SpeechRecognition = { lang: string; start: () => void; onresult: (e: SpeechRecognitionEvent) => void };
-type SpeechRecognitionEvent = { results: { 0: { 0: { transcript: string } } }[] };
+type SpeechRecognitionEvent = { results: ArrayLike<ArrayLike<{ transcript: string }>> };
