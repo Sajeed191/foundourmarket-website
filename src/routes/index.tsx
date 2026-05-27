@@ -9,10 +9,12 @@ import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { FlashSaleStrip } from "@/components/site/FlashSaleStrip";
 import { TrustBadgesStrip } from "@/components/site/TrustBadgesStrip";
+import { AnnouncementBar } from "@/components/site/AnnouncementBar";
 
 import { NewsletterForm } from "@/components/site/NewsletterForm";
 import { HomePersonalized } from "@/components/site/HomePersonalized";
 import { PromoBannerCarousel } from "@/components/site/PromoBannerCarousel";
+
 
 
 const PLACEHOLDERS = [
@@ -118,8 +120,12 @@ function Home() {
 
   return (
     <>
+      {/* Sticky announcement bar — homepage only */}
+      <AnnouncementBar />
+
       {/* Hero — cinematic */}
       <section className="relative pt-10 sm:pt-16 md:pt-24 pb-12 sm:pb-20 md:pb-28 px-4 sm:px-6 overflow-hidden">
+
         {/* Floating gradient orbs */}
         <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
           <div className="orb animate-orb" style={{ width: 520, height: 520, top: "10%", left: "55%", background: "var(--gradient-ember)" }} />
@@ -259,11 +265,12 @@ function Home() {
       {/* Trust badges strip (compact, denser) */}
       <TrustBadgesStrip />
 
-      {/* Promo banners carousel (managed in Admin → Marketing) */}
-      <PromoBannerCarousel />
+      {/* Hero banner slider — admin-managed, capped at 3 */}
+      <PromoBannerCarousel types={["hero"]} maxItems={3} eyebrow="Featured" />
 
       {/* Flash sale (admin-controlled — hidden when no active sale) */}
       <FlashSaleStrip />
+
 
 
 
