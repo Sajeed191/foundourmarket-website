@@ -79,7 +79,7 @@ function Reveal({ children, className, delay = 0 }: { children: React.ReactNode;
 }
 
 function Home() {
-  const { products } = useProducts();
+  const { products, loading: productsLoading } = useProducts();
   const { categories } = useCategories();
 
   const nav = useNavigate();
