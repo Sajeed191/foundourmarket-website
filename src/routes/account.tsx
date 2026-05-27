@@ -128,12 +128,15 @@ function AccountPage() {
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[120%] h-[60vh] opacity-50" style={{ background: "var(--gradient-ember-soft)", filter: "blur(120px)" }} />
       </div>
 
+      {/* Floating compact sticky bar (appears on scroll) */}
+      <FloatingHeaderBar firstName={firstName} avatarUrl={avatarUrl} unread={unread} cartCount={cartCount} />
+
       <div className="container-page py-4 sm:py-10 lg:py-14 space-y-5 sm:space-y-10">
         {/* ROTATING ANNOUNCEMENT BAR */}
         <AnnouncementStrip />
 
         {/* 1 — HEADER */}
-        <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong sticky top-2 z-30">
+        <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
           <div aria-hidden className="absolute inset-0 -z-10">
             <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
             <div className="absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60" style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
