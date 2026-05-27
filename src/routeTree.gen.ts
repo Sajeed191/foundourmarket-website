@@ -44,6 +44,7 @@ import { Route as PagesSlugRouteImport } from './routes/pages.$slug'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AuthConnectRouteImport } from './routes/auth.connect'
 import { Route as AccountSecurityRouteImport } from './routes/account_.security'
 import { Route as AccountReturnsRouteImport } from './routes/account_.returns'
 import { Route as AccountProfileRouteImport } from './routes/account_.profile'
@@ -228,6 +229,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BlogRoute,
 } as any)
+const AuthConnectRoute = AuthConnectRouteImport.update({
+  id: '/connect',
+  path: '/connect',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AccountSecurityRoute = AccountSecurityRouteImport.update({
   id: '/account_/security',
   path: '/account/security',
@@ -286,7 +292,7 @@ export interface FileRoutesByFullPath {
   '/admin-search': typeof AdminSearchRoute
   '/admin-shipments': typeof AdminShipmentsRoute
   '/admin-traffic': typeof AdminTrafficRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
+  '/auth/connect': typeof AuthConnectRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -331,7 +338,7 @@ export interface FileRoutesByTo {
   '/admin-search': typeof AdminSearchRoute
   '/admin-shipments': typeof AdminShipmentsRoute
   '/admin-traffic': typeof AdminTrafficRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
+  '/auth/connect': typeof AuthConnectRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -377,7 +385,7 @@ export interface FileRoutesById {
   '/admin-search': typeof AdminSearchRoute
   '/admin-shipments': typeof AdminShipmentsRoute
   '/admin-traffic': typeof AdminTrafficRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -398,6 +406,7 @@ export interface FileRoutesById {
   '/account_/profile': typeof AccountProfileRoute
   '/account_/returns': typeof AccountReturnsRoute
   '/account_/security': typeof AccountSecurityRoute
+  '/auth/connect': typeof AuthConnectRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -445,6 +454,7 @@ export interface FileRouteTypes {
     | '/account/profile'
     | '/account/returns'
     | '/account/security'
+    | '/auth/connect'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -490,6 +500,7 @@ export interface FileRouteTypes {
     | '/account/profile'
     | '/account/returns'
     | '/account/security'
+    | '/auth/connect'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -535,6 +546,7 @@ export interface FileRouteTypes {
     | '/account_/profile'
     | '/account_/returns'
     | '/account_/security'
+    | '/auth/connect'
     | '/blog/$slug'
     | '/category/$slug'
     | '/orders/$id'
@@ -560,7 +572,7 @@ export interface RootRouteChildren {
   AdminSearchRoute: typeof AdminSearchRoute
   AdminShipmentsRoute: typeof AdminShipmentsRoute
   AdminTrafficRoute: typeof AdminTrafficRoute
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   BlogRoute: typeof BlogRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
@@ -835,6 +847,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
     }
+    '/auth/connect': {
+      id: '/auth/connect'
+      path: '/connect'
+      fullPath: '/auth/connect'
+      preLoaderRoute: typeof AuthConnectRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/account_/security': {
       id: '/account_/security'
       path: '/account/security'
@@ -894,6 +913,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthRouteChildren {
+  AuthConnectRoute: typeof AuthConnectRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthConnectRoute: AuthConnectRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 interface BlogRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
 }
@@ -921,7 +950,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSearchRoute: AdminSearchRoute,
   AdminShipmentsRoute: AdminShipmentsRoute,
   AdminTrafficRoute: AdminTrafficRoute,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   BlogRoute: BlogRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
