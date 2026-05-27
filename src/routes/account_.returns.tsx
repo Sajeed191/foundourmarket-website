@@ -388,25 +388,23 @@ function ReturnsPage() {
             {FILTERS.map((f) => {
               const count = counts[f.key];
               const active = filter === f.key;
-              const disabled = f.key !== "all" && count === 0;
               return (
                 <motion.button
                   key={f.key}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setFilter(f.key)}
-                  disabled={disabled}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 28 }}
+                  onClick={() => { hapticTap(); setFilter(f.key); }}
+                  aria-pressed={active}
                   className={cn(
-                    "shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-medium tracking-wide transition-all ring-1",
+                    "shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-medium tracking-wide transition-all ring-1 backdrop-blur-xl",
                     active
-                      ? "bg-[#FF7A00] text-white ring-[#FF7A00] shadow-[0_4px_16px_-6px_#FF7A00]"
-                      : disabled
-                      ? "bg-white/[0.02] text-white/25 ring-white/[0.05] cursor-not-allowed"
+                      ? "bg-[#FF7A00] text-white ring-[#FF7A00] shadow-[0_6px_20px_-6px_#FF7A00,0_0_0_4px_rgba(255,122,0,0.12)] scale-[1.02]"
                       : "bg-white/[0.04] text-white/70 ring-white/[0.08] hover:text-white hover:bg-white/[0.07]"
                   )}
                 >
                   {f.label}
-                  {f.key !== "all" && count > 0 && (
-                    <span className={cn("ml-1.5 text-[10px]", active ? "opacity-90" : "opacity-60")}>
+                  {f.key !== "all" && (
+                    <span className={cn("ml-1.5 text-[10px] tabular-nums", active ? "opacity-90" : "opacity-50")}>
                       {count}
                     </span>
                   )}
