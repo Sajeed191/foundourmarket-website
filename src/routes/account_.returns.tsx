@@ -142,8 +142,32 @@ function ReturnsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [scrolled, setScrolled] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
 
-  useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
+  function tryEmail() {
+    hapticTap();
+    if (typeof window === "undefined") return;
+    const url = buildMailto();
+    // Attempt mailto; if nothing handles it, show fallback dialog.
+    const opened = window.open(url, "_self");
+    // Heuristic fallback: open dialog after short delay if document stays focused
+    const start = Date.now();
+    setTimeout(() => {
+      if (!document.hidden && Date.now() - start < 1500) {
+        setEmailOpen(true);
+      }
+    }, 600);
+    if (!opened) setEmailOpen(true);
+  }
+
+  async function copySupportEmail() {
+    try {
+      await navigator.clipboard.writeText(SUPPORT_EMAIL);
+      toast.success("Support email copied");
+    } catch {
+      toast.error("Could not copy");
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
