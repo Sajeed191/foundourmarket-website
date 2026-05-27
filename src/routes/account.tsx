@@ -289,6 +289,13 @@ function AccountPage() {
             {/* ORDER TRACKING TIMELINE */}
             {stats.latestActive && <OrderTimeline order={stats.latestActive} format={format} />}
 
+            {/* RECENTLY VIEWED */}
+            {recentlyViewed.length > 0 && (
+              <SectionBlock title="Recently viewed" icon={Eye}>
+                <ProductScroller items={recentlyViewed} />
+              </SectionBlock>
+            )}
+
             {/* 5 — WISHLIST */}
             <SectionBlock
               title="Saved for later"
