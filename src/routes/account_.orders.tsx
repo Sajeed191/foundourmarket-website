@@ -430,8 +430,8 @@ function OrdersPage() {
           </ul>
         )}
 
-        {/* Trust strip */}
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {/* Trust strip — compact */}
+        <div className="mt-7 grid grid-cols-4 gap-1.5 sm:gap-2">
           {[
             { icon: ShieldCheck, label: "Buyer Protection" },
             { icon: CheckCircle2, label: "Verified Sellers" },
@@ -440,14 +440,31 @@ function OrdersPage() {
           ].map((t) => {
             const Icon = t.icon;
             return (
-              <div key={t.label} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-card/40 border border-border/50">
+              <div key={t.label} className="flex flex-col items-center text-center gap-1 px-2 py-2 rounded-xl bg-card/40 border border-border/40 backdrop-blur">
                 <Icon className="size-3.5 text-accent shrink-0" />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground truncate">{t.label}</span>
+                <span className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground leading-tight truncate w-full">{t.label}</span>
               </div>
             );
           })}
         </div>
+
+        {/* Curated bottom rails — keep the experience alive */}
+        {(orders?.length ?? 0) > 0 && (
+          <div className="mt-2 space-y-2">
+            <CategoryRail categories={categories} />
+            {recentlyViewed.length > 0 && (
+              <RecommendationStrip title="Continue shopping" subtitle="Pick up where you left off" slugs={recentlyViewed.slice(0, 8)} icon={<Clock className="size-3" />} />
+            )}
+            {recSlugs.length > 0 && (
+              <RecommendationStrip title="Recommended for you" subtitle="Curated from your taste" slugs={recSlugs} icon={<Sparkles className="size-3" />} />
+            )}
+            {trendSlugs.length > 0 && (
+              <RecommendationStrip title="Trending now" subtitle="What everyone is loving" slugs={trendSlugs} icon={<Flame className="size-3" />} />
+            )}
+          </div>
+        )}
       </div>
+
 
       <style>{`
         @keyframes shimmer { 100% { transform: translateX(100%); } }
