@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Star, Plus } from "lucide-react";
+import { Heart, Star, Plus, BadgeCheck } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
+
+const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
 
 export function ProductCard({ product }: { product: Product }) {
   const { format } = useRegion();
@@ -11,6 +13,15 @@ export function ProductCard({ product }: { product: Product }) {
   const { has, toggle } = useWishlist();
   const saved = has(product.slug);
   const originalPrice = product.discount ? product.price * (1 + product.discount / 100) : null;
+
+  const isNew = product.createdAt
+    ? Date.now() - new Date(product.createdAt).getTime() < FOURTEEN_DAYS
+    : false;
+  const isHot = (product.viewsCount ?? 0) >= 200;
+  const isLimited =
+    product.stockQuantity > 0 &&
+    product.stockQuantity <= Math.max(5, product.lowStockThreshold ?? 5);
+  const showOnlyLeft = product.stockQuantity > 0 && product.stockQuantity <= 10;
 
   return (
     <div className="group card-premium p-2.5 sm:p-3 overflow-hidden relative">
