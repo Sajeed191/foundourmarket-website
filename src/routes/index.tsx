@@ -359,9 +359,13 @@ function Home() {
         </section>
       )}
 
+      {/* Mid-page promo banners — collections / featured campaigns */}
+      <PromoBannerCarousel types={["promo"]} maxItems={2} aspectClassName="aspect-[16/6] sm:aspect-[21/7]" />
+
       {/* New Arrivals */}
       {newArrivals.length > 0 && (
         <section className="px-4 sm:px-6 py-10 sm:py-14 md:py-16 max-w-7xl mx-auto">
+
           <Reveal className="flex justify-between items-end mb-6 sm:mb-8 gap-4">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3 flex items-center gap-2">
