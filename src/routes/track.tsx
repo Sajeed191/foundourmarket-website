@@ -56,6 +56,10 @@ function TrackPage() {
   const [orderId, setOrderId] = useState("");
   const [email, setEmail] = useState("");
   const [recent, setRecent] = useState<{ orderId: string; email: string }[]>([]);
+  const [active, setActive] = useState<{ orderId: string; email: string } | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [tick, setTick] = useState(0);
+  const prevStatusRef = useRef<string | null>(null);
   const { slugs: recentSlugs } = useRecentlyViewed();
 
   useEffect(() => {
@@ -74,16 +78,70 @@ function TrackPage() {
           localStorage.setItem(RECENT_KEY, JSON.stringify(next));
           setRecent(next);
         } catch {}
+        setActive(vars);
+        prevStatusRef.current = data.order.status;
+        setLastUpdated(Date.now());
+      } else {
+        setActive(null);
       }
     },
   });
 
+  // Real-time polling — refetch every 6s while a tracking session is active
+  const liveQuery = useQuery({
+    queryKey: ["track-live", active?.orderId, active?.email],
+    queryFn: () => track({ data: active! }),
+    enabled: !!active,
+    refetchInterval: (q) => {
+      const d = q.state.data;
+      if (d?.found && (d.order.status === "delivered" || d.order.status === "cancelled")) return false;
+      return 6000;
+    },
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+  });
+
+  // Detect status changes from the polling stream and notify
+  useEffect(() => {
+    const data = liveQuery.data;
+    if (!data?.found) return;
+    setLastUpdated(Date.now());
+    const next = data.order.status;
+    const prev = prevStatusRef.current;
+    if (prev && prev !== next) {
+      const labelEntry = STATUSES.find((s) => s.key === next);
+      const label = labelEntry?.label ?? next;
+      if (next === "cancelled") {
+        toast.error("Order cancelled", { description: `Order #${data.order.id.slice(0, 8)} was cancelled.` });
+      } else if (next === "delivered") {
+        toast.success("Delivered!", { description: "Your order has arrived. Enjoy ✨" });
+      } else {
+        toast(`Status update: ${label}`, { description: labelEntry?.hint });
+      }
+    }
+    prevStatusRef.current = next;
+  }, [liveQuery.data]);
+
+  // 1s ticker so the "updated Ns ago" badge stays fresh
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [active]);
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setActive(null);
+    prevStatusRef.current = null;
     m.mutate({ orderId: orderId.trim(), email: email.trim() });
   };
 
-  const result = m.data;
+  // Live data takes precedence over the initial mutation response
+  const result = liveQuery.data ?? m.data;
+  const secsAgo = lastUpdated ? Math.max(0, Math.floor((Date.now() - lastUpdated) / 1000)) : null;
+  void tick; // keep dependency to re-render every second
+
   const currentStatusIdx = result?.found
     ? Math.max(0, STATUSES.findIndex((s) => s.key === result.order.status))
     : -1;
