@@ -79,6 +79,8 @@ function OrdersPage() {
   const { format } = useRegion();
   const cart = useCart();
   const nav = useNavigate();
+  const { slugs: recentlyViewed } = useRecentlyViewed();
+  const { categories } = useCategories();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [q, setQ] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
