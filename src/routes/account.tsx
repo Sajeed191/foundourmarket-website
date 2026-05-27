@@ -124,8 +124,11 @@ function AccountPage() {
       </div>
 
       <div className="container-page py-4 sm:py-10 lg:py-14 space-y-5 sm:space-y-10">
+        {/* ROTATING ANNOUNCEMENT BAR */}
+        <AnnouncementStrip />
+
         {/* 1 — HEADER */}
-        <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
+        <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong sticky top-2 z-30">
           <div aria-hidden className="absolute inset-0 -z-10">
             <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
             <div className="absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60" style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
