@@ -16,7 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   Hourglass,
-  Hourglass,
+  Copy,
   Copy,
   ExternalLink,
 } from "lucide-react";
