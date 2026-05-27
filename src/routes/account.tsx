@@ -95,6 +95,7 @@ function AccountPage() {
   }, [orders, user]);
 
   const cartCount = cart.items.reduce((s, i) => s + i.qty, 0);
+  const { slugs: recentSlugs } = useRecentlyViewed();
 
   const wishlistProducts = useMemo(
     () => products.filter((p) => wishSlugs.has(p.slug)).slice(0, 8),
@@ -111,6 +112,10 @@ function AccountPage() {
     () => [...products].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 6),
     [products],
   );
+  const recentlyViewed = useMemo(() => {
+    const map = new Map(products.map((p) => [p.slug, p] as const));
+    return recentSlugs.map((s) => map.get(s)).filter(Boolean).slice(0, 8) as Product[];
+  }, [products, recentSlugs]);
 
   if (loading || !user) {
     return <PremiumLoader />;
