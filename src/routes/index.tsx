@@ -256,8 +256,14 @@ function Home() {
         </div>
       </section>
 
+      {/* Trust badges strip (compact, denser) */}
+      <TrustBadgesStrip />
+
       {/* Promo banners carousel (managed in Admin → Marketing) */}
       <PromoBannerCarousel />
+
+      {/* Flash sale (admin-controlled — hidden when no active sale) */}
+      <FlashSaleStrip />
 
 
 
