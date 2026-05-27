@@ -108,10 +108,6 @@ function AccountPage() {
       .slice(0, 8),
     [products, wishSlugs],
   );
-  const trending = useMemo(
-    () => [...products].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 6),
-    [products],
-  );
   const recentlyViewed = useMemo(() => {
     const map = new Map(products.map((p) => [p.slug, p] as const));
     return recentSlugs.map((s) => map.get(s)).filter(Boolean).slice(0, 8) as Product[];
@@ -254,36 +250,6 @@ function AccountPage() {
         {/* DESKTOP GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2 space-y-6 lg:space-y-8">
-            {/* 4 — RECENT ORDERS */}
-            <SectionBlock
-              title="Recent orders"
-              icon={Package}
-              action={<Link to="/account" hash="orders" className="action-link">View all <ArrowRight className="size-3" /></Link>}
-            >
-              {orders === null ? (
-                <SkeletonRows />
-              ) : orders.length === 0 ? (
-                <EmptyState
-                  icon={Package}
-                  title="No orders yet"
-                  body="Discover curated premium products."
-                  cta={<Link to="/" className="cta-primary">Start shopping <ArrowRight className="size-3.5" /></Link>}
-                  extra={
-                    trending.length > 0 ? (
-                      <div className="mt-5 w-full">
-                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2.5 text-left">Trending now</p>
-                        <MiniProductRow items={trending.slice(0, 6)} format={format} />
-                      </div>
-                    ) : null
-                  }
-                />
-              ) : (
-                <div className="space-y-2.5" id="orders">
-                  {orders.slice(0, 4).map((o) => <OrderRow key={o.id} o={o} format={format} />)}
-                </div>
-              )}
-            </SectionBlock>
-
             {/* ORDER TRACKING TIMELINE */}
             {stats.latestActive && <OrderTimeline order={stats.latestActive} format={format} />}
 
@@ -319,22 +285,6 @@ function AccountPage() {
               )}
             </SectionBlock>
 
-            {/* Recently viewed removed */}
-
-
-            {/* 7 — RECOMMENDATIONS */}
-            {recommended.length > 0 && (
-              <SectionBlock title="Picked for you" icon={Sparkles}>
-                <ProductScroller items={recommended} />
-              </SectionBlock>
-            )}
-
-            {/* TRENDING */}
-            {trending.length > 0 && (
-              <SectionBlock title="Trending now" icon={Flame}>
-                <ProductScroller items={trending} />
-              </SectionBlock>
-            )}
           </div>
 
 
