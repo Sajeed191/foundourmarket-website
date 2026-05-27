@@ -55,6 +55,7 @@ function TrackPage() {
   const [orderId, setOrderId] = useState("");
   const [email, setEmail] = useState("");
   const [recent, setRecent] = useState<{ orderId: string; email: string }[]>([]);
+  const { slugs: recentSlugs } = useRecentlyViewed();
 
   useEffect(() => {
     try {
