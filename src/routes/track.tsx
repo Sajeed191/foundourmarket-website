@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { trackOrder } from "@/lib/track-order.functions";
 import { useRegion } from "@/lib/region";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
+import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 
 export const Route = createFileRoute("/track")({
   head: () => ({
