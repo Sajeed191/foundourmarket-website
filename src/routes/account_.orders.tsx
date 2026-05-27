@@ -145,6 +145,67 @@ function OrdersPage() {
         </div>
       </div>
 
+      <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Calendar className="size-3.5 text-accent" />
+          <p className="text-[11px] uppercase tracking-widest font-mono text-muted-foreground">Filter by date</p>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {DATE_PRESETS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setDatePreset(p.id)}
+              className={`px-3.5 py-1.5 rounded-full text-[11px] font-mono transition-all ${
+                datePreset === p.id ? "bg-accent text-accent-foreground" : "bg-background border border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+          {years.map((y) => (
+            <button
+              key={y}
+              onClick={() => { setDatePreset("year"); setYear(y); }}
+              className={`px-3.5 py-1.5 rounded-full text-[11px] font-mono transition-all ${
+                datePreset === "year" && year === y ? "bg-accent text-accent-foreground" : "bg-background border border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+          <button
+            onClick={() => setDatePreset("custom")}
+            className={`px-3.5 py-1.5 rounded-full text-[11px] font-mono transition-all ${
+              datePreset === "custom" ? "bg-accent text-accent-foreground" : "bg-background border border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Custom range
+          </button>
+        </div>
+        {datePreset === "custom" && (
+          <div className="flex flex-col sm:flex-row gap-2 mt-3">
+            <label className="flex-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+              From
+              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
+                className="mt-1 w-full px-3 py-2 rounded-full bg-background border border-border text-sm focus:border-accent outline-none" />
+            </label>
+            <label className="flex-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+              To
+              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)}
+                className="mt-1 w-full px-3 py-2 rounded-full bg-background border border-border text-sm focus:border-accent outline-none" />
+            </label>
+          </div>
+        )}
+        {datePreset !== "any" && (
+          <p className="text-[10px] font-mono text-muted-foreground mt-3">
+            Showing {filtered.length} order{filtered.length !== 1 ? "s" : ""}
+            {dateRange[0] && ` from ${dateRange[0].toLocaleDateString()}`}
+            {dateRange[1] && ` to ${dateRange[1].toLocaleDateString()}`}
+          </p>
+        )}
+      </div>
+
+
       {orders === null ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => <div key={i} className="h-28 rounded-2xl bg-card border border-border animate-pulse" />)}
