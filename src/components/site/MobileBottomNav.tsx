@@ -45,7 +45,7 @@ export function MobileBottomNav() {
                   <motion.span
                     layoutId="mbnav-pill"
                     transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.7 }}
-                    className="absolute inset-0 rounded-2xl bg-accent shadow-[0_8px_24px_-6px_var(--color-accent),0_0_0_1px_oklch(1_0_0/0.15)_inset]"
+                    className="absolute inset-0 rounded-2xl bg-accent shadow-[0_6px_16px_-8px_var(--color-accent),0_0_0_1px_oklch(1_0_0/0.12)_inset]"
                   />
                 )}
                 <motion.span
