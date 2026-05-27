@@ -15,6 +15,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ReturnsRouteImport } from './routes/returns'
+import { Route as ReturnRouteImport } from './routes/return'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -79,6 +80,11 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const ReturnsRoute = ReturnsRouteImport.update({
   id: '/returns',
   path: '/returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReturnRoute = ReturnRouteImport.update({
+  id: '/return',
+  path: '/return',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
+  '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
@@ -323,6 +330,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
+  '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
@@ -367,6 +375,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
   '/help': typeof HelpRoute
+  '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
@@ -412,6 +421,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/compare'
     | '/help'
+    | '/return'
     | '/returns'
     | '/robots.txt'
     | '/search'
@@ -455,6 +465,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/compare'
     | '/help'
+    | '/return'
     | '/returns'
     | '/robots.txt'
     | '/search'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/compare'
     | '/help'
+    | '/return'
     | '/returns'
     | '/robots.txt'
     | '/search'
@@ -542,6 +554,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   CompareRoute: typeof CompareRoute
   HelpRoute: typeof HelpRoute
+  ReturnRoute: typeof ReturnRoute
   ReturnsRoute: typeof ReturnsRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
@@ -604,6 +617,13 @@ declare module '@tanstack/react-router' {
       path: '/returns'
       fullPath: '/returns'
       preLoaderRoute: typeof ReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/return': {
+      id: '/return'
+      path: '/return'
+      fullPath: '/return'
+      preLoaderRoute: typeof ReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -887,6 +907,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   CompareRoute: CompareRoute,
   HelpRoute: HelpRoute,
+  ReturnRoute: ReturnRoute,
   ReturnsRoute: ReturnsRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,

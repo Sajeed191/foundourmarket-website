@@ -347,11 +347,11 @@ function OrdersPage() {
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-5">
           {[
             { icon: Truck, label: "Track", to: "/track" as const, tint: "from-sky-500/20 to-sky-500/0" },
-            { icon: RotateCcw, label: "Return", to: "/account_/returns" as const, tint: "from-amber-500/20 to-amber-500/0" },
+            { icon: RotateCcw, label: "Return", to: "/returns" as const, tint: "from-amber-500/20 to-amber-500/0" },
             { icon: HelpCircle, label: "Support", to: "/help" as const, tint: "from-violet-500/20 to-violet-500/0" },
             { icon: FileText, label: "Invoices", to: "/account_/history" as const, tint: "from-emerald-500/20 to-emerald-500/0" },
             { icon: RefreshCw, label: "Reorder", to: "/cart" as const, tint: "from-accent/25 to-accent/0" },
-            { icon: ShieldCheck, label: "Protection", to: "/pages/$slug" as const, params: { slug: "returns" }, tint: "from-rose-500/20 to-rose-500/0" },
+            { icon: ShieldCheck, label: "Protection", to: "/returns" as const, tint: "from-rose-500/20 to-rose-500/0" },
           ].map((a, i) => {
             const Icon = a.icon;
             const props = a.params ? { to: a.to, params: a.params } : { to: a.to };
@@ -586,7 +586,7 @@ function OrderCard({ order, index, format }: { order: Order; index: number; form
           )}
           {delivered && (
             <>
-              <Link to="/account_/returns" search={{ order: order.id }}
+              <Link to="/returns"
                 className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
                 <RotateCcw className="size-3" /> Return
               </Link>
