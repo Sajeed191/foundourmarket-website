@@ -163,12 +163,19 @@ function AccountPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-1 flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-accent animate-glow" /> {greeting()}
+                  <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_oklch(0.7_0.18_150)] animate-pulse" /> Online · {greeting()}
                 </p>
                 <h1 className="text-[20px] leading-tight sm:text-2xl lg:text-3xl font-display font-semibold truncate tracking-tight">
                   Welcome back, <span className="text-gradient-ember">{firstName}</span>
                 </h1>
-                <p className="text-[11px] sm:text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
+                  <p className="text-[11px] sm:text-sm text-muted-foreground truncate">{user.email}</p>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[9px] font-mono uppercase tracking-widest ring-1 ring-accent/30">
+                    <Crown className="size-2.5" /> Premium
+                  </span>
+                </div>
+                {/* Profile completion */}
+                <ProfileCompletion user={user} />
               </div>
               <div className="flex sm:hidden items-center gap-1.5 shrink-0">
                 <Link to="/account/notifications" aria-label="Notifications" className="relative size-10 grid place-items-center rounded-xl glass hover:text-accent transition-all">
