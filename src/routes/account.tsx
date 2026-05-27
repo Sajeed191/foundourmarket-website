@@ -863,4 +863,34 @@ function WhyShopWithUs() {
   );
 }
 
+function ProfileCompletion({ user }: { user: { email?: string | null; user_metadata?: Record<string, unknown> } }) {
+  const meta = user.user_metadata ?? {};
+  const checks = [
+    !!user.email,
+    !!meta.full_name,
+    !!meta.avatar_url,
+    !!meta.phone,
+  ];
+  const done = checks.filter(Boolean).length;
+  const pct = Math.round((done / checks.length) * 100);
+  if (pct === 100) return null;
+  return (
+    <div className="mt-2 hidden sm:block">
+      <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
+        <span>Profile {pct}%</span>
+        <Link to="/account/profile" className="text-accent hover:underline">Complete</Link>
+      </div>
+      <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease }}
+          className="h-full bg-gradient-to-r from-accent to-primary shadow-[0_0_10px_var(--color-accent)]"
+        />
+      </div>
+    </div>
+  );
+}
+
+
 
