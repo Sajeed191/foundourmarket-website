@@ -1,12 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate, useScroll, AnimatePresence } from "framer-motion";
 import {
   LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
-  Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe, Mic, Crown,
+  Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe, Mic, Camera, Crown,
   CheckCircle2, Box, Home, X, Plus, Minus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { useWishlist } from "@/lib/wishlist";
 import { useNotifications } from "@/lib/notifications";
+import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 
 import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
@@ -95,6 +95,7 @@ function AccountPage() {
   }, [orders, user]);
 
   const cartCount = cart.items.reduce((s, i) => s + i.qty, 0);
+  const { slugs: recentSlugs } = useRecentlyViewed();
 
   const wishlistProducts = useMemo(
     () => products.filter((p) => wishSlugs.has(p.slug)).slice(0, 8),
@@ -111,6 +112,10 @@ function AccountPage() {
     () => [...products].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 6),
     [products],
   );
+  const recentlyViewed = useMemo(() => {
+    const map = new Map(products.map((p) => [p.slug, p] as const));
+    return recentSlugs.map((s) => map.get(s)).filter(Boolean).slice(0, 8) as Product[];
+  }, [products, recentSlugs]);
 
   if (loading || !user) {
     return <PremiumLoader />;
@@ -123,12 +128,15 @@ function AccountPage() {
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[120%] h-[60vh] opacity-50" style={{ background: "var(--gradient-ember-soft)", filter: "blur(120px)" }} />
       </div>
 
+      {/* Floating compact sticky bar (appears on scroll) */}
+      <FloatingHeaderBar firstName={firstName} avatarUrl={avatarUrl} unread={unread} cartCount={cartCount} />
+
       <div className="container-page py-4 sm:py-10 lg:py-14 space-y-5 sm:space-y-10">
         {/* ROTATING ANNOUNCEMENT BAR */}
         <AnnouncementStrip />
 
         {/* 1 — HEADER */}
-        <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong sticky top-2 z-30">
+        <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
           <div aria-hidden className="absolute inset-0 -z-10">
             <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
             <div className="absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60" style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
@@ -211,33 +219,7 @@ function AccountPage() {
 
         {/* SEARCH BAR */}
         <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.03 }}>
-          <Link
-            to="/search"
-            className="group relative flex items-center gap-3 glass-strong rounded-2xl px-4 py-3 sm:py-3.5 ring-1 ring-transparent hover:ring-accent/40 focus-visible:ring-accent/60 transition-all hover:shadow-[0_0_28px_-10px_var(--color-accent)]"
-          >
-            <div aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: "var(--gradient-ember-soft)", filter: "blur(14px)" }} />
-            <motion.span
-              animate={{ scale: [1, 1.12, 1] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-              className="relative shrink-0"
-            >
-              <Search className="size-4 text-accent" />
-            </motion.span>
-            <span className="relative text-sm text-muted-foreground flex-1 truncate">
-              Search products, brands, categories…
-            </span>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); /* voice placeholder */ }}
-              aria-label="Voice search"
-              className="relative size-8 grid place-items-center rounded-full bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              <Mic className="size-3.5" />
-            </button>
-            <span className="relative hidden sm:inline text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-2 py-1 rounded-md bg-white/5">
-              ⌘ K
-            </span>
-          </Link>
+          <SmartSearchBar />
         </motion.div>
 
 
@@ -306,6 +288,13 @@ function AccountPage() {
 
             {/* ORDER TRACKING TIMELINE */}
             {stats.latestActive && <OrderTimeline order={stats.latestActive} format={format} />}
+
+            {/* RECENTLY VIEWED */}
+            {recentlyViewed.length > 0 && (
+              <SectionBlock title="Recently viewed" icon={Eye}>
+                <ProductScroller items={recentlyViewed} />
+              </SectionBlock>
+            )}
 
             {/* 5 — WISHLIST */}
             <SectionBlock
@@ -636,13 +625,18 @@ function FooterAction({ icon: Icon, label, to }: { icon: typeof Package; label: 
 
 function EmptyState({ icon: Icon = Star, title, body, cta, extra }: { icon?: typeof Package; title: string; body: string; cta?: React.ReactNode; extra?: React.ReactNode }) {
   return (
-    <div className="card-premium rounded-2xl border-dashed p-5 sm:p-6 flex flex-col items-center text-center">
-      <div className="size-10 rounded-xl bg-accent/10 text-accent grid place-items-center mb-3">
-        <Icon className="size-[18px]" />
-      </div>
-      <p className="text-sm font-medium">{title}</p>
-      <p className="text-xs text-muted-foreground mt-1 max-w-xs">{body}</p>
-      {cta && <div className="mt-4">{cta}</div>}
+    <div className="card-premium rounded-2xl border-dashed p-5 sm:p-6 flex flex-col items-center text-center relative overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 size-40 rounded-full blur-3xl opacity-40" style={{ background: "var(--gradient-ember)" }} />
+      <motion.div
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+        className="relative size-12 rounded-2xl bg-accent/10 text-accent grid place-items-center mb-3 ring-1 ring-accent/30 shadow-[0_0_20px_-6px_var(--color-accent)]"
+      >
+        <Icon className="size-5" />
+      </motion.div>
+      <p className="relative text-sm font-medium">{title}</p>
+      <p className="relative text-xs text-muted-foreground mt-1 max-w-xs">{body}</p>
+      {cta && <div className="relative mt-4">{cta}</div>}
       {extra}
     </div>
   );
@@ -1000,3 +994,110 @@ function OrderTimeline({ order, format }: { order: Order; format: (n: number) =>
 
 
 
+function FloatingHeaderBar({ firstName, avatarUrl, unread, cartCount }: { firstName: string; avatarUrl: string; unread: number; cartCount: number }) {
+  const { scrollY } = useScroll();
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    return scrollY.on("change", (v) => setShow(v > 220));
+  }, [scrollY]);
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ y: -60, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -60, opacity: 0 }}
+          transition={{ duration: 0.28, ease }}
+          className="fixed top-2 left-2 right-2 sm:left-4 sm:right-4 z-40"
+        >
+          <div className="mx-auto max-w-7xl glass-strong rounded-2xl px-3 py-2 flex items-center gap-2 ring-1 ring-white/10 shadow-[0_10px_30px_-12px_oklch(0_0_0/0.6)]">
+            <div className="size-9 rounded-xl border border-white/10 bg-secondary overflow-hidden grid place-items-center ring-1 ring-accent/30 shrink-0">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs font-display font-semibold text-accent">{firstName.slice(0, 1).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-mono uppercase tracking-[0.25em] text-accent leading-none">Welcome</p>
+              <p className="text-xs font-medium truncate leading-tight mt-0.5">{firstName}</p>
+            </div>
+            <Link to="/search" aria-label="Search" className="size-9 grid place-items-center rounded-xl glass hover:text-accent transition-all">
+              <Search className="size-4" />
+            </Link>
+            <Link to="/account/notifications" aria-label="Notifications" className="relative size-9 grid place-items-center rounded-xl glass hover:text-accent transition-all">
+              <Bell className="size-4" />
+              {unread > 0 && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent animate-pulse" />}
+            </Link>
+            <Link to="/cart" aria-label="Cart" className="relative size-9 grid place-items-center rounded-xl glass hover:text-accent transition-all">
+              <ShoppingBag className="size-4" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
+            </Link>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+const SEARCH_HINTS = [
+  "Search headphones, sneakers, gadgets…",
+  "Try “wireless earbuds”…",
+  "Discover trending sneakers…",
+  "Find premium watches…",
+  "Search smart home gear…",
+];
+
+function SmartSearchBar() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((p) => (p + 1) % SEARCH_HINTS.length), 3200);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <Link
+      to="/search"
+      className="group relative flex items-center gap-2.5 glass-strong rounded-2xl px-4 py-3 sm:py-3.5 ring-1 ring-transparent hover:ring-accent/40 focus-visible:ring-accent/60 transition-all hover:shadow-[0_0_28px_-10px_var(--color-accent)]"
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: "var(--gradient-ember-soft)", filter: "blur(14px)" }} />
+      <Search className="relative size-4 text-accent shrink-0" />
+      <div className="relative flex-1 min-w-0 h-5 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={idx}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.35, ease }}
+            className="absolute inset-0 text-sm text-muted-foreground truncate"
+          >
+            {SEARCH_HINTS[idx]}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+      <button
+        type="button"
+        onClick={(e) => e.preventDefault()}
+        aria-label="Camera search"
+        className="relative size-8 grid place-items-center rounded-full bg-white/5 text-foreground/80 hover:bg-accent/15 hover:text-accent transition-colors shrink-0"
+      >
+        <Camera className="size-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => e.preventDefault()}
+        aria-label="Voice search"
+        className="relative size-8 grid place-items-center rounded-full bg-accent/15 text-accent hover:bg-accent hover:text-accent-foreground transition-colors shrink-0"
+      >
+        <Mic className="size-3.5" />
+      </button>
+      <span className="relative hidden sm:inline text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-2 py-1 rounded-md bg-white/5">
+        ⌘ K
+      </span>
+    </Link>
+  );
+}
