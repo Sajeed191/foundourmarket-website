@@ -13,7 +13,24 @@ type Banner = {
   sort_order: number;
 };
 
-export function PromoBannerCarousel() {
+type Props = {
+  /** Banner types to include. Defaults to all marketing types. */
+  types?: Array<"hero" | "promo" | "offer">;
+  /** Hard cap on rendered banners (e.g. 3 for hero slot). */
+  maxItems?: number;
+  /** Aspect ratio classes for the frame. */
+  aspectClassName?: string;
+  /** Eyebrow label shown above the carousel. */
+  eyebrow?: string;
+};
+
+export function PromoBannerCarousel({
+  types = ["promo", "hero", "offer"],
+  maxItems,
+  aspectClassName = "aspect-[16/7] sm:aspect-[21/8]",
+  eyebrow,
+}: Props = {}) {
+
   const [banners, setBanners] = useState<Banner[]>([]);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -23,7 +40,7 @@ export function PromoBannerCarousel() {
       .from("banners")
       .select("id,title,subtitle,image,link,cta_text,sort_order,active,starts_at,ends_at,type")
       .eq("active", true)
-      .in("type", ["promo", "hero", "offer"])
+      .in("type", types)
       .order("sort_order")
       .then(({ data }) => {
         const now = Date.now();
@@ -32,19 +49,21 @@ export function PromoBannerCarousel() {
             (!b.starts_at || new Date(b.starts_at).getTime() <= now) &&
             (!b.ends_at || new Date(b.ends_at).getTime() >= now),
         );
-        setBanners(valid);
+        setBanners(maxItems ? valid.slice(0, maxItems) : valid);
       });
   }
 
   useEffect(() => {
     fetchBanners();
-    // Live updates: refetch whenever admin publishes/edits a banner
     const ch = supabase
-      .channel("rt-banners-public")
+      .channel(`rt-banners-${types.join("-")}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "banners" }, fetchBanners)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [types.join("-"), maxItems]);
+
+
 
   useEffect(() => {
     if (paused || banners.length < 2) return;
@@ -59,11 +78,17 @@ export function PromoBannerCarousel() {
 
   return (
     <section className="px-4 sm:px-6 pt-10 sm:pt-14">
+      {eyebrow && (
+        <p className="max-w-7xl mx-auto mb-3 text-[10px] font-mono uppercase tracking-[0.3em] text-accent">
+          {eyebrow}
+        </p>
+      )}
       <div
-        className="relative max-w-7xl mx-auto rounded-3xl overflow-hidden border border-border bg-card aspect-[16/7] sm:aspect-[21/8] group"
+        className={`relative max-w-7xl mx-auto rounded-3xl overflow-hidden border border-border bg-card ${aspectClassName} group`}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
+
         <AnimatePresence mode="wait">
           <motion.div
             key={b.id}

@@ -132,8 +132,7 @@ function AccountPage() {
       <FloatingHeaderBar firstName={firstName} avatarUrl={avatarUrl} unread={unread} cartCount={cartCount} />
 
       <div className="container-page py-4 sm:py-10 lg:py-14 space-y-5 sm:space-y-10">
-        {/* ROTATING ANNOUNCEMENT BAR */}
-        <AnnouncementStrip />
+
 
         {/* 1 — HEADER */}
         <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
@@ -223,8 +222,7 @@ function AccountPage() {
         </motion.div>
 
 
-        {/* FLASH SALE COUNTDOWN */}
-        <FlashSaleStrip />
+
 
         {/* 2 — OVERVIEW CARDS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }}>
