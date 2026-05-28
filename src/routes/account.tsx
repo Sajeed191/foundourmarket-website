@@ -243,7 +243,7 @@ function AccountPage() {
             <ActionCard to="/account/orders" icon={Package} title="Orders" subtitle="Track & invoices" badge={stats.active || undefined} />
             <ActionCard to="/wishlist" icon={Heart} title="Wishlist" subtitle="Saved items" badge={wishSlugs.size || undefined} />
             <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
-            <ActionCard to="/search" icon={Gift} title="Offers" subtitle="Deals & promos" />
+            <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
             <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 help" />
             <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
           </div>

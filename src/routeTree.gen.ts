@@ -17,6 +17,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ReturnRouteImport } from './routes/return'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
@@ -93,6 +94,11 @@ const ReturnRoute = ReturnRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DealsRoute = DealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -303,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
+  '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
@@ -350,6 +357,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
+  '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
@@ -398,6 +406,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
+  '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
@@ -447,6 +456,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/compare'
+    | '/deals'
     | '/help'
     | '/return'
     | '/returns'
@@ -494,6 +504,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/compare'
+    | '/deals'
     | '/help'
     | '/return'
     | '/returns'
@@ -541,6 +552,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/compare'
+    | '/deals'
     | '/help'
     | '/return'
     | '/returns'
@@ -589,6 +601,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   CompareRoute: typeof CompareRoute
+  DealsRoute: typeof DealsRoute
   HelpRoute: typeof HelpRouteWithChildren
   ReturnRoute: typeof ReturnRoute
   ReturnsRoute: typeof ReturnsRoute
@@ -668,6 +681,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deals': {
+      id: '/deals'
+      path: '/deals'
+      fullPath: '/deals'
+      preLoaderRoute: typeof DealsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -984,6 +1004,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   CompareRoute: CompareRoute,
+  DealsRoute: DealsRoute,
   HelpRoute: HelpRouteWithChildren,
   ReturnRoute: ReturnRoute,
   ReturnsRoute: ReturnsRoute,
@@ -1009,13 +1030,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
