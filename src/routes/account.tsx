@@ -154,11 +154,11 @@ function AccountPage() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.5, ease }}
                   className="size-14 sm:size-16 rounded-2xl border border-white/10 bg-secondary overflow-hidden grid place-items-center shadow-[var(--shadow-float)] ring-1 ring-accent/30"
+                >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <img src={logoSrc} alt="FoundOurMarket logo" className="w-full h-full object-cover" />
-                  )}
                   )}
                 </motion.div>
                 <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-500 border-2 border-card shadow-[0_0_10px_oklch(0.7_0.18_150)]" />
