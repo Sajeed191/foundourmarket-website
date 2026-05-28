@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -7,7 +7,7 @@ import {
   ArrowLeft, ShieldCheck, Sparkles, ArrowRight, CheckCircle2, Loader2,
   Truck, CreditCard, RotateCcw, AlertTriangle, PackageSearch, UserCog,
   MessageCircle, Mail, CalendarClock, Phone, Lock, ShieldHalf, Zap,
-  BadgeCheck, Star, Upload, LifeBuoy, Headphones,
+  BadgeCheck, Star, Upload, LifeBuoy, Headphones, ExternalLink, X, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
