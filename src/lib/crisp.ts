@@ -59,11 +59,35 @@ export function openCrispChat(): void {
   window.$crisp.push(["do", "chat:open"]);
 }
 
+const HIDE_STYLE_ID = "crisp-force-hide-style";
+
+function ensureHideStyle(): HTMLStyleElement {
+  let el = document.getElementById(HIDE_STYLE_ID) as HTMLStyleElement | null;
+  if (!el) {
+    el = document.createElement("style");
+    el.id = HIDE_STYLE_ID;
+    el.textContent = `
+      html[data-crisp-hidden="true"] #crisp-chatbox,
+      html[data-crisp-hidden="true"] .crisp-client,
+      html[data-crisp-hidden="true"] [class*="crisp-"][class*="client"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(el);
+  }
+  return el;
+}
+
 export function closeCrispChat(): void {
   if (typeof window === "undefined") return;
   window.$crisp = window.$crisp || [];
-  window.$crisp.push(["do", "chat:hide"]);
   window.$crisp.push(["do", "chat:close"]);
+  window.$crisp.push(["do", "chat:hide"]);
+  ensureHideStyle();
+  document.documentElement.setAttribute("data-crisp-hidden", "true");
 }
 
 export function isCrispChatOpen(): boolean {
