@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   ArrowLeft, ShieldCheck, Sparkles, ArrowRight, CheckCircle2, Loader2,
   Truck, CreditCard, RotateCcw, AlertTriangle, PackageSearch, UserCog,
