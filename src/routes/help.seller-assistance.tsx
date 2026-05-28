@@ -20,6 +20,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth";
+import { track } from "@/lib/analytics";
 
 const WHATSAPP_NUMBERS = [
   { number: "919745844213", display: "+91 97458 44213", department: "General Marketplace Support" },
