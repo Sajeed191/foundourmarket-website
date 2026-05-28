@@ -61,7 +61,42 @@ export function openCrispChat(): void {
   window.$crisp.push(["do", "chat:open"]);
   // Auto-hide the widget entirely once the user closes the chat.
   window.$crisp.push(["on", "chat:closed", () => closeCrispChat()]);
+  // Relabel Crisp's built-in "Minimize" menu item to "Close chat".
+  customizeCrispMenu();
 }
+
+let menuObserver: MutationObserver | null = null;
+
+// Crisp ships a "Minimize Support" item in its chatbox menu. We relabel it to
+// "Close chat" and make clicking it fully close + hide the widget.
+function customizeCrispMenu(): void {
+  if (typeof window === "undefined") return;
+
+  const apply = () => {
+    const box = document.getElementById("crisp-chatbox");
+    if (!box) return;
+    const items = box.querySelectorAll("li");
+    items.forEach((li) => {
+      const label = (li.textContent || "").trim().toLowerCase();
+      if (label.includes("minimize")) {
+        if (li.textContent !== "Close chat") li.textContent = "Close chat";
+        if (!li.dataset.closeBound) {
+          li.dataset.closeBound = "true";
+          li.addEventListener("click", () => {
+            // Defer so Crisp's own handler runs first, then force-close.
+            setTimeout(() => closeCrispChat(), 0);
+          });
+        }
+      }
+    });
+  };
+
+  apply();
+  if (menuObserver) return;
+  menuObserver = new MutationObserver(() => apply());
+  menuObserver.observe(document.body, { childList: true, subtree: true });
+}
+
 
 
 const HIDE_STYLE_ID = "crisp-force-hide-style";
