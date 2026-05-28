@@ -544,7 +544,7 @@ function SellerAssistancePage() {
 
         <div className="mt-12 text-center text-[11px] text-white/40">
           Can't reach the form? Email us at{" "}
-          <a className="text-orange-300 hover:underline" href="mailto:foundourmarket@gmail.com">foundourmarket@gmail.com</a>
+          <a className="text-orange-300 hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
         </div>
       </div>
 
