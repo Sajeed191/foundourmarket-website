@@ -55,6 +55,7 @@ export function loadCrisp(): Promise<void> {
 export function openCrispChat(): void {
   if (typeof window === "undefined") return;
   window.$crisp = window.$crisp || [];
+  document.documentElement.removeAttribute("data-crisp-hidden");
   window.$crisp.push(["do", "chat:show"]);
   window.$crisp.push(["do", "chat:open"]);
 }
