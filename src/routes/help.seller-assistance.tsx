@@ -558,6 +558,92 @@ function SellerAssistancePage() {
           <Sparkles className="size-4" /> Get Seller Support
         </a>
       </div>
+
+      {/* WhatsApp department picker */}
+      <Dialog open={whatsappOpen} onOpenChange={setWhatsappOpen}>
+        <DialogContent className="border-white/10 bg-[#0a0f1f]/95 backdrop-blur-2xl text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <span className="grid place-items-center size-8 rounded-lg bg-[#25D366]/15 text-[#25D366] border border-[#25D366]/30">
+                <Phone className="size-4" />
+              </span>
+              WhatsApp Marketplace Support
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              Choose the team that best matches your request. Encrypted end-to-end on WhatsApp.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-1">
+            {WHATSAPP_NUMBERS.map((w) => (
+              <button
+                key={w.number}
+                onClick={() => { openWhatsApp(w.number); setWhatsappOpen(false); }}
+                className="w-full group flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-[#25D366]/40 transition p-3 text-left active:scale-[0.98]"
+              >
+                <span className="grid place-items-center size-10 rounded-lg bg-[#25D366]/15 text-[#25D366] border border-[#25D366]/25">
+                  <MessageCircle className="size-5" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{w.department}</p>
+                  <p className="text-[11px] text-white/55 font-mono">{w.display}</p>
+                </div>
+                <ArrowRight className="size-4 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition" />
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-white/40 inline-flex items-center gap-1.5 mt-2">
+            <Lock className="size-3" /> Encrypted · Verified FoundOurMarket™ staff
+          </p>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule a call dialog */}
+      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <DialogContent className="border-white/10 bg-[#0a0f1f]/95 backdrop-blur-2xl text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <span className="grid place-items-center size-8 rounded-lg bg-violet-500/15 text-violet-300 border border-violet-400/30">
+                <CalendarClock className="size-4" />
+              </span>
+              Schedule an Assistance Session
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              Book a free 1:1 with a FoundOurMarket™ seller specialist.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2.5 mt-1">
+            <a
+              href="https://calendly.com/foundourmarket/seller-support"
+              target="_blank" rel="noopener noreferrer"
+              onClick={() => setScheduleOpen(false)}
+              className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-orange-300/40 transition p-3 active:scale-[0.98]"
+            >
+              <span className="grid place-items-center size-10 rounded-lg" style={{ backgroundImage: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }}>
+                <CalendarClock className="size-5 text-white" />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Open Calendly</p>
+                <p className="text-[11px] text-white/55">Pick a slot that works for you</p>
+              </div>
+              <ArrowRight className="size-4 text-white/40" />
+            </a>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Schedule Assistance Call")}&body=${encodeURIComponent("Hi FoundOurMarket team,\n\nI'd like to schedule a 1:1 call. My preferred times are:\n\n")}`}
+              onClick={() => setScheduleOpen(false)}
+              className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition p-3 active:scale-[0.98]"
+            >
+              <span className="grid place-items-center size-10 rounded-lg bg-white/[0.06] border border-white/10 text-orange-300">
+                <Mail className="size-5" />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Request via Email</p>
+                <p className="text-[11px] text-white/55">We'll reply with available slots</p>
+              </div>
+              <ArrowRight className="size-4 text-white/40" />
+            </a>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
