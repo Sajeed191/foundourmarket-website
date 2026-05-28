@@ -159,8 +159,9 @@ function AccountPage() {
               }}
             />
           </div>
-          <div className="relative p-4 sm:p-7 lg:p-9 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
-            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          <div className="relative p-5 sm:p-7 lg:p-9">
+            <div className="flex items-center gap-4 sm:gap-5">
+              {/* Avatar with online status */}
               <div className="relative shrink-0">
                 <motion.div
                   initial={{ scale: 0.85, opacity: 0 }}
@@ -176,51 +177,46 @@ function AccountPage() {
                 </motion.div>
                 <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-500 border-2 border-card shadow-[0_0_10px_oklch(0.7_0.18_150)]" />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent -mt-4 mb-1 flex items-center justify-center gap-1.5 whitespace-nowrap">
+
+              {/* Welcome text + email — vertically centered beside avatar */}
+              <div className="min-w-0 flex-1 flex flex-col justify-center">
+                <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-accent mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
                   <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_oklch(0.7_0.18_150)] animate-pulse" /> Online · {greeting().text} {greeting().emoji}
                 </p>
-                <h1 className="text-[20px] leading-tight sm:text-2xl lg:text-3xl font-display font-semibold truncate tracking-tight">
+                <h1 className="text-[19px] leading-tight sm:text-2xl lg:text-3xl font-display font-semibold truncate tracking-tight">
                   Welcome back, <span className="text-gradient-ember">{firstName}</span>
                 </h1>
-                <div className="mt-1 flex items-center gap-2 flex-wrap">
-                  <p className="text-[11px] sm:text-sm text-muted-foreground truncate">{user.email}</p>
-                </div>
-                {/* Profile completion */}
-                <ProfileCompletion user={user} />
+                <p className="text-[11px] sm:text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>
               </div>
-              <div className="flex sm:hidden items-center gap-1.5 shrink-0">
-                <Link to="/account/notifications" aria-label="Notifications" className="relative size-10 grid place-items-center rounded-xl glass hover:text-accent transition-all">
+
+              {/* Action buttons — aligned right */}
+              <div className="flex items-center gap-2 shrink-0 self-center">
+                <Link
+                  to="/account/notifications"
+                  aria-label="Notifications"
+                  className="relative size-10 sm:size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
+                >
                   <Bell className="size-4" />
-                  {unread > 0 && <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />}
+                  {unread > 0 && (
+                    <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />
+                  )}
                 </Link>
-                <Link to="/account/profile" aria-label="Settings" className="size-10 grid place-items-center rounded-xl glass hover:text-accent transition-all">
+                <Link
+                  to="/account/profile"
+                  aria-label="Settings"
+                  className="size-10 sm:size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
+                >
                   <Settings className="size-4" />
                 </Link>
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 sm:gap-3 self-start sm:self-auto">
-              <Link
-                to="/account/notifications"
-                aria-label="Notifications"
-                className="relative size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
-              >
-                <Bell className="size-4" />
-                {unread > 0 && (
-                  <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />
-                )}
-              </Link>
-              <Link
-                to="/account/profile"
-                aria-label="Settings"
-                className="size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
-              >
-                <Settings className="size-4" />
-              </Link>
-            </div>
+
+            {/* Profile completion — full width below for balanced spacing */}
+            <ProfileCompletion user={user} />
           </div>
         </motion.header>
         </div>
+
 
 
 
