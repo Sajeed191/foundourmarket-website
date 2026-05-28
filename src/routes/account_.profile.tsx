@@ -152,9 +152,10 @@ function EditProfilePage() {
           {/* ── Profile header card ── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="glass-strong rounded-3xl p-5 sm:p-6 mb-6 relative overflow-hidden"
+            animate={{ opacity: 1, y: [0, -5, 0] }}
+            transition={{ opacity: { delay: 0.05, duration: 0.5 }, y: { duration: 7, repeat: Infinity, ease: "easeInOut" } }}
+            className="border-glow glass-strong rounded-3xl p-5 sm:p-6 mb-6 relative overflow-hidden"
+
           >
             <div aria-hidden className="absolute -top-16 left-8 size-40 rounded-full blur-3xl opacity-60" style={{ background: "var(--gradient-ember-soft)" }} />
             <div className="relative flex items-center gap-4">
