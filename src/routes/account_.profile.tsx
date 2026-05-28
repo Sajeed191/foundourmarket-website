@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Loader2,
@@ -15,6 +15,7 @@ import {
   Crown,
   Sparkles,
   ShieldCheck,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,8 +35,10 @@ function EditProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
 
   const onPickAvatar = async (file: File) => {
     if (!user) return;
@@ -97,12 +100,13 @@ function EditProfilePage() {
       await supabase.auth.updateUser({
         data: { full_name: fullName.trim(), phone: phone.trim(), avatar_url: avatarUrl.trim() },
       });
+      setSaved(true);
       toast.success("Profile updated");
-      nav({ to: "/account" });
+      setTimeout(() => nav({ to: "/account" }), 900);
     } catch (err: any) {
       toast.error(err?.message ?? "Could not save profile");
-    } finally {
       setSaving(false);
+
     }
   };
 
@@ -123,7 +127,17 @@ function EditProfilePage() {
         <div className="orb animate-orb" style={{ width: 340, height: 340, top: -80, left: -60, background: "var(--gradient-ember)" }} />
         <div className="orb animate-orb" style={{ width: 300, height: 300, bottom: 40, right: -80, background: "var(--gradient-violet)", animationDelay: "-8s" }} />
         <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
+        {[...Array(6)].map((_, i) => (
+          <motion.span
+            key={i}
+            className="absolute rounded-full bg-accent/40"
+            style={{ width: 3, height: 3, left: `${12 + i * 15}%`, top: `${20 + (i % 3) * 22}%` }}
+            animate={{ y: [0, -22, 0], opacity: [0.15, 0.6, 0.15] }}
+            transition={{ duration: 6 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.7 }}
+          />
+        ))}
       </div>
+
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-12 lg:py-16">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
@@ -138,9 +152,10 @@ function EditProfilePage() {
           {/* ── Profile header card ── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="glass-strong rounded-3xl p-5 sm:p-6 mb-6 relative overflow-hidden"
+            animate={{ opacity: 1, y: [0, -5, 0] }}
+            transition={{ opacity: { delay: 0.05, duration: 0.5 }, y: { duration: 7, repeat: Infinity, ease: "easeInOut" } }}
+            className="border-glow glass-strong rounded-3xl p-5 sm:p-6 mb-6 relative overflow-hidden"
+
           >
             <div aria-hidden className="absolute -top-16 left-8 size-40 rounded-full blur-3xl opacity-60" style={{ background: "var(--gradient-ember-soft)" }} />
             <div className="relative flex items-center gap-4">
@@ -249,23 +264,39 @@ function EditProfilePage() {
             <div className="flex items-center gap-3 pt-2">
               <motion.button
                 whileTap={{ scale: 0.97 }}
+                whileHover={{ y: -2 }}
                 type="submit"
-                disabled={saving}
-                className="relative flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-amber-400 text-accent-foreground font-bold py-3.5 px-8 rounded-2xl text-xs uppercase tracking-widest shadow-[var(--shadow-ember)] hover:brightness-110 transition-all disabled:opacity-60 overflow-hidden"
+                disabled={saving || saved}
+                className={`relative flex-1 inline-flex items-center justify-center gap-2 font-bold py-3.5 px-8 rounded-2xl text-xs uppercase tracking-widest shadow-[var(--shadow-ember)] transition-all disabled:opacity-90 overflow-hidden ${
+                  saved
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gradient-to-r from-accent to-amber-400 text-accent-foreground hover:brightness-110 cta-sweep"
+                }`}
               >
-                {saving ? (
-                  <><Loader2 className="size-3.5 animate-spin" /> Saving…</>
-                ) : (
-                  <><ShieldCheck className="size-3.5" /> Save changes</>
-                )}
+                <AnimatePresence mode="wait" initial={false}>
+                  {saved ? (
+                    <motion.span key="done" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="inline-flex items-center gap-2">
+                      <Check className="size-4" /> Saved
+                    </motion.span>
+                  ) : saving ? (
+                    <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-2">
+                      <Loader2 className="size-3.5 animate-spin" /> Saving…
+                    </motion.span>
+                  ) : (
+                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-2">
+                      <ShieldCheck className="size-3.5" /> Save changes
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </motion.button>
               <Link
                 to="/account"
-                className="inline-flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground border border-white/10 hover:border-white/25 rounded-2xl px-6 py-3.5 transition-all active:scale-95"
+                className="inline-flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground glass border border-white/12 hover:border-accent/40 rounded-2xl px-6 py-3.5 transition-all active:scale-95"
               >
                 Cancel
               </Link>
             </div>
+
           </form>
         </motion.div>
       </div>
