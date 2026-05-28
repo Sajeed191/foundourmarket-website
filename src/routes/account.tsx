@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { loadCrisp, openCrispChat, closeCrispChat } from "@/lib/crisp";
 import { useEffect, useMemo, useState } from "react";
-import { motion, useMotionValue, useTransform, animate, useScroll, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate, useScroll, AnimatePresence, useMotionValueEvent } from "framer-motion";
 import {
   LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
@@ -99,6 +99,14 @@ function AccountPage() {
   const cartCount = cart.items.reduce((s, i) => s + i.qty, 0);
   const { slugs: recentSlugs } = useRecentlyViewed();
 
+  const { scrollY } = useScroll();
+  const [scrollDirection, setScrollDirection] = useState<"up" | "down" | null>(null);
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    if (latest > previous && latest > 60) setScrollDirection("up");
+    else if (latest < previous) setScrollDirection("down");
+  });
+
   const wishlistProducts = useMemo(
     () => products.filter((p) => wishSlugs.has(p.slug)).slice(0, 8),
     [products, wishSlugs],
@@ -133,7 +141,12 @@ function AccountPage() {
 
 
         {/* 1 — HEADER */}
-        <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
+        <motion.div
+          animate={{ y: scrollDirection === "up" ? -300 : 0, opacity: scrollDirection === "up" ? 0 : 1 }}
+          transition={{ duration: 0.35, ease }}
+          style={{ originY: 0 }}
+        >
+          <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
           <div aria-hidden className="absolute inset-0 -z-10">
             <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
             <div className="absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60" style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
@@ -211,6 +224,7 @@ function AccountPage() {
             </div>
           </div>
         </motion.header>
+        </motion.div>
 
 
 
