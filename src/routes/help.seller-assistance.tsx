@@ -136,8 +136,15 @@ function SellerAssistancePage() {
       return;
     }
     setCalendlyStatus("loading");
+    track("support_calendly_open", { metadata: { surface: "seller_assistance" } });
     calendlyTimeoutRef.current = setTimeout(() => {
-      setCalendlyStatus((s) => (s === "loading" ? "error" : s));
+      setCalendlyStatus((s) => {
+        if (s === "loading") {
+          track("support_calendly_outcome", { metadata: { outcome: "timeout", surface: "seller_assistance" } });
+          return "error";
+        }
+        return s;
+      });
     }, 9000);
     return () => {
       if (calendlyTimeoutRef.current) clearTimeout(calendlyTimeoutRef.current);
@@ -146,37 +153,63 @@ function SellerAssistancePage() {
 
   const retryCalendly = () => {
     setCalendlyStatus("loading");
+    track("support_calendly_retry", { metadata: { surface: "seller_assistance" } });
     if (calendlyTimeoutRef.current) clearTimeout(calendlyTimeoutRef.current);
     calendlyTimeoutRef.current = setTimeout(() => {
-      setCalendlyStatus((s) => (s === "loading" ? "error" : s));
+      setCalendlyStatus((s) => {
+        if (s === "loading") {
+          track("support_calendly_outcome", { metadata: { outcome: "timeout_after_retry", surface: "seller_assistance" } });
+          return "error";
+        }
+        return s;
+      });
     }, 9000);
   };
 
-  const openWhatsApp = (number: string) => {
+  const openWhatsApp = (number: string, department?: string) => {
+    track("support_whatsapp_open", { metadata: { number, department, surface: "seller_assistance" } });
     const url = `https://wa.me/${number}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleChannel = (id: string) => {
     if (loadingChannel) return;
+    track("support_channel_click", { metadata: { channel: id, surface: "seller_assistance" } });
     setLoadingChannel(id);
     const finish = () => setLoadingChannel(null);
     if (id === "whatsapp") {
       toast.message("Connecting to Marketplace Support…", { description: "Choose a department to continue on WhatsApp." });
-      setTimeout(() => { setWhatsappOpen(true); finish(); }, 650);
+      setTimeout(() => {
+        setWhatsappOpen(true);
+        track("support_channel_outcome", { metadata: { channel: "whatsapp", outcome: "picker_opened", surface: "seller_assistance" } });
+        finish();
+      }, 650);
     } else if (id === "email") {
       toast.message("Opening Priority Assistance…");
       setTimeout(() => {
-        window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Priority Support Request")}&body=${encodeURIComponent("Hello FoundOurMarket Support,\n\nI need priority assistance regarding:\n\n")}`;
+        track("support_mail_open_attempt", {
+          metadata: { channel: "email", subject: "Priority Support Request", to: SUPPORT_EMAIL, surface: "seller_assistance" },
+        });
+        try {
+          window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Priority Support Request")}&body=${encodeURIComponent("Hello FoundOurMarket Support,\n\nI need priority assistance regarding:\n\n")}`;
+          track("support_channel_outcome", { metadata: { channel: "email", outcome: "mailto_dispatched", surface: "seller_assistance" } });
+        } catch (err) {
+          track("support_channel_outcome", { metadata: { channel: "email", outcome: "mailto_failed", error: String(err), surface: "seller_assistance" } });
+        }
         finish();
       }, 600);
     } else if (id === "call") {
       toast.message("Scheduling Assistance Session…");
-      setTimeout(() => { setScheduleOpen(true); finish(); }, 700);
+      setTimeout(() => {
+        setScheduleOpen(true);
+        track("support_channel_outcome", { metadata: { channel: "call", outcome: "modal_opened", surface: "seller_assistance" } });
+        finish();
+      }, 700);
     } else if (id === "chat") {
       toast.loading("Connecting to Live Marketplace Support…", { id: "chat-connect" });
       setTimeout(() => {
         toast.success("Live chat is warming up", { id: "chat-connect", description: "A seller specialist will join in a moment." });
+        track("support_channel_outcome", { metadata: { channel: "chat", outcome: "connected", surface: "seller_assistance" } });
         finish();
       }, 1400);
     }
