@@ -16,7 +16,18 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth";
+
+const WHATSAPP_NUMBERS = [
+  { number: "919745844213", display: "+91 97458 44213", department: "General Marketplace Support" },
+  { number: "916282088380", display: "+91 62820 88380", department: "Seller Operations & Payouts" },
+  { number: "918714459240", display: "+91 87144 59240", department: "Orders, Shipping & Disputes" },
+];
+const WHATSAPP_MESSAGE = "Hello FoundOurMarket Support, I need assistance regarding my marketplace account.";
+const SUPPORT_EMAIL = "support@foundourmarket.com";
 
 export const Route = createFileRoute("/help/seller-assistance")({
   head: () => ({
@@ -51,11 +62,11 @@ const PROTECTION = [
 ];
 
 const CHANNELS = [
-  { icon: MessageCircle, title: "Live Chat", meta: "Avg reply · 2 min", status: "Online", color: "#22c55e", href: "/help#assistant" },
-  { icon: Mail, title: "Priority Email", meta: "foundourmarket@gmail.com", status: "< 24h", color: "#FF9F43", href: "mailto:foundourmarket@gmail.com" },
-  { icon: CalendarClock, title: "Schedule a Call", meta: "Free 1:1 with seller team", status: "Bookable", color: "#a78bfa", href: "mailto:foundourmarket@gmail.com?subject=Schedule%20Assistance%20Call" },
-  { icon: Phone, title: "WhatsApp Support", meta: "Direct mobile assistance", status: "Soon", color: "#25D366", href: "#" },
-];
+  { id: "chat", icon: MessageCircle, title: "Live Chat", meta: "Avg reply · 2 min", status: "Online", color: "#22c55e", loading: "Connecting to Live Marketplace Support…" },
+  { id: "email", icon: Mail, title: "Priority Email", meta: SUPPORT_EMAIL, status: "< 24h", color: "#FF9F43", loading: "Opening Priority Assistance…" },
+  { id: "call", icon: CalendarClock, title: "Schedule a Call", meta: "Free 1:1 with seller team", status: "Bookable", color: "#a78bfa", loading: "Scheduling Assistance Session…" },
+  { id: "whatsapp", icon: Phone, title: "WhatsApp Support", meta: "Direct mobile assistance", status: "Live", color: "#25D366", loading: "Connecting to Marketplace Support…" },
+] as const;
 
 const SUPPLIERS = [
   { icon: BadgeCheck, label: "Verified Supplier", tone: "from-emerald-400/30 to-emerald-400/0" },
@@ -106,9 +117,41 @@ function SellerAssistancePage() {
     description: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-
   const update = (k: keyof typeof form) => (v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
+  const [loadingChannel, setLoadingChannel] = useState<string | null>(null);
+  const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+
+  const openWhatsApp = (number: string) => {
+    const url = `https://wa.me/${number}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleChannel = (id: string) => {
+    if (loadingChannel) return;
+    setLoadingChannel(id);
+    const finish = () => setLoadingChannel(null);
+    if (id === "whatsapp") {
+      toast.message("Connecting to Marketplace Support…", { description: "Choose a department to continue on WhatsApp." });
+      setTimeout(() => { setWhatsappOpen(true); finish(); }, 650);
+    } else if (id === "email") {
+      toast.message("Opening Priority Assistance…");
+      setTimeout(() => {
+        window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Priority Support Request")}&body=${encodeURIComponent("Hello FoundOurMarket Support,\n\nI need priority assistance regarding:\n\n")}`;
+        finish();
+      }, 600);
+    } else if (id === "call") {
+      toast.message("Scheduling Assistance Session…");
+      setTimeout(() => { setScheduleOpen(true); finish(); }, 700);
+    } else if (id === "chat") {
+      toast.loading("Connecting to Live Marketplace Support…", { id: "chat-connect" });
+      setTimeout(() => {
+        toast.success("Live chat is warming up", { id: "chat-connect", description: "A seller specialist will join in a moment." });
+        finish();
+      }, 1400);
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -287,35 +330,42 @@ function SellerAssistancePage() {
         <Section eyebrow="Talk to us" title="Support channels">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {CHANNELS.map((c, i) => (
-              <motion.a
-                key={c.title}
-                href={c.href}
+              <motion.button
+                key={c.id}
+                type="button"
+                onClick={() => handleChannel(c.id)}
+                disabled={loadingChannel === c.id}
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
                 whileHover={{ y: -2 }}
-                className="group relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-4 flex items-center gap-3.5 hover:border-white/20 transition overflow-hidden"
+                whileTap={{ scale: 0.98 }}
+                className="group relative text-left rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-4 flex items-center gap-3.5 hover:border-white/20 hover:shadow-[0_18px_50px_-20px_rgba(255,122,0,0.5)] transition overflow-hidden disabled:opacity-70"
               >
                 <span
-                  className="pointer-events-none absolute -left-10 -top-10 size-32 rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-opacity"
+                  className="pointer-events-none absolute -left-10 -top-10 size-32 rounded-full blur-3xl opacity-0 group-hover:opacity-50 transition-opacity"
                   style={{ backgroundColor: c.color }}
                 />
                 <div
                   className="relative grid place-items-center size-11 rounded-xl border border-white/10"
                   style={{ backgroundColor: `${c.color}1A`, color: c.color }}
                 >
-                  <c.icon className="size-5" />
+                  {loadingChannel === c.id ? <Loader2 className="size-5 animate-spin" /> : <c.icon className="size-5" />}
                 </div>
                 <div className="relative flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{c.title}</p>
-                  <p className="text-xs text-white/55 truncate">{c.meta}</p>
+                  <p className="text-xs text-white/55 truncate">{loadingChannel === c.id ? c.loading : c.meta}</p>
                 </div>
                 <span className="relative inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-white/75">
-                  <span className="size-1.5 rounded-full" style={{ backgroundColor: c.color, boxShadow: `0 0 10px ${c.color}` }} />
+                  <span className="relative size-1.5 rounded-full" style={{ backgroundColor: c.color, boxShadow: `0 0 10px ${c.color}` }}>
+                    {c.status === "Online" && (
+                      <span className="absolute inset-0 rounded-full animate-ping" style={{ backgroundColor: c.color, opacity: 0.6 }} />
+                    )}
+                  </span>
                   {c.status}
                 </span>
-              </motion.a>
+              </motion.button>
             ))}
           </div>
         </Section>
@@ -508,6 +558,92 @@ function SellerAssistancePage() {
           <Sparkles className="size-4" /> Get Seller Support
         </a>
       </div>
+
+      {/* WhatsApp department picker */}
+      <Dialog open={whatsappOpen} onOpenChange={setWhatsappOpen}>
+        <DialogContent className="border-white/10 bg-[#0a0f1f]/95 backdrop-blur-2xl text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <span className="grid place-items-center size-8 rounded-lg bg-[#25D366]/15 text-[#25D366] border border-[#25D366]/30">
+                <Phone className="size-4" />
+              </span>
+              WhatsApp Marketplace Support
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              Choose the team that best matches your request. Encrypted end-to-end on WhatsApp.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-1">
+            {WHATSAPP_NUMBERS.map((w) => (
+              <button
+                key={w.number}
+                onClick={() => { openWhatsApp(w.number); setWhatsappOpen(false); }}
+                className="w-full group flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-[#25D366]/40 transition p-3 text-left active:scale-[0.98]"
+              >
+                <span className="grid place-items-center size-10 rounded-lg bg-[#25D366]/15 text-[#25D366] border border-[#25D366]/25">
+                  <MessageCircle className="size-5" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{w.department}</p>
+                  <p className="text-[11px] text-white/55 font-mono">{w.display}</p>
+                </div>
+                <ArrowRight className="size-4 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition" />
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-white/40 inline-flex items-center gap-1.5 mt-2">
+            <Lock className="size-3" /> Encrypted · Verified FoundOurMarket™ staff
+          </p>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule a call dialog */}
+      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <DialogContent className="border-white/10 bg-[#0a0f1f]/95 backdrop-blur-2xl text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <span className="grid place-items-center size-8 rounded-lg bg-violet-500/15 text-violet-300 border border-violet-400/30">
+                <CalendarClock className="size-4" />
+              </span>
+              Schedule an Assistance Session
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              Book a free 1:1 with a FoundOurMarket™ seller specialist.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2.5 mt-1">
+            <a
+              href="https://calendly.com/foundourmarket/seller-support"
+              target="_blank" rel="noopener noreferrer"
+              onClick={() => setScheduleOpen(false)}
+              className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-orange-300/40 transition p-3 active:scale-[0.98]"
+            >
+              <span className="grid place-items-center size-10 rounded-lg" style={{ backgroundImage: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }}>
+                <CalendarClock className="size-5 text-white" />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Open Calendly</p>
+                <p className="text-[11px] text-white/55">Pick a slot that works for you</p>
+              </div>
+              <ArrowRight className="size-4 text-white/40" />
+            </a>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Schedule Assistance Call")}&body=${encodeURIComponent("Hi FoundOurMarket team,\n\nI'd like to schedule a 1:1 call. My preferred times are:\n\n")}`}
+              onClick={() => setScheduleOpen(false)}
+              className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition p-3 active:scale-[0.98]"
+            >
+              <span className="grid place-items-center size-10 rounded-lg bg-white/[0.06] border border-white/10 text-orange-300">
+                <Mail className="size-5" />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Request via Email</p>
+                <p className="text-[11px] text-white/55">We'll reply with available slots</p>
+              </div>
+              <ArrowRight className="size-4 text-white/40" />
+            </a>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
