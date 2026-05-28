@@ -16,7 +16,18 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth";
+
+const WHATSAPP_NUMBERS = [
+  { number: "919745844213", display: "+91 97458 44213", department: "General Marketplace Support" },
+  { number: "916282088380", display: "+91 62820 88380", department: "Seller Operations & Payouts" },
+  { number: "918714459240", display: "+91 87144 59240", department: "Orders, Shipping & Disputes" },
+];
+const WHATSAPP_MESSAGE = "Hello FoundOurMarket Support, I need assistance regarding my marketplace account.";
+const SUPPORT_EMAIL = "support@foundourmarket.com";
 
 export const Route = createFileRoute("/help/seller-assistance")({
   head: () => ({
