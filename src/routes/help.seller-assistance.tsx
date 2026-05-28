@@ -117,6 +117,8 @@ function SellerAssistancePage() {
     description: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const update = (k: keyof typeof form) => (v: string) =>
+    setForm((f) => ({ ...f, [k]: v }));
   const [loadingChannel, setLoadingChannel] = useState<string | null>(null);
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
