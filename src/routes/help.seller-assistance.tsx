@@ -110,7 +110,65 @@ function Atmosphere() {
   );
 }
 
+type ChannelStatus = {
+  online: boolean;
+  label: string;          // e.g. "Online", "Away", "Bookable"
+  eta: string;            // e.g. "~30s", "< 24h"
+  color: string;          // dot color
+  pulse: boolean;         // animated ping
+};
+
+// Deterministic SSR fallback — no Date/Math here so server & first client render match.
+const STATUS_FALLBACK: Record<string, ChannelStatus> = {
+  chat:     { online: true,  label: "Online",   eta: "~30s",  color: "#22c55e", pulse: true  },
+  email:    { online: true,  label: "Active",   eta: "< 24h", color: "#FF9F43", pulse: false },
+  call:     { online: true,  label: "Bookable", eta: "Today", color: "#a78bfa", pulse: false },
+  whatsapp: { online: true,  label: "Live",     eta: "~2m",   color: "#25D366", pulse: true  },
+};
+
+function computeSupportStatus(now: Date): Record<string, ChannelStatus> {
+  // Use UTC + IST offset (support team based in India, UTC+5:30).
+  const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % (24 * 60);
+  const istHour = Math.floor(istMinutes / 60);
+  const day = (now.getUTCDay() + (istMinutes < now.getUTCMinutes() ? 1 : 0)) % 7; // 0 Sun .. 6 Sat
+  const isWeekend = day === 0 || day === 6;
+  const businessHours = istHour >= 9 && istHour < 21; // 9am–9pm IST
+
+  // Chat: live during business hours, otherwise async ETA.
+  const chatLive = businessHours && !isWeekend;
+  const chatEtaSeconds = chatLive ? 20 + Math.floor(Math.random() * 50) : 0;
+
+  // WhatsApp: always reachable but ETA grows off-hours.
+  const waMinutes = businessHours ? 1 + Math.floor(Math.random() * 4) : 15 + Math.floor(Math.random() * 30);
+
+  // Email: ETA tightens during business hours.
+  const emailEta = businessHours ? "< 4h" : "< 24h";
+
+  return {
+    chat: chatLive
+      ? { online: true,  label: "Online",  eta: `~${chatEtaSeconds}s`, color: "#22c55e", pulse: true }
+      : { online: false, label: "Away",    eta: "Replies in < 12h",    color: "#94a3b8", pulse: false },
+    email:    { online: true,  label: "Active",   eta: emailEta, color: "#FF9F43", pulse: false },
+    call:     { online: businessHours, label: businessHours ? "Bookable" : "Next-day", eta: businessHours ? "Today" : "Tomorrow", color: "#a78bfa", pulse: false },
+    whatsapp: { online: true,  label: "Live",     eta: `~${waMinutes}m`, color: "#25D366", pulse: businessHours },
+  };
+}
+
+function useSupportStatus(): Record<string, ChannelStatus> {
+  const [status, setStatus] = useState<Record<string, ChannelStatus>>(STATUS_FALLBACK);
+  useEffect(() => {
+    const tick = () => setStatus(computeSupportStatus(new Date()));
+    tick();
+    const id = setInterval(tick, 30_000);
+    const onVis = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+  }, []);
+  return status;
+}
+
 function SellerAssistancePage() {
+  const supportStatus = useSupportStatus();
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
