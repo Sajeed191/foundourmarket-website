@@ -62,10 +62,10 @@ const PROTECTION = [
 ];
 
 const CHANNELS = [
-  { id: "chat", icon: MessageCircle, title: "Live Chat", meta: "Avg reply · 2 min", status: "Online", color: "#22c55e", loading: "Connecting to Live Marketplace Support…" },
-  { id: "email", icon: Mail, title: "Priority Email", meta: SUPPORT_EMAIL, status: "< 24h", color: "#FF9F43", loading: "Opening Priority Assistance…" },
-  { id: "call", icon: CalendarClock, title: "Schedule a Call", meta: "Free 1:1 with seller team", status: "Bookable", color: "#a78bfa", loading: "Scheduling Assistance Session…" },
-  { id: "whatsapp", icon: Phone, title: "WhatsApp Support", meta: "Direct mobile assistance", status: "Live", color: "#25D366", loading: "Connecting to Marketplace Support…" },
+  { id: "chat", icon: MessageCircle, title: "Live Chat", meta: "Support Online · Typically replies instantly", status: "Online", color: "#22c55e", loading: "Connecting to Live Marketplace Support…", badge: "Verified" },
+  { id: "email", icon: Mail, title: "Priority Email", meta: SUPPORT_EMAIL, status: "< 24h", color: "#FF9F43", loading: "Opening Priority Assistance…", badge: "Encrypted" },
+  { id: "call", icon: CalendarClock, title: "Schedule a Call", meta: "Free 1:1 with seller team", status: "Bookable", color: "#a78bfa", loading: "Scheduling Assistance Session…", badge: "Enterprise" },
+  { id: "whatsapp", icon: Phone, title: "WhatsApp Support", meta: "Direct mobile assistance", status: "Live", color: "#25D366", loading: "Connecting to Marketplace Support…", badge: "Encrypted" },
 ] as const;
 
 const SUPPLIERS = [
