@@ -212,10 +212,6 @@ function AccountPage() {
           </div>
         </motion.header>
 
-        {/* SEARCH BAR */}
-        <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.03 }}>
-          <SmartSearchBar />
-        </motion.div>
 
 
 
