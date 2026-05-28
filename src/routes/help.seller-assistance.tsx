@@ -761,12 +761,14 @@ function SellerAssistancePage() {
                       <a
                         href={CALENDLY_URL}
                         target="_blank" rel="noopener noreferrer"
+                        onClick={() => track("support_calendly_external_open", { metadata: { source: "error_fallback", surface: "seller_assistance" } })}
                         className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm border border-white/15 bg-white/[0.03] hover:bg-white/[0.06] transition"
                       >
                         <ExternalLink className="size-4" /> Open Calendly in a new tab
                       </a>
                       <a
                         href={SCHEDULE_MAILTO}
+                        onClick={() => track("support_mail_open_attempt", { metadata: { channel: "call", subject: "Schedule Assistance Call", to: SUPPORT_EMAIL, source: "error_fallback", surface: "seller_assistance" } })}
                         className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm border border-white/15 bg-white/[0.03] hover:bg-white/[0.06] transition"
                       >
                         <Mail className="size-4" /> Email {SUPPORT_EMAIL}
@@ -788,12 +790,14 @@ function SellerAssistancePage() {
               <a
                 href={CALENDLY_URL}
                 target="_blank" rel="noopener noreferrer"
+                onClick={() => track("support_calendly_external_open", { metadata: { source: "footer", surface: "seller_assistance" } })}
                 className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-white/60 hover:text-white transition"
               >
                 <ExternalLink className="size-3" /> New tab
               </a>
               <a
                 href={SCHEDULE_MAILTO}
+                onClick={() => track("support_mail_open_attempt", { metadata: { channel: "call", subject: "Schedule Assistance Call", to: SUPPORT_EMAIL, source: "footer", surface: "seller_assistance" } })}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-white/[0.08] transition"
               >
                 <Mail className="size-3" /> Email instead
