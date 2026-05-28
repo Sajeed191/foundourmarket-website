@@ -270,23 +270,39 @@ function EditProfilePage() {
             <div className="flex items-center gap-3 pt-2">
               <motion.button
                 whileTap={{ scale: 0.97 }}
+                whileHover={{ y: -2 }}
                 type="submit"
-                disabled={saving}
-                className="relative flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-amber-400 text-accent-foreground font-bold py-3.5 px-8 rounded-2xl text-xs uppercase tracking-widest shadow-[var(--shadow-ember)] hover:brightness-110 transition-all disabled:opacity-60 overflow-hidden"
+                disabled={saving || saved}
+                className={`relative flex-1 inline-flex items-center justify-center gap-2 font-bold py-3.5 px-8 rounded-2xl text-xs uppercase tracking-widest shadow-[var(--shadow-ember)] transition-all disabled:opacity-90 overflow-hidden ${
+                  saved
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gradient-to-r from-accent to-amber-400 text-accent-foreground hover:brightness-110 cta-sweep"
+                }`}
               >
-                {saving ? (
-                  <><Loader2 className="size-3.5 animate-spin" /> Saving…</>
-                ) : (
-                  <><ShieldCheck className="size-3.5" /> Save changes</>
-                )}
+                <AnimatePresence mode="wait" initial={false}>
+                  {saved ? (
+                    <motion.span key="done" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="inline-flex items-center gap-2">
+                      <Check className="size-4" /> Saved
+                    </motion.span>
+                  ) : saving ? (
+                    <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-2">
+                      <Loader2 className="size-3.5 animate-spin" /> Saving…
+                    </motion.span>
+                  ) : (
+                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-2">
+                      <ShieldCheck className="size-3.5" /> Save changes
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </motion.button>
               <Link
                 to="/account"
-                className="inline-flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground border border-white/10 hover:border-white/25 rounded-2xl px-6 py-3.5 transition-all active:scale-95"
+                className="inline-flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground glass border border-white/12 hover:border-accent/40 rounded-2xl px-6 py-3.5 transition-all active:scale-95"
               >
                 Cancel
               </Link>
             </div>
+
           </form>
         </motion.div>
       </div>
