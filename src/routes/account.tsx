@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { loadCrisp, openCrispChat, closeCrispChat } from "@/lib/crisp";
 import { useEffect, useMemo, useState } from "react";
-import { motion, useMotionValue, useTransform, animate, useScroll, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate, useScroll, AnimatePresence, useMotionValueEvent } from "framer-motion";
 import {
   LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
