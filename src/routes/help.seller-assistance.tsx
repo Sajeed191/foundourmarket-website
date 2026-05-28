@@ -240,7 +240,7 @@ function SellerAssistancePage() {
                 <ArrowRight className="size-4 group-hover:translate-x-0.5 transition" />
               </a>
               <a
-                href="mailto:foundourmarket@gmail.com"
+                href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Priority Support Request")}`}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border border-white/12 bg-white/[0.04] hover:bg-white/[0.08] transition"
               >
                 <Mail className="size-4" /> Priority Email
