@@ -117,9 +117,39 @@ function SellerAssistancePage() {
     description: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loadingChannel, setLoadingChannel] = useState<string | null>(null);
+  const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
-  const update = (k: keyof typeof form) => (v: string) =>
-    setForm((f) => ({ ...f, [k]: v }));
+  const openWhatsApp = (number: string) => {
+    const url = `https://wa.me/${number}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleChannel = (id: string) => {
+    if (loadingChannel) return;
+    setLoadingChannel(id);
+    const finish = () => setLoadingChannel(null);
+    if (id === "whatsapp") {
+      toast.message("Connecting to Marketplace Support…", { description: "Choose a department to continue on WhatsApp." });
+      setTimeout(() => { setWhatsappOpen(true); finish(); }, 650);
+    } else if (id === "email") {
+      toast.message("Opening Priority Assistance…");
+      setTimeout(() => {
+        window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Priority Support Request")}&body=${encodeURIComponent("Hello FoundOurMarket Support,\n\nI need priority assistance regarding:\n\n")}`;
+        finish();
+      }, 600);
+    } else if (id === "call") {
+      toast.message("Scheduling Assistance Session…");
+      setTimeout(() => { setScheduleOpen(true); finish(); }, 700);
+    } else if (id === "chat") {
+      toast.loading("Connecting to Live Marketplace Support…", { id: "chat-connect" });
+      setTimeout(() => {
+        toast.success("Live chat is warming up", { id: "chat-connect", description: "A seller specialist will join in a moment." });
+        finish();
+      }, 1400);
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
