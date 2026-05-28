@@ -62,10 +62,10 @@ const PROTECTION = [
 ];
 
 const CHANNELS = [
-  { id: "chat", icon: MessageCircle, title: "Live Chat", meta: "Avg reply · 2 min", status: "Online", color: "#22c55e", loading: "Connecting to Live Marketplace Support…" },
-  { id: "email", icon: Mail, title: "Priority Email", meta: SUPPORT_EMAIL, status: "< 24h", color: "#FF9F43", loading: "Opening Priority Assistance…" },
-  { id: "call", icon: CalendarClock, title: "Schedule a Call", meta: "Free 1:1 with seller team", status: "Bookable", color: "#a78bfa", loading: "Scheduling Assistance Session…" },
-  { id: "whatsapp", icon: Phone, title: "WhatsApp Support", meta: "Direct mobile assistance", status: "Live", color: "#25D366", loading: "Connecting to Marketplace Support…" },
+  { id: "chat", icon: MessageCircle, title: "Live Chat", meta: "Support Online · Typically replies instantly", status: "Online", color: "#22c55e", loading: "Connecting to Live Marketplace Support…", badge: "Verified" },
+  { id: "email", icon: Mail, title: "Priority Email", meta: SUPPORT_EMAIL, status: "< 24h", color: "#FF9F43", loading: "Opening Priority Assistance…", badge: "Encrypted" },
+  { id: "call", icon: CalendarClock, title: "Schedule a Call", meta: "Free 1:1 with seller team", status: "Bookable", color: "#a78bfa", loading: "Scheduling Assistance Session…", badge: "Enterprise" },
+  { id: "whatsapp", icon: Phone, title: "WhatsApp Support", meta: "Direct mobile assistance", status: "Live", color: "#25D366", loading: "Connecting to Marketplace Support…", badge: "Encrypted" },
 ] as const;
 
 const SUPPLIERS = [
@@ -240,7 +240,7 @@ function SellerAssistancePage() {
                 <ArrowRight className="size-4 group-hover:translate-x-0.5 transition" />
               </a>
               <a
-                href="mailto:foundourmarket@gmail.com"
+                href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Priority Support Request")}`}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border border-white/12 bg-white/[0.04] hover:bg-white/[0.08] transition"
               >
                 <Mail className="size-4" /> Priority Email
@@ -256,7 +256,7 @@ function SellerAssistancePage() {
               <motion.a
                 key={a.title}
                 href="#seller-form"
-                onClick={() => update("issueType")(a.title)}
+                onClick={() => setForm((f) => ({ ...f, issueType: a.title }))}
                 initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
@@ -354,12 +354,17 @@ function SellerAssistancePage() {
                   {loadingChannel === c.id ? <Loader2 className="size-5 animate-spin" /> : <c.icon className="size-5" />}
                 </div>
                 <div className="relative flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{c.title}</p>
-                  <p className="text-xs text-white/55 truncate">{loadingChannel === c.id ? c.loading : c.meta}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold truncate">{c.title}</p>
+                    <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/[0.05] border border-white/10 text-white/60">
+                      <Lock className="size-2.5" /> {c.badge}
+                    </span>
+                  </div>
+                  <p className="text-xs text-white/55 truncate mt-0.5">{loadingChannel === c.id ? c.loading : c.meta}</p>
                 </div>
                 <span className="relative inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-white/75">
                   <span className="relative size-1.5 rounded-full" style={{ backgroundColor: c.color, boxShadow: `0 0 10px ${c.color}` }}>
-                    {c.status === "Online" && (
+                    {(c.status === "Online" || c.status === "Live") && (
                       <span className="absolute inset-0 rounded-full animate-ping" style={{ backgroundColor: c.color, opacity: 0.6 }} />
                     )}
                   </span>
@@ -544,7 +549,7 @@ function SellerAssistancePage() {
 
         <div className="mt-12 text-center text-[11px] text-white/40">
           Can't reach the form? Email us at{" "}
-          <a className="text-orange-300 hover:underline" href="mailto:foundourmarket@gmail.com">foundourmarket@gmail.com</a>
+          <a className="text-orange-300 hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
         </div>
       </div>
 
