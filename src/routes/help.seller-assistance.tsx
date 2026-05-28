@@ -126,6 +126,30 @@ function SellerAssistancePage() {
   const [loadingChannel, setLoadingChannel] = useState<string | null>(null);
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [calendlyStatus, setCalendlyStatus] = useState<"loading" | "ready" | "error">("loading");
+  const calendlyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!scheduleOpen) {
+      if (calendlyTimeoutRef.current) clearTimeout(calendlyTimeoutRef.current);
+      return;
+    }
+    setCalendlyStatus("loading");
+    calendlyTimeoutRef.current = setTimeout(() => {
+      setCalendlyStatus((s) => (s === "loading" ? "error" : s));
+    }, 9000);
+    return () => {
+      if (calendlyTimeoutRef.current) clearTimeout(calendlyTimeoutRef.current);
+    };
+  }, [scheduleOpen]);
+
+  const retryCalendly = () => {
+    setCalendlyStatus("loading");
+    if (calendlyTimeoutRef.current) clearTimeout(calendlyTimeoutRef.current);
+    calendlyTimeoutRef.current = setTimeout(() => {
+      setCalendlyStatus((s) => (s === "loading" ? "error" : s));
+    }, 9000);
+  };
 
   const openWhatsApp = (number: string) => {
     const url = `https://wa.me/${number}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
