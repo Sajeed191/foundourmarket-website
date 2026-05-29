@@ -352,7 +352,7 @@ function ProductPage() {
             <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-6 sm:pt-8 border-t border-border">
               {[
                 { icon: Truck, label: "Free shipping over $50" },
-                { icon: RotateCcw, label: "30-day returns" },
+                { icon: RotateCcw, label: "7 Days Return" },
                 { icon: Shield, label: "Secure checkout" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="glass rounded-2xl p-3 sm:p-4 text-center">
