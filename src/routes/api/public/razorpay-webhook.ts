@@ -206,13 +206,12 @@ async function handleEvent(event: string, payload: any) {
           notes: { source: "webhook.refund.processed" },
         });
       } else if (existingRefund) {
-
-      } else if (existingRefund) {
         await supabaseAdmin
           .from("refunds")
           .update({ status: "processed" })
-          .eq("id", existingRefund.id);
+          .eq("id", (existingRefund as { id: string }).id);
       }
+
 
       if (pay?.order_id) {
         await supabaseAdmin
