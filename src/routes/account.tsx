@@ -7,7 +7,7 @@ import {
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
   Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe, Crown,
-  CheckCircle2, Box, Home, X, Plus, Minus, CreditCard,
+  CheckCircle2, Box, Home, X, Plus, Minus, CreditCard, UserCog,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -290,12 +290,14 @@ function AccountPage() {
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5">
             <ActionCard to="/account/orders" icon={Package} title="Orders" subtitle="Track & invoices" badge={stats.active || undefined} />
             <ActionCard to="/wishlist" icon={Heart} title="Wishlist" subtitle="Saved items" badge={wishSlugs.size || undefined} />
-            <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
-            <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
-            <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 help" />
+            <ActionCard to="/account/addresses" icon={MapPin} title="Addresses" subtitle="Shipping & billing" />
             <ActionCard to="/account/payments" icon={CreditCard} title="Payments" subtitle="Saved methods" />
+            <ActionCard to="/account/profile" icon={UserCog} title="Profile" subtitle="Your details" />
             <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
-
+            <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Requests & status" />
+            <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
+            <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
+            <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 help" />
           </div>
         </motion.section>
 
@@ -342,9 +344,9 @@ function AccountPage() {
           <div className="relative overflow-hidden rounded-3xl glass-strong p-5 sm:p-7">
             <div aria-hidden className="absolute -top-20 -left-10 size-64 rounded-full opacity-40" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
             <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <FooterAction icon={LifeBuoy} label="Support" to="/" />
-              <FooterAction icon={HelpCircle} label="FAQ" to="/" />
-              <FooterAction icon={MessageCircle} label="Contact" to="/" />
+              <FooterAction icon={LifeBuoy} label="Support" to="/help" />
+              <FooterAction icon={HelpCircle} label="FAQ" to="/help" />
+              <FooterAction icon={MessageCircle} label="Contact" onClick={() => openCrispChat()} />
               <button
                 onClick={signOut}
                 className="group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-destructive/50 hover:text-destructive hover:-translate-y-0.5 transition-all"
@@ -616,18 +618,18 @@ function InsightStat({ label, value, accent, small, truncate }: { label: string;
 }
 
 
-function FooterAction({ icon: Icon, label, to }: { icon: typeof Package; label: string; to: string }) {
-  return (
-    <Link
-      to={to}
-      className="group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-accent/40 hover:text-accent hover:-translate-y-0.5 transition-all"
-    >
+function FooterAction({ icon: Icon, label, to, onClick }: { icon: typeof Package; label: string; to?: string; onClick?: () => void }) {
+  const inner = (
+    <>
       <span className="size-9 rounded-xl bg-accent/10 text-accent grid place-items-center group-hover:bg-accent/20 transition-colors">
         <Icon className="size-4" />
       </span>
       <span className="text-[11px] uppercase tracking-widest">{label}</span>
-    </Link>
+    </>
   );
+  const cls = "group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-accent/40 hover:text-accent hover:-translate-y-0.5 transition-all";
+  if (onClick) return <button onClick={onClick} className={cls}>{inner}</button>;
+  return <Link to={to!} className={cls}>{inner}</Link>;
 }
 
 function EmptyState({ icon: Icon = Star, title, body, cta, extra }: { icon?: typeof Package; title: string; body: string; cta?: React.ReactNode; extra?: React.ReactNode }) {
