@@ -14,6 +14,7 @@ import { useAddresses, type Address } from "@/lib/use-addresses";
 import { useStoreSettings } from "@/lib/use-store-settings";
 import { AddressForm } from "@/components/site/AddressForm";
 import { createRazorpayOrder, verifyRazorpayPayment, cancelRazorpayOrder } from "@/lib/razorpay.functions";
+import { createRazorpayCustomer, syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
 import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpay-loader";
 
 export const Route = createFileRoute("/checkout")({
