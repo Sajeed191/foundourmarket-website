@@ -37,9 +37,14 @@ type ShipState = {
   etaIso: string; shippingUsd: number; codAvailable: boolean; expressAvailable: boolean;
 } | null;
 
-function unitPricing(price: number, discount?: number) {
-  const original = discount && discount > 0 ? price / (1 - discount / 100) : price;
-  return { sale: price, original, save: original - price, discount: discount ?? 0 };
+function unitPricing(sale: number, compareAt?: number | null, discount?: number) {
+  const original =
+    compareAt != null && compareAt > sale
+      ? compareAt
+      : discount && discount > 0
+        ? sale / (1 - discount / 100)
+        : sale;
+  return { sale, original, save: Math.max(0, original - sale), discount: discount ?? 0 };
 }
 
 async function shareProduct(slug: string, name: string) {
