@@ -6,6 +6,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Section,
   Text,
@@ -28,6 +29,7 @@ export interface OrderEmailProps {
   trackingNumber?: string
   carrier?: string
   refundAmount?: string
+  unsubscribeUrl?: string
 }
 
 function Shell({
@@ -35,11 +37,13 @@ function Shell({
   heading,
   intro,
   children,
+  unsubscribeUrl,
 }: {
   badge: string
   heading: string
   intro: string
   children?: React.ReactNode
+  unsubscribeUrl?: string
 }) {
   return (
     <Html>
@@ -97,6 +101,14 @@ function Shell({
             <Text style={{ margin: '6px 0 0', fontSize: '11px', color: '#5a6a7d' }}>
               © {new Date().getFullYear()} FoundOurMarket™. All rights reserved.
             </Text>
+            {unsubscribeUrl && (
+              <Text style={{ margin: '10px 0 0', fontSize: '11px', color: '#5a6a7d' }}>
+                Don't want these emails?{' '}
+                <Link href={unsubscribeUrl} style={{ color: MUTED, textDecoration: 'underline' }}>
+                  Unsubscribe
+                </Link>
+              </Text>
+            )}
           </Section>
         </Container>
       </Body>
@@ -134,9 +146,10 @@ const greet = (name?: string) => (name ? `Hi ${name}, ` : '')
 const ref = (n?: string) => (n ? `#${n}` : 'your order')
 
 /* ---------- Order confirmed ---------- */
-function OrderConfirmedEmail({ orderNumber, customerName, amount }: OrderEmailProps) {
+function OrderConfirmedEmail({ orderNumber, customerName, amount, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
+      unsubscribeUrl={unsubscribeUrl}
       badge="✦ Order Confirmed"
       heading="Your order is confirmed."
       intro={`${greet(customerName)}thanks for shopping with FoundOurMarket™. We've received order ${ref(orderNumber)} and our team is preparing it for dispatch.`}
@@ -150,9 +163,10 @@ function OrderConfirmedEmail({ orderNumber, customerName, amount }: OrderEmailPr
 }
 
 /* ---------- Payment verified ---------- */
-function PaymentVerifiedEmail({ orderNumber, customerName, amount }: OrderEmailProps) {
+function PaymentVerifiedEmail({ orderNumber, customerName, amount, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
+      unsubscribeUrl={unsubscribeUrl}
       badge="✦ Payment Verified"
       heading="Payment received."
       intro={`${greet(customerName)}we've securely verified your payment for order ${ref(orderNumber)}. Your order is now fully paid and moving to fulfilment.`}
@@ -166,9 +180,10 @@ function PaymentVerifiedEmail({ orderNumber, customerName, amount }: OrderEmailP
 }
 
 /* ---------- Shipped ---------- */
-function ShippedEmail({ orderNumber, customerName, trackingNumber, carrier }: OrderEmailProps) {
+function ShippedEmail({ orderNumber, customerName, trackingNumber, carrier, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
+      unsubscribeUrl={unsubscribeUrl}
       badge="✦ Shipped"
       heading="Your order is on its way."
       intro={`${greet(customerName)}great news — order ${ref(orderNumber)} has been shipped and is now in transit.`}
@@ -183,9 +198,10 @@ function ShippedEmail({ orderNumber, customerName, trackingNumber, carrier }: Or
 }
 
 /* ---------- Out for delivery ---------- */
-function OutForDeliveryEmail({ orderNumber, customerName, trackingNumber, carrier }: OrderEmailProps) {
+function OutForDeliveryEmail({ orderNumber, customerName, trackingNumber, carrier, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
+      unsubscribeUrl={unsubscribeUrl}
       badge="✦ Out for Delivery"
       heading="Arriving today."
       intro={`${greet(customerName)}order ${ref(orderNumber)} is out for delivery and should reach you soon. Please keep an eye out.`}
@@ -200,9 +216,10 @@ function OutForDeliveryEmail({ orderNumber, customerName, trackingNumber, carrie
 }
 
 /* ---------- Delivered ---------- */
-function DeliveredEmail({ orderNumber, customerName }: OrderEmailProps) {
+function DeliveredEmail({ orderNumber, customerName, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
+      unsubscribeUrl={unsubscribeUrl}
       badge="✦ Delivered"
       heading="Delivered. Enjoy!"
       intro={`${greet(customerName)}order ${ref(orderNumber)} has been delivered. We hope you love it — thank you for choosing FoundOurMarket™.`}
@@ -215,9 +232,10 @@ function DeliveredEmail({ orderNumber, customerName }: OrderEmailProps) {
 }
 
 /* ---------- Refund processed ---------- */
-function RefundProcessedEmail({ orderNumber, customerName, refundAmount }: OrderEmailProps) {
+function RefundProcessedEmail({ orderNumber, customerName, refundAmount, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
+      unsubscribeUrl={unsubscribeUrl}
       badge="✦ Refund Processed"
       heading="Your refund is on the way."
       intro={`${greet(customerName)}we've processed your refund for order ${ref(orderNumber)}. Depending on your bank, it may take 5–7 business days to reflect.`}

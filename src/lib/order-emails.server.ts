@@ -6,6 +6,7 @@ import * as React from 'react'
 import { supabaseAdmin } from '@/integrations/supabase/client.server'
 import { TEMPLATES } from '@/lib/email-templates/registry'
 import type { OrderEmailProps } from '@/lib/email-templates/order-emails'
+import { buildUnsubscribeLinks } from '@/lib/unsubscribe.server'
 
 const SITE_NAME = 'FoundOurMarket'
 const SENDER_DOMAIN = 'notify.foundourmarket.com'
@@ -89,12 +90,16 @@ export async function enqueueOrderEmail(
   if (!entry) return { ok: false, reason: 'template_missing' }
 
   const addr = (order.shipping_address ?? {}) as Record<string, any>
+  // Issue/reuse a one-click unsubscribe token for the footer link + headers.
+  const unsub = await buildUnsubscribeLinks(recipient)
+
   const props: OrderEmailProps = {
     orderNumber: String(order.id).slice(0, 8).toUpperCase(),
     customerName: typeof addr.full_name === 'string' ? addr.full_name.split(' ')[0] : undefined,
     amount: money(order.total as number, order.currency as string),
     trackingNumber: (order.tracking_number as string | null) ?? undefined,
     carrier: (order.carrier as string | null) ?? undefined,
+    unsubscribeUrl: unsub?.pageUrl,
     refundAmount:
       event === 'refund-processed'
         ? money(extra.refundAmount ?? (order.total as number), extra.refundCurrency ?? (order.currency as string))
@@ -128,6 +133,14 @@ export async function enqueueOrderEmail(
       label: event,
       idempotency_key: messageId,
       queued_at: new Date().toISOString(),
+      ...(unsub
+        ? {
+            headers: {
+              'List-Unsubscribe': `<${unsub.oneClickUrl}>, <${unsub.pageUrl}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
+          }
+        : {}),
     },
   })
 
