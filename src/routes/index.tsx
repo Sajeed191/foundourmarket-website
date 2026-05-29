@@ -179,7 +179,7 @@ function Home() {
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="text-fluid-hero font-display font-semibold tracking-tight text-balance mb-5 sm:mb-7"
           >
-            Everything you need.
+            Whatever you need.
             <br />
             <span className="text-gradient-ember">All in one place.</span>
           </motion.h1>
