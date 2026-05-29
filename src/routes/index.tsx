@@ -179,7 +179,8 @@ function Home() {
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="text-fluid-hero font-display font-semibold tracking-tight text-balance mb-5 sm:mb-7"
           >
-            Whatever you need.
+            <span className="sr-only">FoundOurMarket — Premium Global Marketplace. </span>
+            <span aria-hidden="true">Whatever you need.</span>
             <br />
             <span className="text-gradient-ember">All in one place.</span>
           </motion.h1>
