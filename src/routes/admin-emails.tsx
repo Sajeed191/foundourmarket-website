@@ -242,6 +242,9 @@ function EmailsPage() {
           </section>
         </div>
 
+        {/* Test sender */}
+        <TestSender onSent={() => refetch()} />
+
         {/* Activity logs */}
         <section className="card-premium rounded-2xl p-5">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
