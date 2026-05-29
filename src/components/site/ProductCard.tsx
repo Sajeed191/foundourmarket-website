@@ -121,8 +121,8 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
       <Link to="/products/$slug" params={{ slug: product.slug }} className={`block relative ${compact ? "" : "px-1"}`}>
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0 flex-1">
-            <h4 className={`font-medium truncate group-hover:text-accent transition-colors ${compact ? "text-[12px] leading-tight" : "text-sm"}`}>{product.name}</h4>
-            <p className={`text-muted-foreground truncate ${compact ? "text-[9px] mt-0.5" : "text-[11px]"}`}>{product.tagline}</p>
+            <h4 className={`font-medium truncate group-hover:text-accent transition-colors ${compact ? "text-[11px] leading-tight" : "text-sm"}`}>{product.name}</h4>
+            <p className={`text-muted-foreground truncate ${compact ? "text-[8px] mt-0.5" : "text-[11px]"}`}>{product.tagline}</p>
 
           </div>
           <div className="text-right shrink-0">
