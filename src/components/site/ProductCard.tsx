@@ -33,7 +33,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
       />
 
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative">
-        <div className={`relative aspect-square rounded-xl overflow-hidden bg-black/40 ${compact ? "mb-2 sm:mb-2" : "mb-3 sm:mb-4"}`}>
+        <div className={`relative aspect-square rounded-xl overflow-hidden bg-black/40 ${compact ? "mb-1.5" : "mb-3 sm:mb-4"}`}>
           {/* Glow on hover */}
           <div
             aria-hidden
@@ -121,17 +121,18 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
       <Link to="/products/$slug" params={{ slug: product.slug }} className={`block relative ${compact ? "" : "px-1"}`}>
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0 flex-1">
-            <h4 className={`font-medium truncate group-hover:text-accent transition-colors ${compact ? "text-[13px]" : "text-sm"}`}>{product.name}</h4>
-            <p className={`text-muted-foreground truncate ${compact ? "text-[10px]" : "text-[11px]"}`}>{product.tagline}</p>
+            <h4 className={`font-medium truncate group-hover:text-accent transition-colors ${compact ? "text-[12px] leading-tight" : "text-sm"}`}>{product.name}</h4>
+            <p className={`text-muted-foreground truncate ${compact ? "text-[9px] mt-0.5" : "text-[11px]"}`}>{product.tagline}</p>
+
           </div>
           <div className="text-right shrink-0">
-            <p className={`font-display font-semibold tabular-nums ${compact ? "text-[13px]" : "text-sm"}`}>{format(product.price)}</p>
+            <p className={`font-display font-semibold tabular-nums ${compact ? "text-[12px]" : "text-sm"}`}>{format(product.price)}</p>
             {originalPrice && (
               <p className={`font-mono text-muted-foreground/70 line-through tabular-nums ${compact ? "text-[9px]" : "text-[10px]"}`}>{format(originalPrice)}</p>
             )}
           </div>
         </div>
-        <div className={`flex items-center justify-between gap-2 ${compact ? "mt-1.5" : "mt-2"}`}>
+        <div className={`flex items-center justify-between gap-2 ${compact ? "mt-1" : "mt-2"}`}>
           <div className={`flex items-center gap-1 font-mono text-muted-foreground min-w-0 ${compact ? "text-[9px]" : "text-[10px]"}`}>
             <Star className={`fill-accent text-accent shrink-0 ${compact ? "size-2.5" : "size-3"}`} />
             <span className="text-foreground/80">{product.rating}</span>
