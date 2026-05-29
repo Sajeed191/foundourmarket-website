@@ -289,6 +289,13 @@ export function BannerAdminSheet({ onClose, onChanged }: { onClose: () => void; 
                       {r.active ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
                     </button>
                     <button
+                      onClick={() => duplicate(r)}
+                      className="grid size-7 shrink-0 place-items-center rounded-lg border border-white/10 text-muted-foreground hover:text-accent"
+                      aria-label="Duplicate"
+                    >
+                      <Copy className="size-3.5" />
+                    </button>
+                    <button
                       onClick={() => del(r.id)}
                       className="grid size-7 shrink-0 place-items-center rounded-lg border border-white/10 text-red-400 hover:bg-red-500/10"
                       aria-label="Delete"
