@@ -67,7 +67,7 @@ export async function enqueueOrderEmail(
   event: OrderEmailEvent,
   extra: OrderEmailExtra = {},
 ): Promise<{ ok: boolean; reason?: string }> {
-  const messageId = deterministicId(orderId, event)
+  const messageId = orderEmailMessageId(orderId, event)
 
   // De-duplicate: skip if we've already logged this exact email.
   const { data: prior } = await supabaseAdmin
