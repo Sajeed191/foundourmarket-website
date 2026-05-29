@@ -83,6 +83,9 @@ export function AdminProductPanel({ product }: { product: Product }) {
       internationalVisible: p.internationalVisible,
       featured: p.featured,
       inStock: p.inStock,
+      rating: String(p.rating),
+      reviews: String(p.reviews),
+      warranty: p.warranty ?? "12 months",
     };
   }
 
