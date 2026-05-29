@@ -64,41 +64,37 @@ function EmailHealthPage() {
   const series = data?.series ?? [];
 
   return (
-    <AdminShell>
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-display flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
-              Email health
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Bounce rate, complaint rate & delivery success over time for transactional emails.
-            </p>
+    <AdminShell
+      title="Email health"
+      subtitle="Bounce, complaint & delivery rates over time for transactional emails"
+      allow={["admin", "super_admin", "manager"]}
+      actions={
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-border/40 bg-white/[0.02] p-0.5">
+            {RANGES.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRange(r.id)}
+                className={`rounded-md px-3 py-1.5 text-xs font-mono transition-colors ${
+                  range === r.id ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex rounded-lg border border-border/40 bg-white/[0.02] p-0.5">
-              {RANGES.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => setRange(r.id)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-mono transition-colors ${
-                    range === r.id ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => refetch()}
-              className="rounded-lg border border-border/40 bg-white/[0.02] p-2 text-muted-foreground hover:text-foreground"
-              title="Refresh"
-            >
-              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-            </button>
-          </div>
+          <button
+            onClick={() => refetch()}
+            className="rounded-lg border border-border/40 bg-white/[0.02] p-2 text-muted-foreground hover:text-foreground"
+            title="Refresh"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </button>
         </div>
+      }
+    >
+      <div className="space-y-5">
+
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20 text-muted-foreground">
