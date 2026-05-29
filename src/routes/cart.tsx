@@ -173,7 +173,7 @@ function CartPage() {
           ) : (
             <AnimatePresence initial={false}>
               {detailed.map((item) => {
-                const pr = unitPricing(item.product.price, item.product.discount);
+                const pr = unitPricing(priceOf(item.product), compareOf(item.product), item.product.discount);
                 const stock = item.product.stockQuantity ?? 0;
                 const low = item.product.inStock && stock > 0 && stock <= (item.product.lowStockThreshold ?? 5);
                 const out = !item.product.inStock || stock <= 0;
@@ -232,7 +232,7 @@ function CartPage() {
                           </button>
                         </div>
                         <div className="text-right">
-                          {pr.discount > 0 && (
+                          {pr.original > pr.sale && (
                             <span className="block text-[11px] text-muted-foreground line-through font-mono">{format(pr.original * item.qty)}</span>
                           )}
                           <span className="font-mono text-sm text-accent">{format(pr.sale * item.qty)}</span>
@@ -273,7 +273,7 @@ function CartPage() {
                       <Link to="/products/$slug" params={{ slug: item.slug }} className="text-sm font-medium hover:text-accent transition-colors truncate block">
                         {item.product.name}
                       </Link>
-                      <p className="text-xs text-muted-foreground">{format(item.product.price)} · qty {item.qty}</p>
+                      <p className="text-xs text-muted-foreground">{format(priceOf(item.product))} · qty {item.qty}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button onClick={() => moveToCart(item.slug)} className="text-[10px] uppercase tracking-widest font-bold bg-accent text-accent-foreground px-3 py-2 rounded-full inline-flex items-center gap-1.5 hover:brightness-110">
