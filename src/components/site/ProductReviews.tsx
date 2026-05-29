@@ -104,15 +104,15 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     onAggregateChange?.();
   };
 
-  return (
-    <section className="max-w-7xl mx-auto px-6 py-16 border-t border-border">
-      <h2 className="text-2xl font-display tracking-tight mb-8">Customer Reviews</h2>
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14 border-t border-border/60">
+      <h2 className="text-xl sm:text-2xl font-display tracking-tight mb-6">Customer Reviews</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
         <div className="lg:col-span-1">
           {user ? (
-            <form onSubmit={submit} className="bg-card border border-border rounded-2xl p-6">
-              <h3 className="text-sm font-display mb-4">{existing ? "Update your review" : "Write a review"}</h3>
+            <form onSubmit={submit} className="bg-card/60 backdrop-blur-xl border border-border rounded-2xl p-4 sm:p-5">
+              <h3 className="text-sm font-display mb-3">{existing ? "Update your review" : "Write a review"}</h3>
+
               <div className="flex items-center gap-1 mb-4">
                 {Array.from({ length: 5 }).map((_, i) => {
                   const value = i + 1;
