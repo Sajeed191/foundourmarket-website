@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Search, Shield, Truck, Headset, ArrowRight, Star, Sparkles, Award, Package, Globe2, Quote, Users, ShoppingBag, Zap, Flame, BadgeCheck } from "lucide-react";
+import { Search, Shield, Truck, Headset, ArrowRight, Star, Sparkles, Award, Package, Globe2, Quote, Users, ShoppingBag, Zap, Flame, BadgeCheck, Pencil } from "lucide-react";
 import { useCategories } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
+import { useIsProductAdmin } from "@/lib/use-admin";
+import { CategoryAdminSheet } from "@/components/admin/CategoryAdminSheet";
 
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
@@ -111,6 +113,9 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
 function Home() {
   const { products, loading: productsLoading } = useProducts();
   const { categories } = useCategories();
+
+  const { isProductAdmin } = useIsProductAdmin();
+  const [editCats, setEditCats] = useState(false);
 
   const nav = useNavigate();
   const [query, setQuery] = useState("");
@@ -297,7 +302,17 @@ function Home() {
 
       {/* Categories — premium interactive discovery */}
       <section id="categories" className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
-        <SectionHeader eyebrow="Browse" title="Featured Categories" href="/search" />
+        <div className="relative">
+          <SectionHeader eyebrow="Browse" title="Featured Categories" href="/search" />
+          {isProductAdmin && (
+            <button
+              onClick={() => setEditCats(true)}
+              className="absolute right-0 top-0 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-background/70 px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest text-accent backdrop-blur-md hover:bg-accent/15"
+            >
+              <Pencil className="size-3" /> Edit
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {categories.map((cat, i) => (
             <Reveal key={cat.slug} delay={i} className="h-full">
@@ -306,9 +321,19 @@ function Home() {
                 params={{ slug: cat.slug }}
                 className="group relative block aspect-square bg-card border border-border rounded-2xl overflow-hidden hover:border-accent/50 transition-all hover:-translate-y-1.5 hover:shadow-[0_24px_60px_-24px_oklch(0.74_0.19_49_/_0.45)]"
               >
-                <div className="absolute inset-0 grid place-items-center text-6xl font-display font-bold text-white/[0.04] group-hover:text-accent/20 transition-colors">
-                  {String(i + 1).padStart(2, "0")}
-                </div>
+                {cat.image ? (
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    loading="lazy"
+                    className="absolute inset-0 size-full object-cover opacity-70 transition-all duration-700 group-hover:scale-105 group-hover:opacity-90"
+                  />
+                ) : (
+                  <div className="absolute inset-0 grid place-items-center text-6xl font-display font-bold text-white/[0.04] group-hover:text-accent/20 transition-colors">
+                    {String(i + 1).padStart(2, "0")}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "var(--gradient-ember)" }} />
                 <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1400ms] ease-out bg-gradient-to-r from-transparent via-white/[0.08] to-transparent skew-x-12" />
                 <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-end z-10">
@@ -321,6 +346,10 @@ function Home() {
           ))}
         </div>
       </section>
+      {isProductAdmin && editCats && (
+        <CategoryAdminSheet onClose={() => setEditCats(false)} onChanged={() => {}} />
+      )}
+
 
       <CinematicDivider />
 
