@@ -1303,101 +1303,191 @@ export type Database = {
         }
         Relationships: []
       }
+      product_versions: {
+        Row: {
+          created_at: string
+          edited_by: string | null
+          id: string
+          product_slug: string
+          snapshot: Json
+        }
+        Insert: {
+          created_at?: string
+          edited_by?: string | null
+          id?: string
+          product_slug: string
+          snapshot: Json
+        }
+        Update: {
+          created_at?: string
+          edited_by?: string | null
+          id?: string
+          product_slug?: string
+          snapshot?: Json
+        }
+        Relationships: []
+      }
       products: {
         Row: {
+          barcode: string | null
           category: string
+          cod_enabled: boolean
           compare_price_inr: number | null
           compare_price_usd: number | null
           cost: number
+          cost_price_inr: number | null
+          cost_price_usd: number | null
           created_at: string
+          customs_info: string | null
           description: string | null
           discount: number | null
           featured: boolean
+          fragile: boolean
           id: string
           image: string | null
           in_stock: boolean
           india_visible: boolean
+          international_shipping: boolean
           international_visible: boolean
           low_stock_threshold: number
           name: string
+          paypal_enabled: boolean
+          pickup_supported: boolean
+          preorder: boolean
           price: number
           price_inr: number | null
           price_usd: number | null
           rating: number
+          razorpay_enabled: boolean
+          replacement_eligible: boolean
           reserved_quantity: number
+          restock_eta: string | null
+          return_eligible: boolean
+          return_window_days: number
           reviews: number
+          scheduled_expiry_at: string | null
+          scheduled_publish_at: string | null
           search_vector: unknown
+          shipping_fee_inr: number
+          shipping_fee_usd: number
           sku: string | null
           slug: string
           sort_order: number
+          status: string
           stock_quantity: number
+          stripe_enabled: boolean
           tagline: string | null
           updated_at: string
           views_count: number
+          warehouse_location: string | null
           warranty: string
         }
         Insert: {
+          barcode?: string | null
           category: string
+          cod_enabled?: boolean
           compare_price_inr?: number | null
           compare_price_usd?: number | null
           cost?: number
+          cost_price_inr?: number | null
+          cost_price_usd?: number | null
           created_at?: string
+          customs_info?: string | null
           description?: string | null
           discount?: number | null
           featured?: boolean
+          fragile?: boolean
           id?: string
           image?: string | null
           in_stock?: boolean
           india_visible?: boolean
+          international_shipping?: boolean
           international_visible?: boolean
           low_stock_threshold?: number
           name: string
+          paypal_enabled?: boolean
+          pickup_supported?: boolean
+          preorder?: boolean
           price?: number
           price_inr?: number | null
           price_usd?: number | null
           rating?: number
+          razorpay_enabled?: boolean
+          replacement_eligible?: boolean
           reserved_quantity?: number
+          restock_eta?: string | null
+          return_eligible?: boolean
+          return_window_days?: number
           reviews?: number
+          scheduled_expiry_at?: string | null
+          scheduled_publish_at?: string | null
           search_vector?: unknown
+          shipping_fee_inr?: number
+          shipping_fee_usd?: number
           sku?: string | null
           slug: string
           sort_order?: number
+          status?: string
           stock_quantity?: number
+          stripe_enabled?: boolean
           tagline?: string | null
           updated_at?: string
           views_count?: number
+          warehouse_location?: string | null
           warranty?: string
         }
         Update: {
+          barcode?: string | null
           category?: string
+          cod_enabled?: boolean
           compare_price_inr?: number | null
           compare_price_usd?: number | null
           cost?: number
+          cost_price_inr?: number | null
+          cost_price_usd?: number | null
           created_at?: string
+          customs_info?: string | null
           description?: string | null
           discount?: number | null
           featured?: boolean
+          fragile?: boolean
           id?: string
           image?: string | null
           in_stock?: boolean
           india_visible?: boolean
+          international_shipping?: boolean
           international_visible?: boolean
           low_stock_threshold?: number
           name?: string
+          paypal_enabled?: boolean
+          pickup_supported?: boolean
+          preorder?: boolean
           price?: number
           price_inr?: number | null
           price_usd?: number | null
           rating?: number
+          razorpay_enabled?: boolean
+          replacement_eligible?: boolean
           reserved_quantity?: number
+          restock_eta?: string | null
+          return_eligible?: boolean
+          return_window_days?: number
           reviews?: number
+          scheduled_expiry_at?: string | null
+          scheduled_publish_at?: string | null
           search_vector?: unknown
+          shipping_fee_inr?: number
+          shipping_fee_usd?: number
           sku?: string | null
           slug?: string
           sort_order?: number
+          status?: string
           stock_quantity?: number
+          stripe_enabled?: boolean
           tagline?: string | null
           updated_at?: string
           views_count?: number
+          warehouse_location?: string | null
           warranty?: string
         }
         Relationships: []
@@ -2476,35 +2566,57 @@ export type Database = {
           sort_by?: string
         }
         Returns: {
+          barcode: string | null
           category: string
+          cod_enabled: boolean
           compare_price_inr: number | null
           compare_price_usd: number | null
           cost: number
+          cost_price_inr: number | null
+          cost_price_usd: number | null
           created_at: string
+          customs_info: string | null
           description: string | null
           discount: number | null
           featured: boolean
+          fragile: boolean
           id: string
           image: string | null
           in_stock: boolean
           india_visible: boolean
+          international_shipping: boolean
           international_visible: boolean
           low_stock_threshold: number
           name: string
+          paypal_enabled: boolean
+          pickup_supported: boolean
+          preorder: boolean
           price: number
           price_inr: number | null
           price_usd: number | null
           rating: number
+          razorpay_enabled: boolean
+          replacement_eligible: boolean
           reserved_quantity: number
+          restock_eta: string | null
+          return_eligible: boolean
+          return_window_days: number
           reviews: number
+          scheduled_expiry_at: string | null
+          scheduled_publish_at: string | null
           search_vector: unknown
+          shipping_fee_inr: number
+          shipping_fee_usd: number
           sku: string | null
           slug: string
           sort_order: number
+          status: string
           stock_quantity: number
+          stripe_enabled: boolean
           tagline: string | null
           updated_at: string
           views_count: number
+          warehouse_location: string | null
           warranty: string
         }[]
         SetofOptions: {
