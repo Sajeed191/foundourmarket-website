@@ -113,6 +113,30 @@ function CheckoutPage() {
 
   const selectedAddress: Address | undefined = addresses.find((a) => a.id === selectedAddressId);
 
+  // Realtime pincode serviceability for the selected address
+  const checkPincode = useServerFn(validatePincode);
+  const [service, setService] = useState<ServiceabilityResult | null>(null);
+  const [serviceChecking, setServiceChecking] = useState(false);
+  const selectedPostal = selectedAddress?.postal ?? null;
+
+  useEffect(() => {
+    if (!selectedPostal) {
+      setService(null);
+      setServiceChecking(false);
+      return;
+    }
+    let cancelled = false;
+    setService(null);
+    setServiceChecking(true);
+    checkPincode({ data: { postal: selectedPostal } })
+      .then((r) => { if (!cancelled) setService(r); })
+      .catch(() => { if (!cancelled) setService(null); })
+      .finally(() => { if (!cancelled) setServiceChecking(false); });
+    return () => { cancelled = true; };
+  }, [selectedPostal, checkPincode]);
+
+  const serviceable = service?.serviceable === true;
+
   // Force COD off if admin disabled it
   useEffect(() => {
     if (!settings.cod_enabled && payMethod === "cod") setPayMethod("razorpay");
