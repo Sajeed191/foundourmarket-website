@@ -171,19 +171,21 @@ function RootComponent() {
           <WishlistProvider>
             <RegionProvider>
               <CartProvider>
-                <div className="min-h-screen flex flex-col">
-                  {!isAuthRoute && <Nav />}
-                  <main className={isAuthRoute ? "flex-1" : "flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"}>
-                    <Outlet />
-                  </main>
-                  {!isAuthRoute && <Footer />}
-                  {!isAuthRoute && <MobileBottomNav />}
-                  <RegionSelectModal />
-                  {!isAuthRoute && <AdminFloatingToolbar />}
-                  <CompareTray />
-                  <InstallPrompt />
-                  <Toaster position="bottom-center" richColors />
-                </div>
+                <AdminModeProvider>
+                  <div className="min-h-screen flex flex-col">
+                    {!isAuthRoute && <Nav />}
+                    <main className={isAuthRoute ? "flex-1" : "flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"}>
+                      <Outlet />
+                    </main>
+                    {!isAuthRoute && <Footer />}
+                    {!isAuthRoute && <MobileBottomNav />}
+                    <RegionSelectModal />
+                    {!isAuthRoute && <AdminFloatingToolbar />}
+                    <CompareTray />
+                    <InstallPrompt />
+                    <Toaster position="bottom-center" richColors />
+                  </div>
+                </AdminModeProvider>
               </CartProvider>
             </RegionProvider>
           </WishlistProvider>
