@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Minus, Plus, X, ArrowRight, ShoppingBag, Bookmark, RotateCcw, Heart,
   Truck, ShieldCheck, ChevronDown, Lock, MapPin, Clock,
-  AlertTriangle, CheckCircle2, Loader2, Undo2,
+  AlertTriangle, CheckCircle2, Loader2, Undo2, Sparkles, Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
@@ -33,6 +33,20 @@ function unitPricing(price: number, discount?: number) {
   return { sale: price, original, save: original - price, discount: discount ?? 0 };
 }
 
+async function shareProduct(slug: string, name: string) {
+  const url = `${window.location.origin}/products/${slug}`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: name, url });
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success("Product link copied");
+    }
+  } catch {
+    /* user cancelled share — no-op */
+  }
+}
+
 function CartPage() {
   const {
     detailed, savedDetailed, setQty, remove, saveForLater, moveToCart,
@@ -53,6 +67,7 @@ function CartPage() {
   const shipping = ship ? ship.shippingUsd : subtotalUSD > FREE_SHIP_THRESHOLD ? 0 : 9.99;
   const tax = subtotalUSD * 0.08;
   const total = Math.max(0, subtotalUSD + shipping + tax - discount);
+  const totalSavings = savings + discount;
 
   const remaining = Math.max(0, FREE_SHIP_THRESHOLD - subtotalUSD);
   const progress = Math.min(100, (subtotalUSD / FREE_SHIP_THRESHOLD) * 100);
@@ -217,6 +232,9 @@ function CartPage() {
                         <button onClick={() => { moveToWishlist(item.slug); toast.success("Moved to wishlist"); }} className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-accent inline-flex items-center gap-1.5">
                           <Heart className="size-3" /> Wishlist
                         </button>
+                        <button onClick={() => shareProduct(item.slug, item.product.name)} className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-accent inline-flex items-center gap-1.5">
+                          <Share2 className="size-3" /> Share
+                        </button>
                       </div>
                     </div>
                   </motion.div>
@@ -266,6 +284,20 @@ function CartPage() {
 
             <div className="bg-card border border-border rounded-2xl p-5 sm:p-6">
               <h2 className="text-lg font-medium mb-5">Order Summary</h2>
+
+              {/* Total savings highlight */}
+              {totalSavings > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10 px-3.5 py-2.5"
+                >
+                  <span className="text-xs font-medium inline-flex items-center gap-1.5 text-accent">
+                    <Sparkles className="size-3.5" /> Total savings
+                  </span>
+                  <span className="font-mono text-sm font-semibold text-accent">{format(totalSavings)}</span>
+                </motion.div>
+              )}
+
               <dl className="space-y-3 text-sm">
                 <Row label="Subtotal" value={format(subtotalUSD)} />
                 {savings > 0 && <Row label="Item savings" value={`−${format(savings)}`} accent />}
@@ -280,7 +312,7 @@ function CartPage() {
                     <dd>{new Date(ship.etaIso).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</dd>
                   </div>
                 )}
-                <div className="border-t border-border pt-3 flex justify-between text-base">
+                <div className="border-t border-border pt-3 flex justify-between items-baseline text-base">
                   <dt className="font-medium">Total</dt>
                   <motion.dd key={total} initial={{ scale: 1.08 }} animate={{ scale: 1 }} className="font-mono text-accent">{format(total)}</motion.dd>
                 </div>
@@ -294,20 +326,34 @@ function CartPage() {
                 <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
 
+              {/* Razorpay trust badge */}
+              <div className="mt-3.5 flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
+                <ShieldCheck className="size-3.5 text-accent" />
+                <span>Secured by <span className="text-foreground font-medium">Razorpay</span> · 256-bit encrypted</span>
+              </div>
+
               <div className="mt-4 grid grid-cols-3 gap-2 text-[9px] text-muted-foreground uppercase tracking-widest text-center">
                 <span className="inline-flex flex-col items-center gap-1"><ShieldCheck className="size-4 text-accent" /> Secure</span>
                 <span className="inline-flex flex-col items-center gap-1"><Truck className="size-4 text-accent" /> Tracked</span>
                 <span className="inline-flex flex-col items-center gap-1"><RotateCcw className="size-4 text-accent" /> Easy returns</span>
               </div>
+
+              <p className="mt-4 pt-4 border-t border-border text-[11px] leading-relaxed text-muted-foreground">
+                Free 7-day returns on eligible items. Refunds processed to your original payment method within 3–5 business days.
+              </p>
             </div>
+
           </div>
         </aside>
       </div>
 
-      <RelatedProducts excludeSlugs={detailed.map((i) => i.slug)} title="Complete the look" eyebrow="You might also need" limit={8} />
-      <div className="mt-4">
+      <div className="border-t border-border/50">
+        <RelatedProducts excludeSlugs={detailed.map((i) => i.slug)} title="Complete the look" eyebrow="You might also need" limit={8} />
+      </div>
+      <div className="border-t border-border/50">
         <RecentlyViewed excludeSlug={detailed[0]?.slug} limit={8} />
       </div>
+
 
       {/* Sticky mobile checkout dock — floats above the bottom nav + safe area */}
       {count > 0 && (

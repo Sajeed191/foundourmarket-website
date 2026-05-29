@@ -41,7 +41,7 @@ export function RecentlyViewed({
   if (loading || items.length === 0) return null;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">{eyebrow}</p>
@@ -74,16 +74,18 @@ export function RecentlyViewed({
 
       <div
         ref={scrollerRef}
-        className="flex gap-3 sm:gap-5 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0 pb-2"
+        className="flex gap-3 sm:gap-5 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0 pb-2 scroll-smooth"
+        style={{ scrollbarWidth: "none", scrollPaddingLeft: "1rem", scrollPaddingRight: "1rem" }}
       >
         {items.map((p) => (
           <div
             key={p!.slug}
-            className="snap-start shrink-0 w-[68%] xs:w-[55%] sm:w-[42%] md:w-[31%] lg:w-[23%]"
+            className="snap-start shrink-0 w-[58%] xs:w-[48%] sm:w-[38%] md:w-[28%] lg:w-[21%] last:mr-4 sm:last:mr-0"
           >
             <ProductCard product={p!} />
           </div>
         ))}
+
       </div>
     </section>
   );

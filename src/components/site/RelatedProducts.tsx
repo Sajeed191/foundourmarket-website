@@ -54,7 +54,7 @@ export function RelatedProducts({
   if (loading || items.length === 0) return null;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="flex items-end justify-between gap-4 mb-5 sm:mb-7">
         <div>
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">{eyebrow}</p>
@@ -80,18 +80,19 @@ export function RelatedProducts({
 
       <div
         ref={scrollerRef}
-        className="flex gap-2 sm:gap-3.5 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0 pb-2 scroll-smooth"
-        style={{ scrollbarWidth: "none", scrollPaddingLeft: "1rem" }}
+        className="flex gap-3 sm:gap-3.5 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0 pb-2 scroll-smooth"
+        style={{ scrollbarWidth: "none", scrollPaddingLeft: "1rem", scrollPaddingRight: "1rem" }}
       >
         {items.map((p) => (
           <div
             key={p.slug}
-            className="snap-start shrink-0 w-[48%] xs:w-[42%] sm:w-[30%] md:w-[22%] lg:w-[18%] rounded-2xl glow-border"
+            className="snap-start shrink-0 w-[58%] xs:w-[46%] sm:w-[30%] md:w-[22%] lg:w-[18%] last:mr-4 sm:last:mr-0 rounded-2xl glow-border"
           >
             <ProductCard product={p} compact />
           </div>
         ))}
       </div>
+
 
     </section>
   );
