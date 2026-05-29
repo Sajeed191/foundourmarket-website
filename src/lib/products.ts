@@ -125,7 +125,7 @@ type Row = {
 const num = (v: number | string | null | undefined): number | null =>
   v === null || v === undefined ? null : Number(v);
 
-function rowToProduct(r: Row): Product {
+export function rowToProduct(r: Row): Product {
   return {
     slug: r.slug,
     name: r.name,
