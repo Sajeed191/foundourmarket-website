@@ -66,15 +66,15 @@ function CartPage() {
     detailed, savedDetailed, setQty, remove, saveForLater, moveToCart,
     moveToWishlist, undoRemove, lastRemoved, subtotalUSD, count,
   } = useCart();
-  const { format } = useRegion();
+  const { format, priceOf, compareOf } = useRegion();
 
   const [promo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
 
 
   const savings = useMemo(
-    () => detailed.reduce((s, i) => s + unitPricing(i.product.price, i.product.discount).save * i.qty, 0),
-    [detailed],
+    () => detailed.reduce((s, i) => s + unitPricing(priceOf(i.product), compareOf(i.product), i.product.discount).save * i.qty, 0),
+    [detailed, priceOf, compareOf],
   );
 
   const discount = promo?.discount ?? 0;
