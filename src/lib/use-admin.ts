@@ -2,7 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
 
-const STAFF_ROLES = [
+const STAFF_ROLES: (
+  | "admin"
+  | "super_admin"
+  | "manager"
+  | "support"
+  | "fulfillment"
+  | "warehouse_staff"
+  | "editor"
+)[] = [
   "admin",
   "super_admin",
   "manager",
@@ -10,7 +18,7 @@ const STAFF_ROLES = [
   "fulfillment",
   "warehouse_staff",
   "editor",
-] as const;
+];
 
 /**
  * Client-side staff/admin detection. This is a UX gate only — every write is
