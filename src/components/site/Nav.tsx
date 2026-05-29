@@ -1,7 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValueEvent, useScroll } from "framer-motion";
-import { ShoppingBag, Search, User, Heart, Menu, X, LayoutDashboard } from "lucide-react";
+import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
+import {
+  ShoppingBag, Search, User, Heart, Menu, X, LayoutDashboard,
+  Smartphone, Shirt, Home as HomeIcon, Store, Package, Truck, Clock,
+  ChevronRight, LifeBuoy, Settings, ShieldCheck, FileText, Mail, LogIn,
+} from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
