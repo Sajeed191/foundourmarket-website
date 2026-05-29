@@ -290,12 +290,14 @@ function AccountPage() {
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5">
             <ActionCard to="/account/orders" icon={Package} title="Orders" subtitle="Track & invoices" badge={stats.active || undefined} />
             <ActionCard to="/wishlist" icon={Heart} title="Wishlist" subtitle="Saved items" badge={wishSlugs.size || undefined} />
-            <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
-            <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
-            <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 help" />
+            <ActionCard to="/account/addresses" icon={MapPin} title="Addresses" subtitle="Shipping & billing" />
             <ActionCard to="/account/payments" icon={CreditCard} title="Payments" subtitle="Saved methods" />
+            <ActionCard to="/account/profile" icon={UserCog} title="Profile" subtitle="Your details" />
             <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
-
+            <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Requests & status" />
+            <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
+            <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
+            <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 help" />
           </div>
         </motion.section>
 
