@@ -206,10 +206,11 @@ function PaymentsInner() {
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi icon={IndianRupee} label="Gross collected" value={inr(totals.gross)} />
-        <Kpi icon={CheckCircle2} label="Successful" value={String(totals.count)} />
-        <Kpi icon={RotateCcw} label="Refunded" value={inr(totals.refunded)} />
-        <Kpi icon={XCircle} label="Failed" value={String(totals.failed)} />
+        <Kpi icon={IndianRupee} label="Gross collected" value={inr(stats.gross)} />
+        <Kpi icon={CheckCircle2} label="Successful" value={String(stats.count)} />
+        <Kpi icon={RotateCcw} label="Refunded" value={inr(stats.refunded)} />
+        <Kpi icon={XCircle} label="Failed" value={String(stats.failed)} />
+
       </div>
 
       {/* Controls */}
