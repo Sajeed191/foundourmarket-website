@@ -335,7 +335,14 @@ export function CategoryAdminSheet({
         className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm"
         onClick={onClose}
       >
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onFile}
+          onClick={(e) => e.stopPropagation()}
+        />
         <motion.div
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
