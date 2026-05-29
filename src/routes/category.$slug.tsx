@@ -30,6 +30,12 @@ function CategoryPage() {
   const { products, loading } = useProducts();
   const items = products.filter((p) => p.category === slug);
 
+  useEffect(() => {
+    if (cat?.id) void supabase.rpc("track_category_event", { _id: cat.id, _event: "view" });
+  }, [cat?.id]);
+
+
+
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-16">
