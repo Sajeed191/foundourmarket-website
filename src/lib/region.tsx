@@ -26,6 +26,10 @@ type Ctx = {
   needsSelection: boolean;
   loading: boolean;
   countryCode: string | null;
+  /** Staff accounts bypass the region lock and can view both markets. */
+  isAdmin: boolean;
+  /** Admin-only: temporarily preview a market without locking. */
+  setPreviewMarket: (region: MarketRegion) => void;
   /** Write-once region lock for the signed-in user. */
   lockMarket: (region: MarketRegion) => Promise<void>;
   /** Region price for a product (no currency conversion — admin-defined). */
@@ -48,6 +52,7 @@ function formatMoney(amount: number, currency: Currency): string {
 
 export function RegionProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const detect = useServerFn(detectRegion);
   const fetchMine = useServerFn(getMyRegion);
   const lockFn = useServerFn(lockMarketRegion);
