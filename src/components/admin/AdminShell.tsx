@@ -175,76 +175,96 @@ export function AdminShell({
           {/* Brand + close */}
           <div className="relative px-4 pt-4 pb-3 flex items-center justify-between shrink-0">
             <Link to="/" className="group inline-flex items-center gap-2.5">
-              <span className="relative size-8 rounded-xl bg-gradient-to-br from-accent to-primary grid place-items-center shadow-[0_8px_24px_-8px_oklch(0.74_0.19_49_/_0.7)]">
-                <Sparkles className="size-4 text-accent-foreground" />
-                <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20" />
+              <span className="relative size-7 rounded-lg bg-gradient-to-br from-accent to-primary grid place-items-center shadow-[0_6px_20px_-10px_oklch(0.74_0.19_49_/_0.6)] transition-transform duration-500 group-hover:scale-105">
+                <Sparkles className="size-3.5 text-accent-foreground" />
+                <span className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/15" />
               </span>
-              <span className="font-display text-[15px] tracking-tight">FoundOurMarket™</span>
+              <span className="font-display text-sm tracking-tight">FoundOurMarket™</span>
             </Link>
-            <button onClick={() => setOpen(false)} className="lg:hidden size-8 grid place-items-center rounded-full hover:bg-white/5 transition-colors">
-              <X className="size-4" />
+            <button onClick={() => setOpen(false)} className="lg:hidden size-7 grid place-items-center rounded-full hover:bg-white/5 transition-colors">
+              <X className="size-3.5" />
             </button>
           </div>
 
           {/* Operator profile card */}
           <div className="relative px-3 shrink-0">
-            <div className="relative overflow-hidden rounded-2xl glass p-3 flex items-center gap-3">
-              <div className="pointer-events-none absolute -top-8 -right-6 size-24 rounded-full opacity-40" style={{ background: "var(--gradient-ember-soft)", filter: "blur(20px)" }} />
-              <div className="relative size-11 rounded-xl bg-gradient-to-br from-accent/25 to-primary/10 grid place-items-center ring-1 ring-inset ring-white/15 shrink-0">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="relative overflow-hidden rounded-2xl glass p-3 flex items-center gap-3"
+              style={{ boxShadow: "inset 0 1px 0 oklch(1 0 0 / 0.06), 0 14px 36px -22px oklch(0 0 0 / 0.7)" }}
+            >
+              <div className="pointer-events-none absolute -top-8 -right-6 size-20 rounded-full opacity-25" style={{ background: "var(--gradient-ember-soft)", filter: "blur(22px)" }} />
+              <div className="relative size-10 rounded-xl bg-gradient-to-br from-accent/20 to-primary/[0.08] grid place-items-center ring-1 ring-inset ring-white/10 shrink-0">
                 <span className="font-display text-sm text-accent uppercase">{user?.email?.[0] ?? "F"}</span>
                 <motion.span
-                  className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 ring-2 ring-card"
-                  animate={{ scale: [1, 1.25, 1], opacity: [1, 0.7, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-card"
+                  animate={{ scale: [1, 1.18, 1], opacity: [0.9, 0.55, 0.9] }}
+                  transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                 />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[13px] font-medium leading-tight truncate">Founder</p>
-                <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mt-0.5">Operator Console</p>
+                <p className="text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground/80 mt-0.5">Operator Console</p>
                 <div className="mt-1.5 inline-flex items-center gap-1.5">
-                  <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-emerald-400/90">Live System Active</span>
+                  <span className="size-1.5 rounded-full bg-emerald-400/90 shadow-[0_0_6px_oklch(0.7_0.17_160_/_0.6)] animate-pulse" />
+                  <span className="text-[8px] font-mono uppercase tracking-[0.22em] text-emerald-400/80">Live System Active</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Live operator widgets */}
+          {/* Live operator widgets — asymmetric hierarchy */}
           <div className="relative px-3 pt-3 shrink-0">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               {[
-                { icon: ShoppingCart, label: "Orders", value: "128" },
-                { icon: TrendingUp, label: "Revenue", value: "$14k" },
-                { icon: Cpu, label: "Status", value: "OK" },
+                { icon: TrendingUp, label: "Revenue", value: "$14k", span: "col-span-3", big: true },
+                { icon: ShoppingCart, label: "Orders", value: "128", span: "col-span-2", big: false },
               ].map((w, i) => (
                 <motion.div
                   key={w.label}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative overflow-hidden rounded-xl glass px-2 py-2"
+                  transition={{ delay: 0.12 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                  className={`${w.span} relative overflow-hidden rounded-xl glass ${w.big ? "px-3 py-2.5" : "px-2.5 py-2.5"}`}
                 >
-                  <div className="pointer-events-none absolute -top-6 -right-4 size-12 rounded-full opacity-30" style={{ background: "var(--gradient-ember-soft)", filter: "blur(12px)" }} />
-                  <w.icon className="size-3 text-accent mb-1" />
-                  <p className="text-[13px] font-display leading-none">{w.value}</p>
-                  <p className="text-[8px] font-mono uppercase tracking-[0.15em] text-muted-foreground mt-1">{w.label}</p>
+                  <div className="pointer-events-none absolute -top-6 -right-4 size-12 rounded-full opacity-25" style={{ background: "var(--gradient-ember-soft)", filter: "blur(14px)" }} />
+                  <w.icon className={`${w.big ? "size-3.5" : "size-3"} text-accent mb-1`} />
+                  <p className={`${w.big ? "text-base" : "text-[13px]"} font-display leading-none`}>{w.value}</p>
+                  <p className="text-[8px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80 mt-1.5">{w.label}</p>
                 </motion.div>
               ))}
             </div>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-2 relative overflow-hidden rounded-xl glass px-3 py-2 flex items-center gap-2"
+            >
+              <Cpu className="size-3 text-accent shrink-0" />
+              <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">System status</span>
+              <span className="ml-auto inline-flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.18em] text-emerald-400/85">
+                <span className="size-1.5 rounded-full bg-emerald-400/90 animate-pulse" /> OK
+              </span>
+            </motion.div>
           </div>
 
-          {/* Search console */}
+          {/* Search console — operator command bar */}
           <div className="relative px-3 pt-3 pb-2 shrink-0">
             <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground group-focus-within:text-accent transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground/70 group-focus-within:text-accent transition-colors duration-300" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search console…"
-                className="w-full bg-white/[0.03] border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:bg-white/[0.05] focus:shadow-[0_0_0_3px_oklch(0.74_0.19_49_/_0.1),0_0_28px_-8px_oklch(0.74_0.19_49_/_0.5)] transition-all duration-300"
+                className="w-full bg-white/[0.025] border border-white/[0.08] rounded-xl pl-9 pr-12 py-2.5 text-xs placeholder:text-muted-foreground/70 focus:outline-none focus:border-accent/40 focus:bg-white/[0.04] focus:shadow-[inset_0_1px_2px_oklch(0_0_0_/_0.4),0_0_0_3px_oklch(0.74_0.19_49_/_0.08),0_0_26px_-10px_oklch(0.74_0.19_49_/_0.45)] transition-all duration-500"
+                style={{ boxShadow: "inset 0 1px 2px oklch(0 0 0 / 0.35)" }}
               />
+              <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 hidden md:inline-flex items-center rounded-md border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground/60">⌘K</kbd>
             </div>
           </div>
+
 
           <nav className="relative px-2.5 py-2 space-y-4 flex-1 overflow-y-auto">
             {NAV.map((g) => {
