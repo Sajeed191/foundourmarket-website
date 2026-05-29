@@ -497,7 +497,7 @@ function ActionCard({
         </span>
         <div className="min-w-0 w-full">
           <p className="text-[13px] font-medium leading-tight truncate group-hover:text-accent transition-colors">{title}</p>
-          <p className="text-[10.5px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
+          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
         </div>
       </motion.div>
     </Link>
