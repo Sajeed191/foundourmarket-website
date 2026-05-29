@@ -47,6 +47,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [cartId, setCartId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [lastRemoved, setLastRemoved] = useState<RemovedItem | null>(null);
   const mergedRef = useRef(false);
 
   // Load LS on first mount (guests)
