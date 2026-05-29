@@ -646,7 +646,7 @@ function CarrierEta({ orderId, progress }: { orderId: string; progress: number }
       {/* Carrier strip */}
       <div className="mt-5 grid grid-cols-3 gap-2 relative">
         <Pill icon={Truck} label={carrier} hint="Carrier" />
-        <Pill icon={Zap} label="Express" hint="Method" />
+        <Pill icon={Zap} label="Standard" hint="Method" />
         <Pill icon={ShieldCheck} label="Protected" hint="Coverage" />
       </div>
     </div>

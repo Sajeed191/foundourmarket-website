@@ -44,7 +44,7 @@ const CATEGORIES: { key: Category | "All"; icon: any }[] = [
 
 const FAQS: FAQ[] = [
   { cat: "Orders", q: "Where is my order?", a: "Open Account → Orders for live tracking. We email you the moment your parcel ships and again on out-for-delivery." },
-  { cat: "Shipping", q: "How long does shipping take?", a: "Standard 3–7 business days, Express 1–3. Cut-off is 2pm local time on weekdays." },
+  { cat: "Shipping", q: "How long does shipping take?", a: "Standard 3–7 business days. Cut-off is 2pm local time on weekdays." },
   { cat: "Returns", q: "How do I return an item?", a: "Eligible items can be returned within 4 days of delivery. Visit the Return Eligibility Center to verify and start a request." },
   { cat: "Refunds", q: "When will I get my refund?", a: "Refunds land back on your original payment method within 5–10 days of us receiving the return." },
   { cat: "Payments", q: "What payment methods do you accept?", a: "All major cards, Apple Pay, Google Pay and select buy-now-pay-later providers at checkout." },

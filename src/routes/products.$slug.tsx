@@ -348,7 +348,7 @@ function ProductPage() {
             <Accordion title="Shipping & returns" icon={Truck}>
               <ul className="text-sm text-muted-foreground space-y-2 leading-relaxed">
                 <li>• Free standard shipping on orders over $50.</li>
-                <li>• Express delivery available at checkout (1–2 business days).</li>
+                <li>• Standard delivery takes 5–10 business days.</li>
                 <li>• Selected-product returns — check <Link to="/returns" className="text-accent underline">return eligibility</Link>.</li>
               </ul>
             </Accordion>
