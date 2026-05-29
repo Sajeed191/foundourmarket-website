@@ -76,41 +76,91 @@ function PaymentsPage() {
   );
 }
 
+const PAGE_SIZE = 100;
+
 function PaymentsInner() {
   const [tab, setTab] = useState<"transactions" | "refunds" | "webhooks">("transactions");
   const [payments, setPayments] = useState<Payment[]>([]);
   const [refunds, setRefunds] = useState<Refund[]>([]);
   const [logs, setLogs] = useState<WebhookLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [drawer, setDrawer] = useState<Payment | null>(null);
   const [pulse, setPulse] = useState(false);
   const [cod, setCod] = useState<boolean | null>(null);
+  const [stats, setStats] = useState({ gross: 0, count: 0, refunded: 0, failed: 0 });
 
   const refundFn = useServerFn(createRazorpayRefund);
   const [refundBusy, setRefundBusy] = useState<string | null>(null);
   const [refundMsg, setRefundMsg] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    const [p, r, w, s] = await Promise.all([
-      supabase.from("payments").select("*").order("created_at", { ascending: false }).limit(500),
+  // Debounce search input → server query
+  useEffect(() => {
+    const t = setTimeout(() => setSearchTerm(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  // Reset to first page whenever filters change
+  useEffect(() => { setPage(0); }, [searchTerm, statusFilter]);
+
+  // Paginated transactions fetch (server-side range + count)
+  const loadPayments = useCallback(async () => {
+    setTableLoading(true);
+    let qb = supabase
+      .from("payments")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false });
+    if (statusFilter !== "all") qb = qb.eq("status", statusFilter);
+    const term = searchTerm.trim();
+    if (term) {
+      const safe = term.replace(/[%,()]/g, "");
+      if (safe) {
+        qb = qb.or(
+          `transaction_id.ilike.%${safe}%,razorpay_payment_id.ilike.%${safe}%,method.ilike.%${safe}%`,
+        );
+      }
+    }
+    const from = page * PAGE_SIZE;
+    qb = qb.range(from, from + PAGE_SIZE - 1);
+    const { data, count } = await qb;
+    setPayments((data as Payment[]) ?? []);
+    setTotalCount(count ?? 0);
+    setTableLoading(false);
+  }, [statusFilter, searchTerm, page]);
+
+  // Aggregate KPIs + refunds/webhooks/settings (independent of pagination)
+  const loadAux = useCallback(async () => {
+    const [succ, fail, r, w, s] = await Promise.all([
+      supabase.from("payments").select("amount").eq("status", "succeeded"),
+      supabase.from("payments").select("id", { count: "exact", head: true }).eq("status", "failed"),
       supabase.from("refunds").select("*").order("created_at", { ascending: false }).limit(500),
       supabase.from("webhook_logs").select("id,event,signature_valid,status,error,created_at").order("created_at", { ascending: false }).limit(200),
       supabase.from("store_settings").select("cod_enabled").limit(1).maybeSingle(),
     ]);
-    setPayments((p.data as Payment[]) ?? []);
-    setRefunds((r.data as Refund[]) ?? []);
+    const succeeded = (succ.data as { amount: number }[]) ?? [];
+    const refundRows = (r.data as Refund[]) ?? [];
+    setRefunds(refundRows);
     setLogs((w.data as WebhookLog[]) ?? []);
     setCod(s.data ? !!s.data.cod_enabled : false);
-    setLoading(false);
+    setStats({
+      gross: succeeded.reduce((sum, p) => sum + Number(p.amount), 0),
+      count: succeeded.length,
+      failed: fail.count ?? 0,
+      refunded: refundRows.filter((rf) => rf.status !== "failed").reduce((sum, rf) => sum + Number(rf.amount), 0),
+    });
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadPayments(); }, [loadPayments]);
+  useEffect(() => { loadAux().finally(() => setLoading(false)); }, [loadAux]);
 
   // Realtime sync across payments / refunds / webhooks
   useEffect(() => {
-    const ping = () => { setPulse(true); setTimeout(() => setPulse(false), 1200); load(); };
+    const ping = () => { setPulse(true); setTimeout(() => setPulse(false), 1200); loadPayments(); loadAux(); };
     const ch = supabase
       .channel("admin-payments-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, ping)
@@ -118,7 +168,7 @@ function PaymentsInner() {
       .on("postgres_changes", { event: "*", schema: "public", table: "webhook_logs" }, ping)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [load]);
+  }, [loadPayments, loadAux]);
 
   async function toggleCod() {
     if (cod === null) return;
@@ -143,15 +193,10 @@ function PaymentsInner() {
     }
   }
 
-  const filteredPayments = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return payments.filter((p) => {
-      if (statusFilter !== "all" && p.status !== statusFilter) return false;
-      if (!q) return true;
-      return [p.transaction_id, p.order_id, p.razorpay_payment_id, p.method, p.user_id]
-        .some((v) => (v ?? "").toLowerCase().includes(q));
-    });
-  }, [payments, query, statusFilter]);
+  // Server already filtered + paginated; render rows as-is.
+  const filteredPayments = payments;
+  const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
 
   const totals = useMemo(() => {
     const succeeded = payments.filter((p) => p.status === "succeeded");
