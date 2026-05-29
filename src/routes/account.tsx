@@ -591,14 +591,15 @@ function ProductScroller({ items }: { items: Array<{ slug: string }> }) {
     </div>
   );
 }
-
-
-
 function InsightStat({ label, value, accent, small, truncate }: { label: string; value: string; accent?: boolean; small?: boolean; truncate?: boolean }) {
   return (
     <div className={`rounded-xl glass p-3.5 transition-colors hover:border-accent/30 ${accent ? "border-accent/30 bg-accent/5" : ""}`}>
-      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/90">{label}</p>
       <p className={`mt-1 font-display font-semibold tabular-nums ${small ? "text-sm" : "text-lg"} ${accent ? "text-gradient-ember" : ""} ${truncate ? "truncate" : ""}`}>{value}</p>
+    </div>
+  );
+}
+
     </div>
   );
 }
