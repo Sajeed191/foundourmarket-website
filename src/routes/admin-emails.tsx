@@ -134,6 +134,7 @@ function TestSender({ onSent }: { onSent: () => void }) {
   );
 }
 
+function EmailsPage() {
   const fetchActivity = useServerFn(getEmailActivity);
   const [range, setRange] = useState<"24h" | "7d" | "30d">("7d");
   const [template, setTemplate] = useState<string>("");
