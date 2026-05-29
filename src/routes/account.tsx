@@ -7,7 +7,7 @@ import {
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
   Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe, Crown,
-  CheckCircle2, Box, Home, X, Plus, Minus,
+  CheckCircle2, Box, Home, X, Plus, Minus, CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
