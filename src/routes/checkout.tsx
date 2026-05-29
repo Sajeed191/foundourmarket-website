@@ -70,9 +70,10 @@ function CheckoutPage() {
 
   useEffect(() => {
     if (selectedAddressId) return;
-    if (defaultShipping) setSelectedAddressId(defaultShipping.id);
+    if (addressParam && addresses.some((a) => a.id === addressParam)) setSelectedAddressId(addressParam);
+    else if (defaultShipping) setSelectedAddressId(defaultShipping.id);
     else if (addresses[0]) setSelectedAddressId(addresses[0].id);
-  }, [addresses, defaultShipping, selectedAddressId]);
+  }, [addresses, defaultShipping, selectedAddressId, addressParam]);
 
   // Preload the Razorpay SDK for snappier checkout
   useEffect(() => {
