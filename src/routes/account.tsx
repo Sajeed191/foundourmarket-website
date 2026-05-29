@@ -600,9 +600,6 @@ function InsightStat({ label, value, accent, small, truncate }: { label: string;
   );
 }
 
-    </div>
-  );
-}
 
 function FooterAction({ icon: Icon, label, to }: { icon: typeof Package; label: string; to: string }) {
   return (
