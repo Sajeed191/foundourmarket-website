@@ -54,6 +54,26 @@ const RegionContext = createContext<Ctx | null>(null);
 const LS_KEY = "market_region";
 // Set only when a guest *explicitly* picks a market (inherited on login).
 const GUEST_CHOICE_KEY = "market_region_chosen";
+// Set once the market selector has been shown — guarantees one prompt/device.
+const PROMPT_SEEN_KEY = "market_region_prompt_seen";
+
+/** True if the region selector has already been shown on this device. */
+function promptAlreadySeen(): boolean {
+  if (typeof document === "undefined") return false;
+  if (localStorage.getItem(PROMPT_SEEN_KEY) === "1") return true;
+  return document.cookie.includes(`${PROMPT_SEEN_KEY}=1`);
+}
+
+/** Persist the "seen" flag across both localStorage and a 1-year cookie. */
+function markPromptSeen() {
+  if (typeof document === "undefined") return;
+  try {
+    localStorage.setItem(PROMPT_SEEN_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+  document.cookie = `${PROMPT_SEEN_KEY}=1; path=/; max-age=31536000; samesite=lax`;
+}
 
 function formatMoney(amount: number, currency: Currency): string {
   if (currency === "INR") return `₹${Math.round(amount).toLocaleString("en-IN")}`;
@@ -187,10 +207,16 @@ export function RegionProvider({ children }: { children: ReactNode }) {
             }
           }
 
-          // Ambiguous / VPN / low confidence → require manual confirmation.
+          // Ambiguous / VPN / low confidence → require manual confirmation,
+          // but only if we've never shown the selector on this device.
           if (result) setMarket(result.region);
           setLocked(false);
-          setNeedsSelection(true);
+          if (promptAlreadySeen()) {
+            setNeedsSelection(false);
+          } else {
+            markPromptSeen();
+            setNeedsSelection(true);
+          }
         } else {
           // Guest: silent auto-detect, only prompt when ambiguous.
           const guestChoice =
@@ -223,10 +249,15 @@ export function RegionProvider({ children }: { children: ReactNode }) {
               localStorage.setItem(LS_KEY, result.region);
             }
           } else {
-            // Ambiguous → let the guest choose their market.
+            // Ambiguous → let the guest choose, but only once per device.
             if (result) setMarket(result.region);
             setAutoDetected(false);
-            setNeedsSelection(true);
+            if (promptAlreadySeen()) {
+              setNeedsSelection(false);
+            } else {
+              markPromptSeen();
+              setNeedsSelection(true);
+            }
           }
           setLocked(false);
         }

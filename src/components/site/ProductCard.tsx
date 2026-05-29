@@ -4,6 +4,7 @@ import type { Product } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
+import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminControls";
 
 const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
 
@@ -26,6 +27,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
   return (
     <div className={`group card-premium overflow-hidden relative ${compact ? "p-1.5 sm:p-2" : "p-2.5 sm:p-3"}`}>
+      <ProductCardAdminControls product={product} />
       {/* Ember halo on hover */}
       <div
         aria-hidden

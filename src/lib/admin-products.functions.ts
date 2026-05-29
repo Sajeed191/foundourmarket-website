@@ -97,3 +97,75 @@ export const adminUpdateProduct = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+const slugSchema = z.object({ slug: z.string().min(1).max(200) });
+
+/** Delete a product. Staff-gated server-side; RLS enforces admin again. */
+export const adminDeleteProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => slugSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertStaff(supabase, userId);
+
+    const { error } = await supabase.from("products").delete().eq("slug", data.slug);
+    if (error) throw new Error(error.message || "Delete failed.");
+
+    await supabase.from("admin_activity_logs").insert({
+      actor_id: userId,
+      action: "product.delete",
+      entity_type: "product",
+      entity_id: data.slug,
+      metadata: {},
+    });
+
+    return { ok: true };
+  });
+
+/** Duplicate a product into a fresh draft row with a unique slug. */
+export const adminDuplicateProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => slugSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertStaff(supabase, userId);
+
+    const { data: src, error: readErr } = await supabase
+      .from("products")
+      .select("*")
+      .eq("slug", data.slug)
+      .single();
+    if (readErr || !src) throw new Error(readErr?.message || "Product not found.");
+
+    const copy = { ...src } as Record<string, unknown>;
+    delete copy.id;
+    delete copy.created_at;
+    delete copy.updated_at;
+    delete copy.search_vector;
+    delete copy.views_count;
+
+    const suffix = Math.random().toString(36).slice(2, 6);
+    copy.slug = `${data.slug}-copy-${suffix}`.slice(0, 200);
+    copy.name = `${src.name} (Copy)`;
+    copy.sku = src.sku ? `${src.sku}-${suffix}` : null;
+    copy.featured = false;
+    copy.in_stock = false; // duplicates start hidden/draft
+
+    const { data: inserted, error: insErr } = await supabase
+      .from("products")
+      .insert(copy)
+      .select("slug")
+      .single();
+    if (insErr) throw new Error(insErr.message || "Duplicate failed.");
+
+    await supabase.from("admin_activity_logs").insert({
+      actor_id: userId,
+      action: "product.duplicate",
+      entity_type: "product",
+      entity_id: inserted.slug,
+      metadata: { source: data.slug },
+    });
+
+    return { ok: true, slug: inserted.slug as string };
+  });
+
