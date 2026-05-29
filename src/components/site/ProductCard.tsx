@@ -33,7 +33,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
       />
 
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative">
-        <div className={`relative aspect-square rounded-xl overflow-hidden bg-black/40 ${compact ? "mb-1.5" : "mb-3 sm:mb-4"}`}>
+        <div className={`relative aspect-square rounded-xl overflow-hidden bg-black/40 ${compact ? "mb-1" : "mb-3 sm:mb-4"}`}>
           {/* Glow on hover */}
           <div
             aria-hidden
