@@ -542,8 +542,13 @@ export type Database = {
           created_at: string
           marketing: boolean
           order_updates: boolean
+          payment_updates: boolean
           product_news: boolean
+          push_order_updates: boolean
+          push_payment_updates: boolean
+          push_security_updates: boolean
           return_updates: boolean
+          security_updates: boolean
           shipping_updates: boolean
           updated_at: string
           user_id: string
@@ -553,8 +558,13 @@ export type Database = {
           created_at?: string
           marketing?: boolean
           order_updates?: boolean
+          payment_updates?: boolean
           product_news?: boolean
+          push_order_updates?: boolean
+          push_payment_updates?: boolean
+          push_security_updates?: boolean
           return_updates?: boolean
+          security_updates?: boolean
           shipping_updates?: boolean
           updated_at?: string
           user_id: string
@@ -564,8 +574,13 @@ export type Database = {
           created_at?: string
           marketing?: boolean
           order_updates?: boolean
+          payment_updates?: boolean
           product_news?: boolean
+          push_order_updates?: boolean
+          push_payment_updates?: boolean
+          push_security_updates?: boolean
           return_updates?: boolean
+          security_updates?: boolean
           shipping_updates?: boolean
           updated_at?: string
           user_id?: string
