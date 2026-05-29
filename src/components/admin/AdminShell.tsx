@@ -163,14 +163,21 @@ export function AdminShell({
   const q = query.trim().toLowerCase();
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="relative min-h-screen flex w-full bg-background">
+      {/* Background atmosphere — ambient cinematic depth */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="orb animate-orb -top-32 left-1/4 size-[28rem] opacity-30" style={{ background: "var(--gradient-ember-soft)" }} />
+        <div className="orb animate-float-soft bottom-0 right-0 size-[24rem] opacity-20" style={{ background: "var(--gradient-ember-soft)" }} />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(140% 100% at 50% -10%, oklch(1 0 0 / 0.015), transparent 50%), radial-gradient(120% 120% at 50% 120%, oklch(0 0 0 / 0.5), transparent 60%)" }} />
+      </div>
       {/* Sidebar — floating operator console */}
       <aside className={`fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40 w-[17.5rem] transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:transform-none ${open ? "translate-x-0" : "-translate-x-[110%] lg:translate-x-0"} h-screen p-3`}>
-        <div className="relative h-full flex flex-col rounded-[1.75rem] overflow-hidden glass-strong glass-reflect" style={{ boxShadow: "var(--shadow-float), var(--shadow-ember)" }}>
+        <div className="relative h-full flex flex-col rounded-[1.75rem] overflow-hidden glass-strong glass-reflect" style={{ boxShadow: "var(--shadow-float), 0 0 50px -22px oklch(0.74 0.19 49 / 0.3), inset 0 1px 0 oklch(1 0 0 / 0.06)" }}>
           {/* Ambient lighting */}
-          <div className="orb animate-orb -top-16 -left-10 size-48" style={{ background: "var(--gradient-ember)" }} />
-          <div className="orb -bottom-20 -right-12 size-52 opacity-40" style={{ background: "var(--gradient-ember-soft)" }} />
-          <div className="pointer-events-none absolute inset-0 rounded-[1.75rem]" style={{ background: "radial-gradient(120% 80% at 50% -10%, oklch(1 0 0 / 0.05), transparent 55%)" }} />
+          <div className="orb animate-orb -top-16 -left-10 size-44 opacity-40" style={{ background: "var(--gradient-ember)" }} />
+          <div className="orb animate-float-soft -bottom-20 -right-12 size-48 opacity-30" style={{ background: "var(--gradient-ember-soft)" }} />
+          <div className="pointer-events-none absolute inset-0 rounded-[1.75rem]" style={{ background: "radial-gradient(120% 80% at 50% -10%, oklch(1 0 0 / 0.04), transparent 55%)" }} />
+
 
           {/* Brand + close */}
           <div className="relative px-4 pt-4 pb-3 flex items-center justify-between shrink-0">
