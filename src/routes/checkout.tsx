@@ -17,7 +17,7 @@ import { useRegion } from "@/lib/region";
 import { useAddresses, type Address } from "@/lib/use-addresses";
 import { useStoreSettings } from "@/lib/use-store-settings";
 import { AddressForm } from "@/components/site/AddressForm";
-import { createRazorpayOrder, verifyRazorpayPayment, cancelRazorpayOrder } from "@/lib/razorpay.functions";
+import { createRazorpayOrder, verifyRazorpayPayment, cancelRazorpayOrder, placeCodOrder } from "@/lib/razorpay.functions";
 import { createRazorpayCustomer, syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
 import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpay-loader";
 import { validatePincode, type ServiceabilityResult } from "@/lib/serviceability.functions";
@@ -70,6 +70,7 @@ function CheckoutPage() {
   const createOrder = useServerFn(createRazorpayOrder);
   const verifyPayment = useServerFn(verifyRazorpayPayment);
   const cancelOrder = useServerFn(cancelRazorpayOrder);
+  const placeCodOrderFn = useServerFn(placeCodOrder);
   const ensureCustomer = useServerFn(createRazorpayCustomer);
   const syncMethods = useServerFn(syncRazorpayPaymentMethods);
 
