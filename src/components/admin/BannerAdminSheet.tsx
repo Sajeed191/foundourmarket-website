@@ -237,7 +237,7 @@ export function BannerAdminSheet({ onClose, onChanged }: { onClose: () => void; 
                 <Plus className="size-3.5" /> New banner
               </button>
               <ul className="space-y-2">
-                {rows.map((r) => (
+                {rows.map((r, i) => (
                   <li
                     key={r.id}
                     className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-2.5"
