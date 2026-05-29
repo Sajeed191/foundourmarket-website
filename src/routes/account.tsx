@@ -293,7 +293,9 @@ function AccountPage() {
             <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
             <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
             <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 help" />
+            <ActionCard to="/account/payments" icon={CreditCard} title="Payments" subtitle="Saved methods" />
             <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
+
           </div>
         </motion.section>
 
