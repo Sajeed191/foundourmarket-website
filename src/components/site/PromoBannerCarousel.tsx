@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/lib/use-admin";
+import { BannerAdminSheet } from "@/components/admin/BannerAdminSheet";
 
 type Banner = {
   id: string;
   title: string;
   subtitle: string | null;
   image: string | null;
+  mobile_image: string | null;
   link: string | null;
   cta_text: string | null;
   sort_order: number;
@@ -31,14 +34,16 @@ export function PromoBannerCarousel({
   eyebrow,
 }: Props = {}) {
 
+  const { isAdmin } = useIsAdmin();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   function fetchBanners() {
     supabase
       .from("banners")
-      .select("id,title,subtitle,image,link,cta_text,sort_order,active,starts_at,ends_at,type")
+      .select("id,title,subtitle,image,mobile_image,link,cta_text,sort_order,active,starts_at,ends_at,type")
       .eq("active", true)
       .in("type", types)
       .order("sort_order")
@@ -71,7 +76,24 @@ export function PromoBannerCarousel({
     return () => clearInterval(id);
   }, [paused, banners.length]);
 
-  if (!banners.length) return null;
+  // Admins always get an edit affordance, even when no banners exist yet.
+  if (!banners.length) {
+    if (!isAdmin) return null;
+    return (
+      <section className="px-4 sm:px-6 pt-10 sm:pt-14">
+        <div className={`relative max-w-7xl mx-auto rounded-3xl overflow-hidden border border-dashed border-accent/30 bg-card ${aspectClassName} grid place-items-center`}>
+          <button
+            onClick={() => setEditing(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-background/70 px-4 py-2 text-[11px] font-mono uppercase tracking-widest text-accent backdrop-blur-md hover:bg-accent/15"
+          >
+            <Pencil className="size-3.5" /> Add a banner
+          </button>
+        </div>
+        {editing && <BannerAdminSheet onClose={() => setEditing(false)} onChanged={fetchBanners} />}
+      </section>
+    );
+  }
+
   const b = banners[idx];
   const prev = () => setIdx((i) => (i - 1 + banners.length) % banners.length);
   const next = () => setIdx((i) => (i + 1) % banners.length);
@@ -89,6 +111,7 @@ export function PromoBannerCarousel({
         onMouseLeave={() => setPaused(false)}
       >
 
+
         <AnimatePresence mode="wait">
           <motion.div
             key={b.id}
@@ -98,8 +121,11 @@ export function PromoBannerCarousel({
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="absolute inset-0"
           >
-            {b.image ? (
-              <img src={b.image} alt={b.title} className="w-full h-full object-cover" />
+            {b.image || b.mobile_image ? (
+              <picture>
+                {b.mobile_image && <source media="(max-width: 640px)" srcSet={b.mobile_image} />}
+                <img src={b.image ?? b.mobile_image ?? ""} alt={b.title} className="w-full h-full object-cover" />
+              </picture>
             ) : (
               <div className="absolute inset-0" style={{ background: "var(--gradient-ember)", opacity: 0.5 }} />
             )}
@@ -160,7 +186,18 @@ export function PromoBannerCarousel({
             </div>
           </>
         )}
+
+        {isAdmin && (
+          <button
+            onClick={() => setEditing(true)}
+            aria-label="Edit banners"
+            className="absolute right-3 top-3 z-10 grid size-8 place-items-center rounded-full border border-accent/40 bg-background/70 text-accent backdrop-blur-md transition-all hover:bg-accent/15"
+          >
+            <Pencil className="size-3.5" />
+          </button>
+        )}
       </div>
+      {isAdmin && editing && <BannerAdminSheet onClose={() => setEditing(false)} onChanged={fetchBanners} />}
     </section>
   );
 }
