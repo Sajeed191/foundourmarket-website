@@ -4,15 +4,15 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Minus, Plus, X, ArrowRight, ShoppingBag, Bookmark, RotateCcw, Heart,
-  Truck, ShieldCheck, Tag, ChevronDown, Sparkles, Lock, MapPin, Clock,
-  AlertTriangle, CheckCircle2, Loader2, Undo2,
+  Truck, ShieldCheck, ChevronDown, Lock, MapPin, Clock,
+  AlertTriangle, CheckCircle2, Loader2, Undo2, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
 import { useRegion } from "@/lib/region";
 import { RelatedProducts } from "@/components/site/RelatedProducts";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
-import { applyCoupon, estimateShipping } from "@/lib/cart.functions";
+import { estimateShipping } from "@/lib/cart.functions";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({ meta: [{ title: "Cart — FoundOurMarket™" }] }),
@@ -20,13 +20,9 @@ export const Route = createFileRoute("/cart")({
 });
 
 const FREE_SHIP_THRESHOLD = 50; // USD
-const COUPON_SUGGESTIONS = [
-  { code: "WELCOME10", label: "10% off your order" },
-  { code: "FOM20", label: "20% off orders over $100" },
-  { code: "FLAT15", label: "$15 off orders over $80" },
-];
 
-type CouponState = { code: string; discount: number } | null;
+// Auto-applied campaign discount (backend-ready, silent — no manual coupon UI).
+type AutoPromo = { label: string; discount: number } | null;
 type ShipState = {
   city: string | null; state: string | null; minDays: number; maxDays: number;
   etaIso: string; shippingUsd: number; codAvailable: boolean; expressAvailable: boolean;
