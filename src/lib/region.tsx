@@ -72,6 +72,9 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   const [locked, setLocked] = useState(false);
   const [needsSelection, setNeedsSelection] = useState(false);
   const [countryCode, setCountryCode] = useState<string | null>(null);
+  const [autoDetected, setAutoDetected] = useState(false);
+  const [confidence, setConfidence] = useState(0);
+  const [vpnSuspected, setVpnSuspected] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Read any cached suggestion immediately (avoids flash on reload).
@@ -86,6 +89,18 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     if (authLoading) return;
     let cancelled = false;
 
+    /** Layers 1–3: edge geo-IP blended with browser timezone + locale. */
+    async function runDetection() {
+      const edge = await detect();
+      const result = blendDetection(edge);
+      if (!cancelled) {
+        setCountryCode(result.countryCode);
+        setConfidence(result.confidence);
+        setVpnSuspected(result.vpnSuspected);
+      }
+      return result;
+    }
+
     (async () => {
       setLoading(true);
       try {
@@ -95,52 +110,125 @@ export function RegionProvider({ children }: { children: ReactNode }) {
             setLocked(false);
             setNeedsSelection(false);
             try {
-              const d = await detect();
-              if (!cancelled) setCountryCode(d.countryCode);
+              await runDetection();
             } catch {
               /* ignore */
             }
             return;
           }
+
           const mine = await fetchMine();
           if (cancelled) return;
+
           if (mine.region) {
+            // Already locked → authoritative, instant.
             setMarket(mine.region);
             setLocked(true);
             setNeedsSelection(false);
+            setAutoDetected(false);
             setCountryCode(mine.countryCode);
-            if (typeof window !== "undefined") localStorage.setItem(LS_KEY, mine.region);
-          } else {
-            // Logged in but no region yet → must choose.
-            setLocked(false);
-            setNeedsSelection(true);
+            if (typeof window !== "undefined") {
+              localStorage.setItem(LS_KEY, mine.region);
+            }
+            return;
+          }
+
+          // Logged in, no region yet → inherit a pre-login guest choice,
+          // else auto-lock when geo-intelligence is confident, else prompt.
+          const guestChoice =
+            typeof window !== "undefined"
+              ? (localStorage.getItem(GUEST_CHOICE_KEY) as MarketRegion | null)
+              : null;
+
+          if (guestChoice === "india" || guestChoice === "international") {
             try {
-              const d = await detect();
-              if (!cancelled) {
-                setMarket(d.suggested);
-                setCountryCode(d.countryCode);
+              const res = await lockFn({
+                data: { region: guestChoice, countryCode },
+              });
+              if (cancelled) return;
+              setMarket(res.region);
+              setLocked(true);
+              setNeedsSelection(false);
+              if (typeof window !== "undefined") {
+                localStorage.setItem(LS_KEY, res.region);
+                localStorage.removeItem(GUEST_CHOICE_KEY);
               }
+              return;
             } catch {
-              /* keep cached/default suggestion */
+              /* fall through to detection */
             }
           }
-        } else {
-          // Guest: suggest a region for display, never lock.
+
+          const result = await runDetection().catch(() => null);
+          if (cancelled) return;
+
+          if (
+            result &&
+            !result.conflicting &&
+            !result.vpnSuspected &&
+            result.confidence >= CONFIDENCE_THRESHOLD
+          ) {
+            // High confidence → silently lock, no popup.
+            try {
+              const res = await lockFn({
+                data: { region: result.region, countryCode: result.countryCode },
+              });
+              if (cancelled) return;
+              setMarket(res.region);
+              setLocked(true);
+              setNeedsSelection(false);
+              setAutoDetected(true);
+              if (typeof window !== "undefined") {
+                localStorage.setItem(LS_KEY, res.region);
+              }
+              return;
+            } catch {
+              /* fall through to manual */
+            }
+          }
+
+          // Ambiguous / VPN / low confidence → require manual confirmation.
+          if (result) setMarket(result.region);
           setLocked(false);
-          setNeedsSelection(false);
-          const hasCache =
-            typeof window !== "undefined" && localStorage.getItem(LS_KEY);
-          if (!hasCache) {
-            try {
-              const d = await detect();
-              if (!cancelled) {
-                setMarket(d.suggested);
-                setCountryCode(d.countryCode);
-              }
-            } catch {
-              /* default international */
-            }
+          setNeedsSelection(true);
+        } else {
+          // Guest: silent auto-detect, only prompt when ambiguous.
+          const guestChoice =
+            typeof window !== "undefined"
+              ? localStorage.getItem(GUEST_CHOICE_KEY)
+              : null;
+
+          if (guestChoice === "india" || guestChoice === "international") {
+            setMarket(guestChoice);
+            setLocked(false);
+            setNeedsSelection(false);
+            setAutoDetected(false);
+            return;
           }
+
+          const result = await runDetection().catch(() => null);
+          if (cancelled) return;
+
+          if (
+            result &&
+            !result.conflicting &&
+            !result.vpnSuspected &&
+            result.confidence >= CONFIDENCE_THRESHOLD
+          ) {
+            // Confident → render correct pricing instantly, no popup.
+            setMarket(result.region);
+            setAutoDetected(true);
+            setNeedsSelection(false);
+            if (typeof window !== "undefined") {
+              localStorage.setItem(LS_KEY, result.region);
+            }
+          } else {
+            // Ambiguous → let the guest choose their market.
+            if (result) setMarket(result.region);
+            setAutoDetected(false);
+            setNeedsSelection(true);
+          }
+          setLocked(false);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -150,17 +238,31 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading, isAdmin, fetchMine, detect]);
+  }, [user, authLoading, isAdmin, fetchMine, detect, lockFn, countryCode]);
 
   const lockMarket = useCallback(
     async (region: MarketRegion) => {
-      const res = await lockFn({ data: { region, countryCode } });
-      setMarket(res.region);
-      setLocked(true);
+      if (user) {
+        const res = await lockFn({ data: { region, countryCode } });
+        setMarket(res.region);
+        setLocked(true);
+        setNeedsSelection(false);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(LS_KEY, res.region);
+          localStorage.removeItem(GUEST_CHOICE_KEY);
+        }
+        return;
+      }
+      // Guest: persist the explicit choice so it's inherited on login.
+      setMarket(region);
       setNeedsSelection(false);
-      if (typeof window !== "undefined") localStorage.setItem(LS_KEY, res.region);
+      setAutoDetected(false);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(LS_KEY, region);
+        localStorage.setItem(GUEST_CHOICE_KEY, region);
+      }
     },
-    [lockFn, countryCode],
+    [user, lockFn, countryCode],
   );
 
   // Admin-only market preview (no lock, no persistence).
@@ -203,6 +305,9 @@ export function RegionProvider({ children }: { children: ReactNode }) {
         currency,
         symbol,
         locked,
+        autoDetected,
+        confidence,
+        vpnSuspected,
         needsSelection,
         loading,
         countryCode,
