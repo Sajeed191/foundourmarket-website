@@ -304,6 +304,10 @@ function CheckoutPage() {
 
   const placeOrder = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!serviceable) {
+      setError(service?.message ?? "This address isn't serviceable yet.");
+      return;
+    }
     if (payMethod === "cod") placeCod();
     else payWithRazorpay();
   };
