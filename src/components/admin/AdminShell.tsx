@@ -349,12 +349,13 @@ export function AdminShell({
           />
         )}
       </AnimatePresence>
-
       {/* Main */}
-      <div className="flex-1 min-w-0 flex flex-col">
-        <header className="sticky top-0 z-20 overflow-hidden bg-background/70 backdrop-blur-2xl border-b border-white/[0.06]">
+      <div className="relative z-10 flex-1 min-w-0 flex flex-col">
+        <header className="sticky top-0 z-20 overflow-hidden bg-background/60 backdrop-blur-2xl border-b border-white/[0.05]">
           {/* Ambient header lighting */}
-          <div className="pointer-events-none absolute -top-16 right-1/4 size-48 rounded-full opacity-30 animate-orb" style={{ background: "var(--gradient-ember-soft)", filter: "blur(40px)" }} />
+          <div className="pointer-events-none absolute -top-16 right-1/4 size-48 rounded-full opacity-25 animate-orb" style={{ background: "var(--gradient-ember-soft)", filter: "blur(44px)" }} />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
+
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
           {/* Top OS nav bar: left / center / right */}
