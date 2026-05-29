@@ -146,7 +146,7 @@ const greet = (name?: string) => (name ? `Hi ${name}, ` : '')
 const ref = (n?: string) => (n ? `#${n}` : 'your order')
 
 /* ---------- Order confirmed ---------- */
-function OrderConfirmedEmail({ orderNumber, customerName, amount }: OrderEmailProps) {
+function OrderConfirmedEmail({ orderNumber, customerName, amount, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
       badge="✦ Order Confirmed"
@@ -162,7 +162,7 @@ function OrderConfirmedEmail({ orderNumber, customerName, amount }: OrderEmailPr
 }
 
 /* ---------- Payment verified ---------- */
-function PaymentVerifiedEmail({ orderNumber, customerName, amount }: OrderEmailProps) {
+function PaymentVerifiedEmail({ orderNumber, customerName, amount, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
       badge="✦ Payment Verified"
@@ -178,7 +178,7 @@ function PaymentVerifiedEmail({ orderNumber, customerName, amount }: OrderEmailP
 }
 
 /* ---------- Shipped ---------- */
-function ShippedEmail({ orderNumber, customerName, trackingNumber, carrier }: OrderEmailProps) {
+function ShippedEmail({ orderNumber, customerName, trackingNumber, carrier, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
       badge="✦ Shipped"
@@ -195,7 +195,7 @@ function ShippedEmail({ orderNumber, customerName, trackingNumber, carrier }: Or
 }
 
 /* ---------- Out for delivery ---------- */
-function OutForDeliveryEmail({ orderNumber, customerName, trackingNumber, carrier }: OrderEmailProps) {
+function OutForDeliveryEmail({ orderNumber, customerName, trackingNumber, carrier, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
       badge="✦ Out for Delivery"
@@ -212,7 +212,7 @@ function OutForDeliveryEmail({ orderNumber, customerName, trackingNumber, carrie
 }
 
 /* ---------- Delivered ---------- */
-function DeliveredEmail({ orderNumber, customerName }: OrderEmailProps) {
+function DeliveredEmail({ orderNumber, customerName, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
       badge="✦ Delivered"
@@ -227,7 +227,7 @@ function DeliveredEmail({ orderNumber, customerName }: OrderEmailProps) {
 }
 
 /* ---------- Refund processed ---------- */
-function RefundProcessedEmail({ orderNumber, customerName, refundAmount }: OrderEmailProps) {
+function RefundProcessedEmail({ orderNumber, customerName, refundAmount, unsubscribeUrl }: OrderEmailProps) {
   return (
     <Shell
       badge="✦ Refund Processed"
