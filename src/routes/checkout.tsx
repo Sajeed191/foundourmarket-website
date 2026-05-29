@@ -5,8 +5,10 @@ import {
   Loader2, ShieldCheck, MapPin, Plus, Lock, Smartphone, CreditCard,
   Landmark, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Globe, Sparkles,
   Home, Briefcase, MapPinned, Pencil, Trash2, Star, ArrowRight, Clock,
-  PackageCheck, Headphones, BadgeCheck, ShieldHalf,
+  PackageCheck, Headphones, BadgeCheck, ShieldHalf, Download,
 } from "lucide-react";
+import { toast } from "sonner";
+import { downloadInvoice } from "@/lib/invoice";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -706,6 +708,7 @@ function SuccessScreen({ orderId, totalINR, method, eta, nav }: {
   orderId: string | null; totalINR: number; method: "razorpay" | "cod"; eta: string;
   nav: ReturnType<typeof useNavigate>;
 }) {
+  const [downloading, setDownloading] = useState(false);
   return (
     <div className="relative min-h-[70vh] grid place-items-center px-6">
       <Atmosphere />
@@ -732,6 +735,20 @@ function SuccessScreen({ orderId, totalINR, method, eta, nav }: {
             <button onClick={() => nav({ to: "/orders/$id", params: { id: orderId } })}
               className="w-full bg-accent text-accent-foreground font-bold py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110">
               View order
+            </button>
+          )}
+          {orderId && (
+            <button
+              onClick={async () => {
+                setDownloading(true);
+                const ok = await downloadInvoice(orderId);
+                if (!ok) toast.error("Couldn't generate invoice. Please try from your order page.");
+                setDownloading(false);
+              }}
+              disabled={downloading}
+              className="w-full inline-flex items-center justify-center gap-2 glass border border-white/10 text-foreground font-bold py-3 rounded-full text-xs uppercase tracking-widest hover:border-accent/40 disabled:opacity-60">
+              {downloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+              {downloading ? "Preparing…" : "Download invoice"}
             </button>
           )}
           <button onClick={() => nav({ to: "/" })}
