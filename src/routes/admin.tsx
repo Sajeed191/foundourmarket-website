@@ -263,7 +263,6 @@ function AdminPage() {
       >
       {tab === "overview" && (
         <>
-        <>
           <DashboardOverview orders={orders} products={products} customersCount={customers.length} />
           <h2 className="text-xl font-medium mb-6">Recent orders</h2>
           {orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
