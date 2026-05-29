@@ -124,6 +124,7 @@ function SearchPage() {
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{loading ? "…" : `${results.length} results`}</span>
           <select value={search.sort ?? "relevance"} onChange={(e) => update({ sort: e.target.value })}
+            aria-label="Sort search results"
             className="bg-background border border-border rounded-full px-3 py-2 text-[11px] font-mono uppercase tracking-widest focus:outline-none focus:border-accent">
             {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
