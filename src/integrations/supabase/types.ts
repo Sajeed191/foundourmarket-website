@@ -1334,6 +1334,7 @@ export type Database = {
           tagline: string | null
           updated_at: string
           views_count: number
+          warranty: string
         }
         Insert: {
           category: string
@@ -1365,6 +1366,7 @@ export type Database = {
           tagline?: string | null
           updated_at?: string
           views_count?: number
+          warranty?: string
         }
         Update: {
           category?: string
@@ -1396,6 +1398,7 @@ export type Database = {
           tagline?: string | null
           updated_at?: string
           views_count?: number
+          warranty?: string
         }
         Relationships: []
       }
@@ -2502,6 +2505,7 @@ export type Database = {
           tagline: string | null
           updated_at: string
           views_count: number
+          warranty: string
         }[]
         SetofOptions: {
           from: "*"
