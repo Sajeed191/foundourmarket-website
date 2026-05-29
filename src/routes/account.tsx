@@ -32,6 +32,7 @@ type Order = {
   id: string;
   status: string;
   total: number;
+  discount: number | null;
   currency: string;
   created_at: string;
   order_items: { name: string; quantity: number; image: string | null }[];
@@ -78,7 +79,7 @@ function AccountPage() {
     Promise.all([
       supabase
         .from("orders")
-        .select("id,status,total,currency,created_at,order_items(name,quantity,image)")
+        .select("id,status,total,discount,currency,created_at,order_items(name,quantity,image)")
         .order("created_at", { ascending: false })
         .limit(20),
       supabase
@@ -103,7 +104,7 @@ function AccountPage() {
     const list = orders ?? [];
     const spent = list.reduce((s, o) => s + Number(o.total || 0), 0);
     const active = list.filter((o) => !["delivered", "cancelled", "refunded"].includes(String(o.status).toLowerCase())).length;
-    const saved = Math.round(spent * 0.08);
+    const saved = Math.round(list.reduce((s, o) => s + Number(o.discount || 0), 0));
     const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "—";
     const categoryCount = new Map<string, number>();
     for (const o of list) for (const it of o.order_items) categoryCount.set(it.name, (categoryCount.get(it.name) ?? 0) + it.quantity);
