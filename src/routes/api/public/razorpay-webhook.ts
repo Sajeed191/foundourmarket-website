@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { verifyWebhookSignature } from "@/lib/razorpay.server";
+import { enqueueOrderEmail } from "@/lib/order-emails.server";
 
 /**
  * Razorpay webhook receiver. Configure this URL in the Razorpay dashboard:
