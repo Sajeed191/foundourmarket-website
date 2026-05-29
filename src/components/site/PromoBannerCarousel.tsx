@@ -34,14 +34,16 @@ export function PromoBannerCarousel({
   eyebrow,
 }: Props = {}) {
 
+  const { isAdmin } = useIsAdmin();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   function fetchBanners() {
     supabase
       .from("banners")
-      .select("id,title,subtitle,image,link,cta_text,sort_order,active,starts_at,ends_at,type")
+      .select("id,title,subtitle,image,mobile_image,link,cta_text,sort_order,active,starts_at,ends_at,type")
       .eq("active", true)
       .in("type", types)
       .order("sort_order")
@@ -74,7 +76,24 @@ export function PromoBannerCarousel({
     return () => clearInterval(id);
   }, [paused, banners.length]);
 
-  if (!banners.length) return null;
+  // Admins always get an edit affordance, even when no banners exist yet.
+  if (!banners.length) {
+    if (!isAdmin) return null;
+    return (
+      <section className="px-4 sm:px-6 pt-10 sm:pt-14">
+        <div className={`relative max-w-7xl mx-auto rounded-3xl overflow-hidden border border-dashed border-accent/30 bg-card ${aspectClassName} grid place-items-center`}>
+          <button
+            onClick={() => setEditing(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-background/70 px-4 py-2 text-[11px] font-mono uppercase tracking-widest text-accent backdrop-blur-md hover:bg-accent/15"
+          >
+            <Pencil className="size-3.5" /> Add a banner
+          </button>
+        </div>
+        {editing && <BannerAdminSheet onClose={() => setEditing(false)} onChanged={fetchBanners} />}
+      </section>
+    );
+  }
+
   const b = banners[idx];
   const prev = () => setIdx((i) => (i - 1 + banners.length) % banners.length);
   const next = () => setIdx((i) => (i + 1) % banners.length);
@@ -91,6 +110,7 @@ export function PromoBannerCarousel({
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
+
 
         <AnimatePresence mode="wait">
           <motion.div
