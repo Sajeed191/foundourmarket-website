@@ -26,6 +26,11 @@ import {
   deliveredTemplate,
   refundProcessedTemplate,
 } from './order-emails'
+import {
+  welcomeTemplate,
+  accountVerificationTemplate,
+  passwordResetTemplate,
+} from './account-emails'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'test-email': testEmailTemplate,
@@ -35,4 +40,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'out-for-delivery': outForDeliveryTemplate,
   'order-delivered': deliveredTemplate,
   'refund-processed': refundProcessedTemplate,
+  'welcome': welcomeTemplate,
+  'account-verification': accountVerificationTemplate,
+  'password-reset': passwordResetTemplate,
 }
