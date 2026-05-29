@@ -109,6 +109,17 @@ type Row = {
   price_usd?: number | string | null; compare_price_usd?: number | string | null;
   india_visible?: boolean | null; international_visible?: boolean | null;
   warranty?: string | null;
+  status?: string | null;
+  cost_price_inr?: number | string | null; cost_price_usd?: number | string | null;
+  shipping_fee_inr?: number | string | null; shipping_fee_usd?: number | string | null;
+  razorpay_enabled?: boolean | null; stripe_enabled?: boolean | null; paypal_enabled?: boolean | null;
+  cod_enabled?: boolean | null; return_eligible?: boolean | null; replacement_eligible?: boolean | null;
+  return_window_days?: number | null; pickup_supported?: boolean | null;
+  international_shipping?: boolean | null; fragile?: boolean | null;
+  customs_info?: string | null; barcode?: string | null;
+  warehouse_location?: string | null; restock_eta?: string | null;
+  preorder?: boolean | null; reserved_quantity?: number | null;
+  scheduled_publish_at?: string | null; scheduled_expiry_at?: string | null;
 };
 
 const num = (v: number | string | null | undefined): number | null =>
@@ -140,10 +151,33 @@ function rowToProduct(r: Row): Product {
     indiaVisible: r.india_visible ?? true,
     internationalVisible: r.international_visible ?? true,
     warranty: r.warranty ?? "12 months",
+    status: (r.status as ProductStatus) ?? "published",
+    costPriceInr: num(r.cost_price_inr),
+    costPriceUsd: num(r.cost_price_usd),
+    shippingFeeInr: Number(r.shipping_fee_inr ?? 0),
+    shippingFeeUsd: Number(r.shipping_fee_usd ?? 0),
+    razorpayEnabled: r.razorpay_enabled ?? true,
+    stripeEnabled: r.stripe_enabled ?? true,
+    paypalEnabled: r.paypal_enabled ?? false,
+    codEnabled: r.cod_enabled ?? true,
+    returnEligible: r.return_eligible ?? true,
+    replacementEligible: r.replacement_eligible ?? true,
+    returnWindowDays: r.return_window_days ?? 7,
+    pickupSupported: r.pickup_supported ?? true,
+    internationalShipping: r.international_shipping ?? true,
+    fragile: r.fragile ?? false,
+    customsInfo: r.customs_info ?? "",
+    barcode: r.barcode ?? "",
+    warehouseLocation: r.warehouse_location ?? "",
+    restockEta: r.restock_eta ?? "",
+    preorder: r.preorder ?? false,
+    reservedQuantity: r.reserved_quantity ?? 0,
+    scheduledPublishAt: r.scheduled_publish_at ?? null,
+    scheduledExpiryAt: r.scheduled_expiry_at ?? null,
   };
 }
 
-const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty";
+const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty,status,cost_price_inr,cost_price_usd,shipping_fee_inr,shipping_fee_usd,razorpay_enabled,stripe_enabled,paypal_enabled,cod_enabled,return_eligible,replacement_eligible,return_window_days,pickup_supported,international_shipping,fragile,customs_info,barcode,warehouse_location,restock_eta,preorder,reserved_quantity,scheduled_publish_at,scheduled_expiry_at";
 
 
 export async function fetchProducts(): Promise<Product[]> {
