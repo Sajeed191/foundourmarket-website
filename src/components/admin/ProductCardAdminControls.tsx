@@ -164,6 +164,12 @@ export function ProductCardAdminControls({ product }: { product: Product }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ProductQuickEditSheet
+        product={product}
+        open={quickEdit}
+        onClose={() => setQuickEdit(false)}
+      />
     </div>
   );
 }
