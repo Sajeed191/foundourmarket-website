@@ -123,8 +123,10 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       .maybeSingle();
     if (addrErr || !addr) throw new Error("Shipping address not found.");
 
-    // Create the pending order first (status pending, INR)
-    const { data: order, error: oErr } = await supabase
+    // Create the pending order first (status pending, INR).
+    // Use the admin client so order writes go only through this trusted,
+    // server-priced path (direct user inserts are blocked by RLS).
+    const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
       .insert({
         user_id: userId,
