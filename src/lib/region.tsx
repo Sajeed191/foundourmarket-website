@@ -197,6 +197,8 @@ export function RegionProvider({ children }: { children: ReactNode }) {
         needsSelection,
         loading,
         countryCode,
+        isAdmin,
+        setPreviewMarket,
         lockMarket,
         priceOf,
         compareOf,
