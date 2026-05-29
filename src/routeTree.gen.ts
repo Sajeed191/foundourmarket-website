@@ -58,6 +58,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AccountSupportRouteImport } from './routes/account_.support'
 import { Route as AccountSecurityRouteImport } from './routes/account_.security'
 import { Route as AccountReturnsRouteImport } from './routes/account_.returns'
 import { Route as AccountProfileRouteImport } from './routes/account_.profile'
@@ -320,6 +321,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const AccountSupportRoute = AccountSupportRouteImport.update({
+  id: '/account_/support',
+  path: '/account/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountSecurityRoute = AccountSecurityRouteImport.update({
   id: '/account_/security',
   path: '/account/security',
@@ -455,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
+  '/account/support': typeof AccountSupportRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -522,6 +529,7 @@ export interface FileRoutesByTo {
   '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
   '/account/security': typeof AccountSecurityRoute
+  '/account/support': typeof AccountSupportRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -590,6 +598,7 @@ export interface FileRoutesById {
   '/account_/profile': typeof AccountProfileRoute
   '/account_/returns': typeof AccountReturnsRoute
   '/account_/security': typeof AccountSecurityRoute
+  '/account_/support': typeof AccountSupportRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -659,6 +668,7 @@ export interface FileRouteTypes {
     | '/account/profile'
     | '/account/returns'
     | '/account/security'
+    | '/account/support'
     | '/auth/callback'
     | '/blog/$slug'
     | '/category/$slug'
@@ -726,6 +736,7 @@ export interface FileRouteTypes {
     | '/account/profile'
     | '/account/returns'
     | '/account/security'
+    | '/account/support'
     | '/auth/callback'
     | '/blog/$slug'
     | '/category/$slug'
@@ -793,6 +804,7 @@ export interface FileRouteTypes {
     | '/account_/profile'
     | '/account_/returns'
     | '/account_/security'
+    | '/account_/support'
     | '/auth/callback'
     | '/blog/$slug'
     | '/category/$slug'
@@ -861,6 +873,7 @@ export interface RootRouteChildren {
   AccountProfileRoute: typeof AccountProfileRoute
   AccountReturnsRoute: typeof AccountReturnsRoute
   AccountSecurityRoute: typeof AccountSecurityRoute
+  AccountSupportRoute: typeof AccountSupportRoute
   CategorySlugRoute: typeof CategorySlugRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   OrdersIdRoute: typeof OrdersIdRoute
@@ -1222,6 +1235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/account_/support': {
+      id: '/account_/support'
+      path: '/account/support'
+      fullPath: '/account/support'
+      preLoaderRoute: typeof AccountSupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account_/security': {
       id: '/account_/security'
       path: '/account/security'
@@ -1416,6 +1436,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountProfileRoute: AccountProfileRoute,
   AccountReturnsRoute: AccountReturnsRoute,
   AccountSecurityRoute: AccountSecurityRoute,
+  AccountSupportRoute: AccountSupportRoute,
   CategorySlugRoute: CategorySlugRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   OrdersIdRoute: OrdersIdRoute,
