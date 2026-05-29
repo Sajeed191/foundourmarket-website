@@ -28,6 +28,7 @@ import { Route as AdminShipmentsRouteImport } from './routes/admin-shipments'
 import { Route as AdminSearchRouteImport } from './routes/admin-search'
 import { Route as AdminReturnsRouteImport } from './routes/admin-returns'
 import { Route as AdminReportsRouteImport } from './routes/admin-reports'
+import { Route as AdminProductsRouteImport } from './routes/admin-products'
 import { Route as AdminPaymentsRouteImport } from './routes/admin-payments'
 import { Route as AdminMarketingRouteImport } from './routes/admin-marketing'
 import { Route as AdminLiveRouteImport } from './routes/admin-live'
@@ -153,6 +154,11 @@ const AdminReturnsRoute = AdminReturnsRouteImport.update({
 const AdminReportsRoute = AdminReportsRouteImport.update({
   id: '/admin-reports',
   path: '/admin-reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProductsRoute = AdminProductsRouteImport.update({
+  id: '/admin-products',
+  path: '/admin-products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/admin-live': typeof AdminLiveRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-products': typeof AdminProductsRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
@@ -377,6 +384,7 @@ export interface FileRoutesByTo {
   '/admin-live': typeof AdminLiveRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-products': typeof AdminProductsRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
@@ -430,6 +438,7 @@ export interface FileRoutesById {
   '/admin-live': typeof AdminLiveRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-products': typeof AdminProductsRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
@@ -484,6 +493,7 @@ export interface FileRouteTypes {
     | '/admin-live'
     | '/admin-marketing'
     | '/admin-payments'
+    | '/admin-products'
     | '/admin-reports'
     | '/admin-returns'
     | '/admin-search'
@@ -536,6 +546,7 @@ export interface FileRouteTypes {
     | '/admin-live'
     | '/admin-marketing'
     | '/admin-payments'
+    | '/admin-products'
     | '/admin-reports'
     | '/admin-returns'
     | '/admin-search'
@@ -588,6 +599,7 @@ export interface FileRouteTypes {
     | '/admin-live'
     | '/admin-marketing'
     | '/admin-payments'
+    | '/admin-products'
     | '/admin-reports'
     | '/admin-returns'
     | '/admin-search'
@@ -641,6 +653,7 @@ export interface RootRouteChildren {
   AdminLiveRoute: typeof AdminLiveRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminProductsRoute: typeof AdminProductsRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminReturnsRoute: typeof AdminReturnsRoute
   AdminSearchRoute: typeof AdminSearchRoute
@@ -811,6 +824,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-reports'
       fullPath: '/admin-reports'
       preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-products': {
+      id: '/admin-products'
+      path: '/admin-products'
+      fullPath: '/admin-products'
+      preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-payments': {
@@ -1076,6 +1096,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLiveRoute: AdminLiveRoute,
   AdminMarketingRoute: AdminMarketingRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminProductsRoute: AdminProductsRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminReturnsRoute: AdminReturnsRoute,
   AdminSearchRoute: AdminSearchRoute,
