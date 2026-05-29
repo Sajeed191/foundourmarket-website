@@ -342,11 +342,27 @@ function CheckoutPage() {
               <Lock className="size-3 text-emerald-400 shrink-0" />
               <p className="text-[10px] font-mono uppercase tracking-widest text-emerald-400">256-bit secured · INR</p>
             </div>
-            {selectedAddress && (
+            {selectedAddress && serviceChecking && (
+              <div className="inline-flex items-center gap-2 glass border border-white/10 rounded-full px-3 py-1.5">
+                <Loader2 className="size-3 text-accent shrink-0 animate-spin" />
+                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                  Checking pincode {selectedAddress.postal}…
+                </p>
+              </div>
+            )}
+            {selectedAddress && !serviceChecking && serviceable && (
               <div className="inline-flex items-center gap-2 glass border border-white/10 rounded-full px-3 py-1.5">
                 <MapPin className="size-3 text-accent shrink-0" />
                 <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                  Delivering to {selectedAddress.city}
+                  Delivering to {service?.city ?? selectedAddress.city} {selectedAddress.postal}
+                </p>
+              </div>
+            )}
+            {selectedAddress && !serviceChecking && service && !serviceable && (
+              <div className="inline-flex items-center gap-2 bg-destructive/10 border border-destructive/30 rounded-full px-3 py-1.5">
+                <XCircle className="size-3 text-destructive shrink-0" />
+                <p className="text-[10px] font-mono uppercase tracking-widest text-destructive">
+                  {service.message}
                 </p>
               </div>
             )}
