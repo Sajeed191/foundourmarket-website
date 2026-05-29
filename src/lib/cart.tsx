@@ -6,6 +6,7 @@ import { useAuth } from "./auth";
 
 type CartItem = { slug: string; qty: number; savedForLater?: boolean };
 type DetailedItem = CartItem & { product: Product };
+type RemovedItem = { slug: string; qty: number; at: number };
 
 type Ctx = {
   items: CartItem[];
@@ -15,6 +16,9 @@ type Ctx = {
   clear: () => Promise<void>;
   saveForLater: (slug: string) => Promise<void>;
   moveToCart: (slug: string) => Promise<void>;
+  moveToWishlist: (slug: string) => Promise<void>;
+  undoRemove: () => Promise<void>;
+  lastRemoved: RemovedItem | null;
   count: number;
   detailed: DetailedItem[];
   savedDetailed: DetailedItem[];
