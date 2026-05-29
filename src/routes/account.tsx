@@ -497,7 +497,7 @@ function ActionCard({
         </span>
         <div className="min-w-0 w-full">
           <p className="text-[13px] font-medium leading-tight truncate group-hover:text-accent transition-colors">{title}</p>
-          <p className="text-[10.5px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
+          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
         </div>
       </motion.div>
     </Link>
@@ -572,33 +572,34 @@ function StatusBadge({ status }: { status: string }) {
 
 function ProductScroller({ items }: { items: Array<{ slug: string }> }) {
   return (
-    <div className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
-      {items.map((p, i) => (
-        <motion.div
-          key={p.slug}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          whileHover={{ y: -4 }}
-          transition={{ duration: 0.4, ease, delay: Math.min(i * 0.05, 0.3) }}
-          className="snap-start shrink-0 w-[46%] xs:w-[44%] sm:w-[32%] lg:w-[31%] rounded-2xl transition-shadow duration-500 hover:shadow-[0_18px_50px_-20px_oklch(0.74_0.19_49/0.5)]"
-        >
-          <ProductCard product={p as never} />
-        </motion.div>
-      ))}
+    <div className="-mx-4 sm:mx-0">
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-px-4 px-4 sm:px-0 pb-4 [-webkit-overflow-scrolling:touch]">
+        {items.map((p, i) => (
+          <motion.div
+            key={p.slug}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            whileHover={{ y: -4 }}
+            transition={{ duration: 0.4, ease, delay: Math.min(i * 0.05, 0.3) }}
+            className="snap-center shrink-0 w-[82%] xs:w-[72%] sm:w-[32%] lg:w-[31%] max-w-[300px] rounded-2xl transition-shadow duration-500 hover:shadow-[0_22px_60px_-22px_oklch(0.74_0.19_49/0.55)]"
+          >
+            <ProductCard product={p as never} />
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
-
-
 function InsightStat({ label, value, accent, small, truncate }: { label: string; value: string; accent?: boolean; small?: boolean; truncate?: boolean }) {
   return (
     <div className={`rounded-xl glass p-3.5 transition-colors hover:border-accent/30 ${accent ? "border-accent/30 bg-accent/5" : ""}`}>
-      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/90">{label}</p>
       <p className={`mt-1 font-display font-semibold tabular-nums ${small ? "text-sm" : "text-lg"} ${accent ? "text-gradient-ember" : ""} ${truncate ? "truncate" : ""}`}>{value}</p>
     </div>
   );
 }
+
 
 function FooterAction({ icon: Icon, label, to }: { icon: typeof Package; label: string; to: string }) {
   return (
@@ -873,8 +874,9 @@ function WhyShopWithUs() {
                 <Icon className="size-5" />
               </span>
               <div>
-                <p className="text-[12px] sm:text-[13px] font-medium leading-tight">{it.title}</p>
-                <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{it.desc}</p>
+                <p className="text-[13px] font-medium leading-tight">{it.title}</p>
+                <p className="text-[11px] text-muted-foreground leading-snug mt-1">{it.desc}</p>
+
               </div>
             </motion.div>
           );
