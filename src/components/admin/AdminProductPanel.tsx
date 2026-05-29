@@ -40,6 +40,9 @@ type Patch = {
   internationalVisible?: boolean;
   featured?: boolean;
   inStock?: boolean;
+  rating?: number;
+  reviews?: number;
+  warranty?: string;
 };
 
 const numOrNull = (v: string): number | null => {
@@ -80,6 +83,9 @@ export function AdminProductPanel({ product }: { product: Product }) {
       internationalVisible: p.internationalVisible,
       featured: p.featured,
       inStock: p.inStock,
+      rating: String(p.rating),
+      reviews: String(p.reviews),
+      warranty: p.warranty ?? "12 months",
     };
   }
 
@@ -116,6 +122,9 @@ export function AdminProductPanel({ product }: { product: Product }) {
         internationalVisible: f.internationalVisible,
         featured: f.featured,
         inStock: f.inStock,
+        rating: Math.min(5, Math.max(0, Number(f.rating) || 0)),
+        reviews: Math.max(0, Math.round(Number(f.reviews) || 0)),
+        warranty: f.warranty.trim() || "12 months",
       },
       "Product updated",
     );
@@ -278,6 +287,30 @@ export function AdminProductPanel({ product }: { product: Product }) {
                       type="number"
                       value={f.lowStockThreshold}
                       onChange={(e) => setF({ ...f, lowStockThreshold: e.target.value })}
+                    />
+                  </Field>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="Rating (0–5)">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={f.rating}
+                      onChange={(e) => setF({ ...f, rating: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Reviews">
+                    <Input
+                      type="number"
+                      value={f.reviews}
+                      onChange={(e) => setF({ ...f, reviews: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Warranty">
+                    <Input
+                      value={f.warranty}
+                      onChange={(e) => setF({ ...f, warranty: e.target.value })}
                     />
                   </Field>
                 </div>

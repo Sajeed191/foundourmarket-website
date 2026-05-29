@@ -33,6 +33,7 @@ export type Product = {
   comparePriceUsd: number | null;
   indiaVisible: boolean;
   internationalVisible: boolean;
+  warranty: string;
 };
 
 
@@ -74,6 +75,7 @@ type Row = {
   price_inr?: number | string | null; compare_price_inr?: number | string | null;
   price_usd?: number | string | null; compare_price_usd?: number | string | null;
   india_visible?: boolean | null; international_visible?: boolean | null;
+  warranty?: string | null;
 };
 
 const num = (v: number | string | null | undefined): number | null =>
@@ -104,10 +106,11 @@ function rowToProduct(r: Row): Product {
     comparePriceUsd: num(r.compare_price_usd),
     indiaVisible: r.india_visible ?? true,
     internationalVisible: r.international_visible ?? true,
+    warranty: r.warranty ?? "12 months",
   };
 }
 
-const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible";
+const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty";
 
 
 export async function fetchProducts(): Promise<Product[]> {
