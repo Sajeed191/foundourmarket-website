@@ -86,7 +86,7 @@ export function RelatedProducts({
         {items.map((p) => (
           <div
             key={p.slug}
-            className="snap-start shrink-0 w-[42%] xs:w-[38%] sm:w-[26%] md:w-[20%] lg:w-[15%] rounded-2xl glow-border"
+            className="snap-start shrink-0 w-[48%] xs:w-[42%] sm:w-[30%] md:w-[22%] lg:w-[18%] rounded-2xl glow-border"
           >
             <ProductCard product={p} compact />
           </div>
