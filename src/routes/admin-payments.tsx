@@ -318,6 +318,34 @@ function PaymentsInner() {
             </div>
           </div>
 
+          {/* Pagination */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            <span className="inline-flex items-center gap-2">
+              {tableLoading && <Loader2 className="size-3 animate-spin text-accent" />}
+              {totalCount > 0
+                ? `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, totalCount)} of ${totalCount}`
+                : "0 results"}
+            </span>
+            <div className="inline-flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0 || tableLoading}
+                className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="size-3.5" /> Prev
+              </button>
+              <span className="tabular-nums">Page {page + 1} / {pageCount}</span>
+              <button
+                onClick={() => setPage((p) => (p + 1 < pageCount ? p + 1 : p))}
+                disabled={page + 1 >= pageCount || tableLoading}
+                className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next <ChevronRight className="size-3.5" />
+              </button>
+            </div>
+          </div>
+
+
         </>
       )}
 
