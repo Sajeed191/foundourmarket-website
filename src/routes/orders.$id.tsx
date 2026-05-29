@@ -90,6 +90,20 @@ function OrderDetailPage() {
   const cancelled = order.status === "cancelled";
   const addr = order.shipping_address;
 
+  const deliveredShipment = shipments.find((s) => s.delivered_at);
+  const fmtDate = (d: Date) => d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  const etaLabel = (() => {
+    if (order.status === "delivered") {
+      const when = deliveredShipment?.delivered_at ?? order.updated_at;
+      return fmtDate(new Date(when));
+    }
+    const base = new Date(order.created_at);
+    const lo = new Date(base); lo.setDate(lo.getDate() + 3);
+    const hi = new Date(base); hi.setDate(hi.getDate() + 5);
+    return `${fmtDate(lo)} — ${fmtDate(hi)}`;
+  })();
+
+
   return (
     <div className="container-page py-10 sm:py-16 max-w-4xl">
       <Link to="/account" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground mb-6">
