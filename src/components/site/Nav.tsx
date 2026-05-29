@@ -197,9 +197,9 @@ export function Nav() {
             >
               {/* Background atmosphere */}
               <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute -top-24 -left-16 size-72 rounded-full bg-accent/25 blur-[90px] animate-orb" />
-                <div className="absolute top-1/3 -right-20 size-64 rounded-full bg-accent/15 blur-[100px] animate-orb" style={{ animationDelay: "-7s" }} />
-                <div className="absolute -bottom-28 left-1/4 size-72 rounded-full bg-[oklch(0.55_0.14_30)]/20 blur-[110px] animate-orb" style={{ animationDelay: "-13s" }} />
+                <div className="absolute -top-24 -left-16 size-72 rounded-full bg-accent/25 blur-[80px]" />
+                <div className="absolute top-1/3 -right-20 size-64 rounded-full bg-accent/15 blur-[80px]" />
+                <div className="absolute -bottom-28 left-1/4 size-72 rounded-full bg-[oklch(0.55_0.14_30)]/20 blur-[80px]" />
                 <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-black/40" />
               </div>
 
