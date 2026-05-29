@@ -180,6 +180,8 @@ function CheckoutPage() {
             setPlacedOrderId(created.orderId);
             setStage("success");
             clear();
+            syncMethods().catch(() => {});
+
           } catch (e: any) {
             setStage("failed");
             setError(e?.message ?? "We couldn't verify your payment. If charged, it will auto-resolve.");
