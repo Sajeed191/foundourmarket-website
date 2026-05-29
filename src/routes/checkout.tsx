@@ -175,6 +175,7 @@ function CheckoutPage() {
       rzp.on("payment.failed", (resp: any) => {
         setStage("failed");
         setError(resp?.error?.description ?? "Payment failed. Please try again.");
+        cancelOrder({ data: { orderId: created.orderId } }).catch(() => {});
       });
 
       rzp.open();
