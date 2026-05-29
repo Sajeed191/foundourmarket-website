@@ -12,7 +12,6 @@ export function Footer() {
 
       <div className="relative max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-5 sm:gap-6">
         <div className="col-span-2 space-y-3">
-        <div className="col-span-2 space-y-4">
           <div className="text-lg sm:text-xl font-display tracking-tighter font-semibold">
             FoundOurMarket<span className="text-accent">™</span>
           </div>
