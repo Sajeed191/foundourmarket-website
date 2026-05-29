@@ -321,6 +321,38 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
     return { ok: true, orderId: order.id, alreadyPaid: false };
   });
 
+const cancelSchema = z.object({ orderId: z.string().uuid() });
+
+/**
+ * Cancel a still-pending order (e.g. the user closed the checkout modal).
+ * Releases reserved stock immediately. Idempotent; never touches paid orders.
+ */
+export const cancelRazorpayOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => cancelSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context as { userId: string };
+    const { data: order } = await supabaseAdmin
+      .from("orders")
+      .select("id,user_id,payment_status,stock_state")
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (!order || order.user_id !== userId) return { ok: false };
+    if (order.payment_status === "succeeded") return { ok: false };
+
+    await supabaseAdmin.rpc("release_order_stock", {
+      _order_id: order.id,
+      _reason: "user_cancelled",
+    });
+    await supabaseAdmin
+      .from("orders")
+      .update({ status: "payment_failed", payment_status: "failed" })
+      .eq("id", order.id)
+      .eq("payment_status", "pending");
+    return { ok: true };
+  });
+
+
 const refundSchema = z.object({
   paymentId: z.string().uuid(),
   amount: z.number().positive().max(100_000_000).optional(),
