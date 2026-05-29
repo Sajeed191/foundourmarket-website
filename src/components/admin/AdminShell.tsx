@@ -309,7 +309,6 @@ export function AdminShell({
         </div>
       </aside>
 
-      </aside>
 
       <AnimatePresence>
         {open && (
