@@ -40,7 +40,7 @@ export function ProductCardAdminControls({ product }: { product: Product }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  if (!isAdmin) return null;
+  if (!isAdmin || !adminMode) return null;
 
   async function run(fn: () => Promise<unknown>, label: string) {
     setBusy(true);
