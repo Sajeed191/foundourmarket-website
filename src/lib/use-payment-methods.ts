@@ -113,5 +113,5 @@ export function usePaymentMethods() {
     [defaultFn],
   );
 
-  return { methods, loading, syncing, load, sync, remove, makeDefault };
+  return { methods, loading, syncing, lastSynced, syncError, load, sync, remove, makeDefault };
 }
