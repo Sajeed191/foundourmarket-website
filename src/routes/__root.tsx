@@ -178,6 +178,7 @@ function RootComponent() {
                   {!isAuthRoute && <Footer />}
                   {!isAuthRoute && <MobileBottomNav />}
                   <RegionSelectModal />
+                  {!isAuthRoute && <AdminFloatingToolbar />}
                   <CompareTray />
                   <InstallPrompt />
                   <Toaster position="bottom-center" richColors />
