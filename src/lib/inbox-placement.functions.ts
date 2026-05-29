@@ -263,7 +263,16 @@ export const classifyPlacementTest = createServerFn({ method: "POST" })
     if (error || !test) throw new Error("Test not found.");
 
     const token = test.token as string;
-    const patch: Record<string, unknown> = { status: "classifying" };
+    const patch: {
+      status: string;
+      gmail_placement?: string;
+      gmail_message_id?: string | null;
+      gmail_checked_at?: string;
+      outlook_placement?: string;
+      outlook_message_id?: string | null;
+      outlook_checked_at?: string;
+      error?: string | null;
+    } = { status: "classifying" };
     const errors: string[] = [];
 
     if (test.gmail_address) {
