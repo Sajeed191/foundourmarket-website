@@ -385,34 +385,70 @@ export type Database = {
       }
       categories: {
         Row: {
+          banner_image: string | null
+          clicks: number
           created_at: string
           description: string | null
+          featured: boolean
+          homepage_visible: boolean
+          icon: string | null
           id: string
           image: string | null
+          mobile_image: string | null
           name: string
+          region: string
+          seo_description: string | null
+          seo_title: string | null
           slug: string
           sort_order: number
+          status: string
+          trending: boolean
           updated_at: string
+          views: number
         }
         Insert: {
+          banner_image?: string | null
+          clicks?: number
           created_at?: string
           description?: string | null
+          featured?: boolean
+          homepage_visible?: boolean
+          icon?: string | null
           id?: string
           image?: string | null
+          mobile_image?: string | null
           name: string
+          region?: string
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
           sort_order?: number
+          status?: string
+          trending?: boolean
           updated_at?: string
+          views?: number
         }
         Update: {
+          banner_image?: string | null
+          clicks?: number
           created_at?: string
           description?: string | null
+          featured?: boolean
+          homepage_visible?: boolean
+          icon?: string | null
           id?: string
           image?: string | null
+          mobile_image?: string | null
           name?: string
+          region?: string
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
           sort_order?: number
+          status?: string
+          trending?: boolean
           updated_at?: string
+          views?: number
         }
         Relationships: []
       }
@@ -2575,6 +2611,10 @@ export type Database = {
         Args: { _direction: string; _id: string }
         Returns: undefined
       }
+      reorder_category: {
+        Args: { _direction: string; _id: string }
+        Returns: undefined
+      }
       reserve_order_stock: {
         Args: { _order_id: string; _ttl_minutes?: number }
         Returns: undefined
@@ -2655,6 +2695,10 @@ export type Database = {
       support_unread_count: { Args: never; Returns: number }
       track_banner_event: {
         Args: { _banner_id: string; _event: string }
+        Returns: undefined
+      }
+      track_category_event: {
+        Args: { _event: string; _id: string }
         Returns: undefined
       }
     }
