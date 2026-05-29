@@ -43,7 +43,7 @@ const DELIVERY_WINDOWS = [
   {
     region: "United States & Canada",
     standard: "4–7 business days",
-    note: "Orders placed before 2:00 PM ET ship same-day. Weekends & holidays excluded.",
+    note: "Orders placed before 2:00 PM ET are dispatched within 1 business day. Weekends & holidays excluded.",
   },
   {
     region: "United Kingdom & EU",
