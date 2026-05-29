@@ -425,8 +425,6 @@ export function AdminShell({
   );
 }
 
-  );
-}
 
 export function logActivity(action: string, entity_type?: string, entity_id?: string, metadata?: Record<string, unknown>) {
   supabase.from("admin_activity_logs").insert({
