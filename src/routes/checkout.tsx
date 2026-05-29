@@ -708,6 +708,7 @@ function SuccessScreen({ orderId, totalINR, method, eta, nav }: {
   orderId: string | null; totalINR: number; method: "razorpay" | "cod"; eta: string;
   nav: ReturnType<typeof useNavigate>;
 }) {
+  const [downloading, setDownloading] = useState(false);
   return (
     <div className="relative min-h-[70vh] grid place-items-center px-6">
       <Atmosphere />
