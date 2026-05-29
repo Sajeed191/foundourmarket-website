@@ -41,7 +41,7 @@ export function RecentlyViewed({
   if (loading || items.length === 0) return null;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">{eyebrow}</p>
