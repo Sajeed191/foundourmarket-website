@@ -9,6 +9,7 @@ import {
   Wallet, TrendingUp, TrendingDown, Receipt, Truck, Download, FileText,
   Search, Bell, RotateCcw, Percent, Banknote, PiggyBank, AlertTriangle,
   RefreshCw, Sparkles, ShoppingCart, Globe, Radio, Loader2,
+  Users, Repeat, HeartPulse, XCircle, Boxes, Activity,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
