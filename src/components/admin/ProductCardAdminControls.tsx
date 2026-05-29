@@ -12,6 +12,7 @@ import {
   MoreVertical,
   Loader2,
   ShieldCheck,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useIsProductAdmin } from "@/lib/use-admin";
 import { useAdminMode } from "@/lib/admin-mode";
@@ -23,6 +24,7 @@ import {
 } from "@/lib/admin-products.functions";
 import { invalidateProducts } from "@/lib/use-products";
 import { cn } from "@/lib/utils";
+import { ProductQuickEditSheet } from "@/components/admin/ProductQuickEditSheet";
 
 /**
  * Admin-only quick-action layer for a product card. Renders nothing for
@@ -39,6 +41,7 @@ export function ProductCardAdminControls({ product }: { product: Product }) {
   const duplicate = useServerFn(adminDuplicateProduct);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [quickEdit, setQuickEdit] = useState(false);
 
   if (!isAdmin || !adminMode) return null;
 
@@ -64,6 +67,15 @@ export function ProductCardAdminControls({ product }: { product: Product }) {
   };
 
   const actions = [
+    {
+      label: "Quick edit",
+      icon: SlidersHorizontal,
+      onClick: (e: React.MouseEvent) => {
+        stop(e);
+        setOpen(false);
+        setQuickEdit(true);
+      },
+    },
     {
       label: "Edit product",
       icon: Pencil,
@@ -152,6 +164,12 @@ export function ProductCardAdminControls({ product }: { product: Product }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ProductQuickEditSheet
+        product={product}
+        open={quickEdit}
+        onClose={() => setQuickEdit(false)}
+      />
     </div>
   );
 }

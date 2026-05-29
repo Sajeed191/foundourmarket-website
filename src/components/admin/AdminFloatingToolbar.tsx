@@ -14,10 +14,12 @@ import {
   ChevronUp,
   X,
   Pencil,
+  Activity,
 } from "lucide-react";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useAdminMode } from "@/lib/admin-mode";
 import { cn } from "@/lib/utils";
+import { StorefrontDashboardPanel } from "@/components/admin/StorefrontDashboardPanel";
 
 type Action = {
   label: string;
@@ -46,6 +48,7 @@ export function AdminFloatingToolbar() {
   const { isAdmin, loading } = useIsAdmin();
   const { adminMode, toggle } = useAdminMode();
   const [open, setOpen] = useState(false);
+  const [dashboard, setDashboard] = useState(false);
 
   if (loading || !isAdmin) return null;
 
@@ -100,6 +103,19 @@ export function AdminFloatingToolbar() {
                 />
               </span>
             </button>
+            <button
+              onClick={() => {
+                setOpen(false);
+                setDashboard(true);
+              }}
+              className="mb-2 flex w-full items-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-3 py-2.5 transition-all hover:bg-accent/20"
+            >
+              <Activity className="size-3.5 text-accent" />
+              <span className="text-xs font-medium text-foreground">Live dashboard</span>
+              <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-widest text-accent">
+                <span className="size-1.5 rounded-full bg-accent animate-pulse" /> Live
+              </span>
+            </button>
             <div className="grid grid-cols-3 gap-1">
               {ACTIONS.map((a) => (
                 <Link
@@ -144,6 +160,8 @@ export function AdminFloatingToolbar() {
           )}
         />
       </motion.button>
+
+      <StorefrontDashboardPanel open={dashboard} onClose={() => setDashboard(false)} />
     </div>
   );
 }
