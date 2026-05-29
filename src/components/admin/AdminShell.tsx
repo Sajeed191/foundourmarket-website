@@ -45,6 +45,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
     group: "Customers",
     items: [
       { to: "/admin-customers", label: "Customers", icon: Users, roles: ["admin", "super_admin", "manager", "support"] },
+      { to: "/admin-support", label: "Support", icon: LifeBuoy, roles: ["admin", "super_admin", "manager", "support"] },
     ],
   },
   {

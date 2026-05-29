@@ -25,6 +25,7 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminTrafficRouteImport } from './routes/admin-traffic'
+import { Route as AdminSupportRouteImport } from './routes/admin-support'
 import { Route as AdminShipmentsRouteImport } from './routes/admin-shipments'
 import { Route as AdminSearchRouteImport } from './routes/admin-search'
 import { Route as AdminReturnsRouteImport } from './routes/admin-returns'
@@ -154,6 +155,11 @@ const AuthRoute = AuthRouteImport.update({
 const AdminTrafficRoute = AdminTrafficRouteImport.update({
   id: '/admin-traffic',
   path: '/admin-traffic',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSupportRoute = AdminSupportRouteImport.update({
+  id: '/admin-support',
+  path: '/admin-support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminShipmentsRoute = AdminShipmentsRouteImport.update({
@@ -436,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
   '/admin-shipments': typeof AdminShipmentsRoute
+  '/admin-support': typeof AdminSupportRoute
   '/admin-traffic': typeof AdminTrafficRoute
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
@@ -504,6 +511,7 @@ export interface FileRoutesByTo {
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
   '/admin-shipments': typeof AdminShipmentsRoute
+  '/admin-support': typeof AdminSupportRoute
   '/admin-traffic': typeof AdminTrafficRoute
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
@@ -573,6 +581,7 @@ export interface FileRoutesById {
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
   '/admin-shipments': typeof AdminShipmentsRoute
+  '/admin-support': typeof AdminSupportRoute
   '/admin-traffic': typeof AdminTrafficRoute
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
@@ -643,6 +652,7 @@ export interface FileRouteTypes {
     | '/admin-returns'
     | '/admin-search'
     | '/admin-shipments'
+    | '/admin-support'
     | '/admin-traffic'
     | '/auth'
     | '/blog'
@@ -711,6 +721,7 @@ export interface FileRouteTypes {
     | '/admin-returns'
     | '/admin-search'
     | '/admin-shipments'
+    | '/admin-support'
     | '/admin-traffic'
     | '/auth'
     | '/blog'
@@ -779,6 +790,7 @@ export interface FileRouteTypes {
     | '/admin-returns'
     | '/admin-search'
     | '/admin-shipments'
+    | '/admin-support'
     | '/admin-traffic'
     | '/auth'
     | '/blog'
@@ -848,6 +860,7 @@ export interface RootRouteChildren {
   AdminReturnsRoute: typeof AdminReturnsRoute
   AdminSearchRoute: typeof AdminSearchRoute
   AdminShipmentsRoute: typeof AdminShipmentsRoute
+  AdminSupportRoute: typeof AdminSupportRoute
   AdminTrafficRoute: typeof AdminTrafficRoute
   AuthRoute: typeof AuthRouteWithChildren
   BlogRoute: typeof BlogRouteWithChildren
@@ -1002,6 +1015,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-traffic'
       fullPath: '/admin-traffic'
       preLoaderRoute: typeof AdminTrafficRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-support': {
+      id: '/admin-support'
+      path: '/admin-support'
+      fullPath: '/admin-support'
+      preLoaderRoute: typeof AdminSupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-shipments': {
@@ -1411,6 +1431,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminReturnsRoute: AdminReturnsRoute,
   AdminSearchRoute: AdminSearchRoute,
   AdminShipmentsRoute: AdminShipmentsRoute,
+  AdminSupportRoute: AdminSupportRoute,
   AdminTrafficRoute: AdminTrafficRoute,
   AuthRoute: AuthRouteWithChildren,
   BlogRoute: BlogRouteWithChildren,
