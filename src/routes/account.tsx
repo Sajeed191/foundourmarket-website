@@ -158,10 +158,10 @@ function AccountPage() {
         {/* 1 — HEADER */}
         <div className="relative z-30">
 
-          <motion.header {...fadeUp} className="relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
+          <motion.header {...fadeUp} className="border-glow noise-layer glass-reflect relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
           <div aria-hidden className="absolute inset-0 -z-10">
-            <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
-            <div className="absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60" style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
+            <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70 animate-ambient" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
+            <div className="absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60 animate-glow" style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
             <div
               className="absolute inset-0 opacity-[0.05]"
               style={{
@@ -175,10 +175,11 @@ function AccountPage() {
           <div className="relative p-5 sm:p-7 lg:p-9">
             <div className="flex items-center gap-4 sm:gap-5">
               {/* Avatar with online status */}
-              <div className="relative shrink-0">
+              <div className="relative shrink-0 animate-float-soft">
                 <motion.div
                   initial={{ scale: 0.85, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
+                  whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.5, ease }}
                   className="size-14 sm:size-16 rounded-2xl border border-white/10 bg-secondary overflow-hidden grid place-items-center shadow-[var(--shadow-float)] ring-1 ring-accent/30"
                 >
@@ -188,8 +189,11 @@ function AccountPage() {
                     <img src={logoSrc} alt="FoundOurMarket logo" className="w-full h-full object-cover" />
                   )}
                 </motion.div>
+                {/* ambient avatar glow */}
+                <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-2xl blur-xl opacity-60 animate-glow" style={{ background: "var(--gradient-ember)" }} />
                 <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-500 border-2 border-card shadow-[0_0_10px_oklch(0.7_0.18_150)]" />
               </div>
+
 
               {/* Welcome text + email — vertically centered beside avatar */}
               <div className="min-w-0 flex-1 flex flex-col justify-center">
