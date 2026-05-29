@@ -20,6 +20,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { RegionSelectModal } from "@/components/site/RegionSelectModal";
 import { AdminFloatingToolbar } from "@/components/admin/AdminFloatingToolbar";
+import { AdminModeProvider } from "@/lib/admin-mode";
 import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { CompareTray } from "@/components/site/CompareTray";
 import { InstallPrompt } from "@/components/site/InstallPrompt";
@@ -170,19 +171,21 @@ function RootComponent() {
           <WishlistProvider>
             <RegionProvider>
               <CartProvider>
-                <div className="min-h-screen flex flex-col">
-                  {!isAuthRoute && <Nav />}
-                  <main className={isAuthRoute ? "flex-1" : "flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"}>
-                    <Outlet />
-                  </main>
-                  {!isAuthRoute && <Footer />}
-                  {!isAuthRoute && <MobileBottomNav />}
-                  <RegionSelectModal />
-                  {!isAuthRoute && <AdminFloatingToolbar />}
-                  <CompareTray />
-                  <InstallPrompt />
-                  <Toaster position="bottom-center" richColors />
-                </div>
+                <AdminModeProvider>
+                  <div className="min-h-screen flex flex-col">
+                    {!isAuthRoute && <Nav />}
+                    <main className={isAuthRoute ? "flex-1" : "flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"}>
+                      <Outlet />
+                    </main>
+                    {!isAuthRoute && <Footer />}
+                    {!isAuthRoute && <MobileBottomNav />}
+                    <RegionSelectModal />
+                    {!isAuthRoute && <AdminFloatingToolbar />}
+                    <CompareTray />
+                    <InstallPrompt />
+                    <Toaster position="bottom-center" richColors />
+                  </div>
+                </AdminModeProvider>
               </CartProvider>
             </RegionProvider>
           </WishlistProvider>
