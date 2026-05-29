@@ -145,10 +145,11 @@ function CheckoutPage() {
         theme: { color: "#ff7a1a", backdrop_color: "#0a0a0f" },
         method: { emi: false, paylater: false },
         modal: {
-          escape: true,
           ondismiss: () => {
             setStage("failed");
             setError("Payment was cancelled. Your cart is safe — you can try again.");
+            cancelOrder({ data: { orderId: created.orderId } }).catch(() => {});
+          },
           },
         },
         handler: async (response: RazorpayResponse) => {
