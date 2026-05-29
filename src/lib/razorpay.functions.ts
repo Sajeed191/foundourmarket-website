@@ -143,6 +143,29 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       .single();
     if (oErr || !order) throw new Error("Could not create order.");
 
+    // Snapshot line items (INR) so fulfillment + admin have full detail.
+    const orderItems = priced.lines.map((l) => {
+      const unitInr = Math.round(l.unitUsd * USD_TO_INR);
+      return {
+        order_id: order.id,
+        product_slug: l.slug,
+        name: l.name,
+        image: l.image,
+        unit_price: unitInr,
+        quantity: l.qty,
+        line_total: unitInr * l.qty,
+      };
+    });
+    const { error: oiErr } = await supabaseAdmin.from("order_items").insert(orderItems);
+    if (oiErr) {
+      await supabaseAdmin
+        .from("orders")
+        .update({ status: "payment_failed", payment_status: "failed" })
+        .eq("id", order.id);
+      throw new Error("Could not record order items.");
+    }
+
+
     // Create the Razorpay order (amount in paise)
     let rzpOrder;
     try {
