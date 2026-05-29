@@ -5,8 +5,10 @@ import {
   Loader2, ShieldCheck, MapPin, Plus, Lock, Smartphone, CreditCard,
   Landmark, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Globe, Sparkles,
   Home, Briefcase, MapPinned, Pencil, Trash2, Star, ArrowRight, Clock,
-  PackageCheck, Headphones, BadgeCheck, ShieldHalf,
+  PackageCheck, Headphones, BadgeCheck, ShieldHalf, Download,
 } from "lucide-react";
+import { toast } from "sonner";
+import { downloadInvoice } from "@/lib/invoice";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
