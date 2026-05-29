@@ -13,8 +13,10 @@ import {
   Boxes,
   ChevronUp,
   X,
+  Pencil,
 } from "lucide-react";
 import { useIsAdmin } from "@/lib/use-admin";
+import { useAdminMode } from "@/lib/admin-mode";
 import { cn } from "@/lib/utils";
 
 type Action = {
