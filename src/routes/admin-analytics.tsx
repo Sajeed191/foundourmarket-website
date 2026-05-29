@@ -143,7 +143,6 @@ function AnalyticsPage() {
   const [orders, setOrders] = useState<OrderRow[] | null>(null);
   const [products, setProducts] = useState<ProductRow[] | null>(null);
   const [conn, setConn] = useState<ConnState>("connecting");
-  const [pulse, setPulse] = useState(0);
   const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = useCallback(() => {
@@ -156,7 +155,7 @@ function AnalyticsPage() {
   // Realtime: refetch (debounced) when orders/products change in the backend.
   useEffect(() => {
     const scheduleRefetch = () => {
-      setPulse((p) => p + 1);
+      
       if (refetchTimer.current) clearTimeout(refetchTimer.current);
       refetchTimer.current = setTimeout(load, 1200);
     };
