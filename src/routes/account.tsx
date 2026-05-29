@@ -170,7 +170,7 @@ function AccountPage() {
       </div>
 
 
-      <div className="container-page py-4 sm:py-10 lg:py-14 space-y-5 sm:space-y-10">
+      <div className="container-page py-4 sm:py-8 lg:py-10 space-y-4 sm:space-y-7">
 
 
         {/* 1 — HEADER */}
