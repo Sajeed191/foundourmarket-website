@@ -101,7 +101,7 @@ export function TestEmail({ message, sentBy }: TestEmailProps) {
             <Text style={{ margin: 0, fontSize: '11px', color: MUTED }}>
               {sentBy ? `Triggered by ${sentBy} · ` : ''}Sent from FoundOurMarket™ admin
             </Text>
-            <Text style={{ margin: '6px 0 0', fontSize: '11px', color: '#5a6party'.replace('party', '6a7d') }}>
+            <Text style={{ margin: '6px 0 0', fontSize: '11px', color: '#5a6a7d' }}>
               © {new Date().getFullYear()} FoundOurMarket™. All rights reserved.
             </Text>
           </Section>
