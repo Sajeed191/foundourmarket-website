@@ -291,6 +291,30 @@ export function AdminProductPanel({ product }: { product: Product }) {
                   </Field>
                 </div>
 
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="Rating (0–5)">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={f.rating}
+                      onChange={(e) => setF({ ...f, rating: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Reviews">
+                    <Input
+                      type="number"
+                      value={f.reviews}
+                      onChange={(e) => setF({ ...f, reviews: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Warranty">
+                    <Input
+                      value={f.warranty}
+                      onChange={(e) => setF({ ...f, warranty: e.target.value })}
+                    />
+                  </Field>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="₹ India price">
                     <Input value={f.priceInr} onChange={(e) => setF({ ...f, priceInr: e.target.value })} />
