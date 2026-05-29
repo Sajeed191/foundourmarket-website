@@ -102,9 +102,33 @@ export function AdminShell({
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [live, setLive] = useState<{ revenue: number; orders: number }>({ revenue: 0, orders: 0 });
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
   useEffect(() => { setOpen(false); }, [path]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    const load = async () => {
+      const since = new Date(); since.setHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("orders")
+        .select("total,payment_status,status")
+        .gte("created_at", since.toISOString())
+        .limit(1000);
+      if (!active) return;
+      const rows = (data as { total: number; payment_status: string; status: string }[]) ?? [];
+      const paid = rows.filter((o) => o.payment_status === "paid" || o.status === "paid" || o.status === "fulfilled");
+      setLive({ revenue: paid.reduce((s, o) => s + (Number(o.total) || 0), 0), orders: rows.length });
+    };
+    load();
+    const ch = supabase.channel("admin-shell-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, [user]);
+
 
   const groupTitle = useMemo(() => {
     for (const g of NAV) for (const it of g.items) {
@@ -209,6 +233,7 @@ export function AdminShell({
               <div className="pointer-events-none absolute -top-8 -right-6 size-20 rounded-full opacity-25" style={{ background: "var(--gradient-ember-soft)", filter: "blur(22px)" }} />
               <div className="relative size-10 rounded-xl bg-gradient-to-br from-accent/20 to-primary/[0.08] grid place-items-center ring-1 ring-inset ring-white/10 shrink-0">
                 <span className="font-display text-sm text-accent uppercase">{user?.email?.[0] ?? "F"}</span>
+
                 <motion.span
                   className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-card"
                   animate={{ scale: [1, 1.18, 1], opacity: [0.9, 0.55, 0.9] }}
@@ -230,8 +255,9 @@ export function AdminShell({
           <div className="relative px-3 pt-3 shrink-0">
             <div className="grid grid-cols-5 gap-2">
               {[
-                { icon: TrendingUp, label: "Revenue", value: "$14k", span: "col-span-3", big: true },
-                { icon: ShoppingCart, label: "Orders", value: "128", span: "col-span-2", big: false },
+                { icon: TrendingUp, label: "Revenue today", value: new Intl.NumberFormat("en-IN", { notation: "compact", style: "currency", currency: "INR", maximumFractionDigits: 1 }).format(live.revenue), span: "col-span-3", big: true },
+                { icon: ShoppingCart, label: "Orders today", value: String(live.orders), span: "col-span-2", big: false },
+
               ].map((w, i) => (
                 <motion.div
                   key={w.label}
@@ -411,7 +437,8 @@ export function AdminShell({
           {subtitle && <p className="px-4 lg:px-10 pb-2.5 text-xs text-muted-foreground">{subtitle}</p>}
         </header>
 
-        <main className="flex-1 px-5 lg:px-10 py-8">
+        <main className="flex-1 px-4 lg:px-10 pt-4 pb-8 lg:pt-6">
+
           <motion.div
             key={path}
             initial={{ opacity: 0, y: 8 }}
