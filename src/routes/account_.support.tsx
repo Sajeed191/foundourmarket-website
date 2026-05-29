@@ -207,6 +207,7 @@ function ComposeSheet({ userId, market, onClose, onCreated }: { userId: string; 
     setSaving(false);
     if (mErr) { toast.error(mErr.message); return; }
     toast.success("Ticket created", { description: "We'll reply shortly." });
+    fireSupportEmail(t.id, "created");
     onCreated(t.id);
   }
 
