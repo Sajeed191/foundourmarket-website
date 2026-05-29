@@ -19,6 +19,7 @@ import { NotificationsProvider } from "@/lib/notifications";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { RegionSelectModal } from "@/components/site/RegionSelectModal";
+import { AdminFloatingToolbar } from "@/components/admin/AdminFloatingToolbar";
 import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { CompareTray } from "@/components/site/CompareTray";
 import { InstallPrompt } from "@/components/site/InstallPrompt";
