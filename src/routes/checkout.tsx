@@ -56,7 +56,7 @@ function formatEta(daysFrom: number, daysTo: number) {
 
 function CheckoutPage() {
   const { user, loading } = useAuth();
-  const { detailed, subtotalUSD, clear, count } = useCart();
+  const { detailed, subtotalUSD, clear, count, hydrated: cartHydrated } = useCart();
   const { market } = useRegion();
   const {
     addresses, loading: addrLoading, create: createAddress,
@@ -90,8 +90,8 @@ function CheckoutPage() {
   }, [loading, user, nav]);
 
   useEffect(() => {
-    if (count === 0 && stage !== "success") nav({ to: "/cart" });
-  }, [count, nav, stage]);
+    if (!loading && user && cartHydrated && count === 0 && stage !== "success") nav({ to: "/cart" });
+  }, [loading, user, cartHydrated, count, nav, stage]);
 
   useEffect(() => {
     if (selectedAddressId) return;
@@ -290,7 +290,7 @@ function CheckoutPage() {
         ? "Place order"
         : `Pay ${inrFmt(totalINR)}`;
 
-  if (loading || !user) {
+  if (loading || !user || !cartHydrated) {
     return <div className="min-h-[60vh] grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
   }
 

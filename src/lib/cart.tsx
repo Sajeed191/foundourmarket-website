@@ -25,6 +25,8 @@ type Ctx = {
   savedDetailed: DetailedItem[];
   subtotalUSD: number;
   loading: boolean;
+  /** True once the cart has been loaded for the current auth state. */
+  hydrated: boolean;
 };
 
 const CartContext = createContext<Ctx | null>(null);
@@ -49,6 +51,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [cartId, setCartId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // undefined = not yet loaded; otherwise the user id (or null for guest) the cart was loaded for
+  const [loadedFor, setLoadedFor] = useState<string | null | undefined>(undefined);
   const [lastRemoved, setLastRemoved] = useState<RemovedItem | null>(null);
   const mergedRef = useRef(false);
 
@@ -58,6 +62,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems(readLS());
       setCartId(null);
       mergedRef.current = false;
+      setLoadedFor(null);
     }
   }, [user]);
 
@@ -128,6 +133,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           })),
         );
         setLoading(false);
+        setLoadedFor(user.id);
       }
     })();
     return () => {
@@ -305,6 +311,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const subtotalUSD = detailed.reduce((s, i) => s + priceOf(i.product) * i.qty, 0);
   const count = active.reduce((s, i) => s + i.qty, 0);
+  const hydrated = loadedFor === (user?.id ?? null);
 
   return (
     <CartContext.Provider
@@ -324,6 +331,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         savedDetailed,
         subtotalUSD,
         loading,
+        hydrated,
       }}
     >
       {children}
