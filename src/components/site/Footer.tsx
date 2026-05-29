@@ -5,12 +5,13 @@ import { Instagram, Twitter, Facebook, Youtube } from "lucide-react";
 export function Footer() {
   const { region, setRegion } = useRegion();
   return (
-    <footer className="relative px-4 sm:px-6 pt-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] sm:pt-8 sm:pb-[calc(8rem+env(safe-area-inset-bottom))] md:py-8 border-t border-border bg-background overflow-hidden">
+    <footer className="relative px-4 sm:px-6 pt-5 pb-[calc(7.5rem+env(safe-area-inset-bottom))] sm:pt-6 sm:pb-[calc(8rem+env(safe-area-inset-bottom))] md:py-6 border-t border-border bg-background overflow-hidden">
       {/* Ambient divider glow */}
-      <div aria-hidden className="pointer-events-none absolute -top-px left-1/2 -translate-x-1/2 w-[60%] h-px" style={{ background: "linear-gradient(90deg, transparent, var(--color-accent), transparent)", opacity: 0.5 }} />
-      <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[70%] h-40 opacity-40" style={{ background: "var(--gradient-ember-soft)", filter: "blur(80px)" }} />
+      <div aria-hidden className="pointer-events-none absolute -top-px left-1/2 -translate-x-1/2 w-[70%] h-px" style={{ background: "linear-gradient(90deg, transparent, var(--color-accent), transparent)", opacity: 0.6 }} />
+      <div aria-hidden className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[70%] h-32 opacity-40" style={{ background: "var(--gradient-ember-soft)", filter: "blur(70px)" }} />
 
-      <div className="relative max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-7 sm:gap-8">
+      <div className="relative max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-5 sm:gap-6">
+        <div className="col-span-2 space-y-3">
         <div className="col-span-2 space-y-4">
           <div className="text-lg sm:text-xl font-display tracking-tighter font-semibold">
             FoundOurMarket<span className="text-accent">™</span>
