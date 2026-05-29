@@ -258,7 +258,9 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
     ]);
     setMessages(((m as Message[]) ?? []).map((x) => ({ ...x, attachments: (x.attachments as unknown as string[]) ?? [] })));
     setTicket((t as Ticket) ?? null);
-  }, [ticketId]);
+    // Mark this ticket read for the current viewer (clears their unread badge).
+    if (userId) void markTicketRead(ticketId, userId);
+  }, [ticketId, userId]);
 
   useEffect(() => {
     void load();
