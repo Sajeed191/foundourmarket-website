@@ -106,6 +106,7 @@ function rowToProduct(r: Row): Product {
     comparePriceUsd: num(r.compare_price_usd),
     indiaVisible: r.india_visible ?? true,
     internationalVisible: r.international_visible ?? true,
+    warranty: r.warranty ?? "12 months",
   };
 }
 
