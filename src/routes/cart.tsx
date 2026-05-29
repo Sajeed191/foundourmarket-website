@@ -84,7 +84,7 @@ function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 pb-[calc(11rem+env(safe-area-inset-bottom))] lg:pb-16">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex items-end justify-between gap-4 flex-wrap">
@@ -309,20 +309,28 @@ function CartPage() {
         <RecentlyViewed excludeSlug={detailed[0]?.slug} limit={8} />
       </div>
 
-      {/* Sticky mobile checkout bar */}
+      {/* Sticky mobile checkout dock — floats above the bottom nav + safe area */}
       {count > 0 && (
-        <div className="lg:hidden fixed bottom-16 inset-x-0 z-30 bg-background/95 backdrop-blur-xl border-t border-border safe-bottom">
-          <div className="px-4 py-3 flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Total · {count} items</p>
-              <p className="font-mono text-base text-accent leading-tight truncate">{format(total)}</p>
+        <div className="lg:hidden fixed bottom-[calc(6.25rem+env(safe-area-inset-bottom))] inset-x-0 z-40 px-3 pointer-events-none">
+          <div
+            className="pointer-events-auto rounded-2xl p-1.5 pl-4 flex items-center gap-3 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9),0_0_28px_-14px_hsl(var(--accent)/0.45)]"
+            style={{
+              background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))",
+              backdropFilter: "blur(32px) saturate(160%)",
+              WebkitBackdropFilter: "blur(32px) saturate(160%)",
+            }}
+          >
+            <div className="flex-1 min-w-0 leading-tight">
+              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/80">Total · {count} {count === 1 ? "item" : "items"}</p>
+              <motion.p key={total} initial={{ scale: 1.06 }} animate={{ scale: 1 }} className="font-mono text-base text-accent leading-tight truncate">{format(total)}</motion.p>
             </div>
-            <Link to="/checkout" className="bg-accent text-accent-foreground font-bold px-5 py-3 rounded-full text-[11px] uppercase tracking-widest inline-flex items-center gap-2 whitespace-nowrap shadow-[0_0_18px_hsl(var(--accent)/0.4)]">
+            <Link to="/checkout" className="shrink-0 bg-accent text-accent-foreground font-bold px-6 py-3 rounded-xl text-[11px] uppercase tracking-widest inline-flex items-center gap-2 whitespace-nowrap transition-all active:scale-95 shadow-[0_0_20px_hsl(var(--accent)/0.5)]">
               <Lock className="size-3.5" /> Checkout
             </Link>
           </div>
         </div>
       )}
+
     </div>
   );
 }
