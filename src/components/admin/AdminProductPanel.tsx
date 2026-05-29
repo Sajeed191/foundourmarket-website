@@ -447,7 +447,7 @@ function ToolbarBtn({
       )}
     >
       <Icon className="size-3.5" />
-      <span className="hidden sm:inline">{label}</span>
+      <span>{label}</span>
     </button>
   );
 }
