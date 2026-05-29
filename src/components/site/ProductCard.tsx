@@ -24,7 +24,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
   const showOnlyLeft = product.stockQuantity > 0 && product.stockQuantity <= 10;
 
   return (
-    <div className={`group card-premium overflow-hidden relative ${compact ? "p-2 sm:p-2" : "p-2.5 sm:p-3"}`}>
+    <div className={`group card-premium overflow-hidden relative ${compact ? "p-1.5 sm:p-2" : "p-2.5 sm:p-3"}`}>
       {/* Ember halo on hover */}
       <div
         aria-hidden
