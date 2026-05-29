@@ -25,8 +25,18 @@ interface OrderEmailExtra {
   refundCurrency?: string
 }
 
+// All order lifecycle email events, in delivery order.
+export const ORDER_EMAIL_EVENTS: OrderEmailEvent[] = [
+  'order-confirmed',
+  'payment-verified',
+  'order-shipped',
+  'out-for-delivery',
+  'order-delivered',
+  'refund-processed',
+]
+
 // Deterministic UUID derived from order + event so each email sends only once.
-function deterministicId(orderId: string, event: string): string {
+export function orderEmailMessageId(orderId: string, event: string): string {
   const h = createHash('sha256').update(`${orderId}:${event}`).digest('hex')
   return [
     h.slice(0, 8),
