@@ -437,7 +437,8 @@ export function AdminShell({
           {subtitle && <p className="px-4 lg:px-10 pb-2.5 text-xs text-muted-foreground">{subtitle}</p>}
         </header>
 
-        <main className="flex-1 px-5 lg:px-10 py-8">
+        <main className="flex-1 px-4 lg:px-10 pt-4 pb-8 lg:pt-6">
+
           <motion.div
             key={path}
             initial={{ opacity: 0, y: 8 }}
