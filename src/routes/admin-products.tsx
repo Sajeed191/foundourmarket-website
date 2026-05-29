@@ -262,9 +262,11 @@ function ProductsInner() {
     const oos = list.filter((p) => p.stock_quantity <= 0).length;
     const low = list.filter((p) => p.stock_quantity > 0 && p.stock_quantity <= p.low_stock_threshold).length;
     let best: { name: string; units: number } | null = null;
+    let viewed: { name: string; views: number } | null = null;
     for (const p of list) {
       const u = stats[p.slug]?.units ?? 0;
       if (!best || u > best.units) best = { name: p.name, units: u };
+      if (!viewed || p.views_count > viewed.views) viewed = { name: p.name, views: p.views_count };
     }
     return {
       total: list.length,
@@ -273,6 +275,8 @@ function ProductsInner() {
       featured: list.filter((p) => p.featured).length,
       oos, low,
       best: best && best.units > 0 ? best.name : "—",
+      mostViewed: viewed && viewed.views > 0 ? viewed.name : "—",
+      inventoryValue: list.reduce((s, p) => s + Number(p.price) * p.stock_quantity, 0),
     };
   }, [products, stats]);
 
