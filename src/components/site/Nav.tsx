@@ -303,3 +303,38 @@ export function Nav() {
     </>
   );
 }
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="px-1 mb-2 text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground/70">{label}</p>
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function NavItem({
+  icon: Icon, label, to, badge, accent, onNavigate,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  to: string;
+  badge?: number;
+  accent?: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <Link
+      to={to}
+      onClick={onNavigate}
+      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/5 active:scale-[0.98] transition ${accent ? "text-accent" : ""}`}
+    >
+      <Icon className={`size-4 ${accent ? "text-accent" : "text-muted-foreground group-hover:text-foreground"} transition`} />
+      <span className="flex-1 text-sm font-medium">{label}</span>
+      {badge != null && badge > 0 && (
+        <span className="min-w-5 h-5 px-1.5 rounded-full bg-accent/15 text-accent text-[10px] font-bold grid place-items-center">{badge}</span>
+      )}
+    </Link>
+  );
+}
+
