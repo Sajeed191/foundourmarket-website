@@ -303,7 +303,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const detailed = toDetailed(active);
   const savedDetailed = toDetailed(saved);
 
-  const subtotalUSD = detailed.reduce((s, i) => s + i.product.price * i.qty, 0);
+  const subtotalUSD = detailed.reduce((s, i) => s + priceOf(i.product) * i.qty, 0);
   const count = active.reduce((s, i) => s + i.qty, 0);
 
   return (
