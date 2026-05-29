@@ -54,6 +54,7 @@ import { Route as AccountSecurityRouteImport } from './routes/account_.security'
 import { Route as AccountReturnsRouteImport } from './routes/account_.returns'
 import { Route as AccountProfileRouteImport } from './routes/account_.profile'
 import { Route as AccountPreferencesRouteImport } from './routes/account_.preferences'
+import { Route as AccountPaymentsRouteImport } from './routes/account_.payments'
 import { Route as AccountOrdersRouteImport } from './routes/account_.orders'
 import { Route as AccountNotificationsRouteImport } from './routes/account_.notifications'
 import { Route as AccountHistoryRouteImport } from './routes/account_.history'
@@ -286,6 +287,11 @@ const AccountPreferencesRoute = AccountPreferencesRouteImport.update({
   path: '/account/preferences',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountPaymentsRoute = AccountPaymentsRouteImport.update({
+  id: '/account_/payments',
+  path: '/account/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountOrdersRoute = AccountOrdersRouteImport.update({
   id: '/account_/orders',
   path: '/account/orders',
@@ -355,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/account/history': typeof AccountHistoryRoute
   '/account/notifications': typeof AccountNotificationsRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/payments': typeof AccountPaymentsRoute
   '/account/preferences': typeof AccountPreferencesRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
@@ -408,6 +415,7 @@ export interface FileRoutesByTo {
   '/account/history': typeof AccountHistoryRoute
   '/account/notifications': typeof AccountNotificationsRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/payments': typeof AccountPaymentsRoute
   '/account/preferences': typeof AccountPreferencesRoute
   '/account/profile': typeof AccountProfileRoute
   '/account/returns': typeof AccountReturnsRoute
@@ -462,6 +470,7 @@ export interface FileRoutesById {
   '/account_/history': typeof AccountHistoryRoute
   '/account_/notifications': typeof AccountNotificationsRoute
   '/account_/orders': typeof AccountOrdersRoute
+  '/account_/payments': typeof AccountPaymentsRoute
   '/account_/preferences': typeof AccountPreferencesRoute
   '/account_/profile': typeof AccountProfileRoute
   '/account_/returns': typeof AccountReturnsRoute
@@ -517,6 +526,7 @@ export interface FileRouteTypes {
     | '/account/history'
     | '/account/notifications'
     | '/account/orders'
+    | '/account/payments'
     | '/account/preferences'
     | '/account/profile'
     | '/account/returns'
@@ -570,6 +580,7 @@ export interface FileRouteTypes {
     | '/account/history'
     | '/account/notifications'
     | '/account/orders'
+    | '/account/payments'
     | '/account/preferences'
     | '/account/profile'
     | '/account/returns'
@@ -623,6 +634,7 @@ export interface FileRouteTypes {
     | '/account_/history'
     | '/account_/notifications'
     | '/account_/orders'
+    | '/account_/payments'
     | '/account_/preferences'
     | '/account_/profile'
     | '/account_/returns'
@@ -677,6 +689,7 @@ export interface RootRouteChildren {
   AccountHistoryRoute: typeof AccountHistoryRoute
   AccountNotificationsRoute: typeof AccountNotificationsRoute
   AccountOrdersRoute: typeof AccountOrdersRoute
+  AccountPaymentsRoute: typeof AccountPaymentsRoute
   AccountPreferencesRoute: typeof AccountPreferencesRoute
   AccountProfileRoute: typeof AccountProfileRoute
   AccountReturnsRoute: typeof AccountReturnsRoute
@@ -1008,6 +1021,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountPreferencesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account_/payments': {
+      id: '/account_/payments'
+      path: '/account/payments'
+      fullPath: '/account/payments'
+      preLoaderRoute: typeof AccountPaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account_/orders': {
       id: '/account_/orders'
       path: '/account/orders'
@@ -1120,6 +1140,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountHistoryRoute: AccountHistoryRoute,
   AccountNotificationsRoute: AccountNotificationsRoute,
   AccountOrdersRoute: AccountOrdersRoute,
+  AccountPaymentsRoute: AccountPaymentsRoute,
   AccountPreferencesRoute: AccountPreferencesRoute,
   AccountProfileRoute: AccountProfileRoute,
   AccountReturnsRoute: AccountReturnsRoute,
