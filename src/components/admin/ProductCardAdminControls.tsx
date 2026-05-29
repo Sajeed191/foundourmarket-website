@@ -12,6 +12,7 @@ import {
   MoreVertical,
   Loader2,
   ShieldCheck,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useIsProductAdmin } from "@/lib/use-admin";
 import { useAdminMode } from "@/lib/admin-mode";
@@ -23,6 +24,7 @@ import {
 } from "@/lib/admin-products.functions";
 import { invalidateProducts } from "@/lib/use-products";
 import { cn } from "@/lib/utils";
+import { ProductQuickEditSheet } from "@/components/admin/ProductQuickEditSheet";
 
 /**
  * Admin-only quick-action layer for a product card. Renders nothing for
