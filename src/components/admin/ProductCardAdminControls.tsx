@@ -13,7 +13,7 @@ import {
   Loader2,
   ShieldCheck,
 } from "lucide-react";
-import { useIsAdmin } from "@/lib/use-admin";
+import { useIsProductAdmin } from "@/lib/use-admin";
 import type { Product } from "@/lib/products";
 import {
   adminUpdateProduct,
