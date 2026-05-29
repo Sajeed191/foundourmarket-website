@@ -58,5 +58,3 @@ export function RecommendationStrip({ title, slugs, icon, subtitle }: Props) {
   );
 }
 
-  );
-}
