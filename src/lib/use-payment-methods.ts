@@ -83,9 +83,14 @@ export function usePaymentMethods() {
   const sync = useCallback(async () => {
     if (!user) return;
     setSyncing(true);
+    setSyncError(null);
     try {
       await syncFn();
       await load();
+      if (mounted.current) setLastSynced(new Date());
+    } catch (e: any) {
+      if (mounted.current) setSyncError(e?.message ?? "Sync failed");
+      throw e;
     } finally {
       if (mounted.current) setSyncing(false);
     }
