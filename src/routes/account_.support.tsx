@@ -8,8 +8,15 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
+import { markTicketRead } from "@/lib/use-support-unread";
+import { notifySupportEvent } from "@/lib/support.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+/** Fire-and-forget branded support email; never blocks or surfaces errors to the user. */
+function fireSupportEmail(ticketId: string, event: "created" | "customer_reply" | "staff_reply") {
+  void notifySupportEvent({ data: { ticketId, event } }).catch(() => {});
+}
 
 export const Route = createFileRoute("/account_/support")({
   head: () => ({
@@ -200,6 +207,7 @@ function ComposeSheet({ userId, market, onClose, onCreated }: { userId: string; 
     setSaving(false);
     if (mErr) { toast.error(mErr.message); return; }
     toast.success("Ticket created", { description: "We'll reply shortly." });
+    fireSupportEmail(t.id, "created");
     onCreated(t.id);
   }
 
@@ -250,7 +258,9 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
     ]);
     setMessages(((m as Message[]) ?? []).map((x) => ({ ...x, attachments: (x.attachments as unknown as string[]) ?? [] })));
     setTicket((t as Ticket) ?? null);
-  }, [ticketId]);
+    // Mark this ticket read for the current viewer (clears their unread badge).
+    if (userId) void markTicketRead(ticketId, userId);
+  }, [ticketId, userId]);
 
   useEffect(() => {
     void load();
@@ -273,6 +283,7 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
     });
     setSending(false);
     if (error) { toast.error(error.message); return; }
+    fireSupportEmail(ticketId, isStaff ? "staff_reply" : "customer_reply");
     setReply(""); setFiles([]);
   }
 

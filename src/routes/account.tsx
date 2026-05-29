@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { useWishlist } from "@/lib/wishlist";
 import { useNotifications } from "@/lib/notifications";
+import { useSupportUnread } from "@/lib/use-support-unread";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 
 import { useProducts } from "@/lib/use-products";
@@ -67,6 +68,7 @@ function AccountPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const { slugs: wishSlugs } = useWishlist();
   const { unread } = useNotifications();
+  const { count: supportUnread } = useSupportUnread();
   const { products } = useProducts();
   const cart = useCart();
 
@@ -297,7 +299,7 @@ function AccountPage() {
             <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Requests & status" />
             <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
             <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
-            <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 available" />
+            <ActionCard to="/account/support" icon={Headphones} title="Support" subtitle="Tickets & chat" badge={supportUnread || undefined} />
           </div>
         </motion.section>
 

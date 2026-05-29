@@ -10,6 +10,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { NotificationBell } from "@/components/site/NotificationBell";
+import { useAdminSupportUnread } from "@/lib/use-support-unread";
 
 type Role = "admin" | "super_admin" | "manager" | "support" | "fulfillment" | "warehouse_staff" | "editor";
 
@@ -111,6 +112,7 @@ export function AdminShell({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [live, setLive] = useState<{ revenue: number; orders: number }>({ revenue: 0, orders: 0 });
+  const { count: supportUnread } = useAdminSupportUnread();
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
   useEffect(() => { setOpen(false); }, [path]);
@@ -353,7 +355,13 @@ export function AdminShell({
 
                             <it.icon className={`relative size-4 shrink-0 transition-transform duration-300 group-hover:scale-110 ${active ? "drop-shadow-[0_0_6px_oklch(0.74_0.19_49_/_0.6)]" : ""}`} />
                             <span className="relative truncate flex-1">{it.label}</span>
+                            {it.to === "/admin-support" && supportUnread > 0 && (
+                              <span className="relative min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono grid place-items-center shadow-[0_0_10px_var(--color-accent)]">
+                                {supportUnread > 99 ? "99+" : supportUnread}
+                              </span>
+                            )}
                             <ChevronRight className={`relative size-3.5 shrink-0 transition-all duration-300 ${active ? "opacity-70" : "opacity-0 -translate-x-1 group-hover:opacity-50 group-hover:translate-x-0"}`} />
+
                           </Link>
                         </li>
                       );

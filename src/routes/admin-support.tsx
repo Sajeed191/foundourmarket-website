@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ThreadSheet } from "@/routes/account_.support";
+import { notifySupportEvent } from "@/lib/support.functions";
 
 export const Route = createFileRoute("/admin-support")({
   head: () => ({ meta: [{ title: "Support — Admin" }] }),
@@ -65,6 +66,9 @@ function AdminSupportPage() {
     const { error } = await (supabase.from("support_tickets") as any).update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
     logActivity("support_update", "support_ticket", id, patch);
+    if (patch.status === "resolved" || patch.status === "closed") {
+      void notifySupportEvent({ data: { ticketId: id, event: patch.status as "resolved" | "closed" } }).catch(() => {});
+    }
     void load();
   }
 
