@@ -35,7 +35,8 @@ function CheckoutPage() {
   const { user, loading } = useAuth();
   const { detailed, subtotalUSD, clear, count } = useCart();
   const { region } = useRegion();
-  const { addresses, loading: addrLoading, create: createAddress, defaultShipping } = useAddresses();
+  const { addresses, loading: addrLoading, create: createAddress, defaultShipping, markUsed } = useAddresses();
+  const { address: addressParam } = Route.useSearch();
   const { settings } = useStoreSettings();
   const nav = useNavigate();
 
