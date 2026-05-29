@@ -102,9 +102,33 @@ export function AdminShell({
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [live, setLive] = useState<{ revenue: number; orders: number }>({ revenue: 0, orders: 0 });
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
   useEffect(() => { setOpen(false); }, [path]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    const load = async () => {
+      const since = new Date(); since.setHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("orders")
+        .select("total,payment_status,status")
+        .gte("created_at", since.toISOString())
+        .limit(1000);
+      if (!active) return;
+      const rows = (data as { total: number; payment_status: string; status: string }[]) ?? [];
+      const paid = rows.filter((o) => o.payment_status === "paid" || o.status === "paid" || o.status === "fulfilled");
+      setLive({ revenue: paid.reduce((s, o) => s + (Number(o.total) || 0), 0), orders: rows.length });
+    };
+    load();
+    const ch = supabase.channel("admin-shell-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, [user]);
+
 
   const groupTitle = useMemo(() => {
     for (const g of NAV) for (const it of g.items) {
