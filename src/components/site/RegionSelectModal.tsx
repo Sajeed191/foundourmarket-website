@@ -72,7 +72,7 @@ const OPTIONS: Option[] = [
  * Two-step cinematic flow: pick a market, then confirm the permanent lock.
  */
 export function RegionSelectModal() {
-  const { needsSelection, market, countryCode, lockMarket, loading, isAdmin } =
+  const { needsSelection, market, countryCode, lockMarket, loading, isAdmin, vpnSuspected } =
     useRegion();
   const [choice, setChoice] = useState<MarketRegion | null>(null);
   const [step, setStep] = useState<"select" | "confirm">("select");
