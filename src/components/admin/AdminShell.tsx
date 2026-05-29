@@ -230,7 +230,6 @@ export function AdminShell({
       <aside className={`fixed lg:sticky inset-y-0 lg:inset-y-auto lg:top-14 left-0 z-40 w-[17.5rem] transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:transform-none ${open ? "translate-x-0" : "-translate-x-[110%] lg:translate-x-0"} h-screen lg:h-[calc(100vh-3.5rem)] p-3`}>
         <div className="relative h-full flex flex-col rounded-[1.75rem] overflow-hidden glass-strong glass-reflect" style={{ boxShadow: "var(--shadow-float), 0 0 50px -22px oklch(0.74 0.19 49 / 0.3), inset 0 1px 0 oklch(1 0 0 / 0.06)" }}>
 
-        <div className="relative h-full flex flex-col rounded-[1.75rem] overflow-hidden glass-strong glass-reflect" style={{ boxShadow: "var(--shadow-float), 0 0 50px -22px oklch(0.74 0.19 49 / 0.3), inset 0 1px 0 oklch(1 0 0 / 0.06)" }}>
           {/* Ambient lighting */}
           <div className="orb animate-orb -top-16 -left-10 size-44 opacity-40" style={{ background: "var(--gradient-ember)" }} />
           <div className="orb animate-float-soft -bottom-20 -right-12 size-48 opacity-30" style={{ background: "var(--gradient-ember-soft)" }} />
