@@ -729,8 +729,37 @@ function ProductEditor({ row, categories, nextSort, onClose, onSaved }: {
     setUploading(false);
   }
 
+  const num = (v: string) => (v.trim() === "" ? null : Number(v));
+  const priceInr = num(form.price_inr);
+  const cmpInr = num(form.compare_price_inr);
+  const priceUsd = num(form.price_usd);
+  const cmpUsd = num(form.compare_price_usd);
+
+  const validation = useMemo(() => {
+    const errs: string[] = [];
+    if (form.india_visible && (priceInr == null || priceInr <= 0))
+      errs.push("India is visible but the INR price is missing or zero.");
+    if (form.international_visible && (priceUsd == null || priceUsd <= 0))
+      errs.push("International is visible but the USD price is missing or zero.");
+    if (!form.india_visible && !form.international_visible)
+      errs.push("Product is hidden in both regions — it won't appear in any storefront.");
+    for (const [p, c, label] of [
+      [priceInr, cmpInr, "INR"], [priceUsd, cmpUsd, "USD"],
+    ] as const) {
+      if (c != null && p != null && c <= p)
+        errs.push(`${label} compare-at price must be higher than the selling price to show a discount.`);
+    }
+    return errs;
+  }, [form.india_visible, form.international_visible, priceInr, cmpInr, priceUsd, cmpUsd]);
+
+  const discPct = (p: number | null, c: number | null) =>
+    p != null && c != null && c > p ? Math.round(((c - p) / c) * 100) : null;
+  const inrDisc = discPct(priceInr, cmpInr);
+  const usdDisc = discPct(priceUsd, cmpUsd);
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (validation.length) { setError(validation[0]); return; }
     setSaving(true); setError(null);
     const payload = {
       slug: form.slug.trim() || slugify(form.name), name: form.name.trim(),
@@ -741,6 +770,9 @@ function ProductEditor({ row, categories, nextSort, onClose, onSaved }: {
       in_stock: form.in_stock, featured: form.featured, sku: form.sku.trim() || null,
       stock_quantity: Number(form.stock_quantity) || 0, low_stock_threshold: Number(form.low_stock_threshold) || 0,
       sort_order: Number(form.sort_order) || 0,
+      price_inr: priceInr, compare_price_inr: cmpInr,
+      price_usd: priceUsd, compare_price_usd: cmpUsd,
+      india_visible: form.india_visible, international_visible: form.international_visible,
     };
     const { error: err } = row
       ? await supabase.from("products").update(payload).eq("id", row.id)
