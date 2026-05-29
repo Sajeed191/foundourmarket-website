@@ -19,6 +19,9 @@ import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpa
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — FoundOurMarket™" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    address: typeof search.address === "string" ? search.address : undefined,
+  }),
   component: CheckoutPage,
 });
 
