@@ -153,7 +153,6 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
     },
   ];
 
-  const featured = metrics[0];
   const secondary = metrics.slice(1);
 
   return (
