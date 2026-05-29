@@ -93,11 +93,11 @@ export function Nav() {
         <nav className="max-w-7xl mx-auto rounded-2xl glass-strong shadow-[var(--shadow-float)] ring-1 ring-white/10">
           <div className="flex items-center justify-between px-2.5 sm:px-5 py-2.5 sm:py-3 gap-1.5 sm:gap-2">
             <button
-              onClick={() => setOpen(true)}
-              aria-label="Open menu"
+              onClick={() => setOpen(!open)}
+              aria-label={open ? "Close menu" : "Open menu"}
               className="md:hidden shrink-0 size-10 rounded-xl grid place-items-center hover:bg-white/5 active:bg-white/10 transition-colors"
             >
-              <Menu className="size-5" />
+              <AnimatedHamburger open={open} />
             </button>
 
             <Link
