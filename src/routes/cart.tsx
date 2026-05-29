@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Minus, Plus, X, ArrowRight, ShoppingBag, Bookmark, RotateCcw, Heart,
-  Truck, ShieldCheck, Tag, ChevronDown, Sparkles, Lock, MapPin, Clock,
+  Truck, ShieldCheck, ChevronDown, Lock, MapPin, Clock,
   AlertTriangle, CheckCircle2, Loader2, Undo2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { useCart } from "@/lib/cart";
 import { useRegion } from "@/lib/region";
 import { RelatedProducts } from "@/components/site/RelatedProducts";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
-import { applyCoupon, estimateShipping } from "@/lib/cart.functions";
+import { estimateShipping } from "@/lib/cart.functions";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({ meta: [{ title: "Cart — FoundOurMarket™" }] }),
@@ -20,13 +20,9 @@ export const Route = createFileRoute("/cart")({
 });
 
 const FREE_SHIP_THRESHOLD = 50; // USD
-const COUPON_SUGGESTIONS = [
-  { code: "WELCOME10", label: "10% off your order" },
-  { code: "FOM20", label: "20% off orders over $100" },
-  { code: "FLAT15", label: "$15 off orders over $80" },
-];
 
-type CouponState = { code: string; discount: number } | null;
+// Auto-applied campaign discount (backend-ready, silent — no manual coupon UI).
+type AutoPromo = { label: string; discount: number } | null;
 type ShipState = {
   city: string | null; state: string | null; minDays: number; maxDays: number;
   etaIso: string; shippingUsd: number; codAvailable: boolean; expressAvailable: boolean;
@@ -44,17 +40,16 @@ function CartPage() {
   } = useCart();
   const { format } = useRegion();
 
-  const [coupon, setCoupon] = useState<CouponState>(null);
+  const [promo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
 
-  const lineItems = useMemo(() => detailed.map((i) => ({ slug: i.slug, qty: i.qty })), [detailed]);
 
   const savings = useMemo(
     () => detailed.reduce((s, i) => s + unitPricing(i.product.price, i.product.discount).save * i.qty, 0),
     [detailed],
   );
 
-  const discount = coupon?.discount ?? 0;
+  const discount = promo?.discount ?? 0;
   const shipping = ship ? ship.shippingUsd : subtotalUSD > FREE_SHIP_THRESHOLD ? 0 : 9.99;
   const tax = subtotalUSD * 0.08;
   const total = Math.max(0, subtotalUSD + shipping + tax - discount);
@@ -266,15 +261,17 @@ function CartPage() {
         {/* Order summary */}
         <aside className="lg:col-span-1">
           <div className="lg:sticky lg:top-24 space-y-4">
-            <CouponBox lineItems={lineItems} coupon={coupon} setCoupon={setCoupon} disabled={count === 0} />
             <ShippingBox subtotalUSD={subtotalUSD} ship={ship} setShip={setShip} format={format} />
+
 
             <div className="bg-card border border-border rounded-2xl p-5 sm:p-6">
               <h2 className="text-lg font-medium mb-5">Order Summary</h2>
               <dl className="space-y-3 text-sm">
                 <Row label="Subtotal" value={format(subtotalUSD)} />
                 {savings > 0 && <Row label="Item savings" value={`−${format(savings)}`} accent />}
-                {discount > 0 && <Row label={`Coupon (${coupon?.code})`} value={`−${format(discount)}`} accent />}
+                {discount > 0 && (
+                  <Row label={promo?.label ?? "Discount applied"} value={`−${format(discount)}`} accent />
+                )}
                 <Row label="Shipping" value={shipping === 0 ? "Free" : format(shipping)} />
                 <Row label="Tax (est.)" value={format(tax)} />
                 {ship?.etaIso && (
@@ -339,71 +336,7 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
   );
 }
 
-function CouponBox({
-  lineItems, coupon, setCoupon, disabled,
-}: {
-  lineItems: { slug: string; qty: number }[];
-  coupon: CouponState;
-  setCoupon: (c: CouponState) => void;
-  disabled: boolean;
-}) {
-  const apply = useServerFn(applyCoupon);
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function submit(value: string) {
-    if (!value.trim() || disabled) return;
-    setBusy(true); setError(null);
-    try {
-      const res = await apply({ data: { code: value.trim(), items: lineItems } });
-      if (res.ok) {
-        setCoupon({ code: res.code, discount: res.discount });
-        setCode("");
-        toast.success(`Coupon ${res.code} applied — you saved on this order!`);
-      } else {
-        setError(res.reason);
-      }
-    } catch {
-      setError("Could not apply coupon. Please try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="bg-card border border-border rounded-2xl p-4">
-      <div className="flex items-center gap-2 mb-3 text-sm font-medium"><Tag className="size-4 text-accent" /> Coupons & offers</div>
-      {coupon ? (
-        <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-accent/10 px-3 py-2.5">
-          <span className="text-sm inline-flex items-center gap-2"><CheckCircle2 className="size-4 text-accent" /> {coupon.code} applied</span>
-          <button onClick={() => { setCoupon(null); toast("Coupon removed"); }} className="text-muted-foreground hover:text-destructive"><X className="size-4" /></button>
-        </div>
-      ) : (
-        <>
-          <div className="flex gap-2">
-            <input
-              value={code} onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="Enter code"
-              className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-accent"
-            />
-            <button onClick={() => submit(code)} disabled={busy || !code.trim()} className="px-4 rounded-lg bg-accent text-accent-foreground text-xs font-bold uppercase tracking-widest disabled:opacity-40 inline-flex items-center gap-1.5">
-              {busy ? <Loader2 className="size-3.5 animate-spin" /> : "Apply"}
-            </button>
-          </div>
-          {error && <p className="text-xs text-destructive mt-2">{error}</p>}
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {COUPON_SUGGESTIONS.map((s) => (
-              <button key={s.code} onClick={() => submit(s.code)} title={s.label} className="text-[10px] uppercase tracking-widest border border-dashed border-border rounded-full px-2.5 py-1 text-muted-foreground hover:border-accent hover:text-accent inline-flex items-center gap-1">
-                <Sparkles className="size-2.5" /> {s.code}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 function ShippingBox({
   subtotalUSD, ship, setShip, format,
