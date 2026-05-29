@@ -8,6 +8,7 @@ import {
   rzpFetch,
   verifyPaymentSignature,
 } from "./razorpay.server";
+import { enqueueOrderEmail } from "./order-emails.server";
 
 const lineItemSchema = z.object({
   slug: z.string().min(1).max(200),
@@ -317,6 +318,10 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
         meta: { verified_via: "checkout_handshake" },
       });
     }
+
+    // Real backend events → branded order emails (idempotent).
+    await enqueueOrderEmail(order.id, "order-confirmed");
+    await enqueueOrderEmail(order.id, "payment-verified");
 
     return { ok: true, orderId: order.id, alreadyPaid: false };
   });
