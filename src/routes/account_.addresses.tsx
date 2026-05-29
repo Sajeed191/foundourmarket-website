@@ -118,7 +118,7 @@ function AddressesPage() {
     toast.success("Address duplicated");
   };
   const useForCheckout = (a: Address) => {
-    nav({ to: "/checkout", search: { address: a.id } as any });
+    nav({ to: "/checkout", search: { address: a.id } });
   };
   const doDelete = async () => {
     if (!confirmDelete) return;
