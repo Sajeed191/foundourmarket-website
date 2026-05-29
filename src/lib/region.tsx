@@ -81,6 +81,18 @@ export function RegionProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       try {
         if (user) {
+          // Staff/admin accounts are exempt from the region lock entirely.
+          if (isAdmin) {
+            setLocked(false);
+            setNeedsSelection(false);
+            try {
+              const d = await detect();
+              if (!cancelled) setCountryCode(d.countryCode);
+            } catch {
+              /* ignore */
+            }
+            return;
+          }
           const mine = await fetchMine();
           if (cancelled) return;
           if (mine.region) {
