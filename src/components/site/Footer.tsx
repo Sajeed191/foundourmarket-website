@@ -19,7 +19,7 @@ export function Footer() {
             Everything you need. All in one place. A premium independent marketplace sourcing top-quality products worldwide.
           </p>
           {/* Social icons */}
-          <div className="flex items-center gap-2.5 pt-1">
+          <div className="flex items-center gap-2 pt-0.5">
             {[
               { icon: Instagram, label: "Instagram" },
               { icon: Twitter, label: "Twitter" },
