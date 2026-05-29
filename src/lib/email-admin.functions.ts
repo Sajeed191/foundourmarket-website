@@ -213,3 +213,117 @@ export const getEmailQueueStatus = createServerFn({ method: "POST" })
 
     return { queues, totals, fetchedAt: new Date().toISOString() };
   });
+
+const deliverySchema = z.object({
+  range: z.enum(["24h", "7d", "30d", "all"]).default("30d"),
+  search: z.string().trim().max(120).optional().nullable(),
+  limit: z.number().int().min(1).max(100).default(40),
+});
+
+const EVENT_LABELS: Record<string, string> = {
+  "order-confirmed": "Order confirmed",
+  "payment-verified": "Payment verified",
+  "order-shipped": "Shipped",
+  "out-for-delivery": "Out for delivery",
+  "order-delivered": "Delivered",
+  "refund-processed": "Refund processed",
+};
+
+type DeliveryStatus = "sent" | "pending" | "failed" | "suppressed" | "not_sent";
+
+function normaliseStatus(raw: string): DeliveryStatus {
+  if (raw === "sent") return "sent";
+  if (raw === "pending") return "pending";
+  if (raw === "suppressed") return "suppressed";
+  if (["failed", "dlq", "bounced", "complained"].includes(raw)) return "failed";
+  return "not_sent";
+}
+
+/** Admin — per-order email delivery status across each transactional event. */
+export const getOrderEmailDelivery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => deliverySchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context as { userId: string };
+    await assertEmailStaff(userId);
+
+    let orderQuery = supabaseAdmin
+      .from("orders")
+      .select("id, contact_email, total, currency, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+
+    if (data.range !== "all") {
+      const ms = data.range === "24h" ? 864e5 : data.range === "30d" ? 30 * 864e5 : 7 * 864e5;
+      orderQuery = orderQuery.gte("created_at", new Date(Date.now() - ms).toISOString());
+    }
+    if (data.search) {
+      const term = data.search.trim();
+      orderQuery = orderQuery.or(`id.eq.${term},contact_email.ilike.%${term}%`);
+    }
+
+    const { data: orders, error } = await orderQuery;
+    if (error) throw new Error(error.message);
+    const orderRows = orders ?? [];
+
+    // Build the full set of candidate message_ids (orderId × event) and the
+    // reverse map back to (orderId, event).
+    const idToOrderEvent = new Map<string, { orderId: string; event: string }>();
+    for (const o of orderRows) {
+      for (const ev of ORDER_EMAIL_EVENTS) {
+        idToOrderEvent.set(orderEmailMessageId(o.id as string, ev), { orderId: o.id as string, event: ev });
+      }
+    }
+
+    const allIds = Array.from(idToOrderEvent.keys());
+    const logByKey = new Map<string, { status: string; error_message: string | null; created_at: string }>();
+
+    if (allIds.length > 0) {
+      const { data: logs, error: logErr } = await supabaseAdmin
+        .from("email_send_log")
+        .select("message_id, status, error_message, created_at")
+        .in("message_id", allIds)
+        .order("created_at", { ascending: false });
+      if (logErr) throw new Error(logErr.message);
+
+      // Rows are sorted desc — first seen per message_id is the latest.
+      for (const row of logs ?? []) {
+        const key = row.message_id as string;
+        if (!key || logByKey.has(key)) continue;
+        logByKey.set(key, {
+          status: row.status as string,
+          error_message: (row.error_message as string | null) ?? null,
+          created_at: row.created_at as string,
+        });
+      }
+    }
+
+    const ordersOut = orderRows.map((o) => {
+      const events = ORDER_EMAIL_EVENTS.map((ev) => {
+        const mid = orderEmailMessageId(o.id as string, ev);
+        const log = logByKey.get(mid);
+        return {
+          event: ev,
+          label: EVENT_LABELS[ev] ?? ev,
+          status: log ? normaliseStatus(log.status) : ("not_sent" as DeliveryStatus),
+          error: log?.error_message ?? null,
+          at: log?.created_at ?? null,
+        };
+      });
+      return {
+        id: o.id as string,
+        number: String(o.id).slice(0, 8).toUpperCase(),
+        recipient: (o.contact_email as string | null) ?? null,
+        orderStatus: (o.status as string | null) ?? null,
+        createdAt: o.created_at as string,
+        events,
+      };
+    });
+
+    const totals = { sent: 0, pending: 0, failed: 0, suppressed: 0, not_sent: 0 };
+    for (const o of ordersOut) {
+      for (const e of o.events) totals[e.status] += 1;
+    }
+
+    return { orders: ordersOut, totals, events: ORDER_EMAIL_EVENTS.map((ev) => ({ event: ev, label: EVENT_LABELS[ev] })) };
+  });
