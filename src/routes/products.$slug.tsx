@@ -423,36 +423,38 @@ function ProductPage() {
       
 
       {/* Sticky mobile purchase dock */}
-      <div className="sm:hidden fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] inset-x-0 z-40 px-3">
-        <div className="glass-strong rounded-2xl p-2 flex items-center gap-2 shadow-[0_20px_50px_-20px_oklch(0_0_0/0.8)]">
+      <div className="sm:hidden fixed bottom-[calc(6.25rem+env(safe-area-inset-bottom))] inset-x-0 z-40 px-3">
+        <div className="rounded-2xl p-1.5 flex items-center gap-1.5 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9)]" style={{ background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))", backdropFilter: "blur(32px) saturate(160%)", WebkitBackdropFilter: "blur(32px) saturate(160%)" }}>
           <button
             onClick={() => toggleWishlist(product.slug)}
             aria-label={inWishlist(product.slug) ? "Remove from wishlist" : "Add to wishlist"}
-            className={`size-11 grid place-items-center rounded-xl border shrink-0 transition-all active:scale-95 ${inWishlist(product.slug) ? "bg-accent/20 border-accent/50 text-accent" : "bg-white/5 border-white/10 text-white/80 hover:text-accent"}`}
+            className={`size-10 grid place-items-center rounded-xl border shrink-0 transition-all active:scale-90 ${inWishlist(product.slug) ? "bg-accent/20 border-accent/50 text-accent" : "bg-white/[0.03] border-white/10 text-white/60 hover:text-accent"}`}
           >
             <Heart className={`size-4 ${inWishlist(product.slug) ? "fill-accent" : ""}`} />
           </button>
-          <div className="flex flex-col leading-none mr-0.5 shrink-0">
-            <span className="text-[8px] font-mono uppercase tracking-widest text-muted-foreground">Total</span>
-            <span className="text-sm font-display font-semibold tabular-nums text-gradient-ember">{format(effectivePrice * qty)}</span>
+          <div className="flex flex-col leading-none px-1 shrink-0">
+            <span className="text-[8px] font-mono uppercase tracking-widest text-muted-foreground/70">Total</span>
+            <span className="text-base font-display font-semibold tabular-nums text-gradient-ember">{format(effectivePrice * qty)}</span>
           </div>
           <button
             onClick={handleAdd}
             disabled={isOOS}
-            className="flex-1 bg-white/8 border border-white/10 text-foreground font-semibold py-3 rounded-xl text-[11px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+            className="w-10 shrink-0 grid place-items-center bg-white/[0.04] border border-white/10 text-white/70 rounded-xl py-2.5 transition-all active:scale-90 disabled:opacity-40 hover:text-accent"
+            aria-label={isOOS ? "Notify me" : "Add to cart"}
           >
-            {isOOS ? "Notify Me" : "Add to Cart"}
+            <ShoppingBagIcon className="size-4" />
           </button>
           <Link
             to="/cart"
             onClick={() => !isOOS && add(product.slug, qty)}
             aria-disabled={isOOS}
-            className={`flex-1 text-center bg-accent text-accent-foreground font-semibold py-3 rounded-xl text-[11px] uppercase tracking-widest transition-all active:scale-95 shadow-[var(--shadow-ember)] ${isOOS ? "pointer-events-none opacity-50" : ""}`}
+            className={`flex-1 text-center bg-accent text-accent-foreground font-bold py-2.5 rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-[var(--shadow-ember)] ${isOOS ? "pointer-events-none opacity-50" : ""}`}
           >
-            Buy Now
+            {isOOS ? "Notify Me" : "Buy Now"}
           </Link>
         </div>
       </div>
+
 
     </>
   );
