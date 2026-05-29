@@ -344,9 +344,9 @@ function AccountPage() {
           <div className="relative overflow-hidden rounded-3xl glass-strong p-5 sm:p-7">
             <div aria-hidden className="absolute -top-20 -left-10 size-64 rounded-full opacity-40" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
             <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <FooterAction icon={LifeBuoy} label="Support" to="/" />
-              <FooterAction icon={HelpCircle} label="FAQ" to="/" />
-              <FooterAction icon={MessageCircle} label="Contact" to="/" />
+              <FooterAction icon={LifeBuoy} label="Support" to="/help" />
+              <FooterAction icon={HelpCircle} label="FAQ" to="/help" />
+              <FooterAction icon={MessageCircle} label="Contact" onClick={() => openCrispChat()} />
               <button
                 onClick={signOut}
                 className="group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-destructive/50 hover:text-destructive hover:-translate-y-0.5 transition-all"
