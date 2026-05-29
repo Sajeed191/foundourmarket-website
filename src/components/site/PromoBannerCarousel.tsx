@@ -76,6 +76,21 @@ export function PromoBannerCarousel({
     return () => clearInterval(id);
   }, [paused, banners.length]);
 
+  // Track an impression once per banner per mount (admins excluded).
+  const seen = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const cur = banners[idx];
+    if (!cur || isAdmin || seen.current.has(cur.id)) return;
+    seen.current.add(cur.id);
+    void supabase.rpc("track_banner_event", { _banner_id: cur.id, _event: "impression" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, banners, isAdmin]);
+
+  function trackClick(id: string) {
+    if (isAdmin) return;
+    void supabase.rpc("track_banner_event", { _banner_id: id, _event: "click" });
+  }
+
   // Admins always get an edit affordance, even when no banners exist yet.
   if (!banners.length) {
     if (!isAdmin) return null;
