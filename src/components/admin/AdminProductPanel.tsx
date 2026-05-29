@@ -122,6 +122,9 @@ export function AdminProductPanel({ product }: { product: Product }) {
         internationalVisible: f.internationalVisible,
         featured: f.featured,
         inStock: f.inStock,
+        rating: Math.min(5, Math.max(0, Number(f.rating) || 0)),
+        reviews: Math.max(0, Math.round(Number(f.reviews) || 0)),
+        warranty: f.warranty.trim() || "12 months",
       },
       "Product updated",
     );
