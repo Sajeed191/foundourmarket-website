@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useRegion } from "@/lib/region";
-import { Instagram, Twitter, Facebook, Youtube, ShieldCheck, Lock, CreditCard } from "lucide-react";
+import { Instagram, Twitter, Facebook, Youtube } from "lucide-react";
 
 export function Footer() {
   const { region, setRegion } = useRegion();
