@@ -29,6 +29,7 @@ export interface OrderEmailProps {
   trackingNumber?: string
   carrier?: string
   refundAmount?: string
+  unsubscribeUrl?: string
 }
 
 function Shell({
