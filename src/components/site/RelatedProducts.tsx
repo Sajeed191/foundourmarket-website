@@ -54,7 +54,7 @@ export function RelatedProducts({
   if (loading || items.length === 0) return null;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="flex items-end justify-between gap-4 mb-5 sm:mb-7">
         <div>
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">{eyebrow}</p>
