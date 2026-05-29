@@ -229,8 +229,81 @@ async function handleEvent(event: string, payload: any) {
       break;
     }
 
+    case "token.created": {
+      await handleTokenCreated(payload);
+      break;
+    }
+
+    case "token.deleted": {
+      await handleTokenDeleted(payload);
+      break;
+    }
+
     default:
       // Unhandled event — already logged
       break;
   }
+}
+
+/** Map a Razorpay customer id to our platform user id. */
+async function userForCustomer(customerId?: string) {
+  if (!customerId) return null;
+  const { data } = await supabaseAdmin
+    .from("razorpay_customers")
+    .select("user_id")
+    .eq("razorpay_customer_id", customerId)
+    .maybeSingle();
+  return data?.user_id ?? null;
+}
+
+async function handleTokenCreated(payload: any) {
+  const token = payload?.payload?.token?.entity;
+  const customerId: string | undefined = token?.customer_id;
+  const userId = await userForCustomer(customerId);
+  if (!token?.id || !customerId || !userId) return;
+
+  const isUpi = token.method === "upi" || !!token.vpa;
+  const upiVpa = token.vpa
+    ? [token.vpa.username, token.vpa.handle].filter(Boolean).join("@")
+    : null;
+
+  const { data: existing } = await supabaseAdmin
+    .from("saved_payment_methods")
+    .select("id")
+    .eq("user_id", userId);
+
+  await supabaseAdmin.from("saved_payment_methods").upsert(
+    {
+      user_id: userId,
+      razorpay_customer_id: customerId,
+      razorpay_token_id: token.id,
+      provider: "razorpay",
+      payment_type: isUpi ? "upi" : "card",
+      brand: token.card?.network ?? null,
+      last4: token.card?.last4 ?? null,
+      expiry_month: token.card?.expiry_month ?? null,
+      expiry_year: token.card?.expiry_year ?? null,
+      upi_vpa: upiVpa,
+      is_default: !existing?.length,
+    },
+    { onConflict: "user_id,razorpay_token_id" },
+  );
+
+  await supabaseAdmin.from("tokenization_logs").insert({
+    user_id: userId,
+    razorpay_customer_id: customerId,
+    razorpay_token_id: token.id,
+    payment_type: isUpi ? "upi" : "card",
+    status: "saved",
+    metadata: { source: "webhook.token.created" },
+  });
+}
+
+async function handleTokenDeleted(payload: any) {
+  const token = payload?.payload?.token?.entity;
+  if (!token?.id) return;
+  await supabaseAdmin
+    .from("saved_payment_methods")
+    .delete()
+    .eq("razorpay_token_id", token.id);
 }

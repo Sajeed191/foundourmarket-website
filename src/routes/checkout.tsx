@@ -14,6 +14,7 @@ import { useAddresses, type Address } from "@/lib/use-addresses";
 import { useStoreSettings } from "@/lib/use-store-settings";
 import { AddressForm } from "@/components/site/AddressForm";
 import { createRazorpayOrder, verifyRazorpayPayment, cancelRazorpayOrder } from "@/lib/razorpay.functions";
+import { createRazorpayCustomer, syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
 import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpay-loader";
 
 export const Route = createFileRoute("/checkout")({
@@ -38,6 +39,9 @@ function CheckoutPage() {
   const createOrder = useServerFn(createRazorpayOrder);
   const verifyPayment = useServerFn(verifyRazorpayPayment);
   const cancelOrder = useServerFn(cancelRazorpayOrder);
+  const ensureCustomer = useServerFn(createRazorpayCustomer);
+  const syncMethods = useServerFn(syncRazorpayPaymentMethods);
+
 
   const [stage, setStage] = useState<Stage>("review");
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +133,15 @@ function CheckoutPage() {
         },
       });
 
+      let customerId: string | undefined;
+      try {
+        const c = await ensureCustomer();
+        customerId = c.customerId;
+      } catch {
+        /* saving methods is optional — continue checkout regardless */
+      }
+
+
       const rzp = openRazorpay({
         key: created.keyId,
         amount: created.amount,
@@ -136,6 +149,7 @@ function CheckoutPage() {
         order_id: created.razorpayOrderId,
         name: "FoundOurMarket™",
         description: `Order ${created.orderId.slice(0, 8)}`,
+        ...(customerId ? { customer_id: customerId, save: 1 } : {}),
         prefill: {
           name: selectedAddress.full_name,
           email: user.email ?? undefined,
@@ -144,6 +158,7 @@ function CheckoutPage() {
         notes: { order_id: created.orderId },
         theme: { color: "#ff7a1a", backdrop_color: "#0a0a0f" },
         method: { emi: false, paylater: false },
+
         modal: {
           ondismiss: () => {
             setStage("failed");
@@ -165,6 +180,8 @@ function CheckoutPage() {
             setPlacedOrderId(created.orderId);
             setStage("success");
             clear();
+            syncMethods().catch(() => {});
+
           } catch (e: any) {
             setStage("failed");
             setError(e?.message ?? "We couldn't verify your payment. If charged, it will auto-resolve.");

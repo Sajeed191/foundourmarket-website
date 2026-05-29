@@ -7,7 +7,7 @@ import {
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
   Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe, Crown,
-  CheckCircle2, Box, Home, X, Plus, Minus,
+  CheckCircle2, Box, Home, X, Plus, Minus, CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -293,7 +293,9 @@ function AccountPage() {
             <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
             <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
             <ActionCard to="/help" icon={Headphones} title="Support" subtitle="24/7 help" />
+            <ActionCard to="/account/payments" icon={CreditCard} title="Payments" subtitle="Saved methods" />
             <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
+
           </div>
         </motion.section>
 
