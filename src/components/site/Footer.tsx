@@ -72,7 +72,8 @@ export function Footer() {
       </div>
 
 
-      <div className="relative max-w-7xl mx-auto mt-6 pt-5 border-t border-border flex flex-col md:flex-row justify-between items-center md:items-start gap-4 text-center md:text-left">
+      <div className="relative max-w-7xl mx-auto mt-5 pt-4 border-t border-border flex flex-col md:flex-row justify-between items-center md:items-start gap-3 text-center md:text-left">
+        <div aria-hidden className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[50%] h-px" style={{ background: "linear-gradient(90deg, transparent, var(--color-accent), transparent)", opacity: 0.35 }} />
         <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">© 2026 FoundOurMarket. All rights reserved.</p>
         <div className="flex w-full max-w-sm flex-wrap justify-center gap-1.5 rounded-2xl border border-border/70 bg-card/35 p-1.5 text-[10px] font-mono text-muted-foreground uppercase tracking-widest backdrop-blur-xl md:w-auto md:max-w-none md:justify-end md:gap-5 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
           <Link to="/pages/$slug" params={{ slug: "privacy" }} className="min-h-10 rounded-xl px-3 py-2 grid place-items-center hover:bg-accent/10 hover:text-foreground transition-colors">Privacy</Link>
