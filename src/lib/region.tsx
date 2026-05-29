@@ -249,10 +249,15 @@ export function RegionProvider({ children }: { children: ReactNode }) {
               localStorage.setItem(LS_KEY, result.region);
             }
           } else {
-            // Ambiguous → let the guest choose their market.
+            // Ambiguous → let the guest choose, but only once per device.
             if (result) setMarket(result.region);
             setAutoDetected(false);
-            setNeedsSelection(true);
+            if (promptAlreadySeen()) {
+              setNeedsSelection(false);
+            } else {
+              markPromptSeen();
+              setNeedsSelection(true);
+            }
           }
           setLocked(false);
         }
