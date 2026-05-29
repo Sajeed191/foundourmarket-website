@@ -171,7 +171,8 @@ export function AdminShell({
         <div className="absolute inset-0" style={{ background: "radial-gradient(140% 100% at 50% -10%, oklch(1 0 0 / 0.015), transparent 50%), radial-gradient(120% 120% at 50% 120%, oklch(0 0 0 / 0.5), transparent 60%)" }} />
       </div>
       {/* Sidebar — floating operator console */}
-      <aside className={`fixed lg:sticky lg:top-0 inset-y-0 left-0 z-40 w-[17.5rem] transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:transform-none ${open ? "translate-x-0" : "-translate-x-[110%] lg:translate-x-0"} h-screen p-3`}>
+      <aside className={`fixed lg:sticky top-14 lg:top-0 bottom-0 left-0 z-30 lg:z-40 w-[17.5rem] transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:transform-none ${open ? "translate-x-0" : "-translate-x-[110%] lg:translate-x-0"} h-[calc(100vh-3.5rem)] lg:h-screen p-3`}>
+
         <div className="relative h-full flex flex-col rounded-[1.75rem] overflow-hidden glass-strong glass-reflect" style={{ boxShadow: "var(--shadow-float), 0 0 50px -22px oklch(0.74 0.19 49 / 0.3), inset 0 1px 0 oklch(1 0 0 / 0.06)" }}>
           {/* Ambient lighting */}
           <div className="orb animate-orb -top-16 -left-10 size-44 opacity-40" style={{ background: "var(--gradient-ember)" }} />
@@ -344,7 +345,8 @@ export function AdminShell({
           <motion.button
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setOpen(false)}
-            className="lg:hidden fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
+            className="lg:hidden fixed top-14 inset-x-0 bottom-0 z-20 bg-black/70 backdrop-blur-sm"
+
             aria-label="Close menu"
           />
         )}
