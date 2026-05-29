@@ -19,6 +19,9 @@ import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpa
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — FoundOurMarket™" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    address: typeof search.address === "string" ? search.address : undefined,
+  }),
   component: CheckoutPage,
 });
 
@@ -32,7 +35,8 @@ function CheckoutPage() {
   const { user, loading } = useAuth();
   const { detailed, subtotalUSD, clear, count } = useCart();
   const { region } = useRegion();
-  const { addresses, loading: addrLoading, create: createAddress, defaultShipping } = useAddresses();
+  const { addresses, loading: addrLoading, create: createAddress, defaultShipping, markUsed } = useAddresses();
+  const { address: addressParam } = Route.useSearch();
   const { settings } = useStoreSettings();
   const nav = useNavigate();
 
@@ -66,9 +70,10 @@ function CheckoutPage() {
 
   useEffect(() => {
     if (selectedAddressId) return;
-    if (defaultShipping) setSelectedAddressId(defaultShipping.id);
+    if (addressParam && addresses.some((a) => a.id === addressParam)) setSelectedAddressId(addressParam);
+    else if (defaultShipping) setSelectedAddressId(defaultShipping.id);
     else if (addresses[0]) setSelectedAddressId(addresses[0].id);
-  }, [addresses, defaultShipping, selectedAddressId]);
+  }, [addresses, defaultShipping, selectedAddressId, addressParam]);
 
   // Preload the Razorpay SDK for snappier checkout
   useEffect(() => {
@@ -180,6 +185,7 @@ function CheckoutPage() {
             setPlacedOrderId(created.orderId);
             setStage("success");
             clear();
+            if (selectedAddress) markUsed(selectedAddress.id).catch(() => {});
             syncMethods().catch(() => {});
 
           } catch (e: any) {
@@ -256,6 +262,7 @@ function CheckoutPage() {
       setPlacedOrderId(order.id);
       setStage("success");
       clear();
+      if (selectedAddress) markUsed(selectedAddress.id).catch(() => {});
     } catch (e: any) {
       setStage("failed");
       setError(e?.message ?? "Could not place your COD order.");
