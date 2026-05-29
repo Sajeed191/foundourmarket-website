@@ -90,3 +90,92 @@ export const getEmailActivity = createServerFn({ method: "POST" })
       logs: latest.slice(0, data.limit),
     };
   });
+
+const opsSchema = z.object({
+  range: z.enum(["24h", "7d", "30d"]).default("7d"),
+  limit: z.number().int().min(1).max(200).default(100),
+});
+
+type FailedRow = {
+  id: string;
+  message_id: string | null;
+  template_name: string;
+  recipient_email: string;
+  status: string;
+  error_message: string | null;
+  created_at: string;
+};
+
+type SuppressedRow = {
+  id: string;
+  email: string;
+  reason: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+};
+
+/** Admin — failed send retries (DLQ / failed / bounced) + suppression list. */
+export const getEmailOps = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => opsSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context as { userId: string };
+    await assertEmailStaff(userId);
+
+    const ms = data.range === "24h" ? 864e5 : data.range === "30d" ? 30 * 864e5 : 7 * 864e5;
+    const since = new Date(Date.now() - ms).toISOString();
+
+    const FAILURE_STATUSES = ["failed", "dlq", "bounced", "complained"];
+
+    const [logRes, supRes] = await Promise.all([
+      supabaseAdmin
+        .from("email_send_log")
+        .select("id, message_id, template_name, recipient_email, status, error_message, created_at")
+        .gte("created_at", since)
+        .in("status", FAILURE_STATUSES)
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      supabaseAdmin
+        .from("suppressed_emails")
+        .select("id, email, reason, metadata, created_at")
+        .order("created_at", { ascending: false })
+        .limit(2000),
+    ]);
+
+    if (logRes.error) throw new Error(logRes.error.message);
+    if (supRes.error) throw new Error(supRes.error.message);
+
+    // Deduplicate failures to latest status per message_id.
+    const seen = new Set<string>();
+    const failed: FailedRow[] = [];
+    for (const r of (logRes.data as FailedRow[]) ?? []) {
+      const key = r.message_id ?? r.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      failed.push(r);
+    }
+
+    const suppressed = (supRes.data as SuppressedRow[]) ?? [];
+
+    const failureStats = {
+      total: failed.length,
+      dlq: failed.filter((r) => r.status === "dlq").length,
+      bounced: failed.filter((r) => r.status === "bounced").length,
+      complained: failed.filter((r) => r.status === "complained").length,
+      failed: failed.filter((r) => r.status === "failed").length,
+    };
+
+    const suppressionStats = {
+      total: suppressed.length,
+      unsubscribe: suppressed.filter((r) => r.reason === "unsubscribe").length,
+      bounce: suppressed.filter((r) => r.reason === "bounce").length,
+      complaint: suppressed.filter((r) => r.reason === "complaint").length,
+    };
+
+    return {
+      failureStats,
+      suppressionStats,
+      failed: failed.slice(0, data.limit),
+      suppressed: suppressed.slice(0, data.limit),
+    };
+  });
