@@ -37,6 +37,7 @@ function CheckoutPage() {
 
   const createOrder = useServerFn(createRazorpayOrder);
   const verifyPayment = useServerFn(verifyRazorpayPayment);
+  const cancelOrder = useServerFn(cancelRazorpayOrder);
 
   const [stage, setStage] = useState<Stage>("review");
   const [error, setError] = useState<string | null>(null);
