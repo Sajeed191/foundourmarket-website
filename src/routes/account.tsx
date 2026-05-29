@@ -225,7 +225,7 @@ function AccountPage() {
             </div>
 
             {/* Profile completion — full width below for balanced spacing */}
-            <ProfileCompletion user={user} />
+            <ProfileCompletion user={user} profile={profile} />
           </div>
         </motion.header>
         </div>
@@ -833,13 +833,13 @@ function WhyShopWithUs() {
   );
 }
 
-function ProfileCompletion({ user }: { user: { email?: string | null; user_metadata?: Record<string, unknown> } }) {
+function ProfileCompletion({ user, profile }: { user: { email?: string | null; user_metadata?: Record<string, unknown> }; profile: Profile | null }) {
   const meta = user.user_metadata ?? {};
   const checks = [
     !!user.email,
-    !!meta.full_name,
-    !!meta.avatar_url,
-    !!meta.phone,
+    !!(profile?.full_name ?? meta.full_name),
+    !!(profile?.avatar_url ?? meta.avatar_url),
+    !!profile?.phone,
   ];
   const done = checks.filter(Boolean).length;
   const pct = Math.round((done / checks.length) * 100);
