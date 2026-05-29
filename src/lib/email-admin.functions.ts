@@ -110,7 +110,6 @@ type SuppressedRow = {
   id: string;
   email: string;
   reason: string;
-  metadata: Record<string, unknown> | null;
   created_at: string;
 };
 
@@ -137,7 +136,7 @@ export const getEmailOps = createServerFn({ method: "POST" })
         .limit(2000),
       supabaseAdmin
         .from("suppressed_emails")
-        .select("id, email, reason, metadata, created_at")
+        .select("id, email, reason, created_at")
         .order("created_at", { ascending: false })
         .limit(2000),
     ]);
