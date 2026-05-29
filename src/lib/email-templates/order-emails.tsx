@@ -101,6 +101,14 @@ function Shell({
             <Text style={{ margin: '6px 0 0', fontSize: '11px', color: '#5a6a7d' }}>
               © {new Date().getFullYear()} FoundOurMarket™. All rights reserved.
             </Text>
+            {unsubscribeUrl && (
+              <Text style={{ margin: '10px 0 0', fontSize: '11px', color: '#5a6a7d' }}>
+                Don't want these emails?{' '}
+                <Link href={unsubscribeUrl} style={{ color: MUTED, textDecoration: 'underline' }}>
+                  Unsubscribe
+                </Link>
+              </Text>
+            )}
           </Section>
         </Container>
       </Body>
