@@ -6,10 +6,16 @@ import { supabase } from "@/integrations/supabase/client";
 type Post = { slug: string; title: string; excerpt: string | null; cover_image: string | null; author: string | null; published_at: string };
 
 export const Route = createFileRoute("/blog")({
-  head: () => ({ meta: [
-    { title: "Journal — FoundOurMarket™" },
-    { name: "description", content: "Stories, guides, and editorial from FoundOurMarket." },
-  ]}),
+  head: () => ({
+    meta: [
+      { title: "Journal — FoundOurMarket™" },
+      { name: "description", content: "Stories, guides, and editorial from FoundOurMarket — shopping tips, product spotlights, and inspiration for a curated global lifestyle." },
+      { property: "og:title", content: "Journal — FoundOurMarket™" },
+      { property: "og:description", content: "Stories, guides, and editorial from FoundOurMarket." },
+      { property: "og:url", content: "https://foundourmarket.com/blog" },
+    ],
+    links: [{ rel: "canonical", href: "https://foundourmarket.com/blog" }],
+  }),
   component: BlogIndex,
 });
 
