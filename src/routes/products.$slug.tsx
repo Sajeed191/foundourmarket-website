@@ -92,7 +92,7 @@ function ProductPage() {
   const { slug } = Route.useParams();
   const { product, loading } = useProduct(slug);
   const { format, priceOf, compareOf } = useRegion();
-  const { isAdmin } = useIsAdmin();
+  const { isProductAdmin: isAdmin } = useIsProductAdmin();
   const { add } = useCart();
   const { record } = useRecentlyViewed();
   const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
