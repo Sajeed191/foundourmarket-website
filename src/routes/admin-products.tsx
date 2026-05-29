@@ -40,6 +40,8 @@ type Stat = { units: number; revenue: number; orders: number };
 
 const inr = (v: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(v) || 0);
+const usd = (v: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(Number(v) || 0);
 
 type StockHealth = "oos" | "critical" | "low" | "ok";
 function health(p: Product): StockHealth {
