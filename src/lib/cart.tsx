@@ -51,6 +51,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [cartId, setCartId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // undefined = not yet loaded; otherwise the user id (or null for guest) the cart was loaded for
+  const [loadedFor, setLoadedFor] = useState<string | null | undefined>(undefined);
   const [lastRemoved, setLastRemoved] = useState<RemovedItem | null>(null);
   const mergedRef = useRef(false);
 
