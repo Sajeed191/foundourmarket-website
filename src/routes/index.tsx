@@ -482,7 +482,7 @@ function Home() {
             { icon: Globe2, title: "Worldwide Shipping", desc: "Fast, tracked delivery to 180+ countries from our global distribution hubs." },
             { icon: Award, title: "Trusted Sellers", desc: "Every supplier hand-verified. Only premium products make it to the marketplace." },
             { icon: Sparkles, title: "Premium Quality", desc: "Curated catalog — no filler, no fakes. Every item meets our quality bar." },
-            { icon: Package, title: "Fast Delivery", desc: "Express options available. Most orders arrive within 5–10 business days." },
+            { icon: Package, title: "Fast Delivery", desc: "Reliable shipping. Most orders arrive within 5–10 business days." },
             { icon: Headset, title: "24/7 Support", desc: "Real humans, ready to help — anytime, anywhere in the world." },
           ].map((f, i) => (
             <Reveal key={f.title} delay={i % 3}>

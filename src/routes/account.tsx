@@ -785,7 +785,7 @@ function WhyShopWithUs() {
     { icon: Lock, title: "Secure Payments", desc: "256-bit SSL encryption" },
     { icon: Globe, title: "Worldwide Shipping", desc: "Delivered to 100+ countries" },
     { icon: BadgeCheck, title: "Trusted Quality", desc: "Authentic & verified" },
-    { icon: Truck, title: "Fast Delivery", desc: "Express options available" },
+    { icon: Truck, title: "Fast Delivery", desc: "Reliable standard shipping" },
     { icon: Headphones, title: "24/7 Support", desc: "We're always here" },
   ];
   return (
