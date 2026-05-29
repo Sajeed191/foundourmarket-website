@@ -54,6 +54,26 @@ const RegionContext = createContext<Ctx | null>(null);
 const LS_KEY = "market_region";
 // Set only when a guest *explicitly* picks a market (inherited on login).
 const GUEST_CHOICE_KEY = "market_region_chosen";
+// Set once the market selector has been shown — guarantees one prompt/device.
+const PROMPT_SEEN_KEY = "market_region_prompt_seen";
+
+/** True if the region selector has already been shown on this device. */
+function promptAlreadySeen(): boolean {
+  if (typeof document === "undefined") return false;
+  if (localStorage.getItem(PROMPT_SEEN_KEY) === "1") return true;
+  return document.cookie.includes(`${PROMPT_SEEN_KEY}=1`);
+}
+
+/** Persist the "seen" flag across both localStorage and a 1-year cookie. */
+function markPromptSeen() {
+  if (typeof document === "undefined") return;
+  try {
+    localStorage.setItem(PROMPT_SEEN_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+  document.cookie = `${PROMPT_SEEN_KEY}=1; path=/; max-age=31536000; samesite=lax`;
+}
 
 function formatMoney(amount: number, currency: Currency): string {
   if (currency === "INR") return `₹${Math.round(amount).toLocaleString("en-IN")}`;
