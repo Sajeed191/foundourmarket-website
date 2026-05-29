@@ -19,18 +19,20 @@ export function MobileBottomNav() {
     { to: user ? "/account" : "/auth", label: user ? "Me" : "Sign in", icon: User, match: (p) => p === "/account" || p === "/auth" },
   ];
 
+  return (
     <nav
       aria-label="Primary mobile navigation"
       className="md:hidden fixed bottom-0 inset-x-0 z-40 px-4 pb-[max(1rem,calc(env(safe-area-inset-bottom)+0.6rem))] pt-2 pointer-events-none"
     >
-      {/* Ambient ember glow behind the bar — softened ~50% */}
       <div
         aria-hidden
         className="absolute inset-x-10 bottom-4 h-16 -z-10 blur-3xl opacity-45"
         style={{ background: "var(--gradient-ember-soft)" }}
       />
-      <ul className="pointer-events-auto relative grid grid-cols-5 gap-0.5 rounded-[26px] px-2.5 py-2.5 ring-1 ring-white/[0.09] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.75),0_0_26px_-14px_oklch(0.74_0.19_49/0.4),inset_0_1px_0_oklch(1_0_0/0.08)] backdrop-blur-2xl backdrop-saturate-150" style={{ background: "linear-gradient(180deg, rgba(22,13,9,0.62), rgba(10,6,4,0.78))" }}>
-
+      <ul
+        className="pointer-events-auto relative grid grid-cols-5 gap-0.5 rounded-[26px] px-2.5 py-2.5 ring-1 ring-white/[0.09] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.75),0_0_26px_-14px_oklch(0.74_0.19_49/0.4),inset_0_1px_0_oklch(1_0_0/0.08)] backdrop-blur-2xl backdrop-saturate-150"
+        style={{ background: "linear-gradient(180deg, rgba(22,13,9,0.62), rgba(10,6,4,0.78))" }}
+      >
         {items.map(({ to, label, icon: Icon, match, badge }) => {
           const active = match(pathname);
           return (
@@ -63,7 +65,6 @@ export function MobileBottomNav() {
                   )}
                 </motion.span>
                 <span className={`relative truncate max-w-full text-[10px] font-semibold tracking-wide ${active ? "opacity-100" : "opacity-80"}`}>{label}</span>
-
               </Link>
             </li>
           );
