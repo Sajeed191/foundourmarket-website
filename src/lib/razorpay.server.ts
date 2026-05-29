@@ -75,3 +75,43 @@ function safeEqualHex(a: string, b: string): boolean {
     return false;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Customer + tokenized payment-method helpers
+ * ------------------------------------------------------------------------- */
+
+export type RzpToken = {
+  id: string;
+  method?: string; // "card" | "upi" | ...
+  card?: {
+    last4?: string;
+    network?: string;
+    type?: string;
+    issuer?: string;
+    expiry_month?: number;
+    expiry_year?: number;
+  } | null;
+  vpa?: { username?: string; handle?: string } | null;
+  expired_at?: number | null;
+  used_at?: number | null;
+};
+
+/** Normalise a Razorpay token entity into our saved_payment_methods shape. */
+export function mapRzpToken(token: RzpToken, customerId: string, userId: string) {
+  const isUpi = token.method === "upi" || !!token.vpa;
+  const upiVpa = token.vpa
+    ? [token.vpa.username, token.vpa.handle].filter(Boolean).join("@")
+    : null;
+  return {
+    user_id: userId,
+    razorpay_customer_id: customerId,
+    razorpay_token_id: token.id,
+    provider: "razorpay",
+    payment_type: isUpi ? "upi" : "card",
+    brand: token.card?.network ?? null,
+    last4: token.card?.last4 ?? null,
+    expiry_month: token.card?.expiry_month ?? null,
+    expiry_year: token.card?.expiry_year ?? null,
+    upi_vpa: upiVpa,
+  };
+}
