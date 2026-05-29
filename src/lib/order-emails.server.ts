@@ -6,6 +6,7 @@ import * as React from 'react'
 import { supabaseAdmin } from '@/integrations/supabase/client.server'
 import { TEMPLATES } from '@/lib/email-templates/registry'
 import type { OrderEmailProps } from '@/lib/email-templates/order-emails'
+import { buildUnsubscribeLinks } from '@/lib/unsubscribe.server'
 
 const SITE_NAME = 'FoundOurMarket'
 const SENDER_DOMAIN = 'notify.foundourmarket.com'
