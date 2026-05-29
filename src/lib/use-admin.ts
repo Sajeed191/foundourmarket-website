@@ -43,7 +43,7 @@ export function useIsAdmin() {
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .in("role", STAFF_ROLES as unknown as string[])
+      .in("role", STAFF_ROLES)
       .then(({ data }) => {
         if (!active) return;
         setIsAdmin(!!data && data.length > 0);
