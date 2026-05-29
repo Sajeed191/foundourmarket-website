@@ -137,16 +137,17 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={120}
                 placeholder="Title (optional)"
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-accent"
+                className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-2.5 transition-all focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 focus:shadow-[0_0_20px_-6px_oklch(0.74_0.19_49/0.55)]"
               />
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 maxLength={2000}
-                rows={4}
+                rows={3}
                 placeholder="Share your thoughts…"
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:border-accent"
+                className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-3 transition-all focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 focus:shadow-[0_0_20px_-6px_oklch(0.74_0.19_49/0.55)]"
               />
+
               {error && <p className="text-xs text-red-400 mb-3">{error}</p>}
               <div className="flex items-center gap-2">
                 <button
