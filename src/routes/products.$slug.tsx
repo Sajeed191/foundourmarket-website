@@ -461,10 +461,10 @@ function ProductPage() {
 
 function SpecRow({ k, v }: { k: string; v: string }) {
   return (
-    <>
-      <dt className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground self-center">{k}</dt>
-      <dd className="text-foreground truncate">{v}</dd>
-    </>
+    <div className="flex items-center justify-between gap-4 py-2.5">
+      <dt className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/70">{k}</dt>
+      <dd className="text-sm font-medium text-foreground truncate text-right">{v}</dd>
+    </div>
   );
 }
 
