@@ -43,7 +43,6 @@ function CartPage() {
   const [promo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
 
-  const lineItems = useMemo(() => detailed.map((i) => ({ slug: i.slug, qty: i.qty })), [detailed]);
 
   const savings = useMemo(
     () => detailed.reduce((s, i) => s + unitPricing(i.product.price, i.product.discount).save * i.qty, 0),
