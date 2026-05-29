@@ -41,6 +41,7 @@ export function ProductCardAdminControls({ product }: { product: Product }) {
   const duplicate = useServerFn(adminDuplicateProduct);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [quickEdit, setQuickEdit] = useState(false);
 
   if (!isAdmin || !adminMode) return null;
 
