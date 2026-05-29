@@ -6,6 +6,7 @@ import { useCategories } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { useIsProductAdmin } from "@/lib/use-admin";
 import { CategoryAdminSheet } from "@/components/admin/CategoryAdminSheet";
+import { supabase } from "@/integrations/supabase/client";
 
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
@@ -319,6 +320,7 @@ function Home() {
               <Link
                 to="/category/$slug"
                 params={{ slug: cat.slug }}
+                onClick={() => { void supabase.rpc("track_category_event", { _id: cat.id, _event: "click" }); }}
                 className="group relative block aspect-square bg-card border border-border rounded-2xl overflow-hidden hover:border-accent/50 transition-all hover:-translate-y-1.5 hover:shadow-[0_24px_60px_-24px_oklch(0.74_0.19_49_/_0.45)]"
               >
                 {cat.image ? (
@@ -336,6 +338,16 @@ function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "var(--gradient-ember)" }} />
                 <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1400ms] ease-out bg-gradient-to-r from-transparent via-white/[0.08] to-transparent skew-x-12" />
+                {(cat.featured || cat.trending) && (
+                  <div className="absolute right-2 top-2 z-10 flex gap-1">
+                    {cat.featured && (
+                      <span className="grid size-6 place-items-center rounded-full bg-background/70 text-accent backdrop-blur-md"><Star className="size-3" /></span>
+                    )}
+                    {cat.trending && (
+                      <span className="grid size-6 place-items-center rounded-full bg-background/70 text-orange-400 backdrop-blur-md"><Flame className="size-3" /></span>
+                    )}
+                  </div>
+                )}
                 <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-end z-10">
                   <p className="font-mono text-[10px] text-accent mb-1">{String(i + 1).padStart(2, "0")}</p>
                   <h3 className="text-base sm:text-lg font-medium">{cat.name}</h3>
@@ -347,7 +359,7 @@ function Home() {
         </div>
       </section>
       {isProductAdmin && editCats && (
-        <CategoryAdminSheet onClose={() => setEditCats(false)} onChanged={() => {}} />
+        <CategoryAdminSheet onClose={() => setEditCats(false)} onChanged={() => {}} productCounts={categoryCounts} />
       )}
 
 

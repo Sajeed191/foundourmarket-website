@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useCategories } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -27,6 +29,12 @@ function CategoryPage() {
   const cat = categories.find((c) => c.slug === slug);
   const { products, loading } = useProducts();
   const items = products.filter((p) => p.category === slug);
+
+  useEffect(() => {
+    if (cat?.id) void supabase.rpc("track_category_event", { _id: cat.id, _event: "view" });
+  }, [cat?.id]);
+
+
 
 
   return (
