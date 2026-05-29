@@ -734,6 +734,20 @@ function SuccessScreen({ orderId, totalINR, method, eta, nav }: {
               View order
             </button>
           )}
+          {orderId && (
+            <button
+              onClick={async () => {
+                setDownloading(true);
+                const ok = await downloadInvoice(orderId);
+                if (!ok) toast.error("Couldn't generate invoice. Please try from your order page.");
+                setDownloading(false);
+              }}
+              disabled={downloading}
+              className="w-full inline-flex items-center justify-center gap-2 glass border border-white/10 text-foreground font-bold py-3 rounded-full text-xs uppercase tracking-widest hover:border-accent/40 disabled:opacity-60">
+              {downloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+              {downloading ? "Preparing…" : "Download invoice"}
+            </button>
+          )}
           <button onClick={() => nav({ to: "/" })}
             className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground py-2">
             Continue shopping
