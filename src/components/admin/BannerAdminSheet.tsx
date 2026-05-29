@@ -242,7 +242,24 @@ export function BannerAdminSheet({ onClose, onChanged }: { onClose: () => void; 
                     key={r.id}
                     className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-2.5"
                   >
-                    <GripVertical className="size-3.5 shrink-0 text-muted-foreground/40" />
+                    <div className="flex shrink-0 flex-col">
+                      <button
+                        onClick={() => reorder(r.id, "up")}
+                        disabled={i === 0}
+                        className="grid size-5 place-items-center rounded text-muted-foreground/60 hover:text-accent disabled:opacity-20"
+                        aria-label="Move up"
+                      >
+                        <ArrowUp className="size-3.5" />
+                      </button>
+                      <button
+                        onClick={() => reorder(r.id, "down")}
+                        disabled={i === rows.length - 1}
+                        className="grid size-5 place-items-center rounded text-muted-foreground/60 hover:text-accent disabled:opacity-20"
+                        aria-label="Move down"
+                      >
+                        <ArrowDown className="size-3.5" />
+                      </button>
+                    </div>
                     <div className="size-10 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
                       {r.image ? (
                         <img src={r.image} alt="" className="size-full object-cover" />
