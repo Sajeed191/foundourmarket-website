@@ -150,7 +150,6 @@ function CheckoutPage() {
             setError("Payment was cancelled. Your cart is safe — you can try again.");
             cancelOrder({ data: { orderId: created.orderId } }).catch(() => {});
           },
-          },
         },
         handler: async (response: RazorpayResponse) => {
           setStage("verifying");
