@@ -11,6 +11,7 @@ import { useAuth } from "./auth";
 import { useIsAdmin } from "./use-admin";
 import { detectRegion, getMyRegion, lockMarketRegion } from "./region.functions";
 import type { MarketRegion } from "./region.functions";
+import { blendDetection, CONFIDENCE_THRESHOLD } from "./geo-detect";
 import type { Product } from "./products";
 
 export type { MarketRegion };
@@ -23,7 +24,13 @@ type Ctx = {
   symbol: string;
   /** True once the signed-in user has a permanently assigned region. */
   locked: boolean;
-  /** True when a signed-in user must still pick a region (drives the modal). */
+  /** True when the market was resolved silently from geo-intelligence. */
+  autoDetected: boolean;
+  /** Blended detection confidence (0–100) across edge/timezone/locale layers. */
+  confidence: number;
+  /** VPN / proxy / datacenter suspicion — forces manual confirmation. */
+  vpnSuspected: boolean;
+  /** True when a user/guest must still pick a region (drives the modal). */
   needsSelection: boolean;
   loading: boolean;
   countryCode: string | null;
@@ -31,7 +38,7 @@ type Ctx = {
   isAdmin: boolean;
   /** Admin-only: temporarily preview a market without locking. */
   setPreviewMarket: (region: MarketRegion) => void;
-  /** Write-once region lock for the signed-in user. */
+  /** Persist a region: locks server-side for users, caches for guests. */
   lockMarket: (region: MarketRegion) => Promise<void>;
   /** Region price for a product (no currency conversion — admin-defined). */
   priceOf: (p: Product) => number;
@@ -45,6 +52,8 @@ type Ctx = {
 
 const RegionContext = createContext<Ctx | null>(null);
 const LS_KEY = "market_region";
+// Set only when a guest *explicitly* picks a market (inherited on login).
+const GUEST_CHOICE_KEY = "market_region_chosen";
 
 function formatMoney(amount: number, currency: Currency): string {
   if (currency === "INR") return `₹${Math.round(amount).toLocaleString("en-IN")}`;
