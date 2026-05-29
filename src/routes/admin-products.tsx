@@ -69,6 +69,7 @@ function ProductsInner() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [stats, setStats] = useState<Record<string, Stat>>({});
   const [revenueToday, setRevenueToday] = useState(0);
+  const [ordersToday, setOrdersToday] = useState(0);
   const [pulse, setPulse] = useState(false);
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
