@@ -739,6 +739,8 @@ export type Database = {
           payment_method: string | null
           payment_status: string
           promo_code: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
           shipping: number
           shipping_address: Json | null
           status: string
@@ -760,6 +762,8 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string
           promo_code?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           shipping?: number
           shipping_address?: Json | null
           status?: string
@@ -781,6 +785,8 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string
           promo_code?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           shipping?: number
           shipping_address?: Json | null
           status?: string
@@ -835,10 +841,15 @@ export type Database = {
           created_at: string
           currency: string
           demo: boolean
+          fee: number
+          gateway_tax: number
           id: string
           meta: Json | null
           method: string
           order_id: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          signature: string | null
           status: string
           transaction_id: string
           user_id: string
@@ -848,10 +859,15 @@ export type Database = {
           created_at?: string
           currency?: string
           demo?: boolean
+          fee?: number
+          gateway_tax?: number
           id?: string
           meta?: Json | null
           method: string
           order_id: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          signature?: string | null
           status: string
           transaction_id: string
           user_id: string
@@ -861,10 +877,15 @@ export type Database = {
           created_at?: string
           currency?: string
           demo?: boolean
+          fee?: number
+          gateway_tax?: number
           id?: string
           meta?: Json | null
           method?: string
           order_id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          signature?: string | null
           status?: string
           transaction_id?: string
           user_id?: string
@@ -1231,6 +1252,51 @@ export type Database = {
         }
         Relationships: []
       }
+      refunds: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          notes: Json | null
+          order_id: string
+          payment_id: string | null
+          razorpay_payment_id: string | null
+          razorpay_refund_id: string | null
+          reason: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: Json | null
+          order_id: string
+          payment_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_refund_id?: string | null
+          reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: Json | null
+          order_id?: string
+          payment_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_refund_id?: string | null
+          reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       return_items: {
         Row: {
           created_at: string
@@ -1512,6 +1578,27 @@ export type Database = {
         }
         Relationships: []
       }
+      store_settings: {
+        Row: {
+          cod_enabled: boolean
+          id: boolean
+          prepaid_discount_percent: number
+          updated_at: string
+        }
+        Insert: {
+          cod_enabled?: boolean
+          id?: boolean
+          prepaid_discount_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          cod_enabled?: boolean
+          id?: boolean
+          prepaid_discount_percent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       super_admin_bootstrap: {
         Row: {
           created_at: string
@@ -1581,6 +1668,42 @@ export type Database = {
           session_id?: string
           started_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string
+          error: string | null
+          event: string
+          id: string
+          payload: Json | null
+          processed_at: string | null
+          provider: string
+          signature_valid: boolean
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          provider?: string
+          signature_valid?: boolean
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event?: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          provider?: string
+          signature_valid?: boolean
+          status?: string
         }
         Relationships: []
       }
