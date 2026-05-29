@@ -319,6 +319,10 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
       });
     }
 
+    // Real backend events → branded order emails (idempotent).
+    await enqueueOrderEmail(order.id, "order-confirmed");
+    await enqueueOrderEmail(order.id, "payment-verified");
+
     return { ok: true, orderId: order.id, alreadyPaid: false };
   });
 
