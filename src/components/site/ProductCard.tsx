@@ -27,6 +27,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
   return (
     <div className={`group card-premium overflow-hidden relative ${compact ? "p-1.5 sm:p-2" : "p-2.5 sm:p-3"}`}>
+      <ProductCardAdminControls product={product} />
       {/* Ember halo on hover */}
       <div
         aria-hidden
