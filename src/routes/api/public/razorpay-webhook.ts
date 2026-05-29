@@ -134,6 +134,8 @@ async function handleEvent(event: string, payload: any) {
           })
           .eq("id", existing.id);
       }
+      await enqueueOrderEmail(order.id, "order-confirmed");
+      await enqueueOrderEmail(order.id, "payment-verified");
       break;
     }
 
