@@ -84,7 +84,7 @@ function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 pb-[calc(11rem+env(safe-area-inset-bottom))] lg:pb-16">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex items-end justify-between gap-4 flex-wrap">
