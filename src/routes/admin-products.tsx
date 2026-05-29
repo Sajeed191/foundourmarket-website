@@ -108,9 +108,13 @@ function ProductsInner() {
     const map: Record<string, Stat> = {};
     const todayKey = new Date().toISOString().slice(0, 10);
     let today = 0;
+    let ordersTodayCount = 0;
     for (const o of rows) {
       const paid = o.payment_status === "paid" || o.status === "paid" || o.status === "fulfilled";
-      if (o.created_at.slice(0, 10) === todayKey && paid) today += Number(o.total) || 0;
+      if (o.created_at.slice(0, 10) === todayKey) {
+        ordersTodayCount += 1;
+        if (paid) today += Number(o.total) || 0;
+      }
       for (const it of o.order_items ?? []) {
         if (!it.product_slug) continue;
         const s = (map[it.product_slug] ??= { units: 0, revenue: 0, orders: 0 });
@@ -121,6 +125,7 @@ function ProductsInner() {
     }
     setStats(map);
     setRevenueToday(today);
+    setOrdersToday(ordersTodayCount);
   }, []);
 
   const reloadAll = useCallback(() => {
