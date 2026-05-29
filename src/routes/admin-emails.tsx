@@ -61,7 +61,7 @@ function EmailsPage() {
   const [template, setTemplate] = useState<string>("");
   const [status, setStatus] = useState<string>("");
 
-  const { data, isLoading, isФetching, refetch, isError, error } = useQuery({
+  const { data, isLoading, isFetching, refetch, isError, error } = useQuery({
     queryKey: ["email-activity", range, template, status],
     queryFn: () =>
       fetchActivity({
@@ -88,7 +88,7 @@ function EmailsPage() {
           onClick={() => refetch()}
           className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-white/[0.03] px-3 py-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
         >
-          <RefreshCw className={`size-3 ${isФetching ? "animate-spin" : ""}`} /> Refresh
+          <RefreshCw className={`size-3 ${isFetching ? "animate-spin" : ""}`} /> Refresh
         </button>
       }
     >
