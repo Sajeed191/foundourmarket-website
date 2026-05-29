@@ -405,11 +405,7 @@ function OverviewCard({
   icon: Icon, label, value, hint, accent, loading, to, formatter,
 }: { icon: typeof Package; label: string; value: number; hint?: string; accent?: boolean; loading?: boolean; to?: string; formatter?: (n: number) => string }) {
   const inner = (
-    <motion.div
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ duration: 0.25, ease }}
-      className={`group h-full w-full relative overflow-hidden rounded-2xl p-3.5 sm:p-5 card-premium transition-all ${
+      className={`group h-full w-full relative overflow-hidden rounded-2xl p-3.5 sm:p-5 card-premium glass-reflect transition-all ${
         accent ? "ring-1 ring-accent/40 shadow-[var(--shadow-glow)]" : "hover:ring-1 hover:ring-accent/25"
       }`}
     >
@@ -417,6 +413,11 @@ function OverviewCard({
       <div
         aria-hidden
         className={`pointer-events-none absolute -top-12 -right-12 size-32 rounded-full blur-3xl transition-opacity duration-500 ${
+          accent ? "opacity-70 animate-ambient" : "opacity-0 group-hover:opacity-50"
+        }`}
+        style={{ background: "var(--gradient-ember)" }}
+      />
+
           accent ? "opacity-70" : "opacity-0 group-hover:opacity-50"
         }`}
         style={{ background: "var(--gradient-ember)" }}
