@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type OrderRec = {
   id: string;
+  user_id: string | null;
   status: string;
   payment_status: string;
   total: number;
@@ -52,7 +53,7 @@ export async function fetchFinancialData(days = 365): Promise<FinancialData> {
   const [ordersRes, productsRes, returnsRes, paymentsRes, viewsRes] = await Promise.all([
     supabase
       .from("orders")
-      .select("id,status,payment_status,total,subtotal,shipping,tax,discount,currency,contact_email,shipping_address,created_at,order_items(name,quantity,product_slug,unit_price,line_total)")
+      .select("id,user_id,status,payment_status,total,subtotal,shipping,tax,discount,currency,contact_email,shipping_address,created_at,order_items(name,quantity,product_slug,unit_price,line_total)")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(1000),
