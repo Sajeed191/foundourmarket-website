@@ -572,9 +572,6 @@ function ProductScroller({ items }: { items: Array<{ slug: string }> }) {
   );
 }
 
-    </div>
-  );
-}
 
 function InsightStat({ label, value, accent, small, truncate }: { label: string; value: string; accent?: boolean; small?: boolean; truncate?: boolean }) {
   return (
