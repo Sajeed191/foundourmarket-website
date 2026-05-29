@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "./auth";
+import { useIsAdmin } from "./use-admin";
 import { detectRegion, getMyRegion, lockMarketRegion } from "./region.functions";
 import type { MarketRegion } from "./region.functions";
 import type { Product } from "./products";
