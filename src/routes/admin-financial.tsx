@@ -471,6 +471,88 @@ function FinancialPage() {
         </div>
       </Panel>
 
+      {/* Product profitability */}
+      <div className="mt-4">
+        <Panel title="Product Profitability" icon={<Boxes className="size-4" />} delay={0.1}>
+          <div className="overflow-x-auto no-scrollbar">
+            <table className="w-full text-sm min-w-[640px]">
+              <thead className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80 border-b border-white/[0.07]">
+                <tr>
+                  {["Product", "Units", "Revenue", "Cost", "Profit", "Margin"].map((h, i) => (
+                    <th key={h} className={`py-2.5 px-3 ${i === 0 ? "text-left" : "text-right"}`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {m?.products.map((p) => (
+                  <tr key={p.slug} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
+                    <td className="px-3 py-2 text-xs truncate max-w-[180px]">{p.name}</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs">{p.units}</td>
+                    <td className="px-3 py-2 text-right font-mono text-accent text-xs">{fmt(p.revenue, cur)}</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs text-muted-foreground">{fmt(p.cost, cur)}</td>
+                    <td className={`px-3 py-2 text-right font-mono text-xs ${p.profit >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{fmt(p.profit, cur)}</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs">{p.margin.toFixed(1)}%</td>
+                  </tr>
+                ))}
+                {(!m || m.products.length === 0) && <tr><td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">No product sales for this range.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2 mt-4">
+        {/* Tax report */}
+        <Panel title="Tax Report (GST / VAT)" icon={<Receipt className="size-4" />} delay={0.12}
+          actions={<span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/70">Filing-ready</span>}>
+          <div className="overflow-x-auto no-scrollbar">
+            <table className="w-full text-sm min-w-[360px]">
+              <thead className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80 border-b border-white/[0.07]">
+                <tr><th className="py-2.5 px-3 text-left">Period</th><th className="px-3 text-right">Taxable</th><th className="px-3 text-right">Tax</th><th className="px-3 text-right">Orders</th></tr>
+              </thead>
+              <tbody>
+                {m?.taxRows.map((t) => (
+                  <tr key={t.month} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
+                    <td className="px-3 py-2 font-mono text-xs">{t.label}</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs text-muted-foreground">{fmt(t.taxable, cur)}</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs text-violet-300">{fmt(t.tax, cur)}</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs">{t.orders}</td>
+                  </tr>
+                ))}
+                {(!m || m.taxRows.length === 0) && <tr><td colSpan={4} className="py-8 text-center text-sm text-muted-foreground">No tax collected yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+
+        {/* Cohort retention */}
+        <Panel title="Cohort Retention" icon={<Activity className="size-4" />} delay={0.14}>
+          {!m || m.cohorts.length === 0 ? <EmptyState icon={<Users className="size-4" />} label="Not enough customer history yet." /> : (
+            <div className="overflow-x-auto no-scrollbar">
+              <table className="w-full text-sm min-w-[360px]">
+                <thead className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80 border-b border-white/[0.07]">
+                  <tr><th className="py-2.5 px-3 text-left">Cohort</th><th className="px-3 text-right">Size</th><th className="px-3 text-right">M+1</th><th className="px-3 text-right">M+2</th></tr>
+                </thead>
+                <tbody>
+                  {m.cohorts.map((c) => {
+                    const r1 = c.size > 0 ? (c.m1 / c.size) * 100 : 0;
+                    const r2 = c.size > 0 ? (c.m2 / c.size) * 100 : 0;
+                    return (
+                      <tr key={c.cohort} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
+                        <td className="px-3 py-2 font-mono text-xs">{c.label}</td>
+                        <td className="px-3 py-2 text-right font-mono text-xs">{c.size}</td>
+                        <td className="px-3 py-2 text-right font-mono text-xs" style={{ color: `oklch(0.75 0.13 160 / ${0.3 + r1 / 140})` }}>{r1.toFixed(0)}%</td>
+                        <td className="px-3 py-2 text-right font-mono text-xs" style={{ color: `oklch(0.75 0.13 160 / ${0.3 + r2 / 140})` }}>{r2.toFixed(0)}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Panel>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2 mt-4 pb-24 lg:pb-8">
         {/* Recent transactions */}
         <Panel title="Recent Transactions" icon={<Banknote className="size-4" />} delay={0.12}>
