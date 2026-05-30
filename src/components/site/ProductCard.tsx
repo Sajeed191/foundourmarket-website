@@ -5,8 +5,9 @@ import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminControls";
+import { useBadgeSettings } from "@/lib/use-badge-settings";
+import { computeBadges } from "@/lib/badges";
 
-const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
 
 export function ProductCard({ product, compact }: { product: Product; compact?: boolean }) {
   const { format, priceOf, compareOf } = useRegion();
