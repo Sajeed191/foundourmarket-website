@@ -132,7 +132,7 @@ export function PromoBannerCarousel({
         </p>
       )}
       <div
-        className={`relative max-w-7xl mx-auto rounded-3xl overflow-hidden border border-border bg-card ${aspectClassName} group`}
+        className={`relative max-w-7xl mx-auto rounded-3xl overflow-hidden border border-border bg-card ${aspectClassName} group ${canEdit && !b.active ? "opacity-60" : ""}`}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
