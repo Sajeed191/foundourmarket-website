@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import {
-  computeSummary, type Region, type FinancialData,
+  computeSummary, type FinancialData,
 } from "@/lib/financial-metrics";
+import type { Region } from "@/lib/customer-intelligence";
 import {
   computeProfitAnalytics, campaignProfitability, customerProfitability,
   productProfitabilityReport, regionalProfitability, executiveKpis,
@@ -190,7 +191,7 @@ export function computeExecutiveModel(data: FinancialMarketingData): ExecutiveMo
   };
 
   /* ---- health ---- */
-  const repeatCustomers = data.customers.filter((c) => (c.orderCount ?? 0) > 1).length;
+  const repeatCustomers = data.customers.filter((c) => (c.ordersCount ?? 0) > 1).length;
   const repeatRate = customers > 0 ? (repeatCustomers / customers) * 100 : 0;
   const profitableShare = customers > 0
     ? (data.customers.filter((c) => c.profit > 0).length / customers) * 100 : 0;
