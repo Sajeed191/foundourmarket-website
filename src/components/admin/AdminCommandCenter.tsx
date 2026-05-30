@@ -72,7 +72,8 @@ export function AdminCommandCenter() {
     return () => debounce.current && clearTimeout(debounce.current);
   }, [query, roles]);
 
-  function runAction(a: { id?: string; label: string; to: string; icon?: string; action?: string; meta?: Record<string, unknown> }) {
+  function runAction(a: { id?: string; label: string; to?: string; icon?: string; action?: string; meta?: Record<string, unknown> }) {
+    if (!a.to) return;
     pushRecentAction({ id: a.id ?? a.to, label: a.label, to: a.to, icon: a.icon });
     if (a.action) logActivity(a.action, "command", a.id, a.meta);
     else logActivity("cmd_navigate", "command", a.id ?? a.to, { label: a.label });
