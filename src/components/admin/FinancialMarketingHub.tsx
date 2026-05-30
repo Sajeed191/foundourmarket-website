@@ -16,26 +16,48 @@ import {
   type FinancialRecommendation, type CampaignProfit,
 } from "@/lib/financial-marketing";
 
-export function FinancialMarketingHub({ data }: { data: FinancialMarketingData | null }) {
-  const [live, setLive] = useState<FinancialMarketingData | null>(data);
+export function FinancialMarketingHub({ data, focusView }: { data?: FinancialMarketingData | null; focusView?: string | null }) {
+  const [live, setLive] = useState<FinancialMarketingData | null>(data ?? null);
   const [busy, setBusy] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  useEffect(() => { setLive(data); }, [data]);
+  useEffect(() => { if (data) setLive(data); }, [data]);
 
   const reload = useCallback(async () => {
     const { fetchFinancialMarketing } = await import("@/lib/financial-marketing");
     setLive(await fetchFinancialMarketing(365));
   }, []);
 
-  // Realtime: campaign / order / return changes refresh profit + ROI.
+  // Self-load on mount when no data prop is provided (reuses fetchFinancialMarketing).
+  useEffect(() => { if (!data) void reload(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  // Realtime: campaign / order / return changes refresh profit + ROI instantly.
   useEffect(() => {
     const ch = supabase
       .channel("financial-marketing-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "marketing_campaigns" }, () => void reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => void reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "returns" }, () => void reload())
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
   }, [reload]);
+
+  // Deep-link: scroll to + flash the targeted section.
+  useEffect(() => {
+    if (!focusView || !live) return;
+    const anchorMap: Record<string, string> = {
+      marketing: "fin-marketing", profit: "fm-profit", campaigns: "fm-campaigns",
+      products: "fm-products", customers: "fm-customers", regions: "fm-regions",
+      alerts: "fm-alerts", recommendations: "fm-recs",
+    };
+    const id = anchorMap[focusView];
+    if (!id) return;
+    requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (el) { el.classList.add("deep-link-flash"); setTimeout(() => el.classList.remove("deep-link-flash"), 1800); }
+    });
+  }, [focusView, live]);
 
   const model = useMemo(() => {
     if (!live) return null;
