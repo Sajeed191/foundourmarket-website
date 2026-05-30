@@ -363,6 +363,22 @@ export function BannerAdminSheet({
 
           {editing && (
             <div className="space-y-4">
+              <EditorSaveBar
+                state={protection.state}
+                lastSavedAt={protection.lastSavedAt}
+                recovery={protection.recovery}
+                onRestore={() => {
+                  const d = protection.restoreDraft();
+                  if (d) setEditing(d as Partial<BannerRow>);
+                }}
+                onDismiss={() => void protection.dismissDraft()}
+                entityType="banner"
+                entityId={entityId}
+                onRestoreVersion={(snap) => setEditing(snap as Partial<BannerRow>)}
+                onDuplicateVersion={(snap) =>
+                  setEditing({ ...(snap as Partial<BannerRow>), id: undefined, title: `${(snap as BannerRow).title} (copy)` })
+                }
+              />
               <div className="grid grid-cols-2 gap-3">
                 <ImagePicker
                   label="Desktop image"
