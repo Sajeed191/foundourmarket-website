@@ -23,6 +23,9 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/products";
 import { adminUpdateProduct } from "@/lib/admin-products.functions";
 import { invalidateProducts } from "@/lib/use-products";
+import { useEditorProtection } from "@/hooks/use-editor-protection";
+import { EditorSaveBar } from "@/components/admin/EditorSaveBar";
+import { logActivity } from "@/components/admin/AdminShell";
 
 type Patch = {
   name?: string;
@@ -71,7 +74,19 @@ export function AdminProductPanel({ product }: { product: Product }) {
 
   // form state
   const [f, setF] = useState(() => toForm(product));
-  useEffect(() => setF(toForm(product)), [product.slug]);
+  const [baseline, setBaseline] = useState(() => JSON.stringify(toForm(product)));
+  useEffect(() => {
+    setF(toForm(product));
+    setBaseline(JSON.stringify(toForm(product)));
+  }, [product.slug]);
+
+  const protection = useEditorProtection({
+    entityType: "product",
+    entityId: product.slug,
+    value: f as unknown as Record<string, unknown>,
+    baseline,
+    enabled: open,
+  });
 
   function toForm(p: Product) {
     return {
@@ -121,37 +136,56 @@ export function AdminProductPanel({ product }: { product: Product }) {
   }
 
   async function saveAll() {
-    await save(
-      {
-        name: f.name,
-        tagline: f.tagline,
-        description: f.description,
-        category: f.category,
-        sku: f.sku || null,
-        stockQuantity: Math.max(0, Math.round(Number(f.stockQuantity) || 0)),
-        lowStockThreshold: Math.max(0, Math.round(Number(f.lowStockThreshold) || 0)),
-        priceInr: numOrNull(f.priceInr),
-        comparePriceInr: numOrNull(f.comparePriceInr),
-        priceUsd: numOrNull(f.priceUsd),
-        comparePriceUsd: numOrNull(f.comparePriceUsd),
-        indiaVisible: f.indiaVisible,
-        internationalVisible: f.internationalVisible,
-        featured: f.featured,
-        inStock: f.inStock,
-        rating: Math.min(5, Math.max(0, Number(f.rating) || 0)),
-        reviews: Math.max(0, Math.round(Number(f.reviews) || 0)),
-        warranty: f.warranty.trim() || "12 months",
-        returnEligible: f.returnEligible,
-        replacementEligible: f.replacementEligible,
-        codEnabled: f.codEnabled,
-        pickupSupported: f.pickupSupported,
-        internationalShipping: f.internationalShipping,
-        fragile: f.fragile,
-        returnWindowDays: Math.max(0, Math.min(365, Math.round(Number(f.returnWindowDays) || 0))),
-      },
-      "Product updated",
-    );
-    setOpen(false);
+    const payload = {
+      name: f.name,
+      tagline: f.tagline,
+      description: f.description,
+      category: f.category,
+      sku: f.sku || null,
+      stockQuantity: Math.max(0, Math.round(Number(f.stockQuantity) || 0)),
+      lowStockThreshold: Math.max(0, Math.round(Number(f.lowStockThreshold) || 0)),
+      priceInr: numOrNull(f.priceInr),
+      comparePriceInr: numOrNull(f.comparePriceInr),
+      priceUsd: numOrNull(f.priceUsd),
+      comparePriceUsd: numOrNull(f.comparePriceUsd),
+      indiaVisible: f.indiaVisible,
+      internationalVisible: f.internationalVisible,
+      featured: f.featured,
+      inStock: f.inStock,
+      rating: Math.min(5, Math.max(0, Number(f.rating) || 0)),
+      reviews: Math.max(0, Math.round(Number(f.reviews) || 0)),
+      warranty: f.warranty.trim() || "12 months",
+      returnEligible: f.returnEligible,
+      replacementEligible: f.replacementEligible,
+      codEnabled: f.codEnabled,
+      pickupSupported: f.pickupSupported,
+      internationalShipping: f.internationalShipping,
+      fragile: f.fragile,
+      returnWindowDays: Math.max(0, Math.min(365, Math.round(Number(f.returnWindowDays) || 0))),
+    };
+    setSaving(true);
+    try {
+      await update({ data: { slug: product.slug, ...payload } });
+      await invalidateProducts();
+      logActivity("product_update", "product", product.slug);
+      await protection.recordVersion(
+        product.slug,
+        f as unknown as Record<string, unknown>,
+        "Updated",
+      );
+      await protection.markClean();
+      setBaseline(JSON.stringify(f));
+      toast.success("Product updated", {
+        description: "Published — your edits are now live for all customers.",
+      });
+      setOpen(false);
+    } catch (e) {
+      toast.error("Save failed", {
+        description: e instanceof Error ? e.message : "Try again.",
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -273,6 +307,22 @@ export function AdminProductPanel({ product }: { product: Product }) {
                 >
                   <X className="size-4" />
                 </button>
+              </div>
+
+              <div className="mb-4">
+                <EditorSaveBar
+                  state={protection.state}
+                  lastSavedAt={protection.lastSavedAt}
+                  recovery={protection.recovery}
+                  onRestore={() => {
+                    const d = protection.restoreDraft();
+                    if (d) setF(d as ReturnType<typeof toForm>);
+                  }}
+                  onDismiss={() => void protection.dismissDraft()}
+                  entityType="product"
+                  entityId={product.slug}
+                  onRestoreVersion={(snap) => setF(snap as ReturnType<typeof toForm>)}
+                />
               </div>
 
               <div className="space-y-4">
