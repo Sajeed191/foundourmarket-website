@@ -93,6 +93,7 @@ function ProductsInner() {
   const [sort, setSort] = useState<SortKey>("newest");
   const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [view, setView] = useState<"active" | "recycle">("active");
   const [editing, setEditing] = useState<Product | "new" | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
