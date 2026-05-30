@@ -22,6 +22,7 @@ import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminTrafficRouteImport } from './routes/admin-traffic'
@@ -143,6 +144,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuilderRoute = BuilderRouteImport.update({
+  id: '/builder',
+  path: '/builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRoute = BlogRouteImport.update({
@@ -467,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/admin-traffic': typeof AdminTrafficRoute
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
+  '/builder': typeof BuilderRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
@@ -539,6 +546,7 @@ export interface FileRoutesByTo {
   '/admin-traffic': typeof AdminTrafficRoute
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
+  '/builder': typeof BuilderRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
@@ -612,6 +620,7 @@ export interface FileRoutesById {
   '/admin-traffic': typeof AdminTrafficRoute
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
+  '/builder': typeof BuilderRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
@@ -686,6 +695,7 @@ export interface FileRouteTypes {
     | '/admin-traffic'
     | '/auth'
     | '/blog'
+    | '/builder'
     | '/cart'
     | '/checkout'
     | '/compare'
@@ -758,6 +768,7 @@ export interface FileRouteTypes {
     | '/admin-traffic'
     | '/auth'
     | '/blog'
+    | '/builder'
     | '/cart'
     | '/checkout'
     | '/compare'
@@ -830,6 +841,7 @@ export interface FileRouteTypes {
     | '/admin-traffic'
     | '/auth'
     | '/blog'
+    | '/builder'
     | '/cart'
     | '/checkout'
     | '/compare'
@@ -903,6 +915,7 @@ export interface RootRouteChildren {
   AdminTrafficRoute: typeof AdminTrafficRoute
   AuthRoute: typeof AuthRouteWithChildren
   BlogRoute: typeof BlogRouteWithChildren
+  BuilderRoute: typeof BuilderRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   CompareRoute: typeof CompareRoute
@@ -1033,6 +1046,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/builder': {
+      id: '/builder'
+      path: '/builder'
+      fullPath: '/builder'
+      preLoaderRoute: typeof BuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog': {
@@ -1498,6 +1518,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminTrafficRoute: AdminTrafficRoute,
   AuthRoute: AuthRouteWithChildren,
   BlogRoute: BlogRouteWithChildren,
+  BuilderRoute: BuilderRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   CompareRoute: CompareRoute,

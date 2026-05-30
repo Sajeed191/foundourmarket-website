@@ -16,6 +16,7 @@ import {
   Pencil,
   Activity,
   Layers,
+  LayoutTemplate,
 } from "lucide-react";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useAdminMode } from "@/lib/admin-mode";
@@ -119,6 +120,17 @@ export function AdminFloatingToolbar() {
                 <span className="size-1.5 rounded-full bg-accent animate-pulse" /> Live
               </span>
             </button>
+            <Link
+              to="/builder"
+              onClick={() => setOpen(false)}
+              className="mb-2 flex w-full items-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-3 py-2.5 transition-all hover:bg-accent/20"
+            >
+              <LayoutTemplate className="size-3.5 text-accent" />
+              <span className="text-xs font-medium text-foreground">Storefront builder</span>
+              <span className="ml-auto text-[9px] font-mono uppercase tracking-widest text-accent">
+                Visual
+              </span>
+            </Link>
             <button
               onClick={() => {
                 setOpen(false);
