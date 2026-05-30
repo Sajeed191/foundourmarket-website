@@ -206,6 +206,9 @@ function PaymentsInner() {
 
   return (
     <div className="space-y-6">
+      {/* International payment gateway status */}
+      <PaymentGatewayStatusCenter />
+
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi icon={IndianRupee} label="Gross collected" value={inr(stats.gross)} />
