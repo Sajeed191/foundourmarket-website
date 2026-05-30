@@ -98,7 +98,7 @@ function MarketingMetricsPage() {
   }, [kpis, range, model]);
 
   return (
-    <AdminShell>
+    <AdminShell title="Marketing Metrics" subtitle="Real opens, clicks & attributed revenue">
       <div className="space-y-5 p-1">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
