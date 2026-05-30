@@ -525,9 +525,9 @@ function Home() {
       <CinematicDivider />
 
       {/* 6 · Recommended Products [product section 2/3] */}
-      {recommended.length > 0 && (
+      {recommended.length > 0 && (sections.recommended.active || isProductAdmin) && (
         <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
-          <SectionHeader eyebrow={sections.recommended.eyebrow} title={sections.recommended.title} icon={Award} href="/search" hrefLabel="See All" sectionKey="recommended" editable={isProductAdmin} />
+          <SectionHeader eyebrow={sections.recommended.eyebrow} title={sections.recommended.title} icon={Award} href="/search" hrefLabel="See All" sectionKey="recommended" editable={isProductAdmin} active={sections.recommended.active} />
           <ProductRail products={recommended} />
           <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
             {recommended.slice(0, 4).map((p, i) => (
