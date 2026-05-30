@@ -167,8 +167,10 @@ export function FinancialMarketingHub({ data, focusView }: { data?: FinancialMar
           </div>
         ))}
       </div>
+      </div>
 
       {/* Recommendations */}
+      <div id="fm-recs" className="scroll-mt-24">
       <SubHead icon={<Sparkles className="size-4 text-accent" />} title="Profit recommendations" sub={`${recs.length} opportunities`} />
       {recs.length === 0 ? (
         <div className="rounded-2xl glass px-5 py-8 text-center text-xs text-muted-foreground mb-6">No profit optimisations right now.</div>
