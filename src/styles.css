@@ -512,3 +512,13 @@
   animation: sheen 7s ease-in-out infinite;
 }
 
+
+/* Deep-link highlight flash for marketing hub sections */
+@keyframes deepLinkFlash {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  20% { box-shadow: 0 0 0 2px oklch(0.74 0.19 49 / 0.55), 0 0 40px -8px oklch(0.74 0.19 49 / 0.5); }
+}
+.deep-link-flash {
+  border-radius: 1rem;
+  animation: deepLinkFlash 1.8s ease-in-out;
+}

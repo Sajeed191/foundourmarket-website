@@ -8,6 +8,7 @@ import { invalidateCategories, type Category } from "@/lib/use-categories";
 import { resolveImage } from "@/lib/products";
 import { DashboardOverview } from "@/components/admin/DashboardOverview";
 import { MarketingAutomationCard } from "@/components/admin/MarketingAutomationCard";
+import { CustomerMarketingCard } from "@/components/admin/CustomerMarketingCard";
 import { SegmentedTabs } from "@/components/admin/SegmentedTabs";
 import { AnimatePresence, motion } from "framer-motion";
 import { LayoutDashboard } from "lucide-react";
@@ -315,7 +316,7 @@ function AdminPage() {
       {tab === "overview" && (
         <>
           <DashboardOverview orders={orders} products={products} customersCount={customers.length} />
-          <div className="my-8"><MarketingAutomationCard /></div>
+          <div className="my-8 grid lg:grid-cols-2 gap-6"><MarketingAutomationCard /><CustomerMarketingCard /></div>
           <h2 className="text-xl font-medium mb-6">Recent orders</h2>
           {orders === null ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> :
             list.length === 0 ? <p className="text-sm text-muted-foreground">No orders yet.</p> :

@@ -37,6 +37,20 @@ export const QUICK_ACTIONS: QuickAction[] = [
   { id: "qa-cust-highvalue", group: "Customers", icon: "Gem", label: "High value customers", to: "/admin-customer-intelligence?view=high-value", roles: SUPPORT, action: "cmd_cust_highvalue", keywords: "high value big spenders ltv lifetime" },
   { id: "qa-cust-alerts", group: "Customers", icon: "Bell", label: "Customer alerts", to: "/admin-customer-intelligence?view=alerts", roles: SUPPORT, action: "cmd_cust_alerts", keywords: "customer alerts churn vip order refund" },
   { id: "qa-cust-recs", group: "Customers", icon: "Lightbulb", label: "Customer recommendations", to: "/admin-customer-intelligence?view=recommendations", roles: SUPPORT, action: "cmd_cust_recs", keywords: "recommendations promote winback suggestions" },
+  // Customer ↔ Marketing Integration
+  { id: "qa-cust-marketing", group: "Customers", icon: "Megaphone", label: "Customer marketing", to: "/admin-customer-intelligence?view=marketing", roles: EDITOR, action: "cmd_cust_marketing", keywords: "customer marketing targeting audiences segments campaign audience engine" },
+  { id: "qa-cust-audiences", group: "Customers", icon: "Users", label: "Audience analytics", to: "/admin-customer-intelligence?view=audiences", roles: EDITOR, action: "cmd_cust_audiences", keywords: "audience analytics audiences segments revenue profit growth retention reachable" },
+  { id: "qa-cust-scores", group: "Customers", icon: "Gauge", label: "Customer marketing scores", to: "/admin-customer-intelligence?view=marketing", roles: EDITOR, action: "cmd_cust_scores", keywords: "customer marketing scores loyalty retention engagement spend churn referral" },
+  { id: "qa-aud-vip", group: "Customers", icon: "Crown", label: "Show VIP audience", to: "/admin-customer-intelligence?view=vip", roles: EDITOR, action: "cmd_aud_vip", keywords: "vip audience top spenders best customers segment" },
+  { id: "qa-aud-loyal", group: "Customers", icon: "Repeat", label: "Show loyal audience", to: "/admin-customer-intelligence?view=loyal", roles: EDITOR, action: "cmd_aud_loyal", keywords: "loyal customers repeat buyers audience segment" },
+  { id: "qa-aud-atrisk", group: "Customers", icon: "AlertTriangle", label: "Show at-risk audience", to: "/admin-customer-intelligence?view=atrisk", roles: EDITOR, action: "cmd_aud_atrisk", keywords: "at risk churn audience leaving win back segment" },
+  { id: "qa-aud-dormant", group: "Customers", icon: "Moon", label: "Show dormant audience", to: "/admin-customer-intelligence?view=dormant", roles: EDITOR, action: "cmd_aud_dormant", keywords: "dormant lapsed inactive audience reactivate segment" },
+  { id: "qa-aud-highvalue", group: "Customers", icon: "Gem", label: "Show high-value audience", to: "/admin-customer-intelligence?view=highvalue", roles: EDITOR, action: "cmd_aud_highvalue", keywords: "high value big spenders ltv audience segment" },
+  { id: "qa-cust-vip-campaign", group: "Customers", icon: "Crown", label: "Create VIP campaign", to: "/admin-customer-intelligence?view=vip", roles: EDITOR, action: "cmd_cust_vip_campaign", keywords: "create vip campaign reward audience" },
+  { id: "qa-cust-loyalty-campaign", group: "Customers", icon: "Heart", label: "Create loyalty campaign", to: "/admin-customer-intelligence?view=loyal", roles: EDITOR, action: "cmd_cust_loyalty_campaign", keywords: "create loyalty campaign loyal repeat audience" },
+  { id: "qa-cust-winback-campaign", group: "Customers", icon: "RotateCcw", label: "Create winback campaign", to: "/admin-customer-intelligence?view=atrisk", roles: EDITOR, action: "cmd_cust_winback_campaign", keywords: "create winback campaign at risk churn audience" },
+  { id: "qa-cust-retention-campaign", group: "Customers", icon: "Gem", label: "Create retention campaign", to: "/admin-customer-intelligence?view=highvalue", roles: EDITOR, action: "cmd_cust_retention_campaign", keywords: "create retention campaign high value protect audience" },
+  { id: "qa-cust-reactivation-campaign", group: "Customers", icon: "Moon", label: "Create reactivation campaign", to: "/admin-customer-intelligence?view=dormant", roles: EDITOR, action: "cmd_cust_reactivation_campaign", keywords: "create reactivation campaign dormant lapsed revive audience" },
   // Inventory
   { id: "qa-inv-intel", group: "Inventory", icon: "Cpu", label: "Inventory intelligence", to: "/admin-inventory-intelligence", roles: WAREHOUSE, action: "cmd_inv_intel", keywords: "forecast risk predict" },
   { id: "qa-inv-risk", group: "Inventory", icon: "AlertTriangle", label: "View risk products", to: "/admin-inventory-intelligence?view=risk", roles: WAREHOUSE, action: "cmd_inv_risk", keywords: "low stock out of stock risk" },
@@ -103,6 +117,17 @@ export function interpretNaturalLanguage(q: string): string | null {
   if ((s.includes("create") || s.includes("new") || s.includes("launch")) && (s.includes("flash") || s.includes("sale"))) return "qa-flash-sale";
   if ((s.includes("create") || s.includes("new") || s.includes("add")) && s.includes("product")) return "qa-create-product";
   if (s.includes("forecast") || s.includes("predict")) return "qa-inv-intel";
+  // Customer ↔ Marketing natural language (before generic customer + campaign blocks)
+  if (s.includes("winback") || s.includes("win back") || s.includes("win-back")) return "qa-cust-winback-campaign";
+  if (s.includes("reactivation") || s.includes("reactivate") || (s.includes("dormant") && s.includes("campaign"))) return "qa-cust-reactivation-campaign";
+  if (s.includes("retention") && (s.includes("campaign") || s.includes("customer"))) return "qa-cust-retention-campaign";
+  if (s.includes("churn") && s.includes("opportunit")) return "qa-aud-atrisk";
+  if (s.includes("audience") && (s.includes("analytic") || s.includes("revenue") || s.includes("insight"))) return "qa-cust-audiences";
+  if (s.includes("customer") && (s.includes("audience") || s.includes("targeting") || s.includes("target"))) return "qa-cust-audiences";
+  if (s.includes("customer") && s.includes("marketing")) return "qa-cust-marketing";
+  if (s.includes("vip") && s.includes("audience")) return "qa-aud-vip";
+  if (s.includes("loyal") && (s.includes("audience") || s.includes("customer"))) return "qa-aud-loyal";
+  if ((s.includes("high value") || s.includes("high-value")) && s.includes("customer")) return "qa-aud-highvalue";
   if (s.includes("vip")) return "qa-cust-vip";
   if (s.includes("churn") || (s.includes("at risk") && s.includes("customer")) || s.includes("at-risk")) return "qa-cust-risk";
   if ((s.includes("high value") || s.includes("high-value") || s.includes("big spender")) && !s.includes("product")) return "qa-cust-highvalue";
