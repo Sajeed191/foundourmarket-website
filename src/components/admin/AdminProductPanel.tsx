@@ -93,6 +93,13 @@ export function AdminProductPanel({ product }: { product: Product }) {
       rating: String(p.rating),
       reviews: String(p.reviews),
       warranty: p.warranty ?? "12 months",
+      returnEligible: p.returnEligible,
+      replacementEligible: p.replacementEligible,
+      codEnabled: p.codEnabled,
+      pickupSupported: p.pickupSupported,
+      internationalShipping: p.internationalShipping,
+      fragile: p.fragile,
+      returnWindowDays: String(p.returnWindowDays ?? 7),
     };
   }
 
