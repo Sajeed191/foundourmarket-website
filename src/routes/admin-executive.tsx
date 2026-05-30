@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { ExecutiveDashboard } from "@/components/admin/ExecutiveDashboard";
+import { AcquisitionSummary } from "@/components/admin/AcquisitionSummary";
 
 export const Route = createFileRoute("/admin-executive")({
   head: () => ({
