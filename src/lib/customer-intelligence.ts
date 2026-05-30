@@ -303,7 +303,7 @@ export function buildCustomerIntel(data: IntelData): CustomerIntel[] {
       questions: questionCount.get(p.id) ?? 0,
       wishlistCount: wishlistCount.get(p.id) ?? 0,
       _trendDelta: recentSpend - priorSpend,
-    } as never);
+    });
   }
 
   // RFM distributions (only buyers)
