@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Boxes, AlertTriangle, TrendingDown, Package, Loader2, Plus, Minus, Download } from "lucide-react";
+import { Boxes, AlertTriangle, TrendingDown, Package, Loader2, Plus, Minus, Download, Brain } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { KpiCard } from "@/components/admin/KpiCard";
 import { supabase } from "@/integrations/supabase/client";
