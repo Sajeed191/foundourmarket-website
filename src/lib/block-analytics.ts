@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { includeSeedInAnalytics } from "@/lib/seed-filter";
+import { track } from "@/lib/analytics";
 import type { BlockRegion } from "@/lib/use-storefront-blocks";
 
 export interface BlockStat {
@@ -65,15 +66,9 @@ export async function fetchBlockAnalytics(
 }
 
 export function trackBlockImpression(blockId: string, region: BlockRegion) {
-  void supabase.from("analytics_events").insert({
-    event: "block_impression",
-    metadata: { block: blockId, region },
-  } as never);
+  void track("block_impression", { metadata: { block: blockId, region } });
 }
 
 export function trackBlockClick(blockId: string, region: BlockRegion) {
-  void supabase.from("analytics_events").insert({
-    event: "block_click",
-    metadata: { block: blockId, region },
-  } as never);
+  void track("block_click", { metadata: { block: blockId, region } });
 }
