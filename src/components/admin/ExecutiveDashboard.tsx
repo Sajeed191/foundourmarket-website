@@ -203,6 +203,9 @@ export function ExecutiveDashboard({ focusView }: { focusView?: string }) {
       {/* Fraud & Security summary */}
       <SecuritySummaryCard />
 
+      {/* Traffic Intelligence summary */}
+      <TrafficSummaryCard />
+
 
 
 
