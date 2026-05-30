@@ -123,9 +123,10 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
     const { supabase, userId } = context as { supabase: any; userId: string };
     const { keyId } = getRazorpayCreds();
 
-    const priced = await repriceFromDb(supabase, data.items, data.promoCode);
-    if (priced.inr.totalINR < 1) {
-      throw new Error("Order total must be at least ₹1.");
+    const region = await resolveRegion(supabase, userId);
+    const priced = await repriceFromDb(supabase, region, data.items, data.promoCode);
+    if (priced.totals.total < 1) {
+      throw new Error("Order total is too low to process.");
     }
 
     // Load shipping address (RLS guarantees ownership)
@@ -136,7 +137,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       .maybeSingle();
     if (addrErr || !addr) throw new Error("Shipping address not found.");
 
-    // Create the pending order first (status pending, INR).
+    // Create the pending order first (status pending) in the region's currency.
     // Use the admin client so order writes go only through this trusted,
     // server-priced path (direct user inserts are blocked by RLS).
     const { data: order, error: oErr } = await supabaseAdmin
@@ -144,13 +145,13 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       .insert({
         user_id: userId,
         status: "pending",
-        currency: "INR",
-        subtotal: priced.inr.subtotalINR,
-        shipping: priced.inr.shippingINR,
-        tax: priced.inr.taxINR,
-        discount: priced.inr.discountINR,
+        currency: priced.totals.currency,
+        subtotal: priced.totals.subtotal,
+        shipping: priced.totals.shipping,
+        tax: priced.totals.tax,
+        discount: priced.totals.discount,
         promo_code: priced.appliedPromo,
-        total: priced.inr.totalINR,
+        total: priced.totals.total,
         shipping_address: addr,
         payment_method: "razorpay",
         payment_status: "pending",
@@ -159,19 +160,16 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       .single();
     if (oErr || !order) throw new Error("Could not create order.");
 
-    // Snapshot line items (INR) so fulfillment + admin have full detail.
-    const orderItems = priced.lines.map((l) => {
-      const unitInr = Math.round(l.unitUsd * USD_TO_INR);
-      return {
-        order_id: order.id,
-        product_slug: l.slug,
-        name: l.name,
-        image: l.image,
-        unit_price: unitInr,
-        quantity: l.qty,
-        line_total: unitInr * l.qty,
-      };
-    });
+    // Snapshot line items in the region's native currency for fulfilment + admin.
+    const orderItems = priced.lines.map((l) => ({
+      order_id: order.id,
+      product_slug: l.slug,
+      name: l.name,
+      image: l.image,
+      unit_price: l.unit,
+      quantity: l.qty,
+      line_total: l.lineTotal,
+    }));
     const { error: oiErr } = await supabaseAdmin.from("order_items").insert(orderItems);
     if (oiErr) {
       await supabaseAdmin
@@ -198,7 +196,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       );
     }
 
-    // Create the Razorpay order (amount in paise)
+    // Create the Razorpay order (amount in the smallest currency unit).
     let rzpOrder;
     try {
       rzpOrder = await rzpFetch<{ id: string; amount: number; currency: string }>(
@@ -206,8 +204,8 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
         {
           method: "POST",
           body: {
-            amount: priced.inr.totalINR * 100,
-            currency: "INR",
+            amount: toMinorUnits(priced.totals.total),
+            currency: priced.totals.currency,
             receipt: order.id,
             notes: { db_order_id: order.id, user_id: userId },
           },
@@ -235,7 +233,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       amount: rzpOrder.amount,
       currency: rzpOrder.currency,
       keyId,
-      totals: priced.inr,
+      totals: priced.totals,
     };
   });
 
