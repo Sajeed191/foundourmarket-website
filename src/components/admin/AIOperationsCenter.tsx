@@ -10,7 +10,7 @@ import {
 import { useAIOperations } from "@/lib/use-ai-operations";
 import {
   CATEGORY_META, CATEGORY_ORDER, PRIORITY_META, FEEDBACK_META, groupByCategory,
-  assistantGroups, feedbackScore, VIEW_TO_ANCHOR,
+  assistantGroups, VIEW_TO_ANCHOR,
   type AIRecommendation, type AICategory, type AISystem, type FeedbackVote,
 } from "@/lib/ai-operations";
 import { cn } from "@/lib/utils";
