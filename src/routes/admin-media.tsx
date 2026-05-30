@@ -90,20 +90,12 @@ function MediaLibraryPage() {
   }
 
   return (
-    <AdminShell>
+    <AdminShell
+      title="Media library"
+      subtitle="Centralized, optimized & audited"
+      allow={["admin", "super_admin", "manager", "editor"]}
+    >
       <div className="space-y-5">
-        <div className="flex items-center gap-2">
-          <span className="grid size-9 place-items-center rounded-xl border border-accent/30 bg-accent/10 text-accent">
-            <ImagesIcon className="size-4" />
-          </span>
-          <div>
-            <h1 className="font-display text-xl font-semibold leading-tight">Media library</h1>
-            <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-              Centralized, optimized & audited
-            </p>
-          </div>
-        </div>
-
         <MediaUploader entityType="library" label="Add to library" />
 
         <div className="space-y-3">
