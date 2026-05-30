@@ -53,5 +53,5 @@ export function useOrderOperations(limit = 400) {
     return () => { void supabase.removeChannel(ch); clearInterval(poll); if (debounce.current) clearTimeout(debounce.current); };
   }, [load]);
 
-  return { data, loading, refreshing, error, refresh: () => load(true) };
+  return { data, staffPerf, loading, refreshing, error, refresh: () => load(true) };
 }
