@@ -101,7 +101,7 @@ function SeoPage() {
   const sc = raw?.search_console;
 
   return (
-    <AdminShell title="SEO Intelligence" subtitle="Rankings, metadata, links & organic revenue">
+    <AdminShell title="SEO Intelligence" subtitle="Rankings, metadata, links & organic revenue" allow={["admin", "super_admin", "manager", "editor"]}>
       <div className="space-y-4">
         {/* Controls */}
         <div className="flex flex-wrap items-center gap-2">
