@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/lib/use-admin";
+import { useAdminEditing } from "@/lib/admin-overlay";
 import { BannerAdminSheet } from "@/components/admin/BannerAdminSheet";
 
 type Banner = {
