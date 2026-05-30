@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Search, Shield, Truck, Headset, ArrowRight, Star, Sparkles, Award, Package, Globe2, Quote, Users, ShoppingBag, Zap, Flame, BadgeCheck, Pencil } from "lucide-react";
+import { Search, Shield, Truck, Headset, ArrowRight, Star, Sparkles, Award, Package, Globe2, Users, ShoppingBag, Zap, Flame, BadgeCheck, Pencil } from "lucide-react";
 import { useCategories, useAdminCategories, toggleCategoryVisible } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { useProductAdminEditing } from "@/lib/admin-overlay";
@@ -20,6 +20,7 @@ import { AnnouncementBar } from "@/components/site/AnnouncementBar";
 import { NewsletterForm } from "@/components/site/NewsletterForm";
 import { PromoBannerCarousel } from "@/components/site/PromoBannerCarousel";
 import { ProductRail } from "@/components/site/ProductRail";
+import { TestimonialsCarousel } from "@/components/site/TestimonialsCarousel";
 
 const PLACEHOLDERS = [
   "Search 2,400+ curated products...",
@@ -565,27 +566,28 @@ function Home() {
       {newArrivals.length > 0 && (sections.new_arrivals.active || isProductAdmin) && (
         <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
           <SectionHeader eyebrow={sections.new_arrivals.eyebrow} title={sections.new_arrivals.title} icon={Sparkles} href="/search" sectionKey="new_arrivals" editable={isProductAdmin} active={sections.new_arrivals.active} />
-          <ProductRail products={newArrivals} />
-          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5 md:gap-6">
             {newArrivals.slice(0, 4).map((p, i) => (
               <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
             ))}
           </div>
+
         </section>
       )}
 
       <CinematicDivider />
 
       {/* 8 · Social Proof — live engine + verified reviews */}
-      <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto">
-        <Reveal className="text-center mb-8 sm:mb-12">
+      <section className="px-4 sm:px-6 py-8 sm:py-14 max-w-7xl mx-auto">
+        <Reveal className="text-center mb-6 sm:mb-12">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3 inline-flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-accent animate-glow" /> Live Marketplace
           </p>
           <h2 className="text-fluid-2xl font-display tracking-tight">Trusted by buyers worldwide</h2>
         </Reveal>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8 sm:mb-12">
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-12">
           {[
             { icon: Globe2, value: 180, suffix: "+", label: "Countries served" },
             { icon: Users, value: 48230, suffix: "", label: "Active shoppers" },
@@ -610,34 +612,50 @@ function Home() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5">
-          {[
-            { quote: "Completely redefined how I source premium goods. The quality is unmatched.", name: "Marcus Thorne", role: "Curator · London" },
-            { quote: "Fast shipping, gorgeous packaging, and every item felt hand-picked for me.", name: "Ayaka Mori", role: "Designer · Tokyo" },
-            { quote: "The best support I've dealt with from any online store, full stop.", name: "Diego Alvarez", role: "Founder · Madrid" },
-          ].map((t, i) => (
-            <Reveal key={t.name} delay={i}>
-              <figure className="group relative glass glass-reflect rounded-2xl p-6 sm:p-7 h-full flex flex-col overflow-hidden hover:-translate-y-1 transition-transform">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-0.5 text-accent">
-                    {Array.from({ length: 5 }).map((_, s) => <Star key={s} className="size-3.5 fill-current" />)}
-                  </div>
-                  <Quote className="size-5 text-accent opacity-60" />
-                </div>
-                <blockquote className="text-sm sm:text-base leading-relaxed text-pretty flex-1">"{t.quote}"</blockquote>
-                <figcaption className="mt-6 pt-5 border-t border-border flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-sm font-medium">{t.name}</div>
-                    <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-1">{t.role}</div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wide text-accent shrink-0">
-                    <BadgeCheck className="size-3.5" /> Verified
-                  </span>
-                </figcaption>
-              </figure>
-            </Reveal>
-          ))}
-        </div>
+        {(() => {
+          const testimonials = [
+            { quote: "Completely redefined how I source premium goods. The quality is unmatched.", name: "Marcus Thorne", role: "Curator", flag: "🇬🇧", country: "United Kingdom" },
+            { quote: "Fast shipping, gorgeous packaging, and every item felt hand-picked for me.", name: "Ayaka Mori", role: "Designer", flag: "🇯🇵", country: "Japan" },
+            { quote: "The best support I've dealt with from any online store, full stop.", name: "Diego Alvarez", role: "Founder", flag: "🇪🇸", country: "Spain" },
+          ];
+          return (
+            <>
+              {/* Mobile: compact swipeable carousel with dots + autorotate */}
+              <TestimonialsCarousel items={testimonials} />
+
+              {/* Desktop: compact grid */}
+              <div className="hidden md:grid grid-cols-3 gap-5">
+                {testimonials.map((t, i) => (
+                  <Reveal key={t.name} delay={i}>
+                    <figure className="group relative glass glass-reflect rounded-2xl p-5 h-full flex flex-col overflow-hidden hover:-translate-y-1 transition-transform duration-200">
+                      <div className="flex gap-0.5 text-accent mb-2.5">
+                        {Array.from({ length: 5 }).map((_, s) => <Star key={s} className="size-3.5 fill-current" />)}
+                      </div>
+                      <blockquote className="text-sm leading-relaxed text-pretty flex-1">"{t.quote}"</blockquote>
+                      <figcaption className="mt-4 pt-3.5 border-t border-border flex items-center gap-3">
+                        <span className="size-9 shrink-0 grid place-items-center rounded-full bg-accent/15 text-accent ring-1 ring-accent/30 text-xs font-semibold">
+                          {t.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                            {t.name}
+                            <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-wide text-accent">
+                              <BadgeCheck className="size-3" /> Verified
+                            </span>
+                          </div>
+                          <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-0.5 flex items-center gap-1">
+                            <span aria-hidden>{t.flag}</span> {t.country}
+                          </div>
+                        </div>
+                      </figcaption>
+                    </figure>
+                  </Reveal>
+                ))}
+              </div>
+            </>
+          );
+        })()}
+
       </section>
 
       <CinematicDivider />
