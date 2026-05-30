@@ -300,7 +300,7 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
     <>
       <div className="grid lg:grid-cols-[1fr,2fr] gap-8">
         <div>
-          <button onClick={() => setEditing({})}
+          <button onClick={() => open({})}
             className="w-full mb-4 inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground font-bold px-4 py-2.5 rounded-full text-[11px] uppercase tracking-widest">
             <Plus className="size-3.5" /> New post
           </button>
