@@ -14,6 +14,7 @@ import {
   type AIRecommendation, type AICategory, type AISystem, type FeedbackVote,
 } from "@/lib/ai-operations";
 import { cn } from "@/lib/utils";
+import { SecuritySummaryCard } from "@/components/admin/SecuritySummaryCard";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const money = (n: number, c = "USD") =>
