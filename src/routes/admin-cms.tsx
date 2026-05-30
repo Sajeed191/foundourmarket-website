@@ -336,6 +336,17 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
         </div>
         {editing && (
           <div className="space-y-4 p-6 border border-border rounded-2xl">
+            <EditorSaveBar
+              state={protection.state}
+              lastSavedAt={protection.lastSavedAt}
+              recovery={protection.recovery}
+              onRestore={() => { const d = protection.restoreDraft(); if (d) setEditing(d as Partial<Post>); }}
+              onDismiss={() => void protection.dismissDraft()}
+              entityType="cms_post"
+              entityId={entityId}
+              onRestoreVersion={(snap) => setEditing({ ...editing, ...(snap as Partial<Post>) })}
+              onDuplicateVersion={(snap) => setEditing({ ...(snap as Partial<Post>), id: undefined })}
+            />
             <p className="text-[11px] text-muted-foreground -mt-1">Edits are saved as a draft. Click <span className="text-accent font-mono">Publish</span> on the post card to go live.</p>
             <Field label="Slug"><input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className={inputCls} /></Field>
             <Field label="Title"><input value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className={inputCls} /></Field>
