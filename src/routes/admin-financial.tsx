@@ -133,6 +133,7 @@ function EmptyState({ icon, label }: { icon: ReactNode; label: string }) {
 
 /* ================= PAGE ================= */
 function FinancialPage() {
+  const { view } = Route.useSearch();
   const [data, setData] = useState<FinancialData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -140,6 +141,12 @@ function FinancialPage() {
   const [range, setRange] = useState(365);
   const [live, setLive] = useState(false);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Audit-log deep-link usage into the financial marketing hub.
+  useEffect(() => {
+    if (view) logActivity("financial_marketing_deeplink", "financial", undefined, { view });
+  }, [view]);
+
 
   const load = useCallback(async (silent = false) => {
     if (silent) setRefreshing(true); else setLoading(true);
