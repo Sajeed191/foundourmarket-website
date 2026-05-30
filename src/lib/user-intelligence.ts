@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+/* user-intelligence: directory routed through staff-gated server function (P1-8). */
 
 /**
  * User & Staff Intelligence Engine.
