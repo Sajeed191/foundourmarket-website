@@ -27,14 +27,14 @@ const TYPES = ["promo", "hero", "offer"] as const;
 const REGIONS = ["all", "india", "international"] as const;
 const PAGE_OPTIONS = ["home", "shop", "product", "category", "cart", "checkout", "deals"] as const;
 
-const blank = (): Partial<BannerRow> => ({
+const blank = (type: BannerRow["type"] = "promo"): Partial<BannerRow> => ({
   title: "",
   subtitle: null,
   image: null,
   mobile_image: null,
   link: null,
   cta_text: null,
-  type: "promo",
+  type,
   region: "all",
   pages: [],
   active: true,
@@ -52,7 +52,16 @@ const fromLocal = (v: string) => (v ? new Date(v).toISOString() : null);
  * announcement CMS. Image uploads go to the public `banners` bucket; all
  * writes are RLS + role gated (editor+ only).
  */
-export function BannerAdminSheet({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
+export function BannerAdminSheet({
+  onClose,
+  onChanged,
+  defaultType = "promo",
+}: {
+  onClose: () => void;
+  onChanged: () => void;
+  /** Default banner type for newly created banners (matches the carousel slot). */
+  defaultType?: BannerRow["type"];
+}) {
   const [rows, setRows] = useState<BannerRow[]>([]);
   const [editing, setEditing] = useState<Partial<BannerRow> | null>(null);
   const [saving, setSaving] = useState(false);
@@ -231,7 +240,13 @@ export function BannerAdminSheet({ onClose, onChanged }: { onClose: () => void; 
               </p>
             </div>
             <button
-              onClick={onClose}
+              onClick={() => {
+                if (uploading || saving) {
+                  toast.error("Please wait for the upload to finish");
+                  return;
+                }
+                onClose();
+              }}
               className="grid size-8 place-items-center rounded-full border border-white/10 text-muted-foreground hover:text-foreground"
             >
               <X className="size-4" />
@@ -241,7 +256,7 @@ export function BannerAdminSheet({ onClose, onChanged }: { onClose: () => void; 
           {!editing && (
             <>
               <button
-                onClick={() => setEditing(blank())}
+                onClick={() => setEditing(blank(defaultType))}
                 className="mb-4 flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground"
               >
                 <Plus className="size-3.5" /> New banner

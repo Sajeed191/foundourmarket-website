@@ -363,7 +363,13 @@ export function CategoryAdminSheet({
               </p>
             </div>
             <button
-              onClick={onClose}
+              onClick={() => {
+                if (uploadingSlot || saving) {
+                  toast.error("Please wait for the upload to finish");
+                  return;
+                }
+                onClose();
+              }}
               className="grid size-8 place-items-center rounded-full border border-white/10 text-muted-foreground hover:text-foreground"
             >
               <X className="size-4" />

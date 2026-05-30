@@ -115,7 +115,7 @@ export function PromoBannerCarousel({
             <Pencil className="size-3.5" /> Add a banner
           </button>
         </div>
-        {editing && <BannerAdminSheet onClose={() => setEditing(false)} onChanged={fetchBanners} />}
+        {editing && <BannerAdminSheet defaultType={types[0]} onClose={() => setEditing(false)} onChanged={fetchBanners} />}
       </section>
     );
   }
@@ -232,7 +232,7 @@ export function PromoBannerCarousel({
           </div>
         )}
       </div>
-      {canEdit && editing && <BannerAdminSheet onClose={() => setEditing(false)} onChanged={fetchBanners} />}
+      {canEdit && editing && <BannerAdminSheet defaultType={types[0]} onClose={() => setEditing(false)} onChanged={fetchBanners} />}
     </section>
   );
 }
