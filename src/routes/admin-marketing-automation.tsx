@@ -85,7 +85,7 @@ function MarketingAutomationPage() {
 
   if (loading || !intel || !kpis) {
     return (
-      <AdminShell title="Marketing Automation" allow={ADMIN_ROLES}>
+      <AdminShell title="Marketing Automation" subtitle="Loading…" allow={MKT_ROLES}>
         <div className="grid place-items-center py-32 text-muted-foreground">
           <Loader2 className="size-6 animate-spin" />
         </div>
