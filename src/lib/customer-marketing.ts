@@ -331,7 +331,7 @@ export async function fetchCustomerCampaigns(): Promise<Campaign[]> {
     .from("marketing_campaigns")
     .select("*")
     .order("created_at", { ascending: false });
-  return ((data as Record<string, unknown>[]) ?? []).map(mapCampaignRowFallback);
+  return ((data as Record<string, unknown>[]) ?? []).map(mapCampaignRow);
 }
 
 /* ----------------------------------------------------- one-click actions */
