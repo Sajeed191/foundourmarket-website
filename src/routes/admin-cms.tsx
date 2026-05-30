@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Plus, Trash2, Save, Rocket, AlertCircle, CheckCircle2 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { PublishConfirm } from "@/components/admin/PublishConfirm";
+import { EditorSaveBar } from "@/components/admin/EditorSaveBar";
+import { useEditorProtection } from "@/hooks/use-editor-protection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
