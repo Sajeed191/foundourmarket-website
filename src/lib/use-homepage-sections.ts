@@ -22,10 +22,10 @@ const subscribers = new Set<(m: SectionMap) => void>();
 async function load(): Promise<SectionMap> {
   const { data } = await supabase
     .from("homepage_sections")
-    .select("key,eyebrow,title");
+    .select("key,eyebrow,title,active");
   const map: SectionMap = { ...DEFAULTS };
-  (data ?? []).forEach((row) => {
-    map[row.key] = { key: row.key, eyebrow: row.eyebrow, title: row.title };
+  (data ?? []).forEach((row: { key: string; eyebrow: string; title: string; active?: boolean | null }) => {
+    map[row.key] = { key: row.key, eyebrow: row.eyebrow, title: row.title, active: row.active ?? true };
   });
   cache = map;
   subscribers.forEach((s) => s(map));
