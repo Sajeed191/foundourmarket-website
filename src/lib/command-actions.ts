@@ -100,6 +100,10 @@ export const QUICK_ACTIONS: QuickAction[] = [
   { id: "qa-fin-margin-risk", group: "System", icon: "AlertTriangle", label: "Show Margin Risks", to: "/admin-financial?view=alerts", roles: MANAGER, action: "cmd_fin_margin_risk", keywords: "margin risk collapse negative margin analysis alerts" },
   { id: "qa-fin-roi-alerts", group: "System", icon: "AlertTriangle", label: "Show ROI Alerts", to: "/admin-financial?view=alerts", roles: MANAGER, action: "cmd_fin_roi_alerts", keywords: "roi alerts negative roi campaign loss profit alerts" },
   { id: "qa-fin-opportunities", group: "System", icon: "Lightbulb", label: "Show Profit Opportunities", to: "/admin-financial?view=recommendations", roles: MANAGER, action: "cmd_fin_opportunities", keywords: "profit opportunities recommendations scale winners feature high margin" },
+  { id: "qa-fin-executive", group: "System", icon: "Crown", label: "Show Executive Summary", to: "/admin-financial?view=profit", roles: MANAGER, action: "cmd_fin_executive", keywords: "executive summary overview revenue profit margin roi top product customer campaign risk opportunity kpi" },
+  { id: "qa-fin-top-campaigns", group: "System", icon: "Megaphone", label: "Show Top Campaigns", to: "/admin-financial?view=campaigns", roles: MANAGER, action: "cmd_fin_top_campaigns", keywords: "top campaigns best performing winner roi roas profit" },
+  { id: "qa-fin-top-products", group: "System", icon: "Boxes", label: "Show Top Products", to: "/admin-financial?view=products", roles: MANAGER, action: "cmd_fin_top_products", keywords: "top products most profitable highest margin best sellers profit" },
+  { id: "qa-fin-top-customers", group: "System", icon: "Users", label: "Show Top Customers", to: "/admin-financial?view=customers", roles: MANAGER, action: "cmd_fin_top_customers", keywords: "top customers most profitable vip segments profit contribution" },
   { id: "qa-fin-scale", group: "System", icon: "BarChart3", label: "Scale Winning Campaign", to: "/admin-financial?view=campaigns", roles: MANAGER, action: "cmd_fin_scale", keywords: "scale winning campaign increase budget roi profit" },
   { id: "qa-fin-pause", group: "System", icon: "AlertTriangle", label: "Pause Losing Campaign", to: "/admin-financial?view=campaigns", roles: MANAGER, action: "cmd_fin_pause", keywords: "pause losing campaign negative roi stop budget" },
   { id: "qa-fin-launch", group: "System", icon: "Megaphone", label: "Launch Profit Campaign", to: "/admin-financial?view=recommendations", roles: MANAGER, action: "cmd_fin_launch", keywords: "launch profit campaign high margin vip retention" },
@@ -162,6 +166,10 @@ export function interpretNaturalLanguage(q: string): string | null {
   }
   if (s.includes("feature") && s.includes("product")) return "qa-prod-feature";
   // Financial ↔ Marketing natural language (before generic campaign + financial blocks)
+  if (s.includes("executive") || (s.includes("summary") && (s.includes("profit") || s.includes("revenue") || s.includes("overview")))) return "qa-fin-executive";
+  if (s.includes("top") && s.includes("campaign")) return "qa-fin-top-campaigns";
+  if (s.includes("top") && s.includes("product")) return "qa-fin-top-products";
+  if (s.includes("top") && s.includes("customer")) return "qa-fin-top-customers";
   if (s.includes("profit") && (s.includes("intelligence") || s.includes("opportunit"))) return s.includes("opportunit") ? "qa-fin-opportunities" : "qa-fin-profit";
   if (s.includes("marketing") && s.includes("profit")) return "qa-fin-marketing";
   if (s.includes("marketing") && s.includes("efficiency")) return "qa-fin-marketing";

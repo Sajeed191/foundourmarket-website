@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ExecutiveSummaryPanel } from "@/components/admin/ExecutiveSummaryPanel";
+import { FinancialInsightsPanel } from "@/components/admin/FinancialInsightsPanel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -70,6 +72,11 @@ function ProductsPage() {
   return (
     <AdminShell title="Products" subtitle="Realtime catalog, inventory & performance" allow={["admin", "super_admin", "manager", "warehouse_staff", "editor"]}>
       <ProductsInner />
+      {/* FINANCIAL PRODUCT INSIGHTS */}
+      <div className="mt-8 space-y-6">
+        <ExecutiveSummaryPanel source="product" compact />
+        <FinancialInsightsPanel module="product" />
+      </div>
     </AdminShell>
   );
 }
