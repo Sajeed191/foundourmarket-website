@@ -73,7 +73,7 @@ function CustomerIntelPage() {
     else if (view === "new") setSegment("New Customers");
     const anchorMap: Record<string, string> = {
       vip: "ci-vip", "high-value": "ci-vip", alerts: "ci-alerts", recommendations: "ci-recs",
-      risk: "ci-explorer", new: "ci-explorer",
+      risk: "ci-explorer", new: "ci-explorer", marketing: "ci-marketing", audiences: "ci-marketing",
     };
     const id = anchorMap[view];
     if (id) requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
