@@ -54,6 +54,7 @@ const ACTIONS: Action[] = [
 export function AdminFloatingToolbar() {
   const { isAdmin, loading } = useIsAdmin();
   const { adminMode, toggle } = useAdminMode();
+  const { setOpen: setCmdOpen } = useCommandCenter();
   const [open, setOpen] = useState(false);
   const [dashboard, setDashboard] = useState(false);
   const [bulk, setBulk] = useState(false);
