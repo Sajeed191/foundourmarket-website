@@ -2,60 +2,33 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
-  ShoppingBag, UserPlus, Heart, Eye, RotateCcw, AlertTriangle,
-  Activity, Pause, Play, Trash2, Filter, Radio, TrendingUp,
+  ShoppingBag, UserPlus, AlertTriangle,
+  Pause, Play, Trash2, Filter, Radio, TrendingUp,
   Wifi, WifiOff, Database, Gauge, RefreshCw, Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { fetchLiveMetrics, type LiveMetrics } from "@/lib/live-metrics";
+import {
+  ACTIVITY_META as KIND_META,
+  ALL_ACTIVITY_KINDS as ALL_KINDS,
+  ACTIVITY_CATEGORIES,
+  fetchActivityHistory,
+  type ActivityKind as EventKind,
+  type ActivityEvent as LiveEvent,
+} from "@/lib/unified-activity";
 
 export const Route = createFileRoute("/admin-live")({
   head: () => ({
     meta: [
       { title: "Live Activity — Admin" },
-      { name: "description", content: "Realtime stream of orders, customer events, and system alerts." },
+      { name: "description", content: "Unified realtime operations stream across orders, payments, intelligence, support, and system alerts." },
     ],
   }),
   component: AdminLivePage,
 });
 
-type EventKind =
-  | "order_new" | "order_update"
-  | "signup" | "subscriber"
-  | "wishlist" | "cart" | "view" | "purchase"
-  | "return" | "low_stock" | "admin";
-
-type Severity = "info" | "success" | "warning" | "critical";
-
-type LiveEvent = {
-  id: string;
-  kind: EventKind;
-  title: string;
-  body?: string;
-  amount?: number;
-  link?: string;
-  at: number;
-  severity: Severity;
-};
-
-/* Refined, muted operator palette — amber / teal / crimson / violet / neutral */
-const KIND_META: Record<EventKind, { label: string; icon: typeof ShoppingBag; fg: string; dot: string; glow: string; severity: Severity }> = {
-  order_new:    { label: "New Order",       icon: ShoppingBag,   fg: "text-accent",       dot: "bg-accent",            glow: "oklch(0.74 0.19 49 / 0.4)",   severity: "success" },
-  order_update: { label: "Order Update",    icon: ShoppingBag,   fg: "text-teal-300",     dot: "bg-teal-400",          glow: "oklch(0.78 0.12 195 / 0.35)", severity: "info" },
-  signup:       { label: "Signup",          icon: UserPlus,      fg: "text-violet-300",   dot: "bg-violet-400",        glow: "oklch(0.6 0.16 290 / 0.35)",  severity: "info" },
-  subscriber:   { label: "Subscriber",      icon: UserPlus,      fg: "text-violet-300",   dot: "bg-violet-400",        glow: "oklch(0.6 0.16 290 / 0.35)",  severity: "info" },
-  wishlist:     { label: "Wishlist",        icon: Heart,         fg: "text-rose-300",     dot: "bg-rose-400",          glow: "oklch(0.65 0.16 15 / 0.32)",  severity: "info" },
-  cart:         { label: "Add to Cart",     icon: ShoppingBag,   fg: "text-accent",       dot: "bg-accent",            glow: "oklch(0.74 0.19 49 / 0.35)",  severity: "info" },
-  view:         { label: "Product View",    icon: Eye,           fg: "text-muted-foreground", dot: "bg-muted-foreground", glow: "oklch(0.7 0.018 260 / 0.25)", severity: "info" },
-  purchase:     { label: "Purchase Signal", icon: ShoppingBag,   fg: "text-teal-300",     dot: "bg-teal-400",          glow: "oklch(0.78 0.12 195 / 0.32)", severity: "success" },
-  return:       { label: "Return",          icon: RotateCcw,     fg: "text-amber-300",    dot: "bg-amber-400",         glow: "oklch(0.78 0.15 70 / 0.32)",  severity: "warning" },
-  low_stock:    { label: "Low Stock",       icon: AlertTriangle, fg: "text-rose-300",     dot: "bg-rose-400",          glow: "oklch(0.65 0.2 25 / 0.35)",   severity: "critical" },
-  admin:        { label: "Admin Action",    icon: Activity,      fg: "text-sky-300",      dot: "bg-sky-400",           glow: "oklch(0.7 0.13 230 / 0.32)",  severity: "info" },
-};
-
-const ALL_KINDS = Object.keys(KIND_META) as EventKind[];
-const FILTER_STORAGE_KEY = "fom_live_filter_v1";
+const FILTER_STORAGE_KEY = "fom_live_filter_v2";
 
 function timeAgo(ms: number): string {
   const d = Date.now() - ms;
