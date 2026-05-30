@@ -160,7 +160,7 @@ export function ExecutiveDashboard({ focusView }: { focusView?: string }) {
   }
 
   const { scorecard: s, health: h } = model;
-  void focusView;
+  
 
   const cards = [
     { label: "Revenue", value: money(s.revenue, currency), icon: Wallet, accent: "text-accent" },
