@@ -294,7 +294,7 @@ function audienceTemplate(key: string): string {
 
 /* ----------------------------------------------------------- campaigns */
 
-function CampaignsTab({ campaigns, onChanged }: { campaigns: Campaign[]; onChanged: () => void }) {
+function CampaignsTab({ campaigns, onChanged, focusId }: { campaigns: Campaign[]; onChanged: () => void; focusId?: string | null }) {
   const [busy, setBusy] = useState<string | null>(null);
   async function act(id: string, fn: () => Promise<{ error?: string }>, label: string) {
     setBusy(id);
