@@ -94,6 +94,35 @@ function formatMoney(amount: number, currency: Currency): string {
   return `$${amount.toFixed(2)}`;
 }
 
+// 1-year region-lock cookie, mirrored in localStorage.
+const REGION_COOKIE = "region_lock";
+
+/** Persist the resolved region to both a 1-year cookie and localStorage. */
+function persistRegion(region: MarketRegion) {
+  if (typeof document === "undefined") return;
+  try {
+    localStorage.setItem(LS_KEY, region);
+  } catch {
+    /* ignore */
+  }
+  document.cookie = `${REGION_COOKIE}=${region}; path=/; max-age=31536000; samesite=lax`;
+}
+
+/** Read any previously-stored region choice (cookie first, then localStorage). */
+function getPreviousChoice(): MarketRegion | null {
+  if (typeof document === "undefined") return null;
+  const m = document.cookie.match(new RegExp(`${REGION_COOKIE}=(india|international)`));
+  if (m) return m[1] as MarketRegion;
+  try {
+    const stored = localStorage.getItem(GUEST_CHOICE_KEY) || localStorage.getItem(LS_KEY);
+    if (stored === "india" || stored === "international") return stored;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+
 export function RegionProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useIsAdmin();
