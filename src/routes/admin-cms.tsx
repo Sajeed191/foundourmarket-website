@@ -177,7 +177,7 @@ function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
             })}
           </ul>
         </div>
-        {editing && <PageEditor key={editing.id ?? "new"} editing={editing} setEditing={setEditing} save={saveDraft} del={del} />}
+        {editing && <PageEditor key={editing.id ?? "new"} editing={editing} setEditing={setEditing} save={saveDraft} del={(id: string) => { void del(id); open(null); }} protection={protection} entityId={entityId} onClose={() => open(null)} />}
       </div>
       <PublishConfirm
         open={!!publishing}
