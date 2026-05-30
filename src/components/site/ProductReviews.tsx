@@ -73,8 +73,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     setRating(r.rating);
     setTitle(r.title ?? "");
     setBody(r.body ?? "");
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
