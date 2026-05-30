@@ -128,7 +128,7 @@ function Quick({ to, icon, label }: { to: string; icon: React.ReactNode; label: 
   const search = qs ? Object.fromEntries(new URLSearchParams(qs)) : undefined;
   return (
     <Link
-      to={pathname}
+      to={pathname as never}
       search={search as never}
       className="group flex flex-col items-center gap-1 rounded-xl border border-white/5 bg-white/[0.02] px-1.5 py-2.5 text-center transition-all hover:border-accent/40 hover:bg-accent/10"
     >
