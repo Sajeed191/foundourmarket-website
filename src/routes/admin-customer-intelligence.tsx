@@ -19,6 +19,7 @@ import {
 
 export const Route = createFileRoute("/admin-customer-intelligence")({
   head: () => ({ meta: [{ title: "Customer Intelligence — Admin" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ view: typeof s.view === "string" ? s.view : undefined }),
   component: CustomerIntelPage,
 });
 
