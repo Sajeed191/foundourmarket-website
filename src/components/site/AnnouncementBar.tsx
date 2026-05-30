@@ -96,7 +96,7 @@ export function AnnouncementBar({ page = "home" }: { page?: string }) {
       supabase.removeChannel(ch);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, canEdit]);
 
   useEffect(() => {
     if (items.length < 2) return;
