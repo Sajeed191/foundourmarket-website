@@ -538,3 +538,49 @@ function buildAdvice(d: {
 function productPrice(p: ProductStat): number {
   return p.purchases && p.revenue ? p.revenue / p.purchases : 0;
 }
+
+/* ------------------------------------------------------------- summary */
+
+export type TrafficSummary = {
+  live: number; views: number; sessions: number; orders: number;
+  revenue: number; conversion: number; topSource: string; loading: boolean;
+};
+
+/**
+ * Lightweight summary for embedding on other dashboards (Executive, AI Ops).
+ * Avoids the heavy full-window fetch — uses counts + a small recent slice.
+ */
+export async function fetchTrafficSummary(days = 14): Promise<Omit<TrafficSummary, "loading">> {
+  const since = new Date(Date.now() - days * DAY).toISOString();
+  const liveCut = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+  const [liveR, viewsR, sessR, ordR, srcR] = await Promise.all([
+    supabase.from("visitor_sessions").select("session_id", { count: "exact", head: true }).gte("last_seen", liveCut),
+    supabase.from("page_views").select("id", { count: "exact", head: true }).gte("created_at", since),
+    supabase.from("visitor_sessions").select("session_id", { count: "exact", head: true }).gte("started_at", since),
+    supabase.from("orders").select("total,status,payment_status").gte("created_at", since).limit(20000),
+    supabase.from("analytics_events").select("metadata").eq("event", "page_view").gte("created_at", since).limit(20000),
+  ]);
+
+  const orders = (ordR.data as { total: number | null; status: string | null; payment_status: string | null }[] | null) ?? [];
+  const paid = orders.filter((o) => isPaidOrder(o.status, o.payment_status));
+  const revenue = paid.reduce((s, o) => s + (o.total ?? 0), 0);
+  const sessions = sessR.count ?? 0;
+
+  const srcMap = new Map<string, number>();
+  for (const r of (srcR.data as { metadata: Record<string, unknown> | null }[] | null) ?? []) {
+    const s = str(r.metadata?.source) || "Direct";
+    srcMap.set(s, (srcMap.get(s) ?? 0) + 1);
+  }
+  const topSource = [...srcMap.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Direct";
+
+  return {
+    live: liveR.count ?? 0,
+    views: viewsR.count ?? 0,
+    sessions,
+    orders: paid.length,
+    revenue,
+    conversion: sessions ? (paid.length / sessions) * 100 : 0,
+    topSource,
+  };
+}
