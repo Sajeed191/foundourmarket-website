@@ -36,7 +36,7 @@ const MKT_ROLES = ["admin", "super_admin", "manager", "editor"] as unknown as Pa
 
 function MarketingAutomationPage() {
   const nav = useNavigate();
-  const { action, template } = Route.useSearch();
+  const { action, template, tab: tabParam } = Route.useSearch();
   const [intel, setIntel] = useState<MarketingIntel | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
