@@ -29,14 +29,25 @@ type Ctx = {
   locked: boolean;
   /** True when the market was resolved silently from geo-intelligence. */
   autoDetected: boolean;
-  /** Blended detection confidence (0–100) across edge/timezone/locale layers. */
+  /** Blended detection confidence (0–100) across all signal layers. */
   confidence: number;
+  /** Human-readable signals that drove the detected region. */
+  reasons: string[];
+  /** UX tier the engine resolved to: auto | confirm | pick. */
+  detectionTier: DetectionTier | null;
   /** VPN / proxy / datacenter suspicion — forces manual confirmation. */
   vpnSuspected: boolean;
-  /** True when a user/guest must still pick a region (drives the modal). */
+  /** True when a user/guest must still pick a region (drives the full modal). */
   needsSelection: boolean;
+  /** True when a lightweight one-tap confirmation should be shown (70–89). */
+  softConfirm: boolean;
+  /** Accept the detected region from the lightweight confirmation. */
+  confirmDetectedRegion: () => Promise<void>;
+  /** Dismiss the lightweight confirmation and open the full picker instead. */
+  rejectDetectedRegion: () => void;
   loading: boolean;
   countryCode: string | null;
+
   /** Staff accounts bypass the region lock and can view both markets. */
   isAdmin: boolean;
   /** Admin-only: temporarily preview a market without locking. */
