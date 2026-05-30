@@ -570,7 +570,7 @@ function Home() {
 
       {/* 6 · Recommended Products [product section 2/3] — personalized when signals exist */}
       {recommended.length > 0 && (sections.recommended.active || isProductAdmin) && (
-        <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
+        <SectionTracker sectionKey="recommended" className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24 block">
           <SectionHeader eyebrow={sections.recommended.eyebrow} title={sections.recommended.title} icon={Award} href="/search" hrefLabel="See All" sectionKey="recommended" editable={isProductAdmin} active={sections.recommended.active} />
           {personalizedSlugs.length > 0 ? (
             <RecommendationStrip title="Picked for you" slugs={personalizedSlugs} icon={<Award className="size-3" />} />
@@ -584,7 +584,7 @@ function Home() {
               </div>
             </>
           )}
-        </section>
+        </SectionTracker>
       )}
 
       {/* Recently viewed — personal browsing history */}
