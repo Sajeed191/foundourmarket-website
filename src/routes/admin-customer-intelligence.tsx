@@ -245,6 +245,10 @@ function CustomerIntelPage() {
         ))}
       </div>
 
+      {/* CUSTOMER ↔ MARKETING INTEGRATION */}
+      <CustomerMarketingHub rows={data} focusKey={focusAudience} />
+
+
       {/* VIP DETECTION + ALERTS */}
       <div id="ci-vip" className="mt-6 grid lg:grid-cols-2 gap-4 scroll-mt-20">
         <div className="card-premium rounded-2xl p-5">
