@@ -338,8 +338,7 @@ function AccountPage() {
           </aside>
         </div>
 
-        {/* WHY SHOP WITH US */}
-        <WhyShopWithUs />
+
 
         {/* 10 — FOOTER ACTIONS */}
         <motion.footer {...fadeUp} className="pt-2">
