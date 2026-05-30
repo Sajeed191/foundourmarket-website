@@ -385,6 +385,7 @@ const codSchema = z.object({
   items: z.array(lineItemSchema).min(1).max(100),
   addressId: z.string().uuid(),
   promoCode: z.string().trim().max(64).optional().nullable(),
+  attribution: attributionSchema,
 });
 
 /**
