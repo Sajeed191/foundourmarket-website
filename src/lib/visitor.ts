@@ -175,7 +175,7 @@ export async function trackVisit(path: string): Promise<void> {
     await supabase.rpc("track_visit", {
       _path: path,
       _session_id: sid,
-      _referrer: referrer || null,
+      _referrer: referrer || undefined,
       _user_agent: navigator.userAgent,
       _country: country,
       _device: device,
