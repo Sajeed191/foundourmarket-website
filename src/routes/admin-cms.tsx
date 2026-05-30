@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Plus, Trash2, Save, Rocket, AlertCircle, CheckCircle2 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { PublishConfirm } from "@/components/admin/PublishConfirm";
+import { EditorSaveBar } from "@/components/admin/EditorSaveBar";
+import { useEditorProtection } from "@/hooks/use-editor-protection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -73,7 +75,22 @@ function StatusBadge({ hasDraft, isLive }: { hasDraft: boolean; isLive: boolean 
 
 function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
   const [editing, setEditing] = useState<Partial<Page> | null>(null);
+  const [baseline, setBaseline] = useState("");
   const [publishing, setPublishing] = useState<Page | null>(null);
+
+  const entityId = editing?.id ?? "new";
+  const protection = useEditorProtection({
+    entityType: "cms_page",
+    entityId,
+    value: editing as Record<string, unknown> | null,
+    baseline,
+    enabled: !!editing,
+  });
+
+  function open(row: Partial<Page> | null) {
+    setEditing(row);
+    setBaseline(row ? JSON.stringify(row) : "");
+  }
 
   async function saveDraft() {
     if (!editing?.slug || !editing.title) { toast.error("Slug and title are required"); return; }
@@ -82,13 +99,19 @@ function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
       meta_title: editing.meta_title ?? null, meta_description: editing.meta_description ?? null,
       sort_order: editing.sort_order ?? 0,
     };
-    const { error } = editing.id
-      ? await supabase.from("cms_pages").update({ draft_data: draft, has_draft: true }).eq("id", editing.id)
-      : await supabase.from("cms_pages").insert({ ...draft, published: false, draft_data: draft, has_draft: true });
+    const { data: saved, error } = editing.id
+      ? await supabase.from("cms_pages").update({ draft_data: draft, has_draft: true }).eq("id", editing.id).select("id").single()
+      : await supabase.from("cms_pages").insert({ ...draft, published: false, draft_data: draft, has_draft: true }).select("id").single();
     if (error) { toast.error(error.message); return; }
     toast.success("Draft saved");
     logActivity(editing.id ? "page_draft_update" : "page_draft_create", "cms_page", editing.id, { slug: draft.slug });
-    setEditing(null); reload();
+    await protection.recordVersion(
+      (editing.id ?? saved?.id ?? entityId) as string,
+      draft as Record<string, unknown>,
+      editing.id ? "Updated" : "Created page",
+    );
+    await protection.markClean();
+    open(null); reload();
   }
 
   async function publishPage(p: Page) {
@@ -121,7 +144,7 @@ function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
     <>
       <div className="grid lg:grid-cols-[1fr,2fr] gap-8">
         <div>
-          <button onClick={() => setEditing({ published: false })}
+          <button onClick={() => open({ published: false })}
             className="w-full mb-4 inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground font-bold px-4 py-2.5 rounded-full text-[11px] uppercase tracking-widest">
             <Plus className="size-3.5" /> New page
           </button>
@@ -131,7 +154,7 @@ function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
               return (
                 <li key={p.id}>
                   <div className={`p-3 rounded-lg border transition-colors ${editing?.id === p.id ? "border-accent bg-accent/5" : p.has_draft ? "border-amber-500/30" : "border-border"}`}>
-                    <button onClick={() => setEditing(p.draft_data ? { ...p, ...p.draft_data } : p)} className="w-full text-left">
+                    <button onClick={() => open(p.draft_data ? { ...p, ...p.draft_data } : p)} className="w-full text-left">
                       <div className="text-sm font-medium">{display.title}</div>
                       <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mt-1">/{display.slug}</div>
                       <StatusBadge hasDraft={p.has_draft} isLive={p.published} />
@@ -154,7 +177,7 @@ function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
             })}
           </ul>
         </div>
-        {editing && <PageEditor key={editing.id ?? "new"} editing={editing} setEditing={setEditing} save={saveDraft} del={del} />}
+        {editing && <PageEditor key={editing.id ?? "new"} editing={editing} setEditing={setEditing} save={saveDraft} del={(id: string) => { void del(id); open(null); }} protection={protection} entityId={entityId} onClose={() => open(null)} />}
       </div>
       <PublishConfirm
         open={!!publishing}
@@ -167,9 +190,20 @@ function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
   );
 }
 
-function PageEditor({ editing, setEditing, save, del }: any) {
+function PageEditor({ editing, setEditing, save, del, protection, entityId, onClose }: any) {
   return (
     <div className="space-y-4 p-6 border border-border rounded-2xl">
+      <EditorSaveBar
+        state={protection.state}
+        lastSavedAt={protection.lastSavedAt}
+        recovery={protection.recovery}
+        onRestore={() => { const d = protection.restoreDraft(); if (d) setEditing(d); }}
+        onDismiss={() => void protection.dismissDraft()}
+        entityType="cms_page"
+        entityId={entityId}
+        onRestoreVersion={(snap: any) => setEditing({ ...editing, ...snap })}
+        onDuplicateVersion={(snap: any) => setEditing({ ...snap, id: undefined })}
+      />
       <p className="text-[11px] text-muted-foreground -mt-1">Edits are saved as a draft. Click <span className="text-accent font-mono">Publish</span> on the page card to go live.</p>
       <Field label="Slug"><input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className={inputCls} placeholder="about" /></Field>
       <Field label="Title"><input value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className={inputCls} /></Field>
@@ -188,7 +222,7 @@ function PageEditor({ editing, setEditing, save, del }: any) {
             <Trash2 className="size-3.5" /> Delete
           </button>
         )}
-        <button onClick={() => setEditing(null)} className="ml-auto text-xs font-mono uppercase tracking-widest text-muted-foreground">Cancel</button>
+        <button onClick={onClose} className="ml-auto text-xs font-mono uppercase tracking-widest text-muted-foreground">Cancel</button>
       </div>
     </div>
   );
@@ -196,7 +230,22 @@ function PageEditor({ editing, setEditing, save, del }: any) {
 
 function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
   const [editing, setEditing] = useState<Partial<Post> | null>(null);
+  const [baseline, setBaseline] = useState("");
   const [publishing, setPublishing] = useState<Post | null>(null);
+
+  const entityId = editing?.id ?? "new";
+  const protection = useEditorProtection({
+    entityType: "cms_post",
+    entityId,
+    value: editing as Record<string, unknown> | null,
+    baseline,
+    enabled: !!editing,
+  });
+
+  function open(row: Partial<Post> | null) {
+    setEditing(row);
+    setBaseline(row ? JSON.stringify(row) : "");
+  }
 
   async function saveDraft() {
     if (!editing?.slug || !editing.title) { toast.error("Slug and title are required"); return; }
@@ -205,13 +254,19 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
       body: editing.body ?? "", cover_image: editing.cover_image ?? null, author: editing.author ?? null,
       meta_title: editing.meta_title ?? null, meta_description: editing.meta_description ?? null,
     };
-    const { error } = editing.id
-      ? await supabase.from("cms_posts").update({ draft_data: draft, has_draft: true }).eq("id", editing.id)
-      : await supabase.from("cms_posts").insert({ ...draft, published_at: null, draft_data: draft, has_draft: true });
+    const { data: saved, error } = editing.id
+      ? await supabase.from("cms_posts").update({ draft_data: draft, has_draft: true }).eq("id", editing.id).select("id").single()
+      : await supabase.from("cms_posts").insert({ ...draft, published_at: null, draft_data: draft, has_draft: true }).select("id").single();
     if (error) { toast.error(error.message); return; }
     toast.success("Draft saved");
     logActivity(editing.id ? "post_draft_update" : "post_draft_create", "cms_post", editing.id, { slug: draft.slug });
-    setEditing(null); reload();
+    await protection.recordVersion(
+      (editing.id ?? saved?.id ?? entityId) as string,
+      draft as Record<string, unknown>,
+      editing.id ? "Updated" : "Created post",
+    );
+    await protection.markClean();
+    open(null); reload();
   }
 
   async function publishPost(p: Post) {
@@ -245,7 +300,7 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
     <>
       <div className="grid lg:grid-cols-[1fr,2fr] gap-8">
         <div>
-          <button onClick={() => setEditing({})}
+          <button onClick={() => open({})}
             className="w-full mb-4 inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground font-bold px-4 py-2.5 rounded-full text-[11px] uppercase tracking-widest">
             <Plus className="size-3.5" /> New post
           </button>
@@ -256,7 +311,7 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
               return (
                 <li key={p.id}>
                   <div className={`p-3 rounded-lg border transition-colors ${editing?.id === p.id ? "border-accent bg-accent/5" : p.has_draft ? "border-amber-500/30" : "border-border"}`}>
-                    <button onClick={() => setEditing(p.draft_data ? { ...p, ...p.draft_data } : p)} className="w-full text-left">
+                    <button onClick={() => open(p.draft_data ? { ...p, ...p.draft_data } : p)} className="w-full text-left">
                       <div className="text-sm font-medium">{display.title}</div>
                       <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mt-1">/{display.slug}</div>
                       <StatusBadge hasDraft={p.has_draft} isLive={isLive} />
@@ -281,6 +336,17 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
         </div>
         {editing && (
           <div className="space-y-4 p-6 border border-border rounded-2xl">
+            <EditorSaveBar
+              state={protection.state}
+              lastSavedAt={protection.lastSavedAt}
+              recovery={protection.recovery}
+              onRestore={() => { const d = protection.restoreDraft(); if (d) setEditing(d as Partial<Post>); }}
+              onDismiss={() => void protection.dismissDraft()}
+              entityType="cms_post"
+              entityId={entityId}
+              onRestoreVersion={(snap) => setEditing({ ...editing, ...(snap as Partial<Post>) })}
+              onDuplicateVersion={(snap) => setEditing({ ...(snap as Partial<Post>), id: undefined })}
+            />
             <p className="text-[11px] text-muted-foreground -mt-1">Edits are saved as a draft. Click <span className="text-accent font-mono">Publish</span> on the post card to go live.</p>
             <Field label="Slug"><input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className={inputCls} /></Field>
             <Field label="Title"><input value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className={inputCls} /></Field>
@@ -295,11 +361,11 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
                 <Save className="size-3.5" /> Save draft
               </button>
               {editing.id && (
-                <button onClick={() => del(editing.id!)} className="inline-flex items-center gap-2 border border-border px-4 py-2 rounded-full text-[11px] uppercase tracking-widest text-destructive">
+                <button onClick={() => { void del(editing.id!); open(null); }} className="inline-flex items-center gap-2 border border-border px-4 py-2 rounded-full text-[11px] uppercase tracking-widest text-destructive">
                   <Trash2 className="size-3.5" /> Delete
                 </button>
               )}
-              <button onClick={() => setEditing(null)} className="ml-auto text-xs font-mono uppercase tracking-widest text-muted-foreground">Cancel</button>
+              <button onClick={() => open(null)} className="ml-auto text-xs font-mono uppercase tracking-widest text-muted-foreground">Cancel</button>
             </div>
           </div>
         )}

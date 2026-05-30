@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2, ChevronLeft, ChevronRight, Rocket, AlertCircle, CheckCircle2, Upload, History, Image as ImageIcon } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { PublishConfirm } from "@/components/admin/PublishConfirm";
+import { EditorSaveBar } from "@/components/admin/EditorSaveBar";
+import { useEditorProtection } from "@/hooks/use-editor-protection";
 import { BadgeSettingsEditor } from "@/components/admin/BadgeSettingsEditor";
 import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
 import { supabase } from "@/integrations/supabase/client";
@@ -302,9 +304,26 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
     width_px: src.width_px ?? row?.width_px ?? 1600,
     height_px: src.height_px ?? row?.height_px ?? 600,
   });
+  const [baseline] = useState(() => JSON.stringify({
+    type: src.type ?? "hero", title: src.title ?? "", subtitle: src.subtitle ?? "",
+    image: src.image ?? "", link: src.link ?? "", cta_text: src.cta_text ?? "",
+    active: src.active ?? true, starts_at: src.starts_at?.slice(0, 10) ?? "",
+    ends_at: src.ends_at?.slice(0, 10) ?? "", sort_order: src.sort_order ?? 0,
+    width_px: src.width_px ?? row?.width_px ?? 1600,
+    height_px: src.height_px ?? row?.height_px ?? 600,
+  }));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const entityId = row?.id ?? "new";
+  const protection = useEditorProtection({
+    entityType: "banner",
+    entityId,
+    value: f as Record<string, unknown>,
+    baseline,
+    enabled: true,
+  });
 
   async function handleUpload(file: File) {
     if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
@@ -339,6 +358,12 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
     if (error) { toast.error(error.message); return; }
     toast.success("Draft saved — click Publish to go live");
     logActivity(row ? "banner_draft_update" : "banner_draft_create", "banner", row?.id);
+    await protection.recordVersion(
+      (row?.id ?? entityId) as string,
+      draft as Record<string, unknown>,
+      row ? "Updated" : "Created banner",
+    );
+    await protection.markClean();
     onSaved();
   }
 
@@ -349,7 +374,19 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
           <h2 className="text-lg font-display">{row ? "Edit banner draft" : "New banner"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
         </div>
-        <p className="text-[11px] text-muted-foreground mb-5">Changes are saved as a draft. Click <span className="text-accent font-mono">Publish</span> on the banner card to push live.</p>
+        <p className="text-[11px] text-muted-foreground mb-3">Changes are saved as a draft. Click <span className="text-accent font-mono">Publish</span> on the banner card to push live.</p>
+        <div className="mb-5">
+          <EditorSaveBar
+            state={protection.state}
+            lastSavedAt={protection.lastSavedAt}
+            recovery={protection.recovery}
+            onRestore={() => { const d = protection.restoreDraft(); if (d) setF(d as typeof f); }}
+            onDismiss={() => void protection.dismissDraft()}
+            entityType="banner"
+            entityId={entityId}
+            onRestoreVersion={(snap) => setF({ ...f, ...(snap as Partial<typeof f>) })}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Type"><select value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })} className="input"><option>hero</option><option>announcement</option><option>promo</option><option>offer</option></select></Field>
           <Field label="Sort"><input type="number" value={f.sort_order} onChange={(e) => setF({ ...f, sort_order: Number(e.target.value) })} className="input" /></Field>
@@ -421,8 +458,23 @@ function FlashEditor({ row, onClose, onSaved }: { row: Flash | null; onClose: ()
     ends_at: row?.ends_at?.slice(0, 16) ?? "", active: row?.active ?? true,
     product_slugs: (row?.product_slugs ?? []).join(", "),
   });
+  const [baseline] = useState(() => JSON.stringify({
+    name: row?.name ?? "", discount_percent: row?.discount_percent ?? 20,
+    starts_at: row?.starts_at?.slice(0, 16) ?? new Date().toISOString().slice(0, 16),
+    ends_at: row?.ends_at?.slice(0, 16) ?? "", active: row?.active ?? true,
+    product_slugs: (row?.product_slugs ?? []).join(", "),
+  }));
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const entityId = row?.id ?? "new";
+  const protection = useEditorProtection({
+    entityType: "flash_sale",
+    entityId,
+    value: f as Record<string, unknown>,
+    baseline,
+    enabled: true,
+  });
 
   async function actuallySave() {
     setSaving(true);
@@ -433,12 +485,20 @@ function FlashEditor({ row, onClose, onSaved }: { row: Flash | null; onClose: ()
       active: f.active,
       product_slugs: f.product_slugs.split(",").map((s) => s.trim()).filter(Boolean),
     };
-    const { error } = row ? await supabase.from("flash_sales").update(payload).eq("id", row.id) : await supabase.from("flash_sales").insert(payload);
+    const { data: saved, error } = row
+      ? await supabase.from("flash_sales").update(payload).eq("id", row.id).select("id").single()
+      : await supabase.from("flash_sales").insert(payload).select("id").single();
     setSaving(false);
     setConfirmOpen(false);
     if (error) { toast.error(error.message); return; }
     toast.success(f.active ? "Flash sale is live" : "Flash sale saved");
     logActivity(row ? "flash_update" : "flash_create", "flash_sale", row?.id);
+    await protection.recordVersion(
+      (row?.id ?? saved?.id ?? entityId) as string,
+      payload as Record<string, unknown>,
+      row ? "Updated" : "Created flash sale",
+    );
+    await protection.markClean();
     onSaved();
   }
 
@@ -448,6 +508,18 @@ function FlashEditor({ row, onClose, onSaved }: { row: Flash | null; onClose: ()
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg font-display">{row ? "Edit flash sale" : "New flash sale"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
+        </div>
+        <div className="mb-5">
+          <EditorSaveBar
+            state={protection.state}
+            lastSavedAt={protection.lastSavedAt}
+            recovery={protection.recovery}
+            onRestore={() => { const d = protection.restoreDraft(); if (d) setF(d as typeof f); }}
+            onDismiss={() => void protection.dismissDraft()}
+            entityType="flash_sale"
+            entityId={entityId}
+            onRestoreVersion={(snap) => setF({ ...f, ...(snap as Partial<typeof f>) })}
+          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Name" className="col-span-2"><input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required className="input" /></Field>
