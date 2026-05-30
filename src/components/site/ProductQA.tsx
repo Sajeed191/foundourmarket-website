@@ -26,6 +26,8 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
   const [busy, setBusy] = useState(false);
   const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [questionDraft, setQuestionDraft] = useState("");
 
   async function load() {
     setLoading(true);
