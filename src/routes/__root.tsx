@@ -30,6 +30,7 @@ import { CompareTray } from "@/components/site/CompareTray";
 import { InstallPrompt } from "@/components/site/InstallPrompt";
 import { registerServiceWorker } from "@/lib/pwa";
 import { trackPageView } from "@/lib/analytics";
+import { captureAttribution } from "@/lib/marketing-tracking";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
