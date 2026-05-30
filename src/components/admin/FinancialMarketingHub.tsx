@@ -16,26 +16,48 @@ import {
   type FinancialRecommendation, type CampaignProfit,
 } from "@/lib/financial-marketing";
 
-export function FinancialMarketingHub({ data }: { data: FinancialMarketingData | null }) {
-  const [live, setLive] = useState<FinancialMarketingData | null>(data);
+export function FinancialMarketingHub({ data, focusView }: { data?: FinancialMarketingData | null; focusView?: string | null }) {
+  const [live, setLive] = useState<FinancialMarketingData | null>(data ?? null);
   const [busy, setBusy] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  useEffect(() => { setLive(data); }, [data]);
+  useEffect(() => { if (data) setLive(data); }, [data]);
 
   const reload = useCallback(async () => {
     const { fetchFinancialMarketing } = await import("@/lib/financial-marketing");
     setLive(await fetchFinancialMarketing(365));
   }, []);
 
-  // Realtime: campaign / order / return changes refresh profit + ROI.
+  // Self-load on mount when no data prop is provided (reuses fetchFinancialMarketing).
+  useEffect(() => { if (!data) void reload(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  // Realtime: campaign / order / return changes refresh profit + ROI instantly.
   useEffect(() => {
     const ch = supabase
       .channel("financial-marketing-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "marketing_campaigns" }, () => void reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => void reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "returns" }, () => void reload())
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
   }, [reload]);
+
+  // Deep-link: scroll to + flash the targeted section.
+  useEffect(() => {
+    if (!focusView || !live) return;
+    const anchorMap: Record<string, string> = {
+      marketing: "fin-marketing", profit: "fm-profit", campaigns: "fm-campaigns",
+      products: "fm-products", customers: "fm-customers", regions: "fm-regions",
+      alerts: "fm-alerts", recommendations: "fm-recs",
+    };
+    const id = anchorMap[focusView];
+    if (!id) return;
+    requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (el) { el.classList.add("deep-link-flash"); setTimeout(() => el.classList.remove("deep-link-flash"), 1800); }
+    });
+  }, [focusView, live]);
 
   const model = useMemo(() => {
     if (!live) return null;
@@ -103,7 +125,7 @@ export function FinancialMarketingHub({ data }: { data: FinancialMarketingData |
 
       {/* Alerts */}
       {alerts.length > 0 && (
-        <div className="grid gap-2 sm:grid-cols-2 mb-5">
+        <div id="fm-alerts" className="grid gap-2 sm:grid-cols-2 mb-5 scroll-mt-24">
           {alerts.map((a) => (
             <div key={a.id} className={`flex items-start gap-2.5 rounded-xl glass px-3 py-2.5 border-l-2 ${a.severity === "high" ? "border-rose-400" : a.severity === "medium" ? "border-amber-400" : "border-sky-400"}`}>
               <AlertTriangle className={`size-3.5 mt-0.5 shrink-0 ${a.severity === "high" ? "text-rose-300" : a.severity === "medium" ? "text-amber-300" : "text-sky-300"}`} />
@@ -114,6 +136,7 @@ export function FinancialMarketingHub({ data }: { data: FinancialMarketingData |
       )}
 
       {/* Profit analytics */}
+      <div id="fm-profit" className="scroll-mt-24">
       <SubHead icon={<Sparkles className="size-4 text-accent" />} title="Profit analytics" />
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 mb-5">
         <Kpi label="Gross Margin" value={`${pa.grossMargin.toFixed(1)}%`} />
@@ -144,8 +167,10 @@ export function FinancialMarketingHub({ data }: { data: FinancialMarketingData |
           </div>
         ))}
       </div>
+      </div>
 
       {/* Recommendations */}
+      <div id="fm-recs" className="scroll-mt-24">
       <SubHead icon={<Sparkles className="size-4 text-accent" />} title="Profit recommendations" sub={`${recs.length} opportunities`} />
       {recs.length === 0 ? (
         <div className="rounded-2xl glass px-5 py-8 text-center text-xs text-muted-foreground mb-6">No profit optimisations right now.</div>
@@ -171,8 +196,10 @@ export function FinancialMarketingHub({ data }: { data: FinancialMarketingData |
           ))}
         </div>
       )}
+      </div>
 
       {/* Campaign profitability */}
+      <div id="fm-campaigns" className="scroll-mt-24">
       <SubHead icon={<Megaphone className="size-4 text-accent" />} title="Campaign profitability" sub={`${camps.length} campaigns`} />
       <div className="overflow-x-auto no-scrollbar rounded-2xl glass mb-6">
         <table className="w-full text-sm min-w-[640px]">
@@ -207,9 +234,11 @@ export function FinancialMarketingHub({ data }: { data: FinancialMarketingData |
           </tbody>
         </table>
       </div>
+      </div>
 
       {/* Customer + Product + Regional profitability */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div id="fm-customers" className="scroll-mt-24">
         <Card icon={<Users className="size-4 text-accent" />} title="Customer profitability">
           <ListRow label="VIP profit" value={`${fmt(cust.vipProfit)} · ${cust.vipShare.toFixed(0)}%`} tone="text-emerald-300" />
           {cust.mostProfitableSegments.map((s) => <ListRow key={`mp-${s.segment}`} label={s.segment} value={fmt(s.profit)} />)}
@@ -217,14 +246,18 @@ export function FinancialMarketingHub({ data }: { data: FinancialMarketingData |
           <ListRow label="Refund-heavy" value={`${cust.refundHeavy.length}`} />
           <ListRow label="Support-heavy" value={`${cust.supportHeavy.length}`} />
         </Card>
+        </div>
 
+        <div id="fm-products" className="scroll-mt-24">
         <Card icon={<Package className="size-4 text-accent" />} title="Product profitability">
           <ListRow label="Profit / order" value={fmt(prod.profitPerOrder)} />
           <ListRow label="Profit / customer" value={fmt(prod.profitPerCustomer)} />
           {prod.mostProfitable.slice(0, 3).map((p) => <ListRow key={`top-${p.slug}`} label={trunc(p.name)} value={fmt(p.profit)} tone="text-emerald-300" />)}
           {prod.lowestMargin.slice(0, 2).map((p) => <ListRow key={`low-${p.slug}`} label={trunc(p.name)} value={`${p.margin.toFixed(0)}%`} tone="text-rose-300" />)}
         </Card>
+        </div>
 
+        <div id="fm-regions" className="scroll-mt-24">
         <Card icon={<Globe className="size-4 text-accent" />} title="Regional profitability">
           {regions.map((r) => (
             <div key={r.region} className="rounded-xl border border-border bg-white/[0.02] px-3 py-2.5 mb-2 last:mb-0">
@@ -240,6 +273,7 @@ export function FinancialMarketingHub({ data }: { data: FinancialMarketingData |
             </div>
           ))}
         </Card>
+        </div>
       </div>
     </section>
   );

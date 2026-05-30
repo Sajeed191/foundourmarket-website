@@ -11,7 +11,8 @@ import {
   RefreshCw, Sparkles, ShoppingCart, Globe, Radio, Loader2,
   Users, Repeat, HeartPulse, XCircle, Boxes, Activity,
 } from "lucide-react";
-import { AdminShell } from "@/components/admin/AdminShell";
+import { AdminShell, logActivity } from "@/components/admin/AdminShell";
+import { FinancialMarketingHub } from "@/components/admin/FinancialMarketingHub";
 import { supabase } from "@/integrations/supabase/client";
 import {
   fetchFinancialData, computeSummary, monthlyBreakdown, revenueSeries,
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/admin-financial")({
       { name: "description", content: "Profit & loss, refunds, taxes, shipping and operational earnings — real-time commerce intelligence." },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>) => ({ view: typeof s.view === "string" ? s.view : undefined }),
   component: FinancialPage,
 });
 
@@ -131,6 +133,7 @@ function EmptyState({ icon, label }: { icon: ReactNode; label: string }) {
 
 /* ================= PAGE ================= */
 function FinancialPage() {
+  const { view } = Route.useSearch();
   const [data, setData] = useState<FinancialData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -138,6 +141,12 @@ function FinancialPage() {
   const [range, setRange] = useState(365);
   const [live, setLive] = useState(false);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Audit-log deep-link usage into the financial marketing hub.
+  useEffect(() => {
+    if (view) logActivity("financial_marketing_deeplink", "financial", undefined, { view });
+  }, [view]);
+
 
   const load = useCallback(async (silent = false) => {
     if (silent) setRefreshing(true); else setLoading(true);
@@ -598,6 +607,13 @@ function FinancialPage() {
           </div>
         </Panel>
       </div>
+
+      {/* Financial ↔ Marketing Integration */}
+      <div className="mt-6 pb-24 lg:pb-8">
+        <FinancialMarketingHub focusView={view} />
+      </div>
+
+
 
       {/* Mobile quick-action dock */}
       <FinanceDock onRefresh={() => load(true)} onCSV={exportCSV} onPDF={exportPDF} refreshing={refreshing} />

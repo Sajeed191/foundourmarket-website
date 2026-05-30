@@ -90,6 +90,19 @@ export const QUICK_ACTIONS: QuickAction[] = [
   // System
   { id: "qa-analytics", group: "System", icon: "BarChart3", label: "Analytics", to: "/admin-analytics", roles: ["admin", "super_admin", "manager", "support", "editor", "fulfillment", "warehouse_staff"], action: "cmd_analytics" },
   { id: "qa-financial", group: "System", icon: "Wallet", label: "Financial dashboard", to: "/admin-financial", roles: MANAGER, action: "cmd_financial", keywords: "revenue money" },
+  // Financial ↔ Marketing Integration
+  { id: "qa-fin-marketing", group: "System", icon: "Megaphone", label: "Open Financial Marketing", to: "/admin-financial?view=marketing", roles: MANAGER, action: "cmd_fin_marketing", keywords: "financial marketing profit driven roi roas margin efficiency campaign profitability" },
+  { id: "qa-fin-profit", group: "System", icon: "Wallet", label: "Show Profit Intelligence", to: "/admin-financial?view=profit", roles: MANAGER, action: "cmd_fin_profit", keywords: "profit intelligence net contribution margin analytics marketing profit" },
+  { id: "qa-fin-campaigns", group: "System", icon: "BarChart3", label: "Show Campaign Profitability", to: "/admin-financial?view=campaigns", roles: MANAGER, action: "cmd_fin_campaigns", keywords: "campaign profitability roi roas margin profit per campaign" },
+  { id: "qa-fin-products", group: "System", icon: "Boxes", label: "Show Product Profitability", to: "/admin-financial?view=products", roles: MANAGER, action: "cmd_fin_products", keywords: "product profitability highest lowest margin profit contribution" },
+  { id: "qa-fin-customers", group: "System", icon: "Users", label: "Show Customer Profitability", to: "/admin-financial?view=customers", roles: MANAGER, action: "cmd_fin_customers", keywords: "customer profitability vip profitable segments profit contribution" },
+  { id: "qa-fin-regions", group: "System", icon: "Activity", label: "Show Regional Profitability", to: "/admin-financial?view=regions", roles: MANAGER, action: "cmd_fin_regions", keywords: "regional profitability region margin roi india international" },
+  { id: "qa-fin-margin-risk", group: "System", icon: "AlertTriangle", label: "Show Margin Risks", to: "/admin-financial?view=alerts", roles: MANAGER, action: "cmd_fin_margin_risk", keywords: "margin risk collapse negative margin analysis alerts" },
+  { id: "qa-fin-roi-alerts", group: "System", icon: "AlertTriangle", label: "Show ROI Alerts", to: "/admin-financial?view=alerts", roles: MANAGER, action: "cmd_fin_roi_alerts", keywords: "roi alerts negative roi campaign loss profit alerts" },
+  { id: "qa-fin-opportunities", group: "System", icon: "Lightbulb", label: "Show Profit Opportunities", to: "/admin-financial?view=recommendations", roles: MANAGER, action: "cmd_fin_opportunities", keywords: "profit opportunities recommendations scale winners feature high margin" },
+  { id: "qa-fin-scale", group: "System", icon: "BarChart3", label: "Scale Winning Campaign", to: "/admin-financial?view=campaigns", roles: MANAGER, action: "cmd_fin_scale", keywords: "scale winning campaign increase budget roi profit" },
+  { id: "qa-fin-pause", group: "System", icon: "AlertTriangle", label: "Pause Losing Campaign", to: "/admin-financial?view=campaigns", roles: MANAGER, action: "cmd_fin_pause", keywords: "pause losing campaign negative roi stop budget" },
+  { id: "qa-fin-launch", group: "System", icon: "Megaphone", label: "Launch Profit Campaign", to: "/admin-financial?view=recommendations", roles: MANAGER, action: "cmd_fin_launch", keywords: "launch profit campaign high margin vip retention" },
   { id: "qa-activity", group: "System", icon: "Activity", label: "Activity log", to: "/admin-activity", roles: ["admin", "super_admin"], action: "cmd_activity_log", keywords: "audit" },
   { id: "qa-dashboard", group: "System", icon: "LayoutDashboard", label: "Dashboard", to: "/admin", roles: ["admin", "super_admin", "manager", "support", "editor", "fulfillment", "warehouse_staff"], action: "cmd_dashboard" },
 ];
@@ -148,6 +161,18 @@ export function interpretNaturalLanguage(q: string): string | null {
     return "qa-prod-marketing";
   }
   if (s.includes("feature") && s.includes("product")) return "qa-prod-feature";
+  // Financial ↔ Marketing natural language (before generic campaign + financial blocks)
+  if (s.includes("profit") && (s.includes("intelligence") || s.includes("opportunit"))) return s.includes("opportunit") ? "qa-fin-opportunities" : "qa-fin-profit";
+  if (s.includes("marketing") && s.includes("profit")) return "qa-fin-marketing";
+  if (s.includes("marketing") && s.includes("efficiency")) return "qa-fin-marketing";
+  if (s.includes("financial") && s.includes("marketing")) return "qa-fin-marketing";
+  if (s.includes("campaign") && (s.includes("profitab") || (s.includes("margin")))) return "qa-fin-campaigns";
+  if (s.includes("campaign") && (s.includes("roas"))) return "qa-fin-campaigns";
+  if (s.includes("campaign") && s.includes("roi") && s.includes("profit")) return "qa-fin-campaigns";
+  if (s.includes("scale") && (s.includes("winning") || s.includes("winner")) && s.includes("campaign")) return "qa-fin-scale";
+  if (s.includes("pause") && (s.includes("losing") || s.includes("loser")) && s.includes("campaign")) return "qa-fin-pause";
+  if (s.includes("margin") && (s.includes("analysis") || s.includes("risk"))) return s.includes("risk") ? "qa-fin-margin-risk" : "qa-fin-profit";
+
   // Marketing automation natural language
   if (s.includes("campaign") || s.includes("automation")) {
     const make = s.includes("create") || s.includes("new") || s.includes("launch") || s.includes("make");
