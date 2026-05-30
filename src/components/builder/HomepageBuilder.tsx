@@ -176,7 +176,7 @@ export function HomepageBuilder() {
             </button>
           </div>
         ) : (
-          <Reorder.Group axis="y" values={order} onReorder={commitOrder} className="space-y-3">
+          <Reorder.Group axis="y" values={visibleIds} onReorder={commitVisibleOrder} className="space-y-3">
             {visible.map((block) => {
               const idx = order.indexOf(block.id);
               return (
