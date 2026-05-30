@@ -56,6 +56,7 @@ function CustomerIntelPage() {
 
   useEffect(() => {
     load();
+    logActivity("customer_intel_dashboard_open", "customer", undefined, { view: view ?? null });
     const ch = supabase.channel("cust-intel-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => load())
@@ -63,6 +64,22 @@ function CustomerIntelPage() {
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Deep-link views (?view=vip|risk|new|high-value|alerts|recommendations)
+  useEffect(() => {
+    if (!view || loading) return;
+    if (view === "risk") setSegment("At Risk");
+    else if (view === "new") setSegment("New Customers");
+    const anchorMap: Record<string, string> = {
+      vip: "ci-vip", "high-value": "ci-vip", alerts: "ci-alerts", recommendations: "ci-recs",
+      risk: "ci-explorer", new: "ci-explorer",
+    };
+    const id = anchorMap[view];
+    if (id) requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    logActivity("customer_intel_segment_view", "customer", undefined, { view });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, loading]);
+
 
   const data = rows ?? [];
   const health = useMemo(() => computeHealth(data), [data]);
