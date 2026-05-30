@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2, ChevronLeft, ChevronRight, Rocket, AlertCircle, CheckCircle2, Upload, History, Image as ImageIcon } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { PublishConfirm } from "@/components/admin/PublishConfirm";
+import { BadgeSettingsEditor } from "@/components/admin/BadgeSettingsEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -49,7 +50,7 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 function MarketingPage() {
-  const [tab, setTab] = useState<"banners" | "flash">("banners");
+  const [tab, setTab] = useState<"banners" | "flash" | "badges">("banners");
   const [banners, setBanners] = useState<Banner[] | null>(null);
   const [flash, setFlash] = useState<Flash[] | null>(null);
   const [editingB, setEditingB] = useState<Banner | "new" | null>(null);
@@ -119,13 +120,15 @@ function MarketingPage() {
   return (
     <AdminShell title="Marketing" subtitle="Banners, announcements and flash sales — draft & publish workflow" allow={["admin","super_admin","manager","editor"]}>
       <div className="flex gap-1 mb-6 border-b border-border">
-        {(["banners", "flash"] as const).map((t) => (
+        {(["banners", "flash", "badges"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-5 py-3 text-xs uppercase tracking-widest font-mono border-b-2 -mb-px ${tab === t ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-            {t === "banners" ? "Banners" : "Flash sales"}
+            {t === "banners" ? "Banners" : t === "flash" ? "Flash sales" : "Badges"}
           </button>
         ))}
       </div>
+
+      {tab === "badges" && <BadgeSettingsEditor />}
 
       {tab === "banners" && (
         <>
