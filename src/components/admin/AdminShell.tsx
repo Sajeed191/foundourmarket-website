@@ -57,6 +57,12 @@ const NAV: { group: string; items: NavItem[] }[] = [
     ],
   },
   {
+    group: "Security & Trust",
+    items: [
+      { to: "/admin-security", label: "Fraud & Security", icon: ShieldAlert, roles: ["admin", "super_admin", "manager", "support"] },
+    ],
+  },
+  {
     group: "Catalog",
     items: [
       { to: "/admin-products", label: "Products", icon: Package },

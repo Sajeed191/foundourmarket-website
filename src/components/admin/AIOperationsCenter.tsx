@@ -14,6 +14,7 @@ import {
   type AIRecommendation, type AICategory, type AISystem, type FeedbackVote,
 } from "@/lib/ai-operations";
 import { cn } from "@/lib/utils";
+import { SecuritySummaryCard } from "@/components/admin/SecuritySummaryCard";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const money = (n: number, c = "USD") =>
@@ -215,6 +216,10 @@ export function AIOperationsCenter({ focusView }: { focusView?: string }) {
           );
         })}
       </div>
+
+      {/* Fraud & Security integration */}
+      <SecuritySummaryCard />
+
 
       {/* tabs */}
       <div className="flex flex-wrap items-center gap-2">
