@@ -8,13 +8,14 @@ import {
   Package, PackagePlus, Tag, ShoppingBag, RotateCcw, Users, Cpu, AlertTriangle, Boxes,
   Image as ImageIcon, Megaphone, LayoutTemplate, Pencil, LifeBuoy, Zap, BarChart3, Wallet,
   Activity, LayoutDashboard, FileText, Loader2, Sparkles, Clock, Pin, PinOff, Search, ArrowRight,
-  Gem, Crown, UserPlus, Bell, Lightbulb,
+  Gem, Crown, UserPlus, Bell, Lightbulb, Play, Pause, ShieldAlert, ShieldCheck, Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { useCommandCenter, pushRecentSearch, getRecentSearches, pushRecentAction, getRecentActions, getPinned, togglePinned, type RecentAction } from "@/lib/command-center";
 import { useStaffRoles } from "@/lib/use-admin";
 import { searchAll, type SearchResult, type Role } from "@/lib/command-search";
 import { actionsForRoles, interpretNaturalLanguage, QUICK_ACTIONS } from "@/lib/command-actions";
+import { automationCommandsForRoles, type AutomationCommand } from "@/lib/command-automation-actions";
 import { logActivity } from "@/components/admin/AdminShell";
 
 const ICONS: Record<string, LucideIcon> = {
