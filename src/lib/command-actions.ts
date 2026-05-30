@@ -117,6 +117,17 @@ export function interpretNaturalLanguage(q: string): string | null {
   if ((s.includes("create") || s.includes("new") || s.includes("launch")) && (s.includes("flash") || s.includes("sale"))) return "qa-flash-sale";
   if ((s.includes("create") || s.includes("new") || s.includes("add")) && s.includes("product")) return "qa-create-product";
   if (s.includes("forecast") || s.includes("predict")) return "qa-inv-intel";
+  // Customer ↔ Marketing natural language (before generic customer + campaign blocks)
+  if (s.includes("winback") || s.includes("win back") || s.includes("win-back")) return "qa-cust-winback-campaign";
+  if (s.includes("reactivation") || s.includes("reactivate") || (s.includes("dormant") && s.includes("campaign"))) return "qa-cust-reactivation-campaign";
+  if (s.includes("retention") && (s.includes("campaign") || s.includes("customer"))) return "qa-cust-retention-campaign";
+  if (s.includes("churn") && s.includes("opportunit")) return "qa-aud-atrisk";
+  if (s.includes("audience") && (s.includes("analytic") || s.includes("revenue") || s.includes("insight"))) return "qa-cust-audiences";
+  if (s.includes("customer") && (s.includes("audience") || s.includes("targeting") || s.includes("target"))) return "qa-cust-audiences";
+  if (s.includes("customer") && s.includes("marketing")) return "qa-cust-marketing";
+  if (s.includes("vip") && s.includes("audience")) return "qa-aud-vip";
+  if (s.includes("loyal") && (s.includes("audience") || s.includes("customer"))) return "qa-aud-loyal";
+  if ((s.includes("high value") || s.includes("high-value")) && s.includes("customer")) return "qa-aud-highvalue";
   if (s.includes("vip")) return "qa-cust-vip";
   if (s.includes("churn") || (s.includes("at risk") && s.includes("customer")) || s.includes("at-risk")) return "qa-cust-risk";
   if ((s.includes("high value") || s.includes("high-value") || s.includes("big spender")) && !s.includes("product")) return "qa-cust-highvalue";
