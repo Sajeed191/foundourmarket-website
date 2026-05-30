@@ -25,7 +25,7 @@ export function SaveStateBadge({
 }) {
   const map: Record<
     SaveState,
-    { icon: JSX.Element; label: string; tone: string }
+    { icon: ReactNode; label: string; tone: string }
   > = {
     idle: {
       icon: <Cloud className="h-3.5 w-3.5" />,
