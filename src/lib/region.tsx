@@ -11,8 +11,11 @@ import { useAuth } from "./auth";
 import { useIsAdmin } from "./use-admin";
 import { detectRegion, getMyRegion, lockMarketRegion } from "./region.functions";
 import type { MarketRegion } from "./region.functions";
-import { blendDetection, CONFIDENCE_THRESHOLD } from "./geo-detect";
+import { blendDetection } from "./geo-detect";
+import type { DetectionTier } from "./geo-detect";
+import { track } from "./analytics";
 import type { Product } from "./products";
+
 
 export type { MarketRegion };
 export type Currency = "INR" | "USD";
@@ -26,14 +29,25 @@ type Ctx = {
   locked: boolean;
   /** True when the market was resolved silently from geo-intelligence. */
   autoDetected: boolean;
-  /** Blended detection confidence (0–100) across edge/timezone/locale layers. */
+  /** Blended detection confidence (0–100) across all signal layers. */
   confidence: number;
+  /** Human-readable signals that drove the detected region. */
+  reasons: string[];
+  /** UX tier the engine resolved to: auto | confirm | pick. */
+  detectionTier: DetectionTier | null;
   /** VPN / proxy / datacenter suspicion — forces manual confirmation. */
   vpnSuspected: boolean;
-  /** True when a user/guest must still pick a region (drives the modal). */
+  /** True when a user/guest must still pick a region (drives the full modal). */
   needsSelection: boolean;
+  /** True when a lightweight one-tap confirmation should be shown (70–89). */
+  softConfirm: boolean;
+  /** Accept the detected region from the lightweight confirmation. */
+  confirmDetectedRegion: () => Promise<void>;
+  /** Dismiss the lightweight confirmation and open the full picker instead. */
+  rejectDetectedRegion: () => void;
   loading: boolean;
   countryCode: string | null;
+
   /** Staff accounts bypass the region lock and can view both markets. */
   isAdmin: boolean;
   /** Admin-only: temporarily preview a market without locking. */
@@ -80,6 +94,35 @@ function formatMoney(amount: number, currency: Currency): string {
   return `$${amount.toFixed(2)}`;
 }
 
+// 1-year region-lock cookie, mirrored in localStorage.
+const REGION_COOKIE = "region_lock";
+
+/** Persist the resolved region to both a 1-year cookie and localStorage. */
+function persistRegion(region: MarketRegion) {
+  if (typeof document === "undefined") return;
+  try {
+    localStorage.setItem(LS_KEY, region);
+  } catch {
+    /* ignore */
+  }
+  document.cookie = `${REGION_COOKIE}=${region}; path=/; max-age=31536000; samesite=lax`;
+}
+
+/** Read any previously-stored region choice (cookie first, then localStorage). */
+function getPreviousChoice(): MarketRegion | null {
+  if (typeof document === "undefined") return null;
+  const m = document.cookie.match(new RegExp(`${REGION_COOKIE}=(india|international)`));
+  if (m) return m[1] as MarketRegion;
+  try {
+    const stored = localStorage.getItem(GUEST_CHOICE_KEY) || localStorage.getItem(LS_KEY);
+    if (stored === "india" || stored === "international") return stored;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+
 export function RegionProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useIsAdmin();
@@ -94,8 +137,12 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   const [countryCode, setCountryCode] = useState<string | null>(null);
   const [autoDetected, setAutoDetected] = useState(false);
   const [confidence, setConfidence] = useState(0);
+  const [reasons, setReasons] = useState<string[]>([]);
+  const [detectionTier, setDetectionTier] = useState<DetectionTier | null>(null);
+  const [softConfirm, setSoftConfirm] = useState(false);
   const [vpnSuspected, setVpnSuspected] = useState(false);
   const [loading, setLoading] = useState(true);
+
 
   // Read any cached suggestion immediately (avoids flash on reload).
   useEffect(() => {
@@ -109,17 +156,35 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     if (authLoading) return;
     let cancelled = false;
 
-    /** Layers 1–3: edge geo-IP blended with browser timezone + locale. */
+    /** Multi-signal engine: edge geo-IP blended with browser + stored signals. */
     async function runDetection() {
       const edge = await detect();
-      const result = blendDetection(edge);
+      const result = blendDetection(edge, getPreviousChoice());
       if (!cancelled) {
         setCountryCode(result.countryCode);
         setConfidence(result.confidence);
+        setReasons(result.reasons);
+        setDetectionTier(result.tier);
         setVpnSuspected(result.vpnSuspected);
       }
+      // Fire-and-forget analytics for the Region Intelligence Center.
+      void track("region_detected", {
+        value: result.confidence,
+        metadata: {
+          region: result.region,
+          confidence: result.confidence,
+          tier: result.tier,
+          source: edge.countryCode ? "geo-ip+signals" : "signals",
+          countryCode: result.countryCode,
+          vpnSuspected: result.vpnSuspected,
+          conflicting: result.conflicting,
+          reasons: result.reasons,
+          loggedIn: !!user,
+        },
+      });
       return result;
     }
+
 
     (async () => {
       setLoading(true);
@@ -182,13 +247,8 @@ export function RegionProvider({ children }: { children: ReactNode }) {
           const result = await runDetection().catch(() => null);
           if (cancelled) return;
 
-          if (
-            result &&
-            !result.conflicting &&
-            !result.vpnSuspected &&
-            result.confidence >= CONFIDENCE_THRESHOLD
-          ) {
-            // High confidence → silently lock, no popup.
+          if (result && result.tier === "auto") {
+            // Very high confidence (>=90) → silently lock, no popup.
             try {
               const res = await lockFn({
                 data: { region: result.region, countryCode: result.countryCode },
@@ -197,27 +257,33 @@ export function RegionProvider({ children }: { children: ReactNode }) {
               setMarket(res.region);
               setLocked(true);
               setNeedsSelection(false);
+              setSoftConfirm(false);
               setAutoDetected(true);
-              if (typeof window !== "undefined") {
-                localStorage.setItem(LS_KEY, res.region);
-              }
+              persistRegion(res.region);
               return;
             } catch {
               /* fall through to manual */
             }
           }
 
-          // Ambiguous / VPN / low confidence → require manual confirmation,
-          // but only if we've never shown the selector on this device.
+          // 70–89 → lightweight confirmation; <70 / VPN → full picker.
           if (result) setMarket(result.region);
           setLocked(false);
           if (promptAlreadySeen()) {
             setNeedsSelection(false);
+            setSoftConfirm(false);
           } else {
             markPromptSeen();
-            setNeedsSelection(true);
+            if (result && result.tier === "confirm") {
+              setSoftConfirm(true);
+              setNeedsSelection(false);
+            } else {
+              setSoftConfirm(false);
+              setNeedsSelection(true);
+            }
           }
         } else {
+
           // Guest: silent auto-detect, only prompt when ambiguous.
           const guestChoice =
             typeof window !== "undefined"
@@ -235,32 +301,35 @@ export function RegionProvider({ children }: { children: ReactNode }) {
           const result = await runDetection().catch(() => null);
           if (cancelled) return;
 
-          if (
-            result &&
-            !result.conflicting &&
-            !result.vpnSuspected &&
-            result.confidence >= CONFIDENCE_THRESHOLD
-          ) {
-            // Confident → render correct pricing instantly, no popup.
+          if (result && result.tier === "auto") {
+            // >=90 confidence → render correct pricing instantly, no popup.
             setMarket(result.region);
             setAutoDetected(true);
             setNeedsSelection(false);
-            if (typeof window !== "undefined") {
-              localStorage.setItem(LS_KEY, result.region);
-            }
+            setSoftConfirm(false);
+            persistRegion(result.region);
           } else {
-            // Ambiguous → let the guest choose, but only once per device.
             if (result) setMarket(result.region);
             setAutoDetected(false);
             if (promptAlreadySeen()) {
               setNeedsSelection(false);
+              setSoftConfirm(false);
             } else {
               markPromptSeen();
-              setNeedsSelection(true);
+              if (result && result.tier === "confirm") {
+                // 70–89 → lightweight one-tap confirmation.
+                setSoftConfirm(true);
+                setNeedsSelection(false);
+              } else {
+                // <70 / VPN → full picker before pricing is trusted.
+                setSoftConfirm(false);
+                setNeedsSelection(true);
+              }
             }
           }
           setLocked(false);
         }
+
       } catch {
         // Auth/session not ready or detection failed — fall back to a safe
         // guest state instead of crashing the whole app.
@@ -280,33 +349,50 @@ export function RegionProvider({ children }: { children: ReactNode }) {
 
   const lockMarket = useCallback(
     async (region: MarketRegion) => {
+      void track("region_locked", {
+        metadata: { region, source: "manual", confidence },
+      });
       if (user) {
         const res = await lockFn({ data: { region, countryCode } });
         setMarket(res.region);
         setLocked(true);
         setNeedsSelection(false);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(LS_KEY, res.region);
-          localStorage.removeItem(GUEST_CHOICE_KEY);
-        }
+        setSoftConfirm(false);
+        persistRegion(res.region);
+        if (typeof window !== "undefined") localStorage.removeItem(GUEST_CHOICE_KEY);
         return;
       }
       // Guest: persist the explicit choice so it's inherited on login.
       setMarket(region);
       setNeedsSelection(false);
+      setSoftConfirm(false);
       setAutoDetected(false);
-      if (typeof window !== "undefined") {
-        localStorage.setItem(LS_KEY, region);
-        localStorage.setItem(GUEST_CHOICE_KEY, region);
-      }
+      persistRegion(region);
+      if (typeof window !== "undefined") localStorage.setItem(GUEST_CHOICE_KEY, region);
     },
-    [user, lockFn, countryCode],
+    [user, lockFn, countryCode, confidence],
   );
+
+  // Accept the detected region from the lightweight (70–89) confirmation.
+  const confirmDetectedRegion = useCallback(async () => {
+    void track("region_confirmed", {
+      metadata: { region: market, confidence, source: "soft-confirm" },
+    });
+    await lockMarket(market);
+  }, [lockMarket, market, confidence]);
+
+  // Reject the lightweight confirmation → escalate to the full picker.
+  const rejectDetectedRegion = useCallback(() => {
+    void track("region_override", { metadata: { from: market, confidence } });
+    setSoftConfirm(false);
+    setNeedsSelection(true);
+  }, [market, confidence]);
 
   // Admin-only market preview (no lock, no persistence).
   const setPreviewMarket = useCallback((region: MarketRegion) => {
     setMarket(region);
   }, []);
+
 
   const currency: Currency = market === "india" ? "INR" : "USD";
   const symbol = currency === "INR" ? "₹" : "$";
@@ -345,8 +431,14 @@ export function RegionProvider({ children }: { children: ReactNode }) {
         locked,
         autoDetected,
         confidence,
+        reasons,
+        detectionTier,
         vpnSuspected,
         needsSelection,
+        softConfirm,
+        confirmDetectedRegion,
+        rejectDetectedRegion,
+
         loading,
         countryCode,
         isAdmin,
