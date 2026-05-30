@@ -156,12 +156,17 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
           {items.map((q) => {
             const canDelete = isAdmin || user?.id === q.user_id;
             const canAnswer = isAdmin && !q.answer;
+            const prof = profiles[q.user_id];
+            const name = prof?.full_name || "Anonymous";
             return (
               <li key={q.id} className="bg-card border border-border rounded-2xl p-5">
                 <div className="flex items-start gap-3">
-                  <span className="size-8 shrink-0 rounded-full bg-accent/10 text-accent grid place-items-center font-mono text-xs font-bold">Q</span>
+                  <div className="size-8 shrink-0 rounded-full bg-muted overflow-hidden grid place-items-center font-mono text-xs font-bold ring-1 ring-white/10">
+                    {prof?.avatar_url ? <img src={prof.avatar_url} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm leading-relaxed">{q.question}</p>
+                    <p className="text-sm font-display truncate">{name}</p>
+                    <p className="text-sm leading-relaxed mt-1">{q.question}</p>
                     <p className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
                       {new Date(q.created_at).toLocaleDateString()}
                     </p>
@@ -172,6 +177,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
                     </button>
                   )}
                 </div>
+
 
                 {q.answer && editingId !== q.id ? (
                   <div className="mt-4 ml-11 flex items-start gap-3 p-4 bg-accent/5 border border-accent/20 rounded-xl">
