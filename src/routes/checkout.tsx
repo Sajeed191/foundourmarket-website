@@ -574,7 +574,7 @@ function CheckoutPage() {
                   <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className="font-mono">{fmt(subtotalINR)}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className="font-mono">{shippingINR === 0 ? <span className="text-emerald-400">Free</span> : fmt(shippingINR)}</dd></div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground inline-flex items-center gap-1">Tax<span className="text-[10px] text-muted-foreground/70">(8% GST est.)</span></dt>
+                    <dt className="text-muted-foreground inline-flex items-center gap-1">Tax<span className="text-[10px] text-muted-foreground/70">({market === "india" ? "18% GST" : "8%"} est.)</span></dt>
                     <dd className="font-mono">{fmt(taxINR)}</dd>
                   </div>
                   <div className="border-t border-white/10 pt-3 flex justify-between items-end">
