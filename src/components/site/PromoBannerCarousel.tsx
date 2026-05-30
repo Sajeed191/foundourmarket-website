@@ -5,6 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useAdminEditing } from "@/lib/admin-overlay";
 import { BannerAdminSheet } from "@/components/admin/BannerAdminSheet";
+import { InlineActiveToggle } from "@/components/admin/InlineActiveToggle";
+
+async function setBannerActive(id: string, next: boolean) {
+  const { error } = await supabase.from("banners").update({ active: next }).eq("id", id);
+  if (error) throw error;
+}
 
 type Banner = {
   id: string;
