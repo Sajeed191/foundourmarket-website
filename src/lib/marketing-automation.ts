@@ -1,6 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/components/admin/AdminShell";
 import {
+  runAutomationsFn, retryExecutionFn, retryAllFailedFn, setAutomationSettingsFn,
+} from "@/lib/marketing-admin.functions";
+import {
   fetchCustomerIntel, buildCustomerIntel, segmentStats, regionalStats,
   type CustomerIntel, type CustomerSegment, type Region,
 } from "@/lib/customer-intelligence";
@@ -605,14 +608,14 @@ function mapExecution(r: Record<string, unknown>): AutomationExecution {
 
 /** Run the automation engine immediately (staff only, forced). */
 export async function runAutomations(): Promise<{ summary?: RunSummary; error?: string }> {
-  const { data, error } = await supabase.rpc("run_marketing_automations", {
-    p_force: true,
-    p_triggered_by: "manual",
-  } as never);
-  if (error) return { error: error.message };
-  const summary = (data ?? {}) as RunSummary;
-  logActivity("marketing_automation_run", "marketing", undefined, summary as unknown as Record<string, unknown>);
-  return { summary };
+  try {
+    const data = await runAutomationsFn();
+    const summary = (data ?? {}) as RunSummary;
+    logActivity("marketing_automation_run", "marketing", undefined, summary as unknown as Record<string, unknown>);
+    return { summary };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to run automations" };
+  }
 }
 
 /** Load the most recent automation executions for the audit log. */
@@ -628,18 +631,25 @@ export async function fetchExecutions(limit = 200): Promise<AutomationExecution[
 
 /** Retry a single failed execution. */
 export async function retryExecution(executionId: string): Promise<{ error?: string }> {
-  const { error } = await supabase.rpc("retry_failed_execution", { p_execution_id: executionId } as never);
-  if (error) return { error: error.message };
-  logActivity("marketing_automation_retry", "automation_execution", executionId, {});
-  return {};
+  try {
+    await retryExecutionFn({ data: { executionId } });
+    logActivity("marketing_automation_retry", "automation_execution", executionId, {});
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to retry execution" };
+  }
 }
 
 /** Retry every retryable failed execution. */
 export async function retryAllFailed(): Promise<{ count?: number; error?: string }> {
-  const { data, error } = await supabase.rpc("retry_all_failed_executions", {} as never);
-  if (error) return { error: error.message };
-  logActivity("marketing_automation_retry_all", "marketing", undefined, { count: data });
-  return { count: Number(data) || 0 };
+  try {
+    const data = await retryAllFailedFn();
+    const count = Number((data as { retried?: number })?.retried) || 0;
+    logActivity("marketing_automation_retry_all", "marketing", undefined, { count });
+    return { count };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to retry executions" };
+  }
 }
 
 export type ExecutionAnalytics = {
@@ -751,23 +761,29 @@ export async function setAutomationSettings(
   next: Pick<AutomationSettings, "emergency_stop" | "global_pause" | "maintenance_mode">,
   reason?: string,
 ): Promise<{ settings?: AutomationSettings; error?: string }> {
-  const { data, error } = await supabase.rpc("set_automation_settings", {
-    p_emergency: next.emergency_stop,
-    p_global: next.global_pause,
-    p_maintenance: next.maintenance_mode,
-  } as never);
-  if (error) return { error: error.message };
-  logActivity("marketing_automation_controls", "automation_settings", "global", { ...next, reason: reason ?? null });
-  const r = (data ?? {}) as Record<string, unknown>;
-  return {
-    settings: {
-      emergency_stop: r.emergency_stop === true,
-      global_pause: r.global_pause === true,
-      maintenance_mode: r.maintenance_mode === true,
-      updated_by: (r.updated_by as string) ?? null,
-      updated_at: (r.updated_at as string) ?? null,
-    },
-  };
+  try {
+    const data = await setAutomationSettingsFn({
+      data: {
+        emergency_stop: next.emergency_stop,
+        global_pause: next.global_pause,
+        maintenance_mode: next.maintenance_mode,
+        reason: reason ?? null,
+      },
+    });
+    logActivity("marketing_automation_controls", "automation_settings", "global", { ...next, reason: reason ?? null });
+    const r = (data ?? {}) as Record<string, unknown>;
+    return {
+      settings: {
+        emergency_stop: r.emergency_stop === true,
+        global_pause: r.global_pause === true,
+        maintenance_mode: r.maintenance_mode === true,
+        updated_by: (r.updated_by as string) ?? null,
+        updated_at: (r.updated_at as string) ?? null,
+      },
+    };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to update controls" };
+  }
 }
 
 export function systemBlocked(s: AutomationSettings): boolean {

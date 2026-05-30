@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+/* user-intelligence: directory routed through staff-gated server function (P1-8). */
 
 /**
  * User & Staff Intelligence Engine.
@@ -409,8 +409,8 @@ export type UserIntelligence = {
 };
 
 export async function fetchUserIntelligence(): Promise<UserIntelligence> {
-  const { data, error } = await supabase.rpc("admin_user_directory");
-  if (error) throw error;
+  const { getUserDirectoryFn } = await import("@/lib/admin-ops.functions");
+  const data = await getUserDirectoryFn();
   const payload = data as { generated_at: string; users: RawUser[] };
   const all = buildUserIntel(payload?.users ?? []);
   return {
