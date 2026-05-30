@@ -222,7 +222,7 @@ function PageEditor({ editing, setEditing, save, del, protection, entityId, onCl
             <Trash2 className="size-3.5" /> Delete
           </button>
         )}
-        <button onClick={() => setEditing(null)} className="ml-auto text-xs font-mono uppercase tracking-widest text-muted-foreground">Cancel</button>
+        <button onClick={onClose} className="ml-auto text-xs font-mono uppercase tracking-widest text-muted-foreground">Cancel</button>
       </div>
     </div>
   );
