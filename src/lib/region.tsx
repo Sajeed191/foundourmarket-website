@@ -11,8 +11,11 @@ import { useAuth } from "./auth";
 import { useIsAdmin } from "./use-admin";
 import { detectRegion, getMyRegion, lockMarketRegion } from "./region.functions";
 import type { MarketRegion } from "./region.functions";
-import { blendDetection, CONFIDENCE_THRESHOLD } from "./geo-detect";
+import { blendDetection } from "./geo-detect";
+import type { DetectionTier } from "./geo-detect";
+import { track } from "./analytics";
 import type { Product } from "./products";
+
 
 export type { MarketRegion };
 export type Currency = "INR" | "USD";
