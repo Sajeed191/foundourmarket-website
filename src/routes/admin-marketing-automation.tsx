@@ -25,6 +25,7 @@ export const Route = createFileRoute("/admin-marketing-automation")({
     action: typeof s.action === "string" ? s.action : undefined,
     template: typeof s.template === "string" ? s.template : undefined,
     tab: typeof s.tab === "string" ? s.tab : undefined,
+    campaign: typeof s.campaign === "string" ? s.campaign : undefined,
   }),
   component: MarketingAutomationPage,
 });
@@ -36,13 +37,14 @@ const MKT_ROLES = ["admin", "super_admin", "manager", "editor"] as unknown as Pa
 
 function MarketingAutomationPage() {
   const nav = useNavigate();
-  const { action, template, tab: tabParam } = Route.useSearch();
+  const { action, template, tab: tabParam, campaign: campaignParam } = Route.useSearch();
   const [intel, setIntel] = useState<MarketingIntel | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<Tab>("dashboard");
   const [creating, setCreating] = useState<null | { templateKey?: string }>(null);
   const [region, setRegion] = useState<RegionScope>("all");
+  const [focusCampaign, setFocusCampaign] = useState<string | null>(null);
 
   async function load() {
     const data = await fetchMarketingIntel();
@@ -70,8 +72,17 @@ function MarketingAutomationPage() {
     if (action === "analytics") setTab("dashboard");
     const tabs: Tab[] = ["dashboard", "campaigns", "automations", "recommendations"];
     if (tabParam && (tabs as string[]).includes(tabParam)) setTab(tabParam as Tab);
+    if (campaignParam) {
+      setTab("campaigns");
+      setFocusCampaign(campaignParam);
+      requestAnimationFrame(() => {
+        document.getElementById(`campaign-${campaignParam}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      logActivity("marketing_campaign_deeplink_open", "marketing", campaignParam, {});
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [action, template, tabParam, loading]);
+  }, [action, template, tabParam, campaignParam, loading]);
 
   const filteredCampaigns = useMemo(() => {
     if (!intel) return [];
@@ -136,7 +147,7 @@ function MarketingAutomationPage() {
           <DashboardTab kpis={kpis} alerts={alerts} tops={tops} upcoming={upcoming} audiences={audiences} region={region} onSelectTemplate={(k) => setCreating({ templateKey: k })} />
         )}
         {tab === "campaigns" && (
-          <CampaignsTab campaigns={filteredCampaigns} onChanged={load} />
+          <CampaignsTab campaigns={filteredCampaigns} onChanged={load} focusId={focusCampaign} />
         )}
         {tab === "automations" && (
           <AutomationsTab intel={intel} onChanged={load} />
@@ -283,7 +294,7 @@ function audienceTemplate(key: string): string {
 
 /* ----------------------------------------------------------- campaigns */
 
-function CampaignsTab({ campaigns, onChanged }: { campaigns: Campaign[]; onChanged: () => void }) {
+function CampaignsTab({ campaigns, onChanged, focusId }: { campaigns: Campaign[]; onChanged: () => void; focusId?: string | null }) {
   const [busy, setBusy] = useState<string | null>(null);
   async function act(id: string, fn: () => Promise<{ error?: string }>, label: string) {
     setBusy(id);
@@ -297,7 +308,7 @@ function CampaignsTab({ campaigns, onChanged }: { campaigns: Campaign[]; onChang
       {campaigns.map((c) => {
         const r = campaignRates(c);
         return (
-          <div key={c.id} className="card-premium rounded-2xl p-4">
+          <div key={c.id} id={`campaign-${c.id}`} className={`card-premium rounded-2xl p-4 transition-shadow ${focusId === c.id ? "ring-2 ring-primary shadow-lg" : ""}`}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
