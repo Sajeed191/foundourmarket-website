@@ -39,6 +39,7 @@ const SEGMENTS: CustomerSegment[] = [
 
 function CustomerIntelPage() {
   const nav = useNavigate();
+  const { view } = Route.useSearch();
   const [rows, setRows] = useState<CustomerIntel[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
