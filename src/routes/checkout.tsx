@@ -765,10 +765,12 @@ function InternationalSoon({ live, loading }: { live: boolean; loading: boolean 
   );
 }
 
-function SuccessScreen({ orderId, totalINR, method, eta, nav }: {
-  orderId: string | null; totalINR: number; method: "razorpay" | "cod"; eta: string;
+function SuccessScreen({ orderId, totalINR, market, method, eta, nav }: {
+  orderId: string | null; totalINR: number; market: "india" | "international";
+  method: "razorpay" | "cod"; eta: string;
   nav: ReturnType<typeof useNavigate>;
 }) {
+  const inrFmt = (n: number) => formatMoney(market, n);
   const [downloading, setDownloading] = useState(false);
   return (
     <div className="relative min-h-[70vh] grid place-items-center px-6">
