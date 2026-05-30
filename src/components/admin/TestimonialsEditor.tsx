@@ -94,8 +94,8 @@ export function TestimonialsEditor() {
 
   useEffect(() => { reload(); }, [reload]);
 
-  function patch(id: string, next: Testimonial) {
-    setRows((r) => r.map((x) => (x.id === id ? next : x)));
+  function patch(index: number, next: Testimonial) {
+    setRows((r) => r.map((x, i) => (i === index ? next : x)));
   }
 
   async function handleSave(t: Testimonial) {
