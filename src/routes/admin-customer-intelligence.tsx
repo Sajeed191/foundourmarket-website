@@ -8,6 +8,7 @@ import {
   LifeBuoy, Tag, Heart, MessageSquare, Star, ChevronRight, Lightbulb, Mail, Filter,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { AcquisitionSummary } from "@/components/admin/AcquisitionSummary";
 import { KpiCard } from "@/components/admin/KpiCard";
 import { logActivity } from "@/components/admin/AdminShell";
 import { downloadCSV } from "@/lib/admin-queries";
