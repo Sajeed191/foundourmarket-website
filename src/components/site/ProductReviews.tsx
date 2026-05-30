@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/use-admin";
 import {
@@ -180,7 +181,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   // staff moderation
-  async function patch(id: string, fields: Record<string, unknown>) {
+  async function patch(id: string, fields: TablesUpdate<"product_reviews">) {
     const { error } = await supabase.from("product_reviews").update(fields).eq("id", id);
     if (error) toast.error(error.message);
   }
