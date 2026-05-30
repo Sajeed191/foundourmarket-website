@@ -1494,7 +1494,10 @@ export type Database = {
       }
       products: {
         Row: {
+          admin_notes: string | null
+          attributes: Json
           barcode: string | null
+          bestseller: boolean
           category: string
           cod_enabled: boolean
           compare_price_inr: number | null
@@ -1507,6 +1510,7 @@ export type Database = {
           description: string | null
           discount: number | null
           featured: boolean
+          features: string[]
           fragile: boolean
           id: string
           image: string | null
@@ -1515,6 +1519,7 @@ export type Database = {
           international_shipping: boolean
           international_visible: boolean
           low_stock_threshold: number
+          meta_keywords: string[]
           name: string
           paypal_enabled: boolean
           pickup_supported: boolean
@@ -1533,16 +1538,21 @@ export type Database = {
           scheduled_expiry_at: string | null
           scheduled_publish_at: string | null
           search_vector: unknown
+          seo_description: string | null
+          seo_title: string | null
           shipping_fee_inr: number
           shipping_fee_usd: number
           sku: string | null
           slug: string
           sold_count: number
           sort_order: number
+          specifications: Json
           status: string
           stock_quantity: number
           stripe_enabled: boolean
           tagline: string | null
+          tags: string[]
+          trending: boolean
           updated_at: string
           views_count: number
           warehouse_location: string | null
@@ -1550,7 +1560,10 @@ export type Database = {
           wishlist_count: number
         }
         Insert: {
+          admin_notes?: string | null
+          attributes?: Json
           barcode?: string | null
+          bestseller?: boolean
           category: string
           cod_enabled?: boolean
           compare_price_inr?: number | null
@@ -1563,6 +1576,7 @@ export type Database = {
           description?: string | null
           discount?: number | null
           featured?: boolean
+          features?: string[]
           fragile?: boolean
           id?: string
           image?: string | null
@@ -1571,6 +1585,7 @@ export type Database = {
           international_shipping?: boolean
           international_visible?: boolean
           low_stock_threshold?: number
+          meta_keywords?: string[]
           name: string
           paypal_enabled?: boolean
           pickup_supported?: boolean
@@ -1589,16 +1604,21 @@ export type Database = {
           scheduled_expiry_at?: string | null
           scheduled_publish_at?: string | null
           search_vector?: unknown
+          seo_description?: string | null
+          seo_title?: string | null
           shipping_fee_inr?: number
           shipping_fee_usd?: number
           sku?: string | null
           slug: string
           sold_count?: number
           sort_order?: number
+          specifications?: Json
           status?: string
           stock_quantity?: number
           stripe_enabled?: boolean
           tagline?: string | null
+          tags?: string[]
+          trending?: boolean
           updated_at?: string
           views_count?: number
           warehouse_location?: string | null
@@ -1606,7 +1626,10 @@ export type Database = {
           wishlist_count?: number
         }
         Update: {
+          admin_notes?: string | null
+          attributes?: Json
           barcode?: string | null
+          bestseller?: boolean
           category?: string
           cod_enabled?: boolean
           compare_price_inr?: number | null
@@ -1619,6 +1642,7 @@ export type Database = {
           description?: string | null
           discount?: number | null
           featured?: boolean
+          features?: string[]
           fragile?: boolean
           id?: string
           image?: string | null
@@ -1627,6 +1651,7 @@ export type Database = {
           international_shipping?: boolean
           international_visible?: boolean
           low_stock_threshold?: number
+          meta_keywords?: string[]
           name?: string
           paypal_enabled?: boolean
           pickup_supported?: boolean
@@ -1645,16 +1670,21 @@ export type Database = {
           scheduled_expiry_at?: string | null
           scheduled_publish_at?: string | null
           search_vector?: unknown
+          seo_description?: string | null
+          seo_title?: string | null
           shipping_fee_inr?: number
           shipping_fee_usd?: number
           sku?: string | null
           slug?: string
           sold_count?: number
           sort_order?: number
+          specifications?: Json
           status?: string
           stock_quantity?: number
           stripe_enabled?: boolean
           tagline?: string | null
+          tags?: string[]
+          trending?: boolean
           updated_at?: string
           views_count?: number
           warehouse_location?: string | null
@@ -2848,7 +2878,10 @@ export type Database = {
           sort_by?: string
         }
         Returns: {
+          admin_notes: string | null
+          attributes: Json
           barcode: string | null
+          bestseller: boolean
           category: string
           cod_enabled: boolean
           compare_price_inr: number | null
@@ -2861,6 +2894,7 @@ export type Database = {
           description: string | null
           discount: number | null
           featured: boolean
+          features: string[]
           fragile: boolean
           id: string
           image: string | null
@@ -2869,6 +2903,7 @@ export type Database = {
           international_shipping: boolean
           international_visible: boolean
           low_stock_threshold: number
+          meta_keywords: string[]
           name: string
           paypal_enabled: boolean
           pickup_supported: boolean
@@ -2887,16 +2922,21 @@ export type Database = {
           scheduled_expiry_at: string | null
           scheduled_publish_at: string | null
           search_vector: unknown
+          seo_description: string | null
+          seo_title: string | null
           shipping_fee_inr: number
           shipping_fee_usd: number
           sku: string | null
           slug: string
           sold_count: number
           sort_order: number
+          specifications: Json
           status: string
           stock_quantity: number
           stripe_enabled: boolean
           tagline: string | null
+          tags: string[]
+          trending: boolean
           updated_at: string
           views_count: number
           warehouse_location: string | null
