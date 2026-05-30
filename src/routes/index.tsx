@@ -166,7 +166,7 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
             className="relative z-10 w-full max-w-sm rounded-3xl border border-accent/25 bg-background/95 p-5 backdrop-blur-2xl shadow-[0_30px_80px_-20px_oklch(0.74_0.19_49/0.5)]"
           >
             <p className="mb-4 flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.25em] text-accent">
-              <Pencil className="size-3" /> Edit section heading
+              <Pencil className="size-3" /> Edit section
             </p>
             <label className="mb-3 block">
               <span className="mb-1.5 block text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Eyebrow</span>
@@ -176,7 +176,7 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
                 className="w-full rounded-xl border border-border bg-card/80 px-3 py-2.5 text-sm text-foreground outline-none focus:border-accent/55"
               />
             </label>
-            <label className="mb-5 block">
+            <label className="mb-4 block">
               <span className="mb-1.5 block text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Title</span>
               <input
                 value={draftTitle}
@@ -184,6 +184,19 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
                 className="w-full rounded-xl border border-border bg-card/80 px-3 py-2.5 text-sm text-foreground outline-none focus:border-accent/55"
               />
             </label>
+            <button
+              type="button"
+              onClick={() => setDraftActive((v) => !v)}
+              className={`mb-5 flex w-full items-center justify-between rounded-xl border px-3 py-2.5 transition-all ${draftActive ? "border-accent/50 bg-accent/15" : "border-border bg-card hover:border-accent/30"}`}
+            >
+              <span className="text-left">
+                <span className="block text-xs font-medium text-foreground">Active on homepage</span>
+                <span className="block text-[10px] text-muted-foreground">{draftActive ? "Visible to shoppers" : "Hidden from shoppers"}</span>
+              </span>
+              <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${draftActive ? "bg-accent" : "bg-white/15"}`} aria-hidden>
+                <span className={`absolute top-0.5 size-4 rounded-full bg-white transition-transform ${draftActive ? "translate-x-[1.125rem]" : "translate-x-0.5"}`} />
+              </span>
+            </button>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setEditing(false)}
