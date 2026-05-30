@@ -365,6 +365,30 @@ export function AdminProductPanel({ product }: { product: Product }) {
                   <Toggle label="Featured" on={f.featured} onClick={() => setF({ ...f, featured: !f.featured })} />
                   <Toggle label="In stock / live" on={f.inStock} onClick={() => setF({ ...f, inStock: !f.inStock })} />
                 </div>
+
+                {/* Eligibility & policies */}
+                <div className="rounded-2xl border border-accent/20 bg-white/[0.02] p-3.5">
+                  <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-accent">
+                    <ShieldCheck className="size-3.5" /> Return &amp; refund eligibility
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Toggle label="Return eligible" on={f.returnEligible} onClick={() => setF({ ...f, returnEligible: !f.returnEligible })} />
+                    <Toggle label="Replacement eligible" on={f.replacementEligible} onClick={() => setF({ ...f, replacementEligible: !f.replacementEligible })} />
+                    <Toggle label="Cash on delivery" on={f.codEnabled} onClick={() => setF({ ...f, codEnabled: !f.codEnabled })} />
+                    <Toggle label="Pickup supported" on={f.pickupSupported} onClick={() => setF({ ...f, pickupSupported: !f.pickupSupported })} />
+                    <Toggle label="International shipping" on={f.internationalShipping} onClick={() => setF({ ...f, internationalShipping: !f.internationalShipping })} />
+                    <Toggle label="Fragile item" on={f.fragile} onClick={() => setF({ ...f, fragile: !f.fragile })} />
+                  </div>
+                  <div className="mt-3">
+                    <Field label="Return / refund window (days)">
+                      <Input
+                        type="number"
+                        value={f.returnWindowDays}
+                        onChange={(e) => setF({ ...f, returnWindowDays: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                </div>
               </div>
 
               <div className="sticky bottom-0 mt-6 -mx-5 border-t border-white/10 bg-background/95 px-5 py-3">
