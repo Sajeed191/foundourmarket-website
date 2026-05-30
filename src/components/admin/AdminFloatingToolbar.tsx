@@ -18,6 +18,7 @@ import {
   Layers,
   LayoutTemplate,
   Brain,
+  Gem,
 } from "lucide-react";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useAdminMode } from "@/lib/admin-mode";
