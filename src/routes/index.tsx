@@ -587,7 +587,7 @@ function Home() {
         </Reveal>
 
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8 sm:mb-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-12">
           {[
             { icon: Globe2, value: 180, suffix: "+", label: "Countries served" },
             { icon: Users, value: 48230, suffix: "", label: "Active shoppers" },
