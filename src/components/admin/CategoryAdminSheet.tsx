@@ -788,12 +788,22 @@ export function CategoryAdminSheet({
                     Cancel
                   </button>
                 </div>
-                {dirty && (
-                  <p className="text-center text-[9px] font-mono uppercase tracking-widest text-amber-300/80">
-                    Unsaved changes
-                  </p>
-                )}
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <SaveStateBadge
+                    state={autosave.state}
+                    lastSavedAt={autosave.lastSavedAt}
+                  />
+                  {editing.id && (
+                    <button
+                      onClick={() => setShowVersions(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground"
+                    >
+                      <History className="size-3" /> History
+                    </button>
+                  )}
+                </div>
               </div>
+
             </div>
           )}
         </motion.div>
