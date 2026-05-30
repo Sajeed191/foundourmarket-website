@@ -168,6 +168,12 @@ function MarketingAutomationPage() {
           onCreated={() => { setCreating(null); setTab("campaigns"); load(); }}
         />
       )}
+
+      {/* FINANCIAL ↔ MARKETING INTEGRATION */}
+      <div className="mt-8 space-y-6">
+        <ExecutiveSummaryPanel source="marketing" />
+        <FinancialInsightsPanel module="marketing" />
+      </div>
     </AdminShell>
   );
 }
