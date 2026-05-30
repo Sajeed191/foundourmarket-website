@@ -105,6 +105,8 @@ function MarketingAutomationPage() {
   const alerts = useMemo(() => intel ? detectMarketingAlerts(intel) : [], [intel]);
   const tops = useMemo(() => topCampaigns(filteredCampaigns), [filteredCampaigns]);
   const upcoming = useMemo(() => upcomingCampaigns(filteredCampaigns), [filteredCampaigns]);
+  const estAudience = useMemo(() => audiences.reduce((a, r) => a + r.count, 0), [audiences]);
+  const execView = (view === "failures" || view === "run" || view === "health") ? view : undefined;
 
   async function refresh() { setRefreshing(true); await load(); }
 
