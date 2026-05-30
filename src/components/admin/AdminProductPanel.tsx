@@ -136,37 +136,56 @@ export function AdminProductPanel({ product }: { product: Product }) {
   }
 
   async function saveAll() {
-    await save(
-      {
-        name: f.name,
-        tagline: f.tagline,
-        description: f.description,
-        category: f.category,
-        sku: f.sku || null,
-        stockQuantity: Math.max(0, Math.round(Number(f.stockQuantity) || 0)),
-        lowStockThreshold: Math.max(0, Math.round(Number(f.lowStockThreshold) || 0)),
-        priceInr: numOrNull(f.priceInr),
-        comparePriceInr: numOrNull(f.comparePriceInr),
-        priceUsd: numOrNull(f.priceUsd),
-        comparePriceUsd: numOrNull(f.comparePriceUsd),
-        indiaVisible: f.indiaVisible,
-        internationalVisible: f.internationalVisible,
-        featured: f.featured,
-        inStock: f.inStock,
-        rating: Math.min(5, Math.max(0, Number(f.rating) || 0)),
-        reviews: Math.max(0, Math.round(Number(f.reviews) || 0)),
-        warranty: f.warranty.trim() || "12 months",
-        returnEligible: f.returnEligible,
-        replacementEligible: f.replacementEligible,
-        codEnabled: f.codEnabled,
-        pickupSupported: f.pickupSupported,
-        internationalShipping: f.internationalShipping,
-        fragile: f.fragile,
-        returnWindowDays: Math.max(0, Math.min(365, Math.round(Number(f.returnWindowDays) || 0))),
-      },
-      "Product updated",
-    );
-    setOpen(false);
+    const payload = {
+      name: f.name,
+      tagline: f.tagline,
+      description: f.description,
+      category: f.category,
+      sku: f.sku || null,
+      stockQuantity: Math.max(0, Math.round(Number(f.stockQuantity) || 0)),
+      lowStockThreshold: Math.max(0, Math.round(Number(f.lowStockThreshold) || 0)),
+      priceInr: numOrNull(f.priceInr),
+      comparePriceInr: numOrNull(f.comparePriceInr),
+      priceUsd: numOrNull(f.priceUsd),
+      comparePriceUsd: numOrNull(f.comparePriceUsd),
+      indiaVisible: f.indiaVisible,
+      internationalVisible: f.internationalVisible,
+      featured: f.featured,
+      inStock: f.inStock,
+      rating: Math.min(5, Math.max(0, Number(f.rating) || 0)),
+      reviews: Math.max(0, Math.round(Number(f.reviews) || 0)),
+      warranty: f.warranty.trim() || "12 months",
+      returnEligible: f.returnEligible,
+      replacementEligible: f.replacementEligible,
+      codEnabled: f.codEnabled,
+      pickupSupported: f.pickupSupported,
+      internationalShipping: f.internationalShipping,
+      fragile: f.fragile,
+      returnWindowDays: Math.max(0, Math.min(365, Math.round(Number(f.returnWindowDays) || 0))),
+    };
+    setSaving(true);
+    try {
+      await update({ data: { slug: product.slug, ...payload } });
+      await invalidateProducts();
+      logActivity("product_update", "product", product.slug);
+      await protection.recordVersion(
+        product.slug,
+        f as unknown as Record<string, unknown>,
+        "Updated",
+      );
+      await protection.markClean();
+      setBaseline(JSON.stringify(f));
+      toast.success("Product updated", {
+        description: "Published — your edits are now live for all customers.",
+      });
+      setOpen(false);
+    } catch (e) {
+      toast.error("Save failed", {
+        description: e instanceof Error ? e.message : "Try again.",
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
