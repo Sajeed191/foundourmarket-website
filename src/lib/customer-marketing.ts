@@ -456,4 +456,4 @@ export const REC_TONE: Record<CustomerRecommendation["tone"], string> = {
   info: "border-border bg-white/[0.02]",
 };
 
-export type { Campaign, CampaignMetrics, CampaignStatus, RegionScope } from "@/lib/customer-marketing-helpers";
+export type { Campaign, CampaignMetrics, CampaignStatus, RegionScope } from "@/lib/marketing-automation";
