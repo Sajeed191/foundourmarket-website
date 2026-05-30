@@ -3,6 +3,7 @@ import { Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle } f
 import { useServerFn } from "@tanstack/react-start";
 import type { Address, AddressInput, AddressType } from "@/lib/use-addresses";
 import { validateIndianPincode } from "@/lib/address.functions";
+import { PhoneInput } from "@/components/site/PhoneInput";
 
 type Props = {
   initial?: Partial<Address>;
@@ -34,9 +35,28 @@ const empty: AddressInput = {
 
 const TYPES: { value: AddressType; label: string; icon: typeof Home }[] = [
   { value: "home", label: "Home", icon: Home },
-  { value: "work", label: "Work", icon: Briefcase },
+  { value: "work", label: "Office", icon: Briefcase },
   { value: "other", label: "Other", icon: MapPin },
 ];
+
+/** Country-specific postal-code rules. Keyed by lowercase country name. */
+const POSTAL_RULES: Record<string, { re: RegExp; msg: string }> = {
+  india: { re: /^\d{6}$/, msg: "Indian PIN code must be 6 digits" },
+  "united states": { re: /^\d{5}(-\d{4})?$/, msg: "Enter a valid US ZIP code" },
+  usa: { re: /^\d{5}(-\d{4})?$/, msg: "Enter a valid US ZIP code" },
+  canada: { re: /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/, msg: "Enter a valid Canadian postal code" },
+  "united kingdom": { re: /^[A-Za-z]{1,2}\d[A-Za-z\d]?\s?\d[A-Za-z]{2}$/, msg: "Enter a valid UK postcode" },
+  uk: { re: /^[A-Za-z]{1,2}\d[A-Za-z\d]?\s?\d[A-Za-z]{2}$/, msg: "Enter a valid UK postcode" },
+  australia: { re: /^\d{4}$/, msg: "Enter a valid 4-digit postcode" },
+};
+
+function postalError(country: string, postal: string): string | null {
+  const v = postal.trim();
+  if (!v) return "Postal code is required";
+  const rule = POSTAL_RULES[country.trim().toLowerCase()];
+  if (rule) return rule.re.test(v) ? null : rule.msg;
+  return v.length >= 3 ? null : "Enter a valid postal code";
+}
 
 export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save address" }: Props) {
   const validatePin = useServerFn(validateIndianPincode);
@@ -57,6 +77,8 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [phoneValid, setPhoneValid] = useState<boolean>(!!initial?.phone);
   const [pinState, setPinState] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [geoBusy, setGeoBusy] = useState(false);
   const lastPin = useRef<string>("");
@@ -130,24 +152,66 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     );
   };
 
-  const validate = () => {
+  const fieldError = (k: string, f = form): string | undefined => {
+    switch (k) {
+      case "full_name":
+        return f.full_name.trim() ? undefined : "Full name is required";
+      case "phone":
+        if (!(f.phone ?? "").trim()) return "Phone number is required";
+        return phoneValid ? undefined : "Enter a valid phone number";
+      case "line1":
+        return f.line1.trim() ? undefined : "Address line 1 is required";
+      case "city":
+        return f.city.trim() ? undefined : "City is required";
+      case "country":
+        return f.country.trim() ? undefined : "Country is required";
+      case "postal":
+        return postalError(f.country, f.postal) ?? undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  // Re-validate a field that's already been touched, as the user fixes it.
+  useEffect(() => {
+    setErrors((prev) => {
+      const next: Record<string, string> = {};
+      for (const k of Object.keys(touched)) {
+        const e = fieldError(k);
+        if (e) next[k] = e;
+      }
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, phoneValid]);
+
+  const markTouched = (k: string) => {
+    setTouched((p) => ({ ...p, [k]: true }));
+    const e = fieldError(k);
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (e) next[k] = e;
+      else delete next[k];
+      return next;
+    });
+  };
+
+  const validateAll = () => {
+    const keys = ["full_name", "phone", "line1", "city", "postal", "country"];
     const e: Record<string, string> = {};
-    if (!form.full_name.trim()) e.full_name = "Full name is required";
-    if (!/^[+]?\d[\d\s-]{7,14}$/.test((form.phone ?? "").trim())) e.phone = "Enter a valid phone number";
-    if (!form.line1.trim()) e.line1 = "Address line 1 is required";
-    if (!form.city.trim()) e.city = "City is required";
-    if (!form.postal.trim()) e.postal = "Postal code is required";
-    else if (form.country === "India" && !/^\d{6}$/.test(form.postal.trim()))
-      e.postal = "Indian PIN code must be 6 digits";
-    if (!form.country.trim()) e.country = "Country is required";
+    for (const k of keys) {
+      const msg = fieldError(k);
+      if (msg) e[k] = msg;
+    }
     setErrors(e);
+    setTouched(Object.fromEntries(keys.map((k) => [k, true])));
     return Object.keys(e).length === 0;
   };
 
   const submit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     setError(null);
-    if (!validate()) return;
+    if (!validateAll()) return;
     setBusy(true);
     try {
       await onSubmit({
@@ -165,7 +229,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   };
 
   const base =
-    "w-full bg-background/60 border rounded-2xl px-4 py-3 text-sm outline-none transition-all focus:border-accent focus:ring-1 focus:ring-accent/40";
+    "w-full bg-background/60 border rounded-2xl px-3.5 py-3 text-sm outline-none transition-all focus:border-accent focus:ring-1 focus:ring-accent/40";
   const cls = (k: string) => `${base} ${errors[k] ? "border-destructive/60" : "border-border"}`;
   const Err = ({ k }: { k: string }) =>
     errors[k] ? (
@@ -175,7 +239,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     ) : null;
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} className="space-y-3">
       {/* Type selector */}
       <div className="grid grid-cols-3 gap-2">
         {TYPES.map((t) => {
@@ -186,13 +250,13 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
               key={t.value}
               type="button"
               onClick={() => set("address_type", t.value)}
-              className={`flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-[11px] uppercase tracking-widest font-mono transition-all ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border text-[11px] uppercase tracking-widest font-mono transition-all ${
                 active
                   ? "border-accent bg-accent/10 text-accent shadow-[0_0_20px_-6px_var(--color-accent)]"
                   : "border-border text-muted-foreground hover:border-accent/40"
               }`}
             >
-              <Icon className="size-4" />
+              <Icon className="size-3.5" />
               {t.label}
             </button>
           );
@@ -203,20 +267,18 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         type="button"
         onClick={useCurrentLocation}
         disabled={geoBusy}
-        className="w-full inline-flex items-center justify-center gap-2 border border-accent/40 text-accent rounded-2xl py-3 text-[11px] uppercase tracking-widest font-mono hover:bg-accent/10 transition-all disabled:opacity-60"
+        className="w-full inline-flex items-center justify-center gap-2 border border-accent/40 text-accent rounded-2xl py-2.5 text-[11px] uppercase tracking-widest font-mono hover:bg-accent/10 transition-all disabled:opacity-60"
       >
         {geoBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Locate className="size-3.5" />}
         Use current location
       </button>
 
-      <div>
-        <input
-          placeholder="Nickname (e.g. Mom's house) — optional"
-          value={form.nickname ?? ""}
-          onChange={(e) => set("nickname", e.target.value)}
-          className={cls("nickname")}
-        />
-      </div>
+      <input
+        placeholder="Nickname (e.g. Mom's house) — optional"
+        value={form.nickname ?? ""}
+        onChange={(e) => set("nickname", e.target.value)}
+        className={cls("nickname")}
+      />
 
       <div>
         <input
@@ -224,6 +286,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           placeholder="Full name *"
           value={form.full_name}
           onChange={(e) => set("full_name", e.target.value)}
+          onBlur={() => markTouched("full_name")}
           className={cls("full_name")}
         />
         <Err k="full_name" />
@@ -231,21 +294,22 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <input
-            placeholder="Phone *"
-            inputMode="tel"
+          <PhoneInput
             value={form.phone ?? ""}
-            onChange={(e) => set("phone", e.target.value)}
-            className={cls("phone")}
+            onChange={(e164, valid) => {
+              set("phone", e164);
+              setPhoneValid(valid);
+            }}
+            onBlur={() => markTouched("phone")}
+            invalid={!!errors.phone}
+            placeholder="Phone *"
           />
           <Err k="phone" />
         </div>
-        <input
-          placeholder="Alternate phone"
-          inputMode="tel"
+        <PhoneInput
           value={form.alternate_phone ?? ""}
-          onChange={(e) => set("alternate_phone", e.target.value)}
-          className={cls("alternate_phone")}
+          onChange={(e164) => set("alternate_phone", e164)}
+          placeholder="Alternate"
         />
       </div>
 
@@ -254,25 +318,28 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           placeholder="Address line 1 *"
           value={form.line1}
           onChange={(e) => set("line1", e.target.value)}
+          onBlur={() => markTouched("line1")}
           className={cls("line1")}
         />
         <Err k="line1" />
       </div>
 
-      <input
-        placeholder="Address line 2 (optional)"
-        value={form.line2 ?? ""}
-        onChange={(e) => set("line2", e.target.value)}
-        className={cls("line2")}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <input
+          placeholder="Address line 2 (optional)"
+          value={form.line2 ?? ""}
+          onChange={(e) => set("line2", e.target.value)}
+          className={cls("line2")}
+        />
+        <input
+          placeholder="Landmark (optional)"
+          value={form.landmark ?? ""}
+          onChange={(e) => set("landmark", e.target.value)}
+          className={cls("landmark")}
+        />
+      </div>
 
-      <input
-        placeholder="Landmark (optional)"
-        value={form.landmark ?? ""}
-        onChange={(e) => set("landmark", e.target.value)}
-        className={cls("landmark")}
-      />
-
+      {/* Pincode + Country */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <div className="relative">
@@ -281,6 +348,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
               inputMode="numeric"
               value={form.postal}
               onChange={(e) => set("postal", e.target.value)}
+              onBlur={() => markTouched("postal")}
               className={cls("postal")}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -296,18 +364,21 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             placeholder="Country *"
             value={form.country}
             onChange={(e) => set("country", e.target.value)}
+            onBlur={() => markTouched("country")}
             className={cls("country")}
           />
           <Err k="country" />
         </div>
       </div>
 
+      {/* City + State */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <input
             placeholder="City *"
             value={form.city}
             onChange={(e) => set("city", e.target.value)}
+            onBlur={() => markTouched("city")}
             className={cls("city")}
           />
           <Err k="city" />
@@ -328,7 +399,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         className={`${base} border-border resize-none`}
       />
 
-      <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1 text-xs text-muted-foreground">
+      <div className="flex flex-wrap gap-x-6 gap-y-2 pt-0.5 text-xs text-muted-foreground">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -355,7 +426,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         </p>
       )}
 
-      <div className="flex gap-2 pt-1 sticky bottom-0">
+      <div className="flex gap-2 pt-0.5 sticky bottom-0">
         <button
           type="submit"
           disabled={busy}
