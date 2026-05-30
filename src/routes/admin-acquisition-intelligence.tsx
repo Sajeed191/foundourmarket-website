@@ -186,7 +186,7 @@ function AcquisitionPage() {
           </div>
         </header>
 
-        {kpis && (
+        {kpis && raw && (
           <>
             {/* Executive KPIs */}
             <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
