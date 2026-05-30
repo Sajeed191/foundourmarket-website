@@ -12,7 +12,6 @@ import { fetchLiveMetrics, type LiveMetrics } from "@/lib/live-metrics";
 import {
   ACTIVITY_META as KIND_META,
   ALL_ACTIVITY_KINDS as ALL_KINDS,
-  ACTIVITY_CATEGORIES,
   fetchActivityHistory,
   type ActivityKind as EventKind,
   type ActivityEvent as LiveEvent,
