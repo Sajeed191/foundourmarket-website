@@ -175,7 +175,7 @@ function RootComponent() {
                 <AdminModeProvider>
                   <div className="min-h-screen flex flex-col">
                     {!isAuthRoute && <Nav />}
-                    <main className={isAuthRoute ? "flex-1" : "flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"}>
+                    <main className={isAuthRoute ? "flex-1" : "flex-1"}>
                       <Outlet />
                     </main>
                     {!isAuthRoute && <Footer />}
