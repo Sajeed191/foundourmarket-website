@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/lib/use-admin";
+import { useAdminEditing } from "@/lib/admin-overlay";
 import { AnnouncementIcon } from "@/lib/announcement-icons";
 import { AnnouncementAdminSheet } from "@/components/admin/AnnouncementAdminSheet";
 import { cn } from "@/lib/utils";
@@ -61,6 +62,7 @@ function useCountdown(target: string | null) {
  */
 export function AnnouncementBar({ page = "home" }: { page?: string }) {
   const { isAdmin } = useIsAdmin();
+  const { canEdit } = useAdminEditing();
   const [items, setItems] = useState<Announcement[]>(FALLBACK);
   const [loaded, setLoaded] = useState(false);
   const [i, setI] = useState(0);
