@@ -138,7 +138,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     const { error: err } = await supabase.from("product_reviews").delete().eq("id", id);
     setSubmitting(false);
     if (err) { setError(err.message); return; }
-    if (editingId === id) resetForm();
+    if (editingId === id) cancelEdit();
     await load();
     onAggregateChange?.();
   };
