@@ -54,14 +54,16 @@ export async function fetchFinancialData(days = 365): Promise<FinancialData> {
     supabase
       .from("orders")
       .select("id,user_id,status,payment_status,total,subtotal,shipping,tax,discount,currency,contact_email,shipping_address,created_at,order_items(name,quantity,product_slug,unit_price,line_total)")
+      .eq("is_seeded", false)
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(1000),
     supabase.from("products").select("slug,cost,stock_quantity,low_stock_threshold"),
-    supabase.from("returns").select("id,order_id,reason,refund_amount,status,refund_status,created_at").gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
-    supabase.from("payments").select("id,order_id,amount,status,method,transaction_id,currency,created_at").gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
-    supabase.from("page_views").select("referrer,created_at").gte("created_at", since).limit(1000),
+    supabase.from("returns").select("id,order_id,reason,refund_amount,status,refund_status,created_at").eq("is_seeded", false).gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
+    supabase.from("payments").select("id,order_id,amount,status,method,transaction_id,currency,created_at").eq("is_seeded", false).gte("created_at", since).order("created_at", { ascending: false }).limit(1000),
+    supabase.from("page_views").select("referrer,created_at").eq("is_seeded", false).gte("created_at", since).limit(1000),
   ]);
+
 
   const orders = (ordersRes.data ?? []) as OrderRec[];
   return {

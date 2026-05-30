@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, Users, BarChart3, Megaphone,
   FileText, Truck, RotateCcw, Pencil, Activity, Wallet, Globe, Search,
   Boxes, Loader2, ShieldAlert, Menu, X, Sparkles, TrendingUp, ShoppingCart,
-  Cpu, ChevronRight, Mail, ShieldBan, Inbox, PackageCheck, MailCheck, LifeBuoy,
+  Cpu, ChevronRight, Mail, ShieldBan, Inbox, PackageCheck, MailCheck, LifeBuoy, Database,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -82,6 +82,8 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-email-health", label: "Email health", icon: Activity, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-inbox-placement", label: "Inbox placement", icon: MailCheck, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-activity", label: "Activity log", icon: Activity, roles: ["admin", "super_admin"] },
+      { to: "/admin-seed", label: "Seed data", icon: Database, roles: ["admin", "super_admin", "manager"] },
+
     ],
   },
 ];

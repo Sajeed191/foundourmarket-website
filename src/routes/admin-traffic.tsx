@@ -5,6 +5,8 @@ import { Globe, Users, Eye, MousePointerClick, Loader2 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { KpiCard } from "@/components/admin/KpiCard";
 import { supabase } from "@/integrations/supabase/client";
+import { includeSeedInAnalytics } from "@/lib/seed-filter";
+
 
 export const Route = createFileRoute("/admin-traffic")({
   head: () => ({ meta: [{ title: "Traffic — Admin" }] }),
@@ -24,11 +26,15 @@ function TrafficPage() {
 
   useEffect(() => {
     const since = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString();
-    supabase.from("page_views").select("path,created_at,session_id,referrer,device").gte("created_at", since).order("created_at", { ascending: false }).limit(5000)
-      .then(({ data }) => setPv((data as PV[]) ?? []));
+    includeSeedInAnalytics().then((includeSeed: boolean) => {
+      let pvQuery = supabase.from("page_views").select("path,created_at,session_id,referrer,device").gte("created_at", since).order("created_at", { ascending: false }).limit(5000);
+      if (!includeSeed) pvQuery = pvQuery.eq("is_seeded", false);
+      pvQuery.then(({ data }) => setPv((data as PV[]) ?? []));
+    });
     supabase.from("visitor_sessions").select("*").gte("started_at", since).order("started_at", { ascending: false }).limit(2000)
       .then(({ data }) => setSessions((data as Sess[]) ?? []));
   }, [days]);
+
 
   useEffect(() => {
     async function refresh() {
