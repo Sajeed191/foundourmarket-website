@@ -25,6 +25,7 @@ import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { fetchPersonalizedSlugs } from "@/lib/personalization";
 import { useTestimonials } from "@/lib/use-testimonials";
+import { SectionTracker } from "@/components/site/SectionTracker";
 
 const PLACEHOLDERS = [
   "Search 2,400+ curated products...",
@@ -525,7 +526,7 @@ function Home() {
           <ProductSkeletonGrid count={4} />
         </section>
       ) : trending.length > 0 && (sections.trending.active || isProductAdmin) && (
-        <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
+        <SectionTracker sectionKey="trending" className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24 block">
           <SectionHeader eyebrow={sections.trending.eyebrow} title={sections.trending.title} icon={Flame} href="/search" hrefLabel="See All" sectionKey="trending" editable={isProductAdmin} active={sections.trending.active} />
           <ProductRail products={trending} />
           <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
@@ -533,7 +534,7 @@ function Home() {
               <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
             ))}
           </div>
-        </section>
+        </SectionTracker>
       )}
 
       <CinematicDivider />
@@ -569,7 +570,7 @@ function Home() {
 
       {/* 6 · Recommended Products [product section 2/3] — personalized when signals exist */}
       {recommended.length > 0 && (sections.recommended.active || isProductAdmin) && (
-        <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
+        <SectionTracker sectionKey="recommended" className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24 block">
           <SectionHeader eyebrow={sections.recommended.eyebrow} title={sections.recommended.title} icon={Award} href="/search" hrefLabel="See All" sectionKey="recommended" editable={isProductAdmin} active={sections.recommended.active} />
           {personalizedSlugs.length > 0 ? (
             <RecommendationStrip title="Picked for you" slugs={personalizedSlugs} icon={<Award className="size-3" />} />
@@ -583,7 +584,7 @@ function Home() {
               </div>
             </>
           )}
-        </section>
+        </SectionTracker>
       )}
 
       {/* Recently viewed — personal browsing history */}
@@ -601,7 +602,7 @@ function Home() {
 
       {/* 7 · New Arrivals [product section 3/3] */}
       {newArrivals.length > 0 && (sections.new_arrivals.active || isProductAdmin) && (
-        <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
+        <SectionTracker sectionKey="new_arrivals" className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24 block">
           <SectionHeader eyebrow={sections.new_arrivals.eyebrow} title={sections.new_arrivals.title} icon={Sparkles} href="/search" sectionKey="new_arrivals" editable={isProductAdmin} active={sections.new_arrivals.active} />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5 md:gap-6">
             {newArrivals.slice(0, 4).map((p, i) => (
@@ -609,7 +610,7 @@ function Home() {
             ))}
           </div>
 
-        </section>
+        </SectionTracker>
       )}
 
       <CinematicDivider />

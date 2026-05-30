@@ -16,6 +16,7 @@ import {
   fetchOrders, fetchProducts, bucketByDay, downloadCSV,
   type OrderRow, type ProductRow,
 } from "@/lib/admin-queries";
+import { SectionAnalyticsPanel } from "@/components/admin/SectionAnalyticsPanel";
 
 export const Route = createFileRoute("/admin-analytics")({
   head: () => ({
@@ -401,6 +402,9 @@ function AnalyticsPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Homepage section analytics */}
+      <SectionAnalyticsPanel days={days} />
 
       {/* Secondary charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
