@@ -175,6 +175,7 @@ function RootComponent() {
             <RegionProvider>
               <CartProvider>
                 <AdminModeProvider>
+                 <CommandCenterProvider>
                   <div className="min-h-screen flex flex-col">
                     {!isAuthRoute && <Nav />}
                     <main className={isAuthRoute ? "flex-1" : "flex-1"}>
