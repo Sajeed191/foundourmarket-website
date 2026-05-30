@@ -32,6 +32,19 @@ import {
   type CategoryRegion,
 } from "@/lib/use-categories";
 import { cn } from "@/lib/utils";
+import { useAutosave } from "@/hooks/use-autosave";
+import { useUnsavedGuard } from "@/hooks/use-unsaved-guard";
+import { SaveStateBadge } from "@/components/admin/SaveStateBadge";
+import { DraftRecoveryDialog } from "@/components/admin/DraftRecoveryDialog";
+import { VersionHistorySheet } from "@/components/admin/VersionHistorySheet";
+import {
+  fetchDraft,
+  discardDraft,
+  readLocalDraft,
+  saveVersion,
+  diffFields,
+  logAdminActivity,
+} from "@/lib/drafts";
 
 type Row = Category;
 type ImageSlot = "image" | "banner_image" | "mobile_image";
