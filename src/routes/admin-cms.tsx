@@ -361,11 +361,11 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
                 <Save className="size-3.5" /> Save draft
               </button>
               {editing.id && (
-                <button onClick={() => del(editing.id!)} className="inline-flex items-center gap-2 border border-border px-4 py-2 rounded-full text-[11px] uppercase tracking-widest text-destructive">
+                <button onClick={() => { void del(editing.id!); open(null); }} className="inline-flex items-center gap-2 border border-border px-4 py-2 rounded-full text-[11px] uppercase tracking-widest text-destructive">
                   <Trash2 className="size-3.5" /> Delete
                 </button>
               )}
-              <button onClick={() => setEditing(null)} className="ml-auto text-xs font-mono uppercase tracking-widest text-muted-foreground">Cancel</button>
+              <button onClick={() => open(null)} className="ml-auto text-xs font-mono uppercase tracking-widest text-muted-foreground">Cancel</button>
             </div>
           </div>
         )}
