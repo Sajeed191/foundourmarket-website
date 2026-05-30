@@ -189,6 +189,17 @@ export function interpretNaturalLanguage(q: string): string | null {
     return "qa-prod-marketing";
   }
   if (s.includes("feature") && s.includes("product")) return "qa-prod-feature";
+  // AI Operations natural language (before executive/financial blocks)
+  if (s.includes("ai operation") || s.includes("ai assistant") || (s.includes("ai") && s.includes("recommendation")) || s.includes("business recommendation")) return "qa-ai-open";
+  if (s.includes("critical action")) return "qa-ai-critical";
+  if (s.includes("executive briefing") || (s.includes("daily") && s.includes("briefing"))) return "qa-ai-briefing";
+  if (s.includes("weekly report")) return "qa-ai-weekly";
+  if (s.includes("growth opportunit")) return "qa-ai-growth";
+  if (s.includes("profit opportunit")) return "qa-ai-profit";
+  if (s.includes("inventory recommendation")) return "qa-ai-inventory";
+  if (s.includes("customer recommendation")) return "qa-ai-customer";
+  if (s.includes("marketing recommendation")) return "qa-ai-marketing";
+  if (s.includes("financial recommendation")) return "qa-ai-financial";
   // Executive Business Intelligence natural language (before financial executive block)
   if (s.includes("ceo") || s.includes("owner dashboard") || (s.includes("executive") && s.includes("dashboard"))) return "qa-exec-open";
   if ((s.includes("business") || s.includes("company")) && s.includes("health")) return "qa-exec-health";
