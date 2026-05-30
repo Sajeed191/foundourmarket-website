@@ -52,8 +52,8 @@ export function useFinancialMarketing(days = 365) {
     const products = productProfitabilityReport(data);
     const regions = regionalProfitability(data);
     const kpis = executiveKpis(pa, campaigns, products, customers);
-    const alerts = detectFinancialMarketingAlerts(pa, campaigns, products);
-    const recs = buildFinancialRecommendations(pa, campaigns, products, customers);
+    const alerts = detectFinancialMarketingAlerts(pa, campaigns, regions);
+    const recs = buildFinancialRecommendations(data, campaigns, products, customers);
     return { pa, campaigns, customers, products, regions, kpis, alerts, recs };
   }, [data]);
 
