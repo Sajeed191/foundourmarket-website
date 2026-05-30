@@ -49,8 +49,42 @@ export function AdminCommandCenter() {
   const [recents, setRecents] = useState<string[]>([]);
   const [recentActions, setRecentActions] = useState<RecentAction[]>([]);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [confirmCmd, setConfirmCmd] = useState<AutomationCommand | null>(null);
+  const [running, setRunning] = useState(false);
 
   const quickActions = useMemo(() => actionsForRoles(roles), [roles]);
+  const autoCommands = useMemo(() => automationCommandsForRoles(roles), [roles]);
+  const filteredAutoCommands = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return autoCommands;
+    return autoCommands.filter((c) => `${c.label} ${c.keywords}`.toLowerCase().includes(q));
+  }, [autoCommands, query]);
+
+  function selectAutoCommand(c: AutomationCommand) {
+    if (c.navigateOnly) {
+      logActivity(c.action, "automation_command", c.id, { label: c.label });
+      setOpen(false);
+      c.run().then((res) => { if (res.to) go(res.to); });
+      return;
+    }
+    setConfirmCmd(c);
+  }
+
+  async function executeAutoCommand() {
+    if (!confirmCmd || running) return;
+    setRunning(true);
+    try {
+      const res = await confirmCmd.run();
+      logActivity(confirmCmd.action, "automation_command", confirmCmd.id, { label: confirmCmd.label });
+      toast.success(res.message);
+      if (res.to) { setOpen(false); go(res.to); }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Action failed");
+    } finally {
+      setRunning(false);
+      setConfirmCmd(null);
+    }
+  }
 
   useEffect(() => {
     if (open) {
