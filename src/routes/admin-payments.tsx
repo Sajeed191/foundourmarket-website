@@ -12,6 +12,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
 import { createRazorpayRefund } from "@/lib/razorpay.functions";
 import { VirtualTable } from "@/components/admin/VirtualTable";
+import { PaymentGatewayStatusCenter } from "@/components/admin/PaymentGatewayStatusCenter";
 
 export const Route = createFileRoute("/admin-payments")({
   head: () => ({
@@ -206,6 +207,9 @@ function PaymentsInner() {
 
   return (
     <div className="space-y-6">
+      {/* International payment gateway status */}
+      <PaymentGatewayStatusCenter />
+
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi icon={IndianRupee} label="Gross collected" value={inr(stats.gross)} />
