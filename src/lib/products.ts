@@ -107,6 +107,7 @@ type Row = {
   discount: number | null; featured?: boolean | null;
   sku?: string | null; stock_quantity?: number | null; low_stock_threshold?: number | null;
   views_count?: number | null; created_at?: string | null;
+  sold_count?: number | null; wishlist_count?: number | null;
   price_inr?: number | string | null; compare_price_inr?: number | string | null;
   price_usd?: number | string | null; compare_price_usd?: number | string | null;
   india_visible?: boolean | null; international_visible?: boolean | null;
