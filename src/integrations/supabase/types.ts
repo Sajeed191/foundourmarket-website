@@ -4254,6 +4254,18 @@ export type Database = {
         Args: { _event: string; _id: string }
         Returns: undefined
       }
+      track_visit: {
+        Args: {
+          _country?: string
+          _device?: string
+          _is_new_session?: boolean
+          _path: string
+          _referrer?: string
+          _session_id: string
+          _user_agent?: string
+        }
+        Returns: undefined
+      }
       try_fire_campaign_alert: {
         Args: { _alert_key: string; _campaign_id: string }
         Returns: boolean
