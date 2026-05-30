@@ -719,7 +719,24 @@ function ProductEditor({ row, categories, nextSort, onClose, onSaved }: {
     compare_price_usd: row?.compare_price_usd != null ? String(row.compare_price_usd) : "",
     india_visible: row?.india_visible ?? true,
     international_visible: row?.international_visible ?? true,
+    // Phase 2: merchandising, SEO & metadata
+    status: row?.status ?? "published",
+    bestseller: row?.bestseller ?? false,
+    trending: row?.trending ?? false,
+    tags: (row?.tags ?? []).join(", "),
+    features: (row?.features ?? []).join("\n"),
+    meta_keywords: (row?.meta_keywords ?? []).join(", "),
+    seo_title: row?.seo_title ?? "",
+    seo_description: row?.seo_description ?? "",
+    specifications: kvToText(row?.specifications),
+    attributes: kvToText(row?.attributes),
+    admin_notes: row?.admin_notes ?? "",
+    scheduled_publish_at: row?.scheduled_publish_at
+      ? new Date(new Date(row.scheduled_publish_at).getTime() - new Date().getTimezoneOffset() * 60000)
+          .toISOString().slice(0, 16)
+      : "",
   });
+
 
   function slugify(name: string) {
     return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
