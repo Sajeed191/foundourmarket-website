@@ -219,7 +219,7 @@ function Row({ k, v }: { k: string; v: React.ReactNode }) {
 }
 
 function OrderOpsPage() {
-  const { data, loading, refreshing, error, refresh } = useOrderOperations();
+  const { data, staffPerf, loading, refreshing, error, refresh } = useOrderOperations();
   const [sel, setSel] = useState<EnrichedOrder | null>(null);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<WarRoomTag | "all">("all");
