@@ -338,10 +338,9 @@ function FormPane({ kind, categories, onRun, onExport }: {
           <Button size="sm" variant="outline" onClick={() => onRun("set_shipping_class", { value: val2 })}>Set class</Button>
         </div>
         <div className="space-y-2">
-          <Input id="deliv" placeholder="Delivery estimate (e.g. 3-5 days)"
-            onChange={(e) => setVal((v) => v)} />
+          <Input value={val3} onChange={(e) => setVal3(e.target.value)} placeholder="Delivery estimate (e.g. 3-5 days)" />
           <Button size="sm" variant="outline" className="w-full"
-            onClick={() => { const el = document.getElementById("deliv") as HTMLInputElement; onRun("set_delivery_estimate", { value: el?.value ?? "" }); }}>
+            onClick={() => onRun("set_delivery_estimate", { value: val3 })}>
             Set delivery estimate
           </Button>
         </div>
