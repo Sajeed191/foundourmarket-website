@@ -36,6 +36,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin-products'
 import { Route as AdminPaymentsRouteImport } from './routes/admin-payments'
 import { Route as AdminNotificationsRouteImport } from './routes/admin-notifications'
 import { Route as AdminMediaRouteImport } from './routes/admin-media'
+import { Route as AdminMarketingAutomationRouteImport } from './routes/admin-marketing-automation'
 import { Route as AdminMarketingRouteImport } from './routes/admin-marketing'
 import { Route as AdminLiveRouteImport } from './routes/admin-live'
 import { Route as AdminInventoryIntelligenceRouteImport } from './routes/admin-inventory-intelligence'
@@ -218,6 +219,12 @@ const AdminMediaRoute = AdminMediaRouteImport.update({
   path: '/admin-media',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminMarketingAutomationRoute =
+  AdminMarketingAutomationRouteImport.update({
+    id: '/admin-marketing-automation',
+    path: '/admin-marketing-automation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
   id: '/admin-marketing',
   path: '/admin-marketing',
@@ -476,6 +483,7 @@ export interface FileRoutesByFullPath {
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
   '/admin-marketing': typeof AdminMarketingRoute
+  '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-media': typeof AdminMediaRoute
   '/admin-notifications': typeof AdminNotificationsRoute
   '/admin-payments': typeof AdminPaymentsRoute
@@ -551,6 +559,7 @@ export interface FileRoutesByTo {
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
   '/admin-marketing': typeof AdminMarketingRoute
+  '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-media': typeof AdminMediaRoute
   '/admin-notifications': typeof AdminNotificationsRoute
   '/admin-payments': typeof AdminPaymentsRoute
@@ -627,6 +636,7 @@ export interface FileRoutesById {
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
   '/admin-marketing': typeof AdminMarketingRoute
+  '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-media': typeof AdminMediaRoute
   '/admin-notifications': typeof AdminNotificationsRoute
   '/admin-payments': typeof AdminPaymentsRoute
@@ -704,6 +714,7 @@ export interface FileRouteTypes {
     | '/admin-inventory-intelligence'
     | '/admin-live'
     | '/admin-marketing'
+    | '/admin-marketing-automation'
     | '/admin-media'
     | '/admin-notifications'
     | '/admin-payments'
@@ -779,6 +790,7 @@ export interface FileRouteTypes {
     | '/admin-inventory-intelligence'
     | '/admin-live'
     | '/admin-marketing'
+    | '/admin-marketing-automation'
     | '/admin-media'
     | '/admin-notifications'
     | '/admin-payments'
@@ -854,6 +866,7 @@ export interface FileRouteTypes {
     | '/admin-inventory-intelligence'
     | '/admin-live'
     | '/admin-marketing'
+    | '/admin-marketing-automation'
     | '/admin-media'
     | '/admin-notifications'
     | '/admin-payments'
@@ -930,6 +943,7 @@ export interface RootRouteChildren {
   AdminInventoryIntelligenceRoute: typeof AdminInventoryIntelligenceRoute
   AdminLiveRoute: typeof AdminLiveRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
+  AdminMarketingAutomationRoute: typeof AdminMarketingAutomationRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
@@ -1172,6 +1186,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-media'
       fullPath: '/admin-media'
       preLoaderRoute: typeof AdminMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-marketing-automation': {
+      id: '/admin-marketing-automation'
+      path: '/admin-marketing-automation'
+      fullPath: '/admin-marketing-automation'
+      preLoaderRoute: typeof AdminMarketingAutomationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-marketing': {
@@ -1549,6 +1570,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminInventoryIntelligenceRoute: AdminInventoryIntelligenceRoute,
   AdminLiveRoute: AdminLiveRoute,
   AdminMarketingRoute: AdminMarketingRoute,
+  AdminMarketingAutomationRoute: AdminMarketingAutomationRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
