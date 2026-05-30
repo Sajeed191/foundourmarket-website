@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useFinancialMarketing } from "@/lib/use-financial-marketing";
 import { fmt } from "@/lib/financial-marketing";
-import { logActivity } from "@/lib/activity-log";
+import { logActivity } from "@/components/admin/AdminShell";
 import { cn } from "@/lib/utils";
 
 /**
