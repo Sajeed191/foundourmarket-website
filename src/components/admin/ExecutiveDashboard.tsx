@@ -196,6 +196,11 @@ export function ExecutiveDashboard({ focusView }: { focusView?: string }) {
         <button onClick={exportPDF} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-mono uppercase tracking-widest bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25 transition-all active:scale-95"><FileText className="size-3" /> Board Report</button>
       </div>
 
+      {/* AI Operations summary */}
+      <AISummaryCard />
+
+
+
       {/* scorecard */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {cards.map((c, i) => (
