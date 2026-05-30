@@ -4,6 +4,7 @@ import { Megaphone, Zap, Plus, Pencil, Trash2, X, Loader2, ChevronLeft, ChevronR
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { PublishConfirm } from "@/components/admin/PublishConfirm";
 import { BadgeSettingsEditor } from "@/components/admin/BadgeSettingsEditor";
+import { TestimonialsEditor } from "@/components/admin/TestimonialsEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
