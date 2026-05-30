@@ -44,6 +44,10 @@ type Action = {
 };
 
 const ACTIONS: Action[] = [
+  { label: "Executive Dashboard", icon: Crown, to: "/admin-executive" },
+  { label: "Business Health", icon: Crown, to: "/admin-executive?view=health" },
+  { label: "Executive Risks", icon: Crown, to: "/admin-executive?view=risks" },
+  { label: "Executive Opportunities", icon: Crown, to: "/admin-executive?view=opportunities" },
   { label: "Dashboard", icon: LayoutDashboard, to: "/admin" },
   { label: "Products", icon: ShoppingBag, to: "/admin-products" },
   { label: "Add product", icon: PackagePlus, to: "/admin-products" },
