@@ -234,7 +234,7 @@ function CustomerIntelPage() {
             {!vips.topSpenders.length && <p className="text-xs text-muted-foreground">No paid customers yet.</p>}
           </div>
         </div>
-        <div className="card-premium rounded-2xl p-5">
+        <div id="ci-alerts" className="card-premium rounded-2xl p-5 scroll-mt-20">
           <h2 className="text-sm font-display font-semibold mb-4 flex items-center gap-2"><AlertTriangle className="size-4 text-accent" /> Alerts</h2>
           <div className="space-y-1.5 max-h-72 overflow-y-auto">
             {alerts.map((a) => (
