@@ -602,7 +602,7 @@ function Home() {
 
       {/* 7 · New Arrivals [product section 3/3] */}
       {newArrivals.length > 0 && (sections.new_arrivals.active || isProductAdmin) && (
-        <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
+        <SectionTracker sectionKey="new_arrivals" className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24 block">
           <SectionHeader eyebrow={sections.new_arrivals.eyebrow} title={sections.new_arrivals.title} icon={Sparkles} href="/search" sectionKey="new_arrivals" editable={isProductAdmin} active={sections.new_arrivals.active} />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5 md:gap-6">
             {newArrivals.slice(0, 4).map((p, i) => (
@@ -610,7 +610,7 @@ function Home() {
             ))}
           </div>
 
-        </section>
+        </SectionTracker>
       )}
 
       <CinematicDivider />
