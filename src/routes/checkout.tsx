@@ -706,20 +706,51 @@ function Atmosphere() {
   );
 }
 
-function InternationalSoon() {
+function InternationalSoon({ live, loading }: { live: boolean; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="min-h-[30vh] grid place-items-center">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (live) {
+    // A gateway (Stripe / PayPal) is connected — international checkout unlocked.
+    return (
+      <div className="glass border border-emerald-500/20 rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto">
+        <div className="size-14 mx-auto mb-5 grid place-items-center rounded-full bg-emerald-500/10 border border-emerald-500/30">
+          <ShieldCheck className="size-6 text-emerald-400" />
+        </div>
+        <h2 className="text-xl font-display font-semibold mb-2">International checkout is ready</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Secure global payments are now available. Continue to complete your order in USD.
+        </p>
+        <Link to="/cart" className="inline-flex items-center gap-2 bg-accent text-accent-foreground font-bold py-3 px-6 rounded-full text-xs uppercase tracking-widest hover:brightness-110">
+          <Sparkles className="size-3.5" /> Continue to payment
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="glass border border-white/10 rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto">
       <div className="size-14 mx-auto mb-5 grid place-items-center rounded-full bg-accent/10 border border-accent/30">
         <Globe className="size-6 text-accent" />
       </div>
-      <h2 className="text-xl font-display font-semibold mb-2">International payments — coming soon</h2>
+      <h2 className="text-xl font-display font-semibold mb-2">International checkout is temporarily unavailable.</h2>
       <p className="text-sm text-muted-foreground mb-6">
-        We're currently processing payments for orders shipping within India only.
-        Global checkout with multi-currency support is on the way.
+        You can keep adding items to your cart, wishlist and account — global checkout
+        with multi-currency support will be enabled here shortly.
       </p>
-      <Link to="/" className="inline-flex items-center gap-2 bg-accent text-accent-foreground font-bold py-3 px-6 rounded-full text-xs uppercase tracking-widest hover:brightness-110">
-        <Sparkles className="size-3.5" /> Continue browsing
-      </Link>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <Link to="/cart" className="inline-flex items-center gap-2 glass border border-white/10 text-foreground font-bold py-3 px-6 rounded-full text-xs uppercase tracking-widest hover:border-accent/40">
+          <Wallet className="size-3.5" /> View cart
+        </Link>
+        <Link to="/" className="inline-flex items-center gap-2 bg-accent text-accent-foreground font-bold py-3 px-6 rounded-full text-xs uppercase tracking-widest hover:brightness-110">
+          <Sparkles className="size-3.5" /> Continue browsing
+        </Link>
+      </div>
     </div>
   );
 }
