@@ -329,7 +329,7 @@ export function buildCustomerIntel(data: IntelData): CustomerIntel[] {
       churn += Math.min(45, (rec / 120) * 45); // recency weight
       churn += (5 - f) * 6; // low frequency
       churn += b.refundRate * 25; // refund heavy
-      if ((b as { _trendDelta: number })._trendDelta < 0) churn += 12; // declining spend
+      if (b._trendDelta < 0) churn += 12; // declining spend
       churn = Math.min(100, Math.round(churn));
     } else {
       churn = b.tenureDays > 90 ? 80 : 40;
@@ -345,9 +345,9 @@ export function buildCustomerIntel(data: IntelData): CustomerIntel[] {
     if (b.tenureDays <= 30) tags.push("New Customer");
 
     const active = (b.recencyDays ?? 9999) <= 90;
-    const trend: CustomerIntel["trend"] = (b as { _trendDelta: number })._trendDelta > 0 ? "up" : (b as { _trendDelta: number })._trendDelta < 0 ? "down" : "flat";
+    const trend: CustomerIntel["trend"] = b._trendDelta > 0 ? "up" : b._trendDelta < 0 ? "down" : "flat";
 
-    const { _trendDelta, ...rest } = b as never as CustomerIntel & { _trendDelta: number };
+    const { _trendDelta, ...rest } = b;
     return { ...rest, rfm: { r, f, m }, segment, churnRisk: churn, tags, active, trend };
   });
 }
