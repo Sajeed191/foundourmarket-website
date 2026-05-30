@@ -77,18 +77,18 @@ function bindRealtime() {
 async function load(force = false): Promise<BadgeSettings> {
   if (cache && !force) return cache;
   if (!inflight) {
-    inflight = supabase
-      .from("badge_settings")
-      .select("*")
-      .eq("id", true)
-      .maybeSingle()
-      .then(({ data }) => {
-        const s = data ? rowToSettings(data as Row) : DEFAULT_BADGE_SETTINGS;
-        cache = s;
-        inflight = null;
-        subscribers.forEach((fn) => fn(s));
-        return s;
-      });
+    inflight = (async () => {
+      const { data } = await supabase
+        .from("badge_settings")
+        .select("*")
+        .eq("id", true)
+        .maybeSingle();
+      const s = data ? rowToSettings(data as Row) : DEFAULT_BADGE_SETTINGS;
+      cache = s;
+      inflight = null;
+      subscribers.forEach((fn) => fn(s));
+      return s;
+    })();
   }
   return inflight;
 }
