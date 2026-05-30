@@ -143,7 +143,7 @@ export function TestimonialsEditor() {
         <Row
           key={t.id || `new-${i}`}
           t={t}
-          onChange={(next) => patch(t.id, next)}
+          onChange={(next) => patch(i, next)}
           onSave={handleSave}
           onDelete={handleDelete}
         />
