@@ -24,6 +24,7 @@ import { TestimonialsCarousel } from "@/components/site/TestimonialsCarousel";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { fetchPersonalizedSlugs } from "@/lib/personalization";
+import { useTestimonials } from "@/lib/use-testimonials";
 
 const PLACEHOLDERS = [
   "Search 2,400+ curated products...",
