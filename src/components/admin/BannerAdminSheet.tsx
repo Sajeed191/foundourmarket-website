@@ -147,9 +147,9 @@ export function BannerAdminSheet({
       starts_at: editing.starts_at ?? null,
       ends_at: editing.ends_at ?? null,
     };
-    const { error } = editing.id
-      ? await supabase.from("banners").update(payload).eq("id", editing.id)
-      : await supabase.from("banners").insert(payload);
+    const { data: saved, error } = editing.id
+      ? await supabase.from("banners").update(payload).eq("id", editing.id).select("id").single()
+      : await supabase.from("banners").insert(payload).select("id").single();
     setSaving(false);
     if (error) {
       toast.error(error.message);
@@ -157,6 +157,12 @@ export function BannerAdminSheet({
     }
     toast.success(editing.id ? "Banner updated" : "Banner created");
     logActivity(editing.id ? "banner_update" : "banner_create", "banner", editing.id, { type: payload.type });
+    await protection.recordVersion(
+      (editing.id ?? saved?.id ?? entityId) as string,
+      payload as Record<string, unknown>,
+      editing.id ? "Updated" : "Created banner",
+    );
+    await protection.markClean();
     setEditing(null);
     await load();
     onChanged();
