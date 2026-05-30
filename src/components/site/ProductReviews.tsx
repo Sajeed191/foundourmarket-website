@@ -307,15 +307,17 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                     </div>
                     {r.title && <p className="text-sm font-display mb-1">{r.title}</p>}
                     {r.body && <p className="text-[13px] text-muted-foreground leading-relaxed whitespace-pre-wrap">{r.body}</p>}
-                    {isOwn && (
+                    {(isOwn || isAdmin) && (
                       <div className="mt-3 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => startEdit(r)}
-                          className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors"
-                        >
-                          <Pencil className="size-3" /> Edit
-                        </button>
+                        {isOwn && (
+                          <button
+                            type="button"
+                            onClick={() => startEdit(r)}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors"
+                          >
+                            <Pencil className="size-3" /> Edit
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => remove(r.id)}
