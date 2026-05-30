@@ -21,6 +21,7 @@ import {
   Upload,
   RotateCcw,
   Globe2,
+  History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/components/admin/AdminShell";
