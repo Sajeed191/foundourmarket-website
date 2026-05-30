@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ExecutiveSummaryPanel } from "@/components/admin/ExecutiveSummaryPanel";
+import { FinancialInsightsPanel } from "@/components/admin/FinancialInsightsPanel";
 import { useEffect, useMemo, useState } from "react";
 import {
   Users, UserPlus, UserCheck, Crown, Moon, AlertTriangle, Gem, Loader2, RefreshCw,
