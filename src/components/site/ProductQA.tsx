@@ -97,6 +97,21 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
     load();
   }
 
+  async function saveQuestion(id: string) {
+    const text = questionDraft.trim();
+    if (!text) return;
+    const { error } = await supabase
+      .from("product_questions")
+      .update({ question: text })
+      .eq("id", id);
+    if (!error) {
+      setEditingQuestionId(null);
+      setQuestionDraft("");
+      load();
+    }
+  }
+
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16 border-t border-border">
       <div className="flex items-end justify-between flex-wrap gap-3 mb-8">
