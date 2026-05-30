@@ -38,6 +38,17 @@ export function getStoredAttribution(): AttributionPayload | null {
 }
 
 /**
+ * Build the attribution payload to attach to a new order. Combines the stored
+ * UTM/campaign capture with the live session id so the server trigger can
+ * resolve first-/last-touch revenue attribution.
+ */
+export function buildOrderAttribution(): { session_id: string; utm: Record<string, string> } {
+  const stored = getStoredAttribution();
+  const { id } = sessionId();
+  return { session_id: stored?.session_id ?? id, utm: stored?.utm ?? {} };
+}
+
+/**
  * Capture an attribution touch from the current URL. Safe to call on every
  * navigation — only records when real UTM/campaign params are present, and
  * de-duplicates identical consecutive touches within a session.
