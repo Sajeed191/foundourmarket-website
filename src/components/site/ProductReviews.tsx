@@ -152,7 +152,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         <div className="lg:col-span-1">
           {user ? (
             <form onSubmit={submit} className="bg-card/60 backdrop-blur-xl border border-border rounded-2xl p-4 sm:p-5">
-              <h3 className="text-sm font-display mb-3">{editingId ? "Update your review" : "Write a review"}</h3>
+              <h3 className="text-sm font-display mb-3">Write a review</h3>
 
               <div className="flex items-center gap-1 mb-4">
                 {Array.from({ length: 5 }).map((_, i) => {
@@ -189,25 +189,15 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                 className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-3 transition-all focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 focus:shadow-[0_0_20px_-6px_oklch(0.74_0.19_49/0.55)]"
               />
 
-              {error && <p className="text-xs text-red-400 mb-3">{error}</p>}
-              <div className="flex items-center gap-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground hover:brightness-110 disabled:opacity-50"
-                >
-                  {submitting ? "Saving…" : editingId ? "Update" : "Submit"}
-                </button>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    disabled={submitting}
-                    className="px-4 py-2 rounded-full text-xs uppercase tracking-widest border border-border hover:bg-white/5"
-                  >
-                    Cancel
-                  </button>
-                )}
+              {error && !editingId && <p className="text-xs text-red-400 mb-3">{error}</p>}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground hover:brightness-110 disabled:opacity-50"
+              >
+                {submitting && !editingId ? "Saving…" : "Submit"}
+              </button>
+
               </div>
             </form>
           ) : (
