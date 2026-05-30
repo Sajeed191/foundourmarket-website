@@ -168,16 +168,26 @@ export function AnnouncementBar({ page = "home" }: { page?: string }) {
         </div>
 
         {canEdit && (
-          <button
-            onClick={() => setEditing(true)}
-            aria-label="Edit announcements"
-            className={cn(
-              "absolute right-2 top-1/2 -translate-y-1/2 z-10 grid size-6 place-items-center rounded-full",
-              "border border-accent/40 bg-background/70 text-accent backdrop-blur-md transition-all hover:bg-accent/15",
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center gap-1.5">
+            {current && !String(current.id).startsWith("f") && (
+              <InlineActiveToggle
+                active={current.active}
+                label="Announcement"
+                size="sm"
+                onToggle={(next) => setAnnouncementActive(current.id, next)}
+              />
             )}
-          >
-            <Pencil className="size-3" />
-          </button>
+            <button
+              onClick={() => setEditing(true)}
+              aria-label="Edit announcements"
+              className={cn(
+                "grid size-6 place-items-center rounded-full",
+                "border border-accent/40 bg-background/70 text-accent backdrop-blur-md transition-all hover:bg-accent/15",
+              )}
+            >
+              <Pencil className="size-3" />
+            </button>
+          </div>
         )}
       </div>
 
