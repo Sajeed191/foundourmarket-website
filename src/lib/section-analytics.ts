@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
+import { includeSeedInAnalytics } from "@/lib/seed-filter";
+
 
 /**
  * Fire a one-time `section_impression` event when the referenced element
