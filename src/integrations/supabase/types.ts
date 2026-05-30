@@ -2550,24 +2550,6 @@ export type Database = {
         }
         Relationships: []
       }
-      public_profiles: {
-        Row: {
-          avatar_url: string | null
-          full_name: string | null
-          id: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          full_name?: string | null
-          id?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          full_name?: string | null
-          id?: string | null
-        }
-        Relationships: []
-      }
       trending_products: {
         Row: {
           atc_7d: number | null
@@ -2596,6 +2578,14 @@ export type Database = {
         Returns: {
           co_count: number
           product_slug: string
+        }[]
+      }
+      get_public_profiles: {
+        Args: { _ids: string[] }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
         }[]
       }
       has_any_role: {
