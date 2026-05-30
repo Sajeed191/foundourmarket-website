@@ -268,6 +268,21 @@ function Home() {
     [products]
   );
 
+  // Personalized "For You" engine — region-aware via signals stored per user/session.
+  const { slugs: recentSlugs } = useRecentlyViewed();
+  const [personalizedSlugs, setPersonalizedSlugs] = useState<string[]>([]);
+  useEffect(() => {
+    let active = true;
+    fetchPersonalizedSlugs(8).then((s) => { if (active) setPersonalizedSlugs(s); });
+    return () => { active = false; };
+  }, []);
+  // Recently viewed excludes nothing; personalized excludes already-seen items.
+  const recentlyViewedSlugs = useMemo(
+    () => recentSlugs.filter((s) => products.some((p) => p.slug === s)).slice(0, 8),
+    [recentSlugs, products]
+  );
+
+
   return (
     <>
       {/* Sticky announcement bar — homepage only */}
