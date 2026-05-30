@@ -123,6 +123,7 @@ function MarketingAutomationPage() {
   return (
     <AdminShell title="Marketing Automation" subtitle="Data-driven campaigns" allow={MKT_ROLES}>
       <div className="space-y-6">
+        <AcquisitionSummary title="Acquisition Intelligence" />
         {/* header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
