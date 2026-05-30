@@ -27,6 +27,11 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editHoverRating, setEditHoverRating] = useState(0);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
+
 
   const load = async () => {
     setLoading(true);
