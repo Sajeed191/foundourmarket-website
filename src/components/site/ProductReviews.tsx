@@ -180,7 +180,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   // staff moderation
-  async function patch(id: string, fields: Record<string, unknown>) {
+  async function patch(id: string, fields: TablesUpdate<"product_reviews">) {
     const { error } = await supabase.from("product_reviews").update(fields).eq("id", id);
     if (error) toast.error(error.message);
   }
