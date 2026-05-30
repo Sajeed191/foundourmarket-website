@@ -146,6 +146,12 @@ function IntelPage() {
       {/* Inventory ↔ Marketing integration */}
       <InventoryMarketingHub intel={intel} />
 
+      {/* FINANCIAL INVENTORY INSIGHTS */}
+      <div className="mt-8 space-y-6">
+        <ExecutiveSummaryPanel source="inventory" compact />
+        <FinancialInsightsPanel module="inventory" />
+      </div>
+
       {/* Dashboard widgets */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
