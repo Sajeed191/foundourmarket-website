@@ -25,8 +25,8 @@ export async function fetchLiveMetrics(): Promise<LiveMetrics> {
   const today = startOfToday();
   const sessionWindow = new Date(Date.now() - 30 * 60 * 1000).toISOString();
   const includeSeed = await includeSeedInAnalytics();
-  const noSeed = <T extends { eq: (c: string, v: unknown) => T }>(q: T): T =>
-    includeSeed ? q : q.eq("is_seeded", false);
+  const noSeed = (q: any): any => (includeSeed ? q : q.eq("is_seeded", false));
+
 
   const [ordersRes, lowStockRes, subsRes, returnsRes, sessionsRes] = await Promise.all([
     noSeed(supabase.from("orders").select("total,currency,status,created_at").gte("created_at", today) as any),
