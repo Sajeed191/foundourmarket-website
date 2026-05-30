@@ -407,6 +407,65 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_executions: {
+        Row: {
+          action_taken: string | null
+          actor_id: string | null
+          automation_id: string | null
+          campaign_id: string | null
+          created_at: string
+          details: Json
+          error: string | null
+          id: string
+          matched_count: number
+          run_id: string
+          status: string
+          summary: string | null
+          trigger_key: string
+          triggered_by: string
+        }
+        Insert: {
+          action_taken?: string | null
+          actor_id?: string | null
+          automation_id?: string | null
+          campaign_id?: string | null
+          created_at?: string
+          details?: Json
+          error?: string | null
+          id?: string
+          matched_count?: number
+          run_id: string
+          status?: string
+          summary?: string | null
+          trigger_key: string
+          triggered_by?: string
+        }
+        Update: {
+          action_taken?: string | null
+          actor_id?: string | null
+          automation_id?: string | null
+          campaign_id?: string | null
+          created_at?: string
+          details?: Json
+          error?: string | null
+          id?: string
+          matched_count?: number
+          run_id?: string
+          status?: string
+          summary?: string | null
+          trigger_key?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_executions_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badge_settings: {
         Row: {
           bestseller_enabled: boolean
@@ -4103,6 +4162,17 @@ export type Database = {
             }
             Returns: undefined
           }
+      notify_staff: {
+        Args: {
+          p_body: string
+          p_data: Json
+          p_link: string
+          p_priority: string
+          p_title: string
+          p_type: string
+        }
+        Returns: number
+      }
       product_trust_score: { Args: { _slug: string }; Returns: number }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
@@ -4135,6 +4205,10 @@ export type Database = {
         Returns: undefined
       }
       review_dashboard: { Args: never; Returns: Json }
+      run_marketing_automations: {
+        Args: { p_force?: boolean; p_triggered_by?: string }
+        Returns: Json
+      }
       save_entity_version: {
         Args: {
           _changed_fields?: string[]
