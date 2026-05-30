@@ -524,7 +524,7 @@ function Home() {
       {/* 7 · New Arrivals [product section 3/3] */}
       {newArrivals.length > 0 && (
         <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
-          <SectionHeader eyebrow="Just Landed" title="New Arrivals" icon={Sparkles} href="/search" />
+          <SectionHeader eyebrow={sections.new_arrivals.eyebrow} title={sections.new_arrivals.title} icon={Sparkles} href="/search" sectionKey="new_arrivals" editable={isProductAdmin} />
           <ProductRail products={newArrivals} />
           <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
             {newArrivals.slice(0, 4).map((p, i) => (
