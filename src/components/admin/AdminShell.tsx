@@ -95,6 +95,12 @@ const NAV: { group: string; items: NavItem[] }[] = [
 
     ],
   },
+  {
+    group: "Marketplace",
+    items: [
+      { to: "/admin-vendors", label: "Vendors", icon: Store, roles: ["super_admin"] },
+    ],
+  },
 ];
 
 export function useAdminRoles() {
