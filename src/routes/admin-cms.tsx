@@ -311,7 +311,7 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
               return (
                 <li key={p.id}>
                   <div className={`p-3 rounded-lg border transition-colors ${editing?.id === p.id ? "border-accent bg-accent/5" : p.has_draft ? "border-amber-500/30" : "border-border"}`}>
-                    <button onClick={() => setEditing(p.draft_data ? { ...p, ...p.draft_data } : p)} className="w-full text-left">
+                    <button onClick={() => open(p.draft_data ? { ...p, ...p.draft_data } : p)} className="w-full text-left">
                       <div className="text-sm font-medium">{display.title}</div>
                       <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mt-1">/{display.slug}</div>
                       <StatusBadge hasDraft={p.has_draft} isLive={isLive} />
