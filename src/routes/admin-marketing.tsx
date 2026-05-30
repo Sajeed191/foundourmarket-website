@@ -374,7 +374,19 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
           <h2 className="text-lg font-display">{row ? "Edit banner draft" : "New banner"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
         </div>
-        <p className="text-[11px] text-muted-foreground mb-5">Changes are saved as a draft. Click <span className="text-accent font-mono">Publish</span> on the banner card to push live.</p>
+        <p className="text-[11px] text-muted-foreground mb-3">Changes are saved as a draft. Click <span className="text-accent font-mono">Publish</span> on the banner card to push live.</p>
+        <div className="mb-5">
+          <EditorSaveBar
+            state={protection.state}
+            lastSavedAt={protection.lastSavedAt}
+            recovery={protection.recovery}
+            onRestore={() => { const d = protection.restoreDraft(); if (d) setF(d as typeof f); }}
+            onDismiss={() => void protection.dismissDraft()}
+            entityType="banner"
+            entityId={entityId}
+            onRestoreVersion={(snap) => setF({ ...f, ...(snap as Partial<typeof f>) })}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Type"><select value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })} className="input"><option>hero</option><option>announcement</option><option>promo</option><option>offer</option></select></Field>
           <Field label="Sort"><input type="number" value={f.sort_order} onChange={(e) => setF({ ...f, sort_order: Number(e.target.value) })} className="input" /></Field>
