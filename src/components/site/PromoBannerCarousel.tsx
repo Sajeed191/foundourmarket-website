@@ -44,21 +44,23 @@ export function PromoBannerCarousel({
   const [editing, setEditing] = useState(false);
 
   function fetchBanners() {
-    supabase
+    let q = supabase
       .from("banners")
       .select("id,title,subtitle,image,mobile_image,link,cta_text,sort_order,active,starts_at,ends_at,type")
-      .eq("active", true)
       .in("type", types)
-      .order("sort_order")
-      .then(({ data }) => {
-        const now = Date.now();
-        const valid = ((data as any[]) ?? []).filter(
-          (b) =>
-            (!b.starts_at || new Date(b.starts_at).getTime() <= now) &&
-            (!b.ends_at || new Date(b.ends_at).getTime() >= now),
-        );
-        setBanners(maxItems ? valid.slice(0, maxItems) : valid);
-      });
+      .order("sort_order");
+    // Customers only see active banners; admins see hidden ones too (to toggle).
+    if (!canEdit) q = q.eq("active", true);
+    q.then(({ data }) => {
+      const now = Date.now();
+      const valid = ((data as any[]) ?? []).filter(
+        (b) =>
+          canEdit ||
+          ((!b.starts_at || new Date(b.starts_at).getTime() <= now) &&
+            (!b.ends_at || new Date(b.ends_at).getTime() >= now)),
+      );
+      setBanners(maxItems ? valid.slice(0, maxItems) : valid);
+    });
   }
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export function PromoBannerCarousel({
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [types.join("-"), maxItems]);
+  }, [types.join("-"), maxItems, canEdit]);
 
 
 
