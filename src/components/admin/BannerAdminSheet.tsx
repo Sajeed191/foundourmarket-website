@@ -52,7 +52,16 @@ const fromLocal = (v: string) => (v ? new Date(v).toISOString() : null);
  * announcement CMS. Image uploads go to the public `banners` bucket; all
  * writes are RLS + role gated (editor+ only).
  */
-export function BannerAdminSheet({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
+export function BannerAdminSheet({
+  onClose,
+  onChanged,
+  defaultType = "promo",
+}: {
+  onClose: () => void;
+  onChanged: () => void;
+  /** Default banner type for newly created banners (matches the carousel slot). */
+  defaultType?: BannerRow["type"];
+}) {
   const [rows, setRows] = useState<BannerRow[]>([]);
   const [editing, setEditing] = useState<Partial<BannerRow> | null>(null);
   const [saving, setSaving] = useState(false);
