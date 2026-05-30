@@ -928,6 +928,30 @@ function ProductEditor({ row, categories, nextSort, onClose, onSaved }: {
   );
 }
 
+/** Convert a key/value JSON object to "key: value" lines for editing. */
+function kvToText(obj: Record<string, string> | null | undefined): string {
+  if (!obj || typeof obj !== "object") return "";
+  return Object.entries(obj).map(([k, v]) => `${k}: ${v}`).join("\n");
+}
+
+/** Parse "key: value" lines back into a JSON object. */
+function textToKv(text: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of text.split("\n")) {
+    const idx = line.indexOf(":");
+    if (idx === -1) continue;
+    const k = line.slice(0, idx).trim();
+    const v = line.slice(idx + 1).trim();
+    if (k) out[k] = v;
+  }
+  return out;
+}
+
+/** Parse a comma/newline separated list into a clean string array. */
+function parseList(text: string): string[] {
+  return text.split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
+}
+
 function EField({ label, value, onChange, type = "text", required, className }: {
   label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean; className?: string;
 }) {
