@@ -75,8 +75,13 @@ function MarketingAutomationPage() {
     if (action === "create") setCreating({ templateKey: template });
     else if (template) { setCreating({ templateKey: template }); }
     if (action === "analytics") setTab("dashboard");
-    const tabs: Tab[] = ["dashboard", "campaigns", "automations", "recommendations"];
+    const tabs: Tab[] = ["dashboard", "campaigns", "automations", "recommendations", "executions"];
     if (tabParam && (tabs as string[]).includes(tabParam)) setTab(tabParam as Tab);
+    // Deep-link straight into the Executions Control Center (failures / health / run).
+    if (view) {
+      setTab("executions");
+      logActivity("marketing_automation_executions_deeplink", "marketing", undefined, { view });
+    }
     if (campaignParam) {
       setTab("campaigns");
       setFocusCampaign(campaignParam);
@@ -87,7 +92,7 @@ function MarketingAutomationPage() {
       logActivity("marketing_campaign_deeplink_open", "marketing", campaignParam, {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [action, template, tabParam, campaignParam, loading]);
+  }, [action, template, tabParam, campaignParam, view, loading]);
 
   const filteredCampaigns = useMemo(() => {
     if (!intel) return [];
