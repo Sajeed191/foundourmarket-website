@@ -69,6 +69,7 @@ export function HomepageBuilder() {
   const byId = useMemo(() => new Map(blocks.map((b) => [b.id, b])), [blocks]);
   const ordered = order.map((id) => byId.get(id)).filter(Boolean) as StorefrontBlock[];
   const visible = ordered.filter((b) => matchesStatusFilter(b, status));
+  const visibleIds = visible.map((b) => b.id);
 
   async function commitOrder(next: string[]) {
     setOrder(next);
@@ -80,6 +81,15 @@ export function HomepageBuilder() {
     } finally {
       setReordering(false);
     }
+  }
+
+  // Reorder only the currently-visible subset, merging back into the full order
+  // so hidden/filtered blocks keep their slots.
+  async function commitVisibleOrder(nextVisible: string[]) {
+    const visibleSet = new Set(nextVisible);
+    let vi = 0;
+    const merged = order.map((id) => (visibleSet.has(id) ? nextVisible[vi++] : id));
+    await commitOrder(merged);
   }
 
   async function move(block: StorefrontBlock, dir: -1 | 1) {
