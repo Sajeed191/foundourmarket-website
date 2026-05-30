@@ -20,6 +20,7 @@ import { AnnouncementBar } from "@/components/site/AnnouncementBar";
 import { NewsletterForm } from "@/components/site/NewsletterForm";
 import { PromoBannerCarousel } from "@/components/site/PromoBannerCarousel";
 import { ProductRail } from "@/components/site/ProductRail";
+import { TestimonialsCarousel } from "@/components/site/TestimonialsCarousel";
 
 const PLACEHOLDERS = [
   "Search 2,400+ curated products...",
