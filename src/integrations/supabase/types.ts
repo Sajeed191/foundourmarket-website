@@ -1115,6 +1115,128 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_automations: {
+        Row: {
+          action_config: Json
+          automation_type: string
+          channel: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled: boolean
+          id: string
+          last_run_at: string | null
+          name: string
+          priority: number
+          region: string
+          schedule: Json
+          status: string
+          trigger_key: string
+          updated_at: string
+        }
+        Insert: {
+          action_config?: Json
+          automation_type?: string
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          last_run_at?: string | null
+          name: string
+          priority?: number
+          region?: string
+          schedule?: Json
+          status?: string
+          trigger_key: string
+          updated_at?: string
+        }
+        Update: {
+          action_config?: Json
+          automation_type?: string
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          last_run_at?: string | null
+          name?: string
+          priority?: number
+          region?: string
+          schedule?: Json
+          status?: string
+          trigger_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      marketing_campaigns: {
+        Row: {
+          audience_size: number
+          automation_id: string | null
+          campaign_type: string
+          completed_at: string | null
+          config: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          launched_at: string | null
+          metrics: Json
+          name: string
+          region: string
+          scheduled_at: string | null
+          segment: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          audience_size?: number
+          automation_id?: string | null
+          campaign_type?: string
+          completed_at?: string | null
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          launched_at?: string | null
+          metrics?: Json
+          name: string
+          region?: string
+          scheduled_at?: string | null
+          segment?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          audience_size?: number
+          automation_id?: string | null
+          campaign_type?: string
+          completed_at?: string | null
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          launched_at?: string | null
+          metrics?: Json
+          name?: string
+          region?: string
+          scheduled_at?: string | null
+          segment?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_campaigns_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_assets: {
         Row: {
           alt: string | null
