@@ -199,6 +199,11 @@ export function ExecutiveDashboard({ focusView }: { focusView?: string }) {
       {/* AI Operations summary */}
       <AISummaryCard />
 
+      {/* Fraud & Security summary */}
+      <SecuritySummaryCard />
+
+
+
 
 
       {/* scorecard */}
