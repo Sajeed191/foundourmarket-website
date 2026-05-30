@@ -252,7 +252,7 @@ function CustomerIntelPage() {
       </div>
 
       {/* SMART RECOMMENDATIONS */}
-      <div className="mt-6 card-premium rounded-2xl p-5">
+      <div id="ci-recs" className="mt-6 card-premium rounded-2xl p-5 scroll-mt-20">
         <h2 className="text-sm font-display font-semibold mb-4 flex items-center gap-2"><Lightbulb className="size-4 text-accent" /> Smart Recommendations</h2>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
           {recs.map((r) => (
