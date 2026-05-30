@@ -809,9 +809,35 @@ export function CategoryAdminSheet({
           )}
         </motion.div>
       </motion.div>
+
+      <DraftRecoveryDialog
+        open={!!recovery}
+        savedAt={recovery?.savedAt ?? null}
+        deviceLabel={recovery?.device}
+        onRestore={restoreDraft}
+        onDiscard={dismissDraft}
+      />
+      <VersionHistorySheet
+        open={showVersions}
+        onOpenChange={setShowVersions}
+        entityType="category"
+        entityId={editing?.slug ?? entityId}
+        onRestore={(snap) =>
+          setEditing((prev) => ({ ...(prev ?? {}), ...(snap as Partial<Row>) }))
+        }
+        onDuplicate={(snap) =>
+          setEditing({
+            ...(snap as Partial<Row>),
+            id: undefined,
+            slug: `${(snap as Row).slug ?? "category"}-copy`,
+            status: "draft",
+          })
+        }
+      />
     </AnimatePresence>
   );
 }
+
 
 const input =
   "w-full bg-background border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent";
