@@ -176,8 +176,8 @@ export async function logAdminActivity(
   try {
     await supabase.rpc("log_admin_activity", {
       _action: action,
-      _entity_type: entityType ?? null,
-      _entity_id: entityId ?? null,
+      _entity_type: entityType ?? undefined,
+      _entity_id: entityId ?? undefined,
       _metadata: metadata as never,
     });
   } catch {
