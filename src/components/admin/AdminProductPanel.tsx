@@ -72,6 +72,7 @@ const numOrNull = (v: string): number | null => {
 export function AdminProductPanel({ product }: { product: Product }) {
   const update = useServerFn(adminUpdateProduct);
   const [open, setOpen] = useState(false);
+  const [marketing, setMarketing] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // form state
