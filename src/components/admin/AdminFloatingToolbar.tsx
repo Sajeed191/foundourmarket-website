@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useAdminMode } from "@/lib/admin-mode";
+import { useCommandCenter } from "@/lib/command-center";
+import { Command as CommandIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StorefrontDashboardPanel } from "@/components/admin/StorefrontDashboardPanel";
 import { BulkVisibilityPanel } from "@/components/admin/BulkVisibilityPanel";
