@@ -578,13 +578,14 @@ function Home() {
       <CinematicDivider />
 
       {/* 8 · Social Proof — live engine + verified reviews */}
-      <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto">
-        <Reveal className="text-center mb-8 sm:mb-12">
+      <section className="px-4 sm:px-6 py-8 sm:py-14 max-w-7xl mx-auto">
+        <Reveal className="text-center mb-6 sm:mb-12">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3 inline-flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-accent animate-glow" /> Live Marketplace
           </p>
           <h2 className="text-fluid-2xl font-display tracking-tight">Trusted by buyers worldwide</h2>
         </Reveal>
+
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8 sm:mb-12">
           {[
