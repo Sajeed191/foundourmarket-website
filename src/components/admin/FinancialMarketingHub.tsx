@@ -196,8 +196,10 @@ export function FinancialMarketingHub({ data, focusView }: { data?: FinancialMar
           ))}
         </div>
       )}
+      </div>
 
       {/* Campaign profitability */}
+      <div id="fm-campaigns" className="scroll-mt-24">
       <SubHead icon={<Megaphone className="size-4 text-accent" />} title="Campaign profitability" sub={`${camps.length} campaigns`} />
       <div className="overflow-x-auto no-scrollbar rounded-2xl glass mb-6">
         <table className="w-full text-sm min-w-[640px]">
