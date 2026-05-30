@@ -161,23 +161,9 @@ export const setSeedInAnalytics = createServerFn({ method: "POST" })
     const { userId } = context as { userId: string };
     await assertSeedStaff(userId);
 
-    const { data: existing } = await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("store_settings")
-      .select("id")
-      .limit(1)
-      .maybeSingle();
-
-    if (existing?.id) {
-      const { error } = await supabaseAdmin
-        .from("store_settings")
-        .update({ include_seed_in_analytics: data.include })
-        .eq("id", existing.id);
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await supabaseAdmin
-        .from("store_settings")
-        .insert({ include_seed_in_analytics: data.include });
-      if (error) throw new Error(error.message);
-    }
+      .upsert({ id: true, include_seed_in_analytics: data.include }, { onConflict: "id" });
+    if (error) throw new Error(error.message);
     return { include: data.include };
   });
