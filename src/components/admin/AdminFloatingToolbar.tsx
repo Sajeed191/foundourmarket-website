@@ -16,6 +16,7 @@ import {
   Pencil,
   Activity,
   Layers,
+  LayoutTemplate,
 } from "lucide-react";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useAdminMode } from "@/lib/admin-mode";
