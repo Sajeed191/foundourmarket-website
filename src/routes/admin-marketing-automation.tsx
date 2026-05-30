@@ -31,6 +31,7 @@ export const Route = createFileRoute("/admin-marketing-automation")({
 type Tab = "dashboard" | "campaigns" | "automations" | "recommendations";
 
 const REGION_LABEL: Record<RegionScope, string> = { all: "All regions", india: "India", international: "International" };
+const MKT_ROLES = ["admin", "super_admin", "manager", "editor"] as const;
 
 function MarketingAutomationPage() {
   const nav = useNavigate();
