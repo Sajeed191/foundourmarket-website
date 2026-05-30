@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_locks: {
+        Row: {
+          created_at: string
+          id: string
+          locked: boolean
+          locked_by: string | null
+          reason: string | null
+          severity: string
+          unlocked_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          locked?: boolean
+          locked_by?: string | null
+          reason?: string | null
+          severity?: string
+          unlocked_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          locked?: boolean
+          locked_by?: string | null
+          reason?: string | null
+          severity?: string
+          unlocked_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       addresses: {
         Row: {
           address_type: string
@@ -1108,6 +1144,102 @@ export type Database = {
           name?: string
           product_slugs?: string[]
           starts_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fraud_actions: {
+        Row: {
+          action: string
+          actor_id: string
+          alert_id: string | null
+          created_at: string
+          fraud_type: string | null
+          id: string
+          metadata: Json
+          severity: string | null
+          subject_id: string | null
+          subject_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string
+          alert_id?: string | null
+          created_at?: string
+          fraud_type?: string | null
+          id?: string
+          metadata?: Json
+          severity?: string | null
+          subject_id?: string | null
+          subject_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          alert_id?: string | null
+          created_at?: string
+          fraud_type?: string | null
+          id?: string
+          metadata?: Json
+          severity?: string | null
+          subject_id?: string | null
+          subject_type?: string | null
+        }
+        Relationships: []
+      }
+      fraud_alerts: {
+        Row: {
+          created_at: string
+          detail: string | null
+          evidence: Json
+          fraud_type: string
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          score: number
+          severity: string
+          signal_key: string
+          status: string
+          subject_id: string | null
+          subject_label: string | null
+          subject_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          evidence?: Json
+          fraud_type: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          score?: number
+          severity?: string
+          signal_key: string
+          status?: string
+          subject_id?: string | null
+          subject_label?: string | null
+          subject_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          evidence?: Json
+          fraud_type?: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          score?: number
+          severity?: string
+          signal_key?: string
+          status?: string
+          subject_id?: string | null
+          subject_label?: string | null
+          subject_type?: string
+          title?: string
           updated_at?: string
         }
         Relationships: []
@@ -3868,6 +4000,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_security_admin: { Args: { _user_id?: string }; Returns: boolean }
+      is_security_staff: { Args: { _user_id?: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id?: string }; Returns: boolean }
       log_admin_activity: {
         Args: {
