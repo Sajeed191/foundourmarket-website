@@ -147,7 +147,7 @@ function MarketingAutomationPage() {
           <DashboardTab kpis={kpis} alerts={alerts} tops={tops} upcoming={upcoming} audiences={audiences} region={region} onSelectTemplate={(k) => setCreating({ templateKey: k })} />
         )}
         {tab === "campaigns" && (
-          <CampaignsTab campaigns={filteredCampaigns} onChanged={load} />
+          <CampaignsTab campaigns={filteredCampaigns} onChanged={load} focusId={focusCampaign} />
         )}
         {tab === "automations" && (
           <AutomationsTab intel={intel} onChanged={load} />
