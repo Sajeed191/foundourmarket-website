@@ -15,6 +15,7 @@ import { scaleCampaign, pauseFinancialCampaign, launchProfitCampaign } from "@/l
 import { logActivity } from "@/components/admin/AdminShell";
 import { cn } from "@/lib/utils";
 import { AISummaryCard } from "@/components/admin/AISummaryCard";
+import { SecuritySummaryCard } from "@/components/admin/SecuritySummaryCard";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const money = (n: number, c = "USD") =>
