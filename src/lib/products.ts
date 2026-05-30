@@ -182,7 +182,7 @@ export function rowToProduct(r: Row): Product {
   };
 }
 
-const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty,status,cost_price_inr,cost_price_usd,shipping_fee_inr,shipping_fee_usd,razorpay_enabled,stripe_enabled,paypal_enabled,cod_enabled,return_eligible,replacement_eligible,return_window_days,pickup_supported,international_shipping,fragile,customs_info,barcode,warehouse_location,restock_eta,preorder,reserved_quantity,scheduled_publish_at,scheduled_expiry_at";
+const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,sold_count,wishlist_count,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty,status,cost_price_inr,cost_price_usd,shipping_fee_inr,shipping_fee_usd,razorpay_enabled,stripe_enabled,paypal_enabled,cod_enabled,return_eligible,replacement_eligible,return_window_days,pickup_supported,international_shipping,fragile,customs_info,barcode,warehouse_location,restock_eta,preorder,reserved_quantity,scheduled_publish_at,scheduled_expiry_at";
 
 
 export async function fetchProducts(): Promise<Product[]> {
