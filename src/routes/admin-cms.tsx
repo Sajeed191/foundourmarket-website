@@ -190,9 +190,20 @@ function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
   );
 }
 
-function PageEditor({ editing, setEditing, save, del }: any) {
+function PageEditor({ editing, setEditing, save, del, protection, entityId, onClose }: any) {
   return (
     <div className="space-y-4 p-6 border border-border rounded-2xl">
+      <EditorSaveBar
+        state={protection.state}
+        lastSavedAt={protection.lastSavedAt}
+        recovery={protection.recovery}
+        onRestore={() => { const d = protection.restoreDraft(); if (d) setEditing(d); }}
+        onDismiss={() => void protection.dismissDraft()}
+        entityType="cms_page"
+        entityId={entityId}
+        onRestoreVersion={(snap: any) => setEditing({ ...editing, ...snap })}
+        onDuplicateVersion={(snap: any) => setEditing({ ...snap, id: undefined })}
+      />
       <p className="text-[11px] text-muted-foreground -mt-1">Edits are saved as a draft. Click <span className="text-accent font-mono">Publish</span> on the page card to go live.</p>
       <Field label="Slug"><input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className={inputCls} placeholder="about" /></Field>
       <Field label="Title"><input value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className={inputCls} /></Field>
