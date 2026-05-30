@@ -240,6 +240,58 @@ export function groupByCategory(recs: AIRecommendation[]): Record<AICategory, AI
   return g;
 }
 
+/* ---------------------------------------------------------- feedback loop */
+
+export type FeedbackVote = "helpful" | "not_helpful" | "incorrect" | "already_handled";
+
+export type FeedbackTally = Record<FeedbackVote, number>;
+
+export const FEEDBACK_META: Record<FeedbackVote, { label: string; tone: string }> = {
+  helpful:         { label: "Helpful",         tone: "text-emerald-300 border-emerald-400/40 bg-emerald-400/10" },
+  not_helpful:     { label: "Not Helpful",     tone: "text-amber-300 border-amber-400/40 bg-amber-400/10" },
+  incorrect:       { label: "Incorrect",       tone: "text-rose-300 border-rose-400/40 bg-rose-400/10" },
+  already_handled: { label: "Already Handled", tone: "text-muted-foreground border-border bg-white/5" },
+};
+
+/** Net feedback signal for ranking: helpful boosts, negatives demote. */
+export function feedbackScore(tally?: FeedbackTally): number {
+  if (!tally) return 0;
+  return tally.helpful * 2 - tally.not_helpful - tally.incorrect * 2;
+}
+
+/**
+ * Stable re-rank of recommendations using the persisted feedback signal,
+ * keeping priority/impact as the primary order. Recommendations admins have
+ * marked helpful float up; ones marked not-helpful/incorrect sink.
+ */
+export function rankByFeedback(
+  recs: AIRecommendation[],
+  feedback: Record<string, FeedbackTally>,
+): AIRecommendation[] {
+  return [...recs].sort((a, b) => {
+    const pr = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
+    if (pr !== 0) return pr;
+    const fb = feedbackScore(feedback[b.key]) - feedbackScore(feedback[a.key]);
+    if (fb !== 0) return fb;
+    return b.impact - a.impact;
+  });
+}
+
+/** Maps a ?view= deep-link param to the in-page anchor + which tab to show. */
+export const VIEW_TO_ANCHOR: Record<string, { tab: "actions" | "assistants" | "briefing" | "outcomes"; anchor: string }> = {
+  critical:      { tab: "actions", anchor: "cat-critical" },
+  risks:         { tab: "actions", anchor: "cat-risk" },
+  opportunities: { tab: "actions", anchor: "cat-profit" },
+  profit:        { tab: "actions", anchor: "cat-profit" },
+  growth:        { tab: "actions", anchor: "cat-growth" },
+  efficiency:    { tab: "actions", anchor: "cat-efficiency" },
+  recommendations: { tab: "actions", anchor: "recommendations" },
+  assistants:    { tab: "assistants", anchor: "assistants" },
+  briefing:      { tab: "briefing", anchor: "briefing" },
+  weekly:        { tab: "briefing", anchor: "weekly" },
+  outcomes:      { tab: "outcomes", anchor: "outcomes" },
+};
+
 /* ----------------------------------------------------- system assistants */
 
 export type AssistantGroup = { system: AISystem; label: string; recs: AIRecommendation[] };

@@ -118,6 +118,19 @@ export const QUICK_ACTIONS: QuickAction[] = [
   { id: "qa-exec-regions", group: "System", icon: "Globe", label: "Show Regional Intelligence", to: "/admin-executive?view=regions", roles: MANAGER, action: "cmd_exec_regions", keywords: "regional intelligence region revenue profit margin geography zones" },
   { id: "qa-exec-timeline", group: "System", icon: "Activity", label: "Show Executive Timeline", to: "/admin-executive?view=timeline", roles: MANAGER, action: "cmd_exec_timeline", keywords: "executive timeline events orders returns admin activity feed" },
   { id: "qa-exec-snapshot", group: "System", icon: "Gauge", label: "Show Business Snapshot", to: "/admin-executive?view=snapshot", roles: MANAGER, action: "cmd_exec_snapshot", keywords: "business snapshot today revenue profit orders new customers refunds" },
+  // AI Commerce Operations Assistant
+  { id: "qa-ai-open", group: "System", icon: "Sparkles", label: "Open AI Operations", to: "/admin-ai-operations", roles: MANAGER, action: "cmd_ai_open", keywords: "ai operations assistant commerce recommendations business recommendations operational layer" },
+  { id: "qa-ai-critical", group: "System", icon: "AlertTriangle", label: "Show Critical Actions", to: "/admin-ai-operations?view=critical", roles: MANAGER, action: "cmd_ai_critical", keywords: "ai critical actions urgent must do priority emergency" },
+  { id: "qa-ai-risks", group: "System", icon: "AlertTriangle", label: "Show AI Risks", to: "/admin-ai-operations?view=risks", roles: MANAGER, action: "cmd_ai_risks", keywords: "ai risks alerts threats warnings problems" },
+  { id: "qa-ai-opportunities", group: "System", icon: "Sparkles", label: "Show AI Opportunities", to: "/admin-ai-operations?view=opportunities", roles: MANAGER, action: "cmd_ai_opportunities", keywords: "ai opportunities profit growth upside recommendations" },
+  { id: "qa-ai-profit", group: "System", icon: "TrendingUp", label: "Show Profit Opportunities", to: "/admin-ai-operations?view=profit", roles: MANAGER, action: "cmd_ai_profit", keywords: "ai profit opportunities margin high margin scale winners" },
+  { id: "qa-ai-growth", group: "System", icon: "Sparkles", label: "Show Growth Opportunities", to: "/admin-ai-operations?view=growth", roles: MANAGER, action: "cmd_ai_growth", keywords: "ai growth opportunities scale spend expand revenue" },
+  { id: "qa-ai-briefing", group: "System", icon: "FileText", label: "Generate Executive Briefing", to: "/admin-ai-operations?view=briefing", roles: MANAGER, action: "cmd_ai_briefing", keywords: "executive daily briefing summary what happened changed" },
+  { id: "qa-ai-weekly", group: "System", icon: "Activity", label: "Generate Weekly Report", to: "/admin-ai-operations?view=weekly", roles: MANAGER, action: "cmd_ai_weekly", keywords: "weekly report executive growth profit customer inventory marketing" },
+  { id: "qa-ai-inventory", group: "System", icon: "Boxes", label: "Show Inventory Recommendations", to: "/admin-ai-operations?view=assistants", roles: MANAGER, action: "cmd_ai_inventory", keywords: "ai inventory recommendations restock clearance overstock assistant" },
+  { id: "qa-ai-customer", group: "System", icon: "Users", label: "Show Customer Recommendations", to: "/admin-ai-operations?view=assistants", roles: MANAGER, action: "cmd_ai_customer", keywords: "ai customer recommendations churn vip retention assistant" },
+  { id: "qa-ai-marketing", group: "System", icon: "Megaphone", label: "Show Marketing Recommendations", to: "/admin-ai-operations?view=assistants", roles: MANAGER, action: "cmd_ai_marketing", keywords: "ai marketing recommendations campaign scale pause assistant" },
+  { id: "qa-ai-financial", group: "System", icon: "Wallet", label: "Show Financial Recommendations", to: "/admin-ai-operations?view=assistants", roles: MANAGER, action: "cmd_ai_financial", keywords: "ai financial recommendations margin roi profit assistant" },
   { id: "qa-activity", group: "System", icon: "Activity", label: "Activity log", to: "/admin-activity", roles: ["admin", "super_admin"], action: "cmd_activity_log", keywords: "audit" },
   { id: "qa-dashboard", group: "System", icon: "LayoutDashboard", label: "Dashboard", to: "/admin", roles: ["admin", "super_admin", "manager", "support", "editor", "fulfillment", "warehouse_staff"], action: "cmd_dashboard" },
 ];
@@ -176,6 +189,17 @@ export function interpretNaturalLanguage(q: string): string | null {
     return "qa-prod-marketing";
   }
   if (s.includes("feature") && s.includes("product")) return "qa-prod-feature";
+  // AI Operations natural language (before executive/financial blocks)
+  if (s.includes("ai operation") || s.includes("ai assistant") || (s.includes("ai") && s.includes("recommendation")) || s.includes("business recommendation")) return "qa-ai-open";
+  if (s.includes("critical action")) return "qa-ai-critical";
+  if (s.includes("executive briefing") || (s.includes("daily") && s.includes("briefing"))) return "qa-ai-briefing";
+  if (s.includes("weekly report")) return "qa-ai-weekly";
+  if (s.includes("growth opportunit")) return "qa-ai-growth";
+  if (s.includes("profit opportunit")) return "qa-ai-profit";
+  if (s.includes("inventory recommendation")) return "qa-ai-inventory";
+  if (s.includes("customer recommendation")) return "qa-ai-customer";
+  if (s.includes("marketing recommendation")) return "qa-ai-marketing";
+  if (s.includes("financial recommendation")) return "qa-ai-financial";
   // Executive Business Intelligence natural language (before financial executive block)
   if (s.includes("ceo") || s.includes("owner dashboard") || (s.includes("executive") && s.includes("dashboard"))) return "qa-exec-open";
   if ((s.includes("business") || s.includes("company")) && s.includes("health")) return "qa-exec-health";

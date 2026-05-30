@@ -1,5 +1,5 @@
 import {
-  Bell, Package, Truck, CreditCard, LifeBuoy, Tag, ShieldAlert, Crown,
+  Bell, Package, Truck, CreditCard, LifeBuoy, Tag, ShieldAlert, Crown, Sparkles,
 } from "lucide-react";
 import type { NotificationCategory } from "@/lib/notifications";
 
@@ -13,12 +13,13 @@ export const CAT_META: Record<
   support: { label: "Support", Icon: LifeBuoy, tone: "text-violet-400 border-violet-400/40 bg-violet-400/10", dot: "bg-violet-400" },
   promotion: { label: "Promotions", Icon: Tag, tone: "text-pink-400 border-pink-400/40 bg-pink-400/10", dot: "bg-pink-400" },
   executive: { label: "Executive", Icon: Crown, tone: "text-accent border-accent/40 bg-accent/10", dot: "bg-accent" },
+  ai: { label: "AI Operations", Icon: Sparkles, tone: "text-teal-300 border-teal-400/40 bg-teal-400/10", dot: "bg-teal-400" },
   system: { label: "System", Icon: ShieldAlert, tone: "text-rose-400 border-rose-400/40 bg-rose-400/10", dot: "bg-rose-400" },
   other: { label: "General", Icon: Bell, tone: "text-muted-foreground border-border bg-white/5", dot: "bg-muted-foreground" },
 };
 
 export const CATEGORY_ORDER: NotificationCategory[] = [
-  "order", "shipping", "payment", "support", "promotion", "executive", "system",
+  "order", "shipping", "payment", "support", "promotion", "executive", "ai", "system",
 ];
 
 export function timeAgo(iso: string) {

@@ -14,6 +14,7 @@ import {
 import { scaleCampaign, pauseFinancialCampaign, launchProfitCampaign } from "@/lib/financial-marketing";
 import { logActivity } from "@/components/admin/AdminShell";
 import { cn } from "@/lib/utils";
+import { AISummaryCard } from "@/components/admin/AISummaryCard";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const money = (n: number, c = "USD") =>
@@ -194,6 +195,11 @@ export function ExecutiveDashboard({ focusView }: { focusView?: string }) {
         <button onClick={exportCSV} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-mono uppercase tracking-widest bg-white/[0.04] border border-white/[0.08] hover:border-accent/30 transition-all active:scale-95"><Download className="size-3" /> CSV</button>
         <button onClick={exportPDF} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-mono uppercase tracking-widest bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25 transition-all active:scale-95"><FileText className="size-3" /> Board Report</button>
       </div>
+
+      {/* AI Operations summary */}
+      <AISummaryCard />
+
+
 
       {/* scorecard */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
