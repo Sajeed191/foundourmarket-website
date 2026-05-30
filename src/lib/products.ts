@@ -147,6 +147,8 @@ export function rowToProduct(r: Row): Product {
     lowStockThreshold: r.low_stock_threshold ?? 5,
     viewsCount: r.views_count ?? 0,
     createdAt: r.created_at ?? "",
+    soldCount: r.sold_count ?? 0,
+    wishlistCount: r.wishlist_count ?? 0,
     priceInr: num(r.price_inr),
     comparePriceInr: num(r.compare_price_inr),
     priceUsd: num(r.price_usd),
