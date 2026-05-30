@@ -301,5 +301,26 @@ export function AdminCommandCenter() {
         </Command>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={!!confirmCmd} onOpenChange={(o) => { if (!o) setConfirmCmd(null); }}>
+      <DialogContent className="max-w-md">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Icon name={confirmCmd?.icon} className={`size-5 ${confirmCmd?.danger ? "text-rose-400" : "text-accent"}`} />
+            <h3 className="text-sm font-display font-semibold">{confirmCmd?.label}</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">{confirmCmd?.confirm}</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setConfirmCmd(null)} disabled={running}
+              className="h-9 px-3 rounded-xl bg-card border border-border text-xs hover:border-accent/40">Cancel</button>
+            <button onClick={executeAutoCommand} disabled={running}
+              className={`h-9 px-3 rounded-xl text-xs font-medium inline-flex items-center gap-2 ${confirmCmd?.danger ? "bg-rose-500 text-white" : "bg-accent text-accent-foreground"} disabled:opacity-50`}>
+              {running ? <Loader2 className="size-3.5 animate-spin" /> : null} Confirm
+            </button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
