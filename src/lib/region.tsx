@@ -349,33 +349,50 @@ export function RegionProvider({ children }: { children: ReactNode }) {
 
   const lockMarket = useCallback(
     async (region: MarketRegion) => {
+      void track("region_locked", {
+        metadata: { region, source: "manual", confidence },
+      });
       if (user) {
         const res = await lockFn({ data: { region, countryCode } });
         setMarket(res.region);
         setLocked(true);
         setNeedsSelection(false);
-        if (typeof window !== "undefined") {
-          localStorage.setItem(LS_KEY, res.region);
-          localStorage.removeItem(GUEST_CHOICE_KEY);
-        }
+        setSoftConfirm(false);
+        persistRegion(res.region);
+        if (typeof window !== "undefined") localStorage.removeItem(GUEST_CHOICE_KEY);
         return;
       }
       // Guest: persist the explicit choice so it's inherited on login.
       setMarket(region);
       setNeedsSelection(false);
+      setSoftConfirm(false);
       setAutoDetected(false);
-      if (typeof window !== "undefined") {
-        localStorage.setItem(LS_KEY, region);
-        localStorage.setItem(GUEST_CHOICE_KEY, region);
-      }
+      persistRegion(region);
+      if (typeof window !== "undefined") localStorage.setItem(GUEST_CHOICE_KEY, region);
     },
-    [user, lockFn, countryCode],
+    [user, lockFn, countryCode, confidence],
   );
+
+  // Accept the detected region from the lightweight (70–89) confirmation.
+  const confirmDetectedRegion = useCallback(async () => {
+    void track("region_confirmed", {
+      metadata: { region: market, confidence, source: "soft-confirm" },
+    });
+    await lockMarket(market);
+  }, [lockMarket, market, confidence]);
+
+  // Reject the lightweight confirmation → escalate to the full picker.
+  const rejectDetectedRegion = useCallback(() => {
+    void track("region_override", { metadata: { from: market, confidence } });
+    setSoftConfirm(false);
+    setNeedsSelection(true);
+  }, [market, confidence]);
 
   // Admin-only market preview (no lock, no persistence).
   const setPreviewMarket = useCallback((region: MarketRegion) => {
     setMarket(region);
   }, []);
+
 
   const currency: Currency = market === "india" ? "INR" : "USD";
   const symbol = currency === "INR" ? "₹" : "$";
