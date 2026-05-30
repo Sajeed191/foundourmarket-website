@@ -82,6 +82,11 @@ export function interpretNaturalLanguage(q: string): string | null {
   if ((s.includes("create") || s.includes("new") || s.includes("launch")) && (s.includes("flash") || s.includes("sale"))) return "qa-flash-sale";
   if ((s.includes("create") || s.includes("new") || s.includes("add")) && s.includes("product")) return "qa-create-product";
   if (s.includes("forecast") || s.includes("predict")) return "qa-inv-intel";
+  if (s.includes("vip")) return "qa-cust-vip";
+  if (s.includes("churn") || (s.includes("at risk") && s.includes("customer")) || s.includes("at-risk")) return "qa-cust-risk";
+  if ((s.includes("high value") || s.includes("high-value") || s.includes("big spender")) && !s.includes("product")) return "qa-cust-highvalue";
+  if (s.includes("new customer")) return "qa-cust-new";
+  if (s.includes("loyal") || s.includes("customer insight") || s.includes("customer intelligence")) return "qa-cust-intel";
   if (s.includes("refund") || s.includes("return")) return "qa-returns";
   if (test("revenue") || test("financial") || test("money")) return "qa-financial";
   return null;
