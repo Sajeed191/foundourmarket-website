@@ -186,8 +186,10 @@ export function blendDetection(
   }
 
   const total = indiaPts + intlPts;
-  const region: MarketRegion = indiaPts >= intlPts ? "india" : "international";
+  // On a genuine tie (incl. zero signals) fall back to international, never india.
+  const region: MarketRegion = indiaPts > intlPts ? "india" : "international";
   const winning = Math.max(indiaPts, intlPts);
+
 
   // Confidence = how dominant the winning side is, scaled by absolute strength.
   let confidence = total > 0 ? Math.round((winning / total) * 100) : 35;
