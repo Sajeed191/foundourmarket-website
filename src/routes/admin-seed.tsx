@@ -88,25 +88,25 @@ function SeedPage() {
     } catch (e: any) { toast.error(e.message ?? "Update failed"); }
   }
 
-  const counts = status?.counts ?? ({} as Record<string, number>);
+  const counts = (status?.counts ?? {}) as Record<string, number>;
 
   return (
-    <AdminShell>
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold flex items-center gap-2">
-              <Database className="size-5 text-accent" /> Seed data
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-              Populate every dashboard with realistic activity. All seeded rows are flagged and 100% removable.
-              Real customers, orders, payments and financial reports are never affected.
-            </p>
-          </div>
-          <button onClick={load} className="shrink-0 inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-border hover:bg-muted">
-            <RefreshCw className="size-3.5" /> Refresh
-          </button>
-        </header>
+    <AdminShell
+      title="Seed data"
+      subtitle="Populate dashboards with realistic, fully removable activity"
+      allow={["admin", "super_admin", "manager"]}
+      actions={
+        <button onClick={load} className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-border hover:bg-muted">
+          <RefreshCw className="size-3.5" /> Refresh
+        </button>
+      }
+    >
+      <div className="max-w-4xl mx-auto space-y-6">
+        <p className="text-sm text-muted-foreground max-w-xl">
+          All seeded rows are flagged and 100% removable. Real customers, orders, payments and
+          financial reports are never affected.
+        </p>
+
 
         {/* Analytics toggle */}
         <div className="rounded-xl border border-border p-4 flex items-center justify-between gap-4">
