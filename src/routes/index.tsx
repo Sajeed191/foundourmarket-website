@@ -283,6 +283,10 @@ function Home() {
     [recentSlugs, products]
   );
 
+  const { items: testimonials } = useTestimonials();
+
+
+
 
   return (
     <>
