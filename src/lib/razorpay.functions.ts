@@ -3,11 +3,16 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
-  USD_TO_INR,
   getRazorpayCreds,
   rzpFetch,
   verifyPaymentSignature,
 } from "./razorpay.server";
+import {
+  type Region,
+  computeOrderTotals,
+  roundMoney,
+  toMinorUnits,
+} from "./pricing";
 import { enqueueOrderEmail } from "./order-emails.server";
 
 const lineItemSchema = z.object({
