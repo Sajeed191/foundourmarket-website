@@ -5,14 +5,15 @@ export type HomepageSection = {
   key: string;
   eyebrow: string;
   title: string;
+  active: boolean;
 };
 
 export type SectionMap = Record<string, HomepageSection>;
 
 const DEFAULTS: SectionMap = {
-  trending: { key: "trending", eyebrow: "Hot Right Now", title: "Trending Products" },
-  recommended: { key: "recommended", eyebrow: "Curated For You", title: "Recommended Products" },
-  new_arrivals: { key: "new_arrivals", eyebrow: "Just Landed", title: "New Arrivals" },
+  trending: { key: "trending", eyebrow: "Hot Right Now", title: "Trending Products", active: true },
+  recommended: { key: "recommended", eyebrow: "Curated For You", title: "Recommended Products", active: true },
+  new_arrivals: { key: "new_arrivals", eyebrow: "Just Landed", title: "New Arrivals", active: true },
 };
 
 let cache: SectionMap | null = null;
