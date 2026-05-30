@@ -250,26 +250,6 @@ function ProductsInner() {
   function toggleSelect(id: string) {
     setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
-  async function bulk(action: "activate" | "deactivate" | "feature" | "unfeature" | "delete") {
-    const ids = [...selected];
-    if (!ids.length) return;
-    if (action === "delete" && !confirm(`Delete ${ids.length} products?`)) return;
-    setBusy("bulk");
-    let error = null as { message: string } | null;
-    if (action === "delete") ({ error } = await supabase.from("products").delete().in("id", ids));
-    else {
-      const patch = action === "activate" ? { in_stock: true } : action === "deactivate" ? { in_stock: false }
-        : action === "feature" ? { featured: true } : { featured: false };
-      ({ error } = await supabase.from("products").update(patch).in("id", ids));
-    }
-    setBusy(null);
-    if (error) { toast.error(error.message); return; }
-    logActivity(`bulk_${action}`, "product", undefined, { count: ids.length });
-    invalidateProducts();
-    setSelected(new Set());
-    toast.success(`${ids.length} products updated`);
-    loadProducts();
-  }
 
   // ---- Derived ----
   const kpis = useMemo(() => {
