@@ -22,6 +22,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
