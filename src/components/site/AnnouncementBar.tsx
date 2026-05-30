@@ -75,9 +75,10 @@ export function AnnouncementBar({ page = "home" }: { page?: string }) {
         const now = Date.now();
         const valid = ((data as Announcement[]) ?? []).filter(
           (a) =>
-            a.active &&
-            (!a.starts_at || new Date(a.starts_at).getTime() <= now) &&
-            (!a.ends_at || new Date(a.ends_at).getTime() >= now) &&
+            (canEdit ||
+              (a.active &&
+                (!a.starts_at || new Date(a.starts_at).getTime() <= now) &&
+                (!a.ends_at || new Date(a.ends_at).getTime() >= now))) &&
             (a.pages.length === 0 || a.pages.includes(page)),
         );
         setItems(valid.length ? valid : loaded ? [] : FALLBACK);
