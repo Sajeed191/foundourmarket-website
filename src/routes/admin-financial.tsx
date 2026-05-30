@@ -27,6 +27,7 @@ export const Route = createFileRoute("/admin-financial")({
       { name: "description", content: "Profit & loss, refunds, taxes, shipping and operational earnings — real-time commerce intelligence." },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>) => ({ view: typeof s.view === "string" ? s.view : undefined }),
   component: FinancialPage,
 });
 
