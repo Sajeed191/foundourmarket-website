@@ -96,15 +96,17 @@ function CinematicDivider() {
   );
 }
 
-function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All", sectionKey, editable }: { eyebrow: string; title: string; icon?: React.ComponentType<{ className?: string }>; href?: string; hrefLabel?: string; sectionKey?: string; editable?: boolean }) {
+function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All", sectionKey, editable, active = true }: { eyebrow: string; title: string; icon?: React.ComponentType<{ className?: string }>; href?: string; hrefLabel?: string; sectionKey?: string; editable?: boolean; active?: boolean }) {
   const [editing, setEditing] = useState(false);
   const [draftEyebrow, setDraftEyebrow] = useState(eyebrow);
   const [draftTitle, setDraftTitle] = useState(title);
+  const [draftActive, setDraftActive] = useState(active);
   const [saving, setSaving] = useState(false);
 
   function open() {
     setDraftEyebrow(eyebrow);
     setDraftTitle(title);
+    setDraftActive(active);
     setEditing(true);
   }
 
@@ -115,8 +117,9 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
       await saveHomepageSection(sectionKey, {
         eyebrow: draftEyebrow.trim() || eyebrow,
         title: draftTitle.trim() || title,
+        active: draftActive,
       });
-      toast.success("Section heading updated");
+      toast.success("Section updated");
       setEditing(false);
     } catch (e) {
       toast.error("Save failed", { description: e instanceof Error ? e.message : "Try again." });
