@@ -393,9 +393,10 @@ export const placeCodOrder = createServerFn({ method: "POST" })
       claims?: { email?: string };
     };
 
-    const priced = await repriceFromDb(supabase, data.items, data.promoCode);
-    if (priced.inr.totalINR < 1) {
-      throw new Error("Order total must be at least ₹1.");
+    const region = await resolveRegion(supabase, userId);
+    const priced = await repriceFromDb(supabase, region, data.items, data.promoCode);
+    if (priced.totals.total < 1) {
+      throw new Error("Order total is too low to process.");
     }
 
     // Load shipping address (RLS guarantees ownership of the row)
@@ -406,19 +407,19 @@ export const placeCodOrder = createServerFn({ method: "POST" })
       .maybeSingle();
     if (addrErr || !addr) throw new Error("Shipping address not found.");
 
-    // Create the order with server-computed INR figures
+    // Create the order with server-computed, region-native figures
     const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
       .insert({
         user_id: userId,
         status: "confirmed",
-        currency: "INR",
-        subtotal: priced.inr.subtotalINR,
-        shipping: priced.inr.shippingINR,
-        tax: priced.inr.taxINR,
-        discount: priced.inr.discountINR,
+        currency: priced.totals.currency,
+        subtotal: priced.totals.subtotal,
+        shipping: priced.totals.shipping,
+        tax: priced.totals.tax,
+        discount: priced.totals.discount,
         promo_code: priced.appliedPromo,
-        total: priced.inr.totalINR,
+        total: priced.totals.total,
         contact_email: claims?.email ?? null,
         shipping_address: addr,
         payment_method: "cod",
@@ -428,19 +429,16 @@ export const placeCodOrder = createServerFn({ method: "POST" })
       .single();
     if (oErr || !order) throw new Error("Could not create order.");
 
-    // Snapshot line items with trusted, server-computed prices
-    const orderItems = priced.lines.map((l) => {
-      const unitInr = Math.round(l.unitUsd * USD_TO_INR);
-      return {
-        order_id: order.id,
-        product_slug: l.slug,
-        name: l.name,
-        image: l.image,
-        unit_price: unitInr,
-        quantity: l.qty,
-        line_total: unitInr * l.qty,
-      };
-    });
+    // Snapshot line items with trusted, server-computed region-native prices
+    const orderItems = priced.lines.map((l) => ({
+      order_id: order.id,
+      product_slug: l.slug,
+      name: l.name,
+      image: l.image,
+      unit_price: l.unit,
+      quantity: l.qty,
+      line_total: l.lineTotal,
+    }));
     const { error: oiErr } = await supabaseAdmin.from("order_items").insert(orderItems);
     if (oiErr) {
       await supabaseAdmin
