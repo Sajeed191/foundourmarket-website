@@ -36,6 +36,7 @@ import { Route as AdminSecurityRouteImport } from './routes/admin-security'
 import { Route as AdminSearchRouteImport } from './routes/admin-search'
 import { Route as AdminReturnsRouteImport } from './routes/admin-returns'
 import { Route as AdminReportsRouteImport } from './routes/admin-reports'
+import { Route as AdminRegionRouteImport } from './routes/admin-region'
 import { Route as AdminProductsRouteImport } from './routes/admin-products'
 import { Route as AdminPaymentsRouteImport } from './routes/admin-payments'
 import { Route as AdminOrdersOpsRouteImport } from './routes/admin-orders-ops'
@@ -228,6 +229,11 @@ const AdminReturnsRoute = AdminReturnsRouteImport.update({
 const AdminReportsRoute = AdminReportsRouteImport.update({
   id: '/admin-reports',
   path: '/admin-reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRegionRoute = AdminRegionRouteImport.update({
+  id: '/admin-region',
+  path: '/admin-region',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
@@ -560,6 +566,7 @@ export interface FileRoutesByFullPath {
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
   '/admin-products': typeof AdminProductsRoute
+  '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
@@ -647,6 +654,7 @@ export interface FileRoutesByTo {
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
   '/admin-products': typeof AdminProductsRoute
+  '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
@@ -735,6 +743,7 @@ export interface FileRoutesById {
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
   '/admin-products': typeof AdminProductsRoute
+  '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
   '/admin-search': typeof AdminSearchRoute
@@ -824,6 +833,7 @@ export interface FileRouteTypes {
     | '/admin-orders-ops'
     | '/admin-payments'
     | '/admin-products'
+    | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
     | '/admin-search'
@@ -911,6 +921,7 @@ export interface FileRouteTypes {
     | '/admin-orders-ops'
     | '/admin-payments'
     | '/admin-products'
+    | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
     | '/admin-search'
@@ -998,6 +1009,7 @@ export interface FileRouteTypes {
     | '/admin-orders-ops'
     | '/admin-payments'
     | '/admin-products'
+    | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
     | '/admin-search'
@@ -1086,6 +1098,7 @@ export interface RootRouteChildren {
   AdminOrdersOpsRoute: typeof AdminOrdersOpsRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminRegionRoute: typeof AdminRegionRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminReturnsRoute: typeof AdminReturnsRoute
   AdminSearchRoute: typeof AdminSearchRoute
@@ -1330,6 +1343,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-reports'
       fullPath: '/admin-reports'
       preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-region': {
+      id: '/admin-region'
+      path: '/admin-region'
+      fullPath: '/admin-region'
+      preLoaderRoute: typeof AdminRegionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-products': {
@@ -1801,6 +1821,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminOrdersOpsRoute: AdminOrdersOpsRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminRegionRoute: AdminRegionRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminReturnsRoute: AdminReturnsRoute,
   AdminSearchRoute: AdminSearchRoute,
