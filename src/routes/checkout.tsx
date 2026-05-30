@@ -279,9 +279,21 @@ function CheckoutPage() {
       setError(service?.message ?? "This address isn't serviceable yet.");
       return;
     }
+    import("@/lib/visitor").then((m) => m.trackEvent("checkout_start", {
+      value: totalINR, metadata: { pay_method: payMethod },
+    })).catch(() => {});
     if (payMethod === "cod") placeCod();
     else payWithRazorpay();
   };
+
+  useEffect(() => {
+    if (stage === "success") {
+      import("@/lib/visitor").then((m) => m.trackEvent("purchase", {
+        value: totalINR, metadata: { order_id: orderId, pay_method: payMethod },
+      })).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
 
   const busy = stage === "processing" || stage === "verifying";
   const ctaLabel = stage === "processing"
