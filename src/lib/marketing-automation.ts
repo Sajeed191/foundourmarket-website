@@ -542,3 +542,83 @@ export const STATUS_COLOR: Record<CampaignStatus, string> = {
 };
 
 export { regionalStats, segmentStats };
+
+/* ============================================================
+ * Execution Engine (P1) — client helpers
+ * ========================================================== */
+
+export type AutomationExecution = {
+  id: string;
+  run_id: string;
+  automation_id: string | null;
+  trigger_key: string;
+  status: "success" | "skipped" | "failed";
+  matched_count: number;
+  action_taken: string | null;
+  summary: string | null;
+  details: Record<string, unknown>;
+  error: string | null;
+  campaign_id: string | null;
+  triggered_by: "cron" | "manual";
+  actor_id: string | null;
+  created_at: string;
+};
+
+/** Run the automation engine immediately (staff only, forced). */
+export async function runAutomations(): Promise<{ summary?: Record<string, unknown>; error?: string }> {
+  const { data, error } = await supabase.rpc("run_marketing_automations", {
+    p_force: true,
+    p_triggered_by: "manual",
+  } as never);
+  if (error) return { error: error.message };
+  logActivity("marketing_automation_run", "marketing", undefined, (data ?? {}) as Record<string, unknown>);
+  return { summary: (data ?? {}) as Record<string, unknown> };
+}
+
+/** Load the most recent automation executions for the audit log. */
+export async function fetchExecutions(limit = 100): Promise<AutomationExecution[]> {
+  const { data, error } = await supabase
+    .from("automation_executions")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return [];
+  return ((data as Record<string, unknown>[]) ?? []).map((r) => ({
+    id: r.id as string,
+    run_id: r.run_id as string,
+    automation_id: (r.automation_id as string) ?? null,
+    trigger_key: r.trigger_key as string,
+    status: (r.status as AutomationExecution["status"]) ?? "success",
+    matched_count: Number(r.matched_count) || 0,
+    action_taken: (r.action_taken as string) ?? null,
+    summary: (r.summary as string) ?? null,
+    details: (r.details as Record<string, unknown>) ?? {},
+    error: (r.error as string) ?? null,
+    campaign_id: (r.campaign_id as string) ?? null,
+    triggered_by: (r.triggered_by as AutomationExecution["triggered_by"]) ?? "cron",
+    actor_id: (r.actor_id as string) ?? null,
+    created_at: r.created_at as string,
+  }));
+}
+
+export type ExecutionAnalytics = {
+  totalRuns: number;
+  successful: number;
+  skipped: number;
+  failed: number;
+  actionsTaken: number;
+  matchedTotal: number;
+  lastRunAt: string | null;
+};
+
+export function executionAnalytics(rows: AutomationExecution[]): ExecutionAnalytics {
+  return {
+    totalRuns: rows.length,
+    successful: rows.filter((r) => r.status === "success").length,
+    skipped: rows.filter((r) => r.status === "skipped").length,
+    failed: rows.filter((r) => r.status === "failed").length,
+    actionsTaken: rows.filter((r) => r.action_taken && r.action_taken !== "campaign_exists").length,
+    matchedTotal: rows.reduce((a, r) => a + r.matched_count, 0),
+    lastRunAt: rows.length ? rows[0].created_at : null,
+  };
+}
