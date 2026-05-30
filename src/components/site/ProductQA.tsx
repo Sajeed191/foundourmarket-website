@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { MessageCircleQuestion, Loader2, Send, Trash2, CheckCircle2 } from "lucide-react";
+import { MessageCircleQuestion, Loader2, Send, Trash2, CheckCircle2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
