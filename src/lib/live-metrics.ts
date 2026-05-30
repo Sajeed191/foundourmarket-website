@@ -22,14 +22,18 @@ const startOfToday = () => {
 export async function fetchLiveMetrics(): Promise<LiveMetrics> {
   const today = startOfToday();
   const sessionWindow = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const includeSeed = await includeSeedInAnalytics();
+  const noSeed = <T extends { eq: (c: string, v: unknown) => T }>(q: T): T =>
+    includeSeed ? q : q.eq("is_seeded", false);
 
   const [ordersRes, lowStockRes, subsRes, returnsRes, sessionsRes] = await Promise.all([
-    supabase.from("orders").select("total,currency,status,created_at").gte("created_at", today),
+    noSeed(supabase.from("orders").select("total,currency,status,created_at").gte("created_at", today) as any),
     supabase.from("products").select("stock_quantity,low_stock_threshold"),
     supabase.from("newsletter_subscribers").select("id", { count: "exact", head: true }).gte("created_at", today),
-    supabase.from("returns").select("status").not("status", "in", "(completed,rejected,cancelled)"),
-    supabase.from("page_views").select("session_id").gte("created_at", sessionWindow).limit(1000),
+    noSeed(supabase.from("returns").select("status").not("status", "in", "(completed,rejected,cancelled)") as any),
+    noSeed(supabase.from("page_views").select("session_id").gte("created_at", sessionWindow).limit(1000) as any),
   ]);
+
 
   const orders = (ordersRes.data ?? []) as { total: number; currency: string; status: string }[];
   const products = (lowStockRes.data ?? []) as { stock_quantity: number; low_stock_threshold: number }[];
