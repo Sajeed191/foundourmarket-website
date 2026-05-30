@@ -3365,6 +3365,75 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_search_console: {
+        Row: {
+          clicks: number
+          country: string | null
+          created_at: string
+          ctr: number
+          dimension: string
+          id: string
+          impressions: number
+          keyword: string | null
+          page: string | null
+          position: number
+          snapshot_date: string
+        }
+        Insert: {
+          clicks?: number
+          country?: string | null
+          created_at?: string
+          ctr?: number
+          dimension: string
+          id?: string
+          impressions?: number
+          keyword?: string | null
+          page?: string | null
+          position?: number
+          snapshot_date?: string
+        }
+        Update: {
+          clicks?: number
+          country?: string | null
+          created_at?: string
+          ctr?: number
+          dimension?: string
+          id?: string
+          impressions?: number
+          keyword?: string | null
+          page?: string | null
+          position?: number
+          snapshot_date?: string
+        }
+        Relationships: []
+      }
+      seo_settings: {
+        Row: {
+          created_at: string
+          id: string
+          last_sync_at: string | null
+          last_sync_status: string | null
+          site_url: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          site_url?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          site_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shipment_events: {
         Row: {
           created_at: string
@@ -4896,6 +4965,7 @@ export type Database = {
         }
         Returns: Json
       }
+      svc_seo_intelligence: { Args: { p_since?: string }; Returns: Json }
       svc_set_automation_settings: {
         Args: {
           _actor: string
