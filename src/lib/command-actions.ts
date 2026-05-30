@@ -104,6 +104,14 @@ export function interpretNaturalLanguage(q: string): string | null {
   if (s.includes("new customer")) return "qa-cust-new";
   if (s.includes("loyal") || s.includes("customer insight") || s.includes("customer intelligence")) return "qa-cust-intel";
   if (s.includes("refund") || s.includes("return")) return "qa-returns";
+  // Product ↔ Marketing natural language (check before generic campaign block)
+  if (s.includes("product") && (s.includes("campaign") || s.includes("marketing") || s.includes("promotion") || s.includes("promote"))) {
+    if (s.includes("feature")) return "qa-prod-feature";
+    if (s.includes("campaign")) return "qa-prod-campaigns";
+    if (s.includes("launch") || s.includes("promot")) return "qa-prod-promote";
+    return "qa-prod-marketing";
+  }
+  if (s.includes("feature") && s.includes("product")) return "qa-prod-feature";
   // Marketing automation natural language
   if (s.includes("campaign") || s.includes("automation")) {
     const make = s.includes("create") || s.includes("new") || s.includes("launch") || s.includes("make");
