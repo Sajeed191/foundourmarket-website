@@ -261,6 +261,13 @@ export function RegionProvider({ children }: { children: ReactNode }) {
           }
           setLocked(false);
         }
+      } catch {
+        // Auth/session not ready or detection failed — fall back to a safe
+        // guest state instead of crashing the whole app.
+        if (!cancelled) {
+          setLocked(false);
+          setNeedsSelection(false);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
