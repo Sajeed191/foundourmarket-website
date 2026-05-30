@@ -52,5 +52,5 @@ export const getAcquisitionMetricsFn = createServerFn({ method: "POST" })
       detail: { range: data.range, window: data.attributionWindow },
     });
     if (error) throw new Error(error.message);
-    return (payload ?? null) as unknown;
+    return (payload ?? null) as AcquisitionRaw | null;
   });
