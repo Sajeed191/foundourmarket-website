@@ -21,6 +21,7 @@ import { createRazorpayOrder, verifyRazorpayPayment, cancelRazorpayOrder, placeC
 import { createRazorpayCustomer, syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
 import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpay-loader";
 import { validatePincode, type ServiceabilityResult } from "@/lib/serviceability.functions";
+import { usePaymentGateways } from "@/lib/use-payment-gateways";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
