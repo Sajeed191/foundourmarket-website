@@ -178,6 +178,7 @@ export function AdminFloatingToolbar() {
       </motion.button>
 
       <StorefrontDashboardPanel open={dashboard} onClose={() => setDashboard(false)} />
+      <BulkVisibilityPanel open={bulk} onClose={() => setBulk(false)} />
     </div>
   );
 }
