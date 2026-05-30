@@ -230,7 +230,22 @@ function PageEditor({ editing, setEditing, save, del, protection, entityId, onCl
 
 function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
   const [editing, setEditing] = useState<Partial<Post> | null>(null);
+  const [baseline, setBaseline] = useState("");
   const [publishing, setPublishing] = useState<Post | null>(null);
+
+  const entityId = editing?.id ?? "new";
+  const protection = useEditorProtection({
+    entityType: "cms_post",
+    entityId,
+    value: editing as Record<string, unknown> | null,
+    baseline,
+    enabled: !!editing,
+  });
+
+  function open(row: Partial<Post> | null) {
+    setEditing(row);
+    setBaseline(row ? JSON.stringify(row) : "");
+  }
 
   async function saveDraft() {
     if (!editing?.slug || !editing.title) { toast.error("Slug and title are required"); return; }
@@ -239,13 +254,19 @@ function PostsTab({ posts, reload }: { posts: Post[]; reload: () => void }) {
       body: editing.body ?? "", cover_image: editing.cover_image ?? null, author: editing.author ?? null,
       meta_title: editing.meta_title ?? null, meta_description: editing.meta_description ?? null,
     };
-    const { error } = editing.id
-      ? await supabase.from("cms_posts").update({ draft_data: draft, has_draft: true }).eq("id", editing.id)
-      : await supabase.from("cms_posts").insert({ ...draft, published_at: null, draft_data: draft, has_draft: true });
+    const { data: saved, error } = editing.id
+      ? await supabase.from("cms_posts").update({ draft_data: draft, has_draft: true }).eq("id", editing.id).select("id").single()
+      : await supabase.from("cms_posts").insert({ ...draft, published_at: null, draft_data: draft, has_draft: true }).select("id").single();
     if (error) { toast.error(error.message); return; }
     toast.success("Draft saved");
     logActivity(editing.id ? "post_draft_update" : "post_draft_create", "cms_post", editing.id, { slug: draft.slug });
-    setEditing(null); reload();
+    await protection.recordVersion(
+      (editing.id ?? saved?.id ?? entityId) as string,
+      draft as Record<string, unknown>,
+      editing.id ? "Updated" : "Created post",
+    );
+    await protection.markClean();
+    open(null); reload();
   }
 
   async function publishPost(p: Post) {
