@@ -562,18 +562,32 @@ function Home() {
 
       <CinematicDivider />
 
-      {/* 6 · Recommended Products [product section 2/3] */}
+      {/* 6 · Recommended Products [product section 2/3] — personalized when signals exist */}
       {recommended.length > 0 && (sections.recommended.active || isProductAdmin) && (
         <section className="px-4 sm:px-6 py-10 sm:py-14 max-w-7xl mx-auto scroll-mt-24">
           <SectionHeader eyebrow={sections.recommended.eyebrow} title={sections.recommended.title} icon={Award} href="/search" hrefLabel="See All" sectionKey="recommended" editable={isProductAdmin} active={sections.recommended.active} />
-          <ProductRail products={recommended} />
-          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
-            {recommended.slice(0, 4).map((p, i) => (
-              <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
-            ))}
-          </div>
+          {personalizedSlugs.length > 0 ? (
+            <RecommendationStrip title="Picked for you" slugs={personalizedSlugs} icon={<Award className="size-3" />} />
+          ) : (
+            <>
+              <ProductRail products={recommended} />
+              <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
+                {recommended.slice(0, 4).map((p, i) => (
+                  <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
+                ))}
+              </div>
+            </>
+          )}
         </section>
       )}
+
+      {/* Recently viewed — personal browsing history */}
+      {recentlyViewedSlugs.length > 0 && (
+        <section className="px-4 sm:px-6 max-w-7xl mx-auto">
+          <RecommendationStrip title="Recently viewed" slugs={recentlyViewedSlugs} icon={<Package className="size-3" />} />
+        </section>
+      )}
+
 
       {/* Mid-page campaign banner */}
       <section className="px-4 sm:px-6 py-2">
