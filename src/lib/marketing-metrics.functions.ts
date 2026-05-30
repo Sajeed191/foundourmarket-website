@@ -43,7 +43,7 @@ export const getCampaignMetricsFn = createServerFn({ method: "POST" })
       detail: { range: data.range, window: data.attributionWindow },
     });
     if (error) throw new Error(error.message);
-    return (rows ?? []) as unknown[];
+    return (rows ?? []) as Array<Record<string, unknown>>;
   });
 
 /** Day-by-day timeline for a single campaign. */
@@ -65,7 +65,7 @@ export const getCampaignTimelineFn = createServerFn({ method: "POST" })
       p_since: sinceFromRange(data.range),
     });
     if (error) throw new Error(error.message);
-    return (rows ?? []) as unknown[];
+    return (rows ?? []) as Array<Record<string, unknown>>;
   });
 
 /** Register a trackable campaign link; returns the click-tracking URL. */
