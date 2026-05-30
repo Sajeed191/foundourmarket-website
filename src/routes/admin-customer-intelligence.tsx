@@ -274,7 +274,7 @@ function CustomerIntelPage() {
       </div>
 
       {/* CUSTOMER EXPLORER */}
-      <div className="mt-6 card-premium rounded-2xl p-5">
+      <div id="ci-explorer" className="mt-6 card-premium rounded-2xl p-5 scroll-mt-20">
         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
           <h2 className="text-sm font-display font-semibold flex items-center gap-2 flex-1"><Users className="size-4 text-accent" /> Customer Explorer</h2>
           <div className="relative">
