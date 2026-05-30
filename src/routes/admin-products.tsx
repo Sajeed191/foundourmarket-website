@@ -398,6 +398,18 @@ function ProductsInner() {
           className="inline-flex items-center gap-1.5 rounded-xl bg-accent text-accent-foreground font-semibold px-3 py-2 text-[10px] uppercase tracking-widest hover:brightness-110">
           <Plus className="size-3.5" /> New
         </button>
+        <button onClick={() => {
+            const ids = filtered.map((p) => p.id);
+            const all = ids.length > 0 && ids.every((i) => selected.has(i));
+            setSelected(all ? new Set() : new Set(ids));
+          }}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-white/5">
+          <CheckCircle2 className="size-3.5" /> {filtered.length > 0 && filtered.every((p) => selected.has(p.id)) ? "None" : "All"}
+        </button>
+        <button onClick={() => { setSelected(new Set()); setView((v) => (v === "recycle" ? "active" : "recycle")); }}
+          className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[10px] font-mono uppercase tracking-widest transition-colors ${view === "recycle" ? "border-accent/40 text-accent bg-accent/5" : "border-white/10 hover:bg-white/5"}`}>
+          <Trash2 className="size-3.5" /> {view === "recycle" ? "Bin" : "Bin"}
+        </button>
       </div>
 
       {/* Filter drawer */}
