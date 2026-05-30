@@ -36,6 +36,7 @@ export function PromoBannerCarousel({
 }: Props = {}) {
 
   const { isAdmin } = useIsAdmin();
+  const { canEdit } = useAdminEditing();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -94,7 +95,7 @@ export function PromoBannerCarousel({
 
   // Admins always get an edit affordance, even when no banners exist yet.
   if (!banners.length) {
-    if (!isAdmin) return null;
+    if (!canEdit) return null;
     return (
       <section className="px-4 sm:px-6 pt-10 sm:pt-14">
         <div className={`relative max-w-7xl mx-auto rounded-3xl overflow-hidden border border-dashed border-accent/30 bg-card ${aspectClassName} grid place-items-center`}>
@@ -204,7 +205,7 @@ export function PromoBannerCarousel({
           </>
         )}
 
-        {isAdmin && (
+        {canEdit && (
           <button
             onClick={() => setEditing(true)}
             aria-label="Edit banners"
@@ -214,7 +215,7 @@ export function PromoBannerCarousel({
           </button>
         )}
       </div>
-      {isAdmin && editing && <BannerAdminSheet onClose={() => setEditing(false)} onChanged={fetchBanners} />}
+      {canEdit && editing && <BannerAdminSheet onClose={() => setEditing(false)} onChanged={fetchBanners} />}
     </section>
   );
 }
