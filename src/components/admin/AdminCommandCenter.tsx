@@ -33,6 +33,12 @@ export function AdminCommandCenter() {
   const { open, setOpen } = useCommandCenter();
   const { roles } = useStaffRoles();
   const nav = useNavigate();
+  // Navigate to any path, splitting an optional query string into typed search.
+  const go = (raw: string) => {
+    const [pathname, qs] = raw.split("?");
+    const search = qs ? Object.fromEntries(new URLSearchParams(qs)) : undefined;
+    (nav as (opts: { to: string; search?: Record<string, string> }) => void)({ to: pathname, search });
+  };
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
