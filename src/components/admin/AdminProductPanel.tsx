@@ -141,6 +141,13 @@ export function AdminProductPanel({ product }: { product: Product }) {
         rating: Math.min(5, Math.max(0, Number(f.rating) || 0)),
         reviews: Math.max(0, Math.round(Number(f.reviews) || 0)),
         warranty: f.warranty.trim() || "12 months",
+        returnEligible: f.returnEligible,
+        replacementEligible: f.replacementEligible,
+        codEnabled: f.codEnabled,
+        pickupSupported: f.pickupSupported,
+        internationalShipping: f.internationalShipping,
+        fragile: f.fragile,
+        returnWindowDays: Math.max(0, Math.min(365, Math.round(Number(f.returnWindowDays) || 0))),
       },
       "Product updated",
     );
