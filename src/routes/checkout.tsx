@@ -309,7 +309,7 @@ function CheckoutPage() {
       <h1 className="text-fluid-2xl font-display font-semibold mb-4 sm:mb-6 tracking-tight">Almost yours</h1>
 
       {!isIndia ? (
-        <InternationalSoon />
+        <InternationalSoon live={internationalLive} loading={gatewaysLoading} />
       ) : (
         <>
           <div className="mb-6 sm:mb-9 flex flex-wrap items-center gap-2">
