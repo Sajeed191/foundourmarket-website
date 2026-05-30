@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Check, Loader2, AlertTriangle, CircleDot, Cloud } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SaveState } from "@/lib/drafts";
