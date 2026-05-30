@@ -15,6 +15,7 @@ type Banner = {
   link: string | null;
   cta_text: string | null;
   sort_order: number;
+  active: boolean;
 };
 
 type Props = {
