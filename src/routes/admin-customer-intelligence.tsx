@@ -66,20 +66,46 @@ function CustomerIntelPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Deep-link views (?view=vip|risk|new|high-value|alerts|recommendations)
+  // Deep-link views (?view=vip|risk|new|high-value|alerts|recommendations|
+  //   marketing|audiences|loyal|atrisk|dormant|highvalue)
   useEffect(() => {
     if (!view || loading) return;
     if (view === "risk") setSegment("At Risk");
     else if (view === "new") setSegment("New Customers");
     const anchorMap: Record<string, string> = {
-      vip: "ci-vip", "high-value": "ci-vip", alerts: "ci-alerts", recommendations: "ci-recs",
-      risk: "ci-explorer", new: "ci-explorer", marketing: "ci-marketing", audiences: "ci-marketing",
+      vip: "ci-marketing", "high-value": "ci-marketing", highvalue: "ci-marketing",
+      loyal: "ci-marketing", atrisk: "ci-marketing", "at-risk": "ci-marketing",
+      dormant: "ci-marketing", marketing: "ci-marketing", audiences: "ci-marketing",
+      alerts: "ci-alerts", recommendations: "ci-recs",
+      risk: "ci-explorer", new: "ci-explorer",
     };
     const id = anchorMap[view];
-    if (id) requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    if (id) requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (el && id === "ci-marketing") {
+        el.classList.add("deep-link-flash");
+        setTimeout(() => el.classList.remove("deep-link-flash"), 1800);
+      }
+    });
     logActivity("customer_intel_segment_view", "customer", undefined, { view });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, loading]);
+
+  // Map deep-link view → audience to auto-focus inside the marketing hub.
+  const focusAudience = useMemo<AudienceKey | null>(() => {
+    switch (view) {
+      case "vip": return "vip";
+      case "loyal": return "loyal";
+      case "atrisk":
+      case "at-risk":
+      case "risk": return "at_risk";
+      case "dormant": return "dormant";
+      case "highvalue":
+      case "high-value": return "high_value";
+      default: return null;
+    }
+  }, [view]);
 
 
   const data = rows ?? [];
