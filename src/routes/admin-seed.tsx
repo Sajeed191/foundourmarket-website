@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  Database, Users, ShoppingCart, Truck, Star, MessageCircleQuestion,
+  Users, ShoppingCart, Truck, Star, MessageCircleQuestion,
   LifeBuoy, RotateCcw, BarChart3, Loader2, Trash2, Sparkles, RefreshCw, AlertTriangle,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
