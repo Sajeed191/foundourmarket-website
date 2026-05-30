@@ -12,6 +12,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
 import { createRazorpayRefund } from "@/lib/razorpay.functions";
 import { VirtualTable } from "@/components/admin/VirtualTable";
+import { PaymentGatewayStatusCenter } from "@/components/admin/PaymentGatewayStatusCenter";
 
 export const Route = createFileRoute("/admin-payments")({
   head: () => ({
