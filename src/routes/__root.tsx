@@ -22,6 +22,8 @@ import { RegionSelectModal } from "@/components/site/RegionSelectModal";
 import { AdminFloatingToolbar } from "@/components/admin/AdminFloatingToolbar";
 import { AdminOverlayIndicator } from "@/components/admin/AdminOverlayIndicator";
 import { AdminModeProvider } from "@/lib/admin-mode";
+import { CommandCenterProvider } from "@/lib/command-center";
+import { AdminCommandCenter } from "@/components/admin/AdminCommandCenter";
 import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { CompareTray } from "@/components/site/CompareTray";
 import { InstallPrompt } from "@/components/site/InstallPrompt";
