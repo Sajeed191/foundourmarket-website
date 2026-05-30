@@ -36,9 +36,8 @@ export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
 });
 
-const USD_TO_INR = 83;
-const toInr = (usd: number) => Math.round(usd * USD_TO_INR);
-const inrFmt = (v: number) => `₹${Math.round(v).toLocaleString("en-IN")}`;
+import { computeOrderTotals, formatMoney } from "@/lib/pricing";
+
 
 type Stage = "review" | "processing" | "verifying" | "success" | "failed";
 
