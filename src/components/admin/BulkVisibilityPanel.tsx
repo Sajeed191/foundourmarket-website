@@ -90,7 +90,7 @@ export function BulkVisibilityPanel({ open, onClose }: { open: boolean; onClose:
     if (!count || busy) return;
     setBusy(true);
     try {
-      const ops: Promise<unknown>[] = [];
+      const ops: PromiseLike<{ error: unknown }>[] = [];
       if (selectedCats.length) {
         ops.push(
           supabase.from("categories").update({ homepage_visible: next }).in("id", selectedCats),
