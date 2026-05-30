@@ -136,10 +136,15 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
         </p>
         <div className="flex items-center gap-2">
           <h2 className="text-fluid-2xl font-display tracking-tight">{title}</h2>
+          {editable && !active && (
+            <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+              Inactive
+            </span>
+          )}
           {editable && sectionKey && (
             <button
               onClick={open}
-              aria-label="Edit section heading"
+              aria-label="Edit section"
               className="grid size-7 shrink-0 place-items-center rounded-full border border-accent/30 bg-accent/10 text-accent transition-colors hover:bg-accent/20"
             >
               <Pencil className="size-3.5" />
