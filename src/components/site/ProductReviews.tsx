@@ -222,6 +222,64 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                 const isOwn = user?.id === r.user_id;
                 return (
                   <li key={r.id} className="rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-4 sm:p-5 shadow-[0_18px_40px_-24px_oklch(0_0_0/0.8)] transition-all hover:border-accent/30 hover:-translate-y-0.5">
+                    {editingId === r.id ? (
+                      <div>
+                        <div className="flex items-center gap-1 mb-3">
+                          {Array.from({ length: 5 }).map((_, i) => {
+                            const value = i + 1;
+                            const active = (editHoverRating || editRating) >= value;
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onMouseEnter={() => setEditHoverRating(value)}
+                                onMouseLeave={() => setEditHoverRating(0)}
+                                onClick={() => setEditRating(value)}
+                                aria-label={`Rate ${value} star${value > 1 ? "s" : ""}`}
+                                className="p-1"
+                              >
+                                <Star className={`size-5 ${active ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <input
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          maxLength={120}
+                          placeholder="Title (optional)"
+                          className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-2.5 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+                        />
+                        <textarea
+                          value={editBody}
+                          onChange={(e) => setEditBody(e.target.value)}
+                          maxLength={2000}
+                          rows={3}
+                          placeholder="Share your thoughts…"
+                          className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+                        />
+                        {error && <p className="text-xs text-red-400 mb-3">{error}</p>}
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => saveEdit(r.id)}
+                            disabled={submitting}
+                            className="px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground hover:brightness-110 disabled:opacity-50"
+                          >
+                            {submitting ? "Saving…" : "Update"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEdit}
+                            disabled={submitting}
+                            className="px-4 py-2 rounded-full text-xs uppercase tracking-widest border border-border hover:bg-white/5"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
                     <div className="flex items-center gap-3 mb-2.5">
                       <div className="size-9 rounded-full bg-muted overflow-hidden grid place-items-center text-xs font-mono shrink-0 ring-1 ring-white/10">
                         {prof?.avatar_url ? <img src={prof.avatar_url} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
@@ -263,8 +321,11 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                         </button>
                       </div>
                     )}
+                      </>
+                    )}
                   </li>
                 );
+
 
               })}
             </ul>
