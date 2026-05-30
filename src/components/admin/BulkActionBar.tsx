@@ -192,6 +192,7 @@ function FormPane({ kind, categories, onRun, onExport }: {
 }) {
   const [val, setVal] = useState("");
   const [val2, setVal2] = useState("");
+  const [val3, setVal3] = useState("");
 
   if (kind === "export") {
     return (
