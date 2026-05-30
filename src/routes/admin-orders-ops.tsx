@@ -459,6 +459,65 @@ function OrderOpsPage() {
               </div>
             </Card>
           </TabsContent>
+
+          <TabsContent value="performance" className="space-y-5 mt-4">
+            {(() => {
+              const totPacked = staffPerf.reduce((a, s) => a + s.packed, 0);
+              const totShipped = staffPerf.reduce((a, s) => a + s.shipped, 0);
+              const totRefunds = staffPerf.reduce((a, s) => a + s.refunds_handled, 0);
+              const hrs = staffPerf.map((s) => s.avg_handling_hours).filter((h): h is number => h != null);
+              const avgHrs = hrs.length ? hrs.reduce((a, b) => a + b, 0) / hrs.length : null;
+              return (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <KpiCard label="Packed" value={num(totPacked)} icon={<Package className="size-4" />} />
+                  <KpiCard label="Shipped" value={num(totShipped)} icon={<Truck className="size-4" />} />
+                  <KpiCard label="Refunds Handled" value={num(totRefunds)} icon={<RotateCcw className="size-4" />} />
+                  <KpiCard label="Avg Handling" value={avgHrs != null ? `${avgHrs.toFixed(1)}h` : "—"} icon={<Clock className="size-4" />} />
+                </div>
+              );
+            })()}
+            <Card title="Staff performance" icon={<Gauge className="size-4 text-accent" />}
+              actions={<span className="text-[11px] text-muted-foreground">{staffPerf.length} staff · fulfilment KPIs</span>}>
+              {staffPerf.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No fulfilment activity recorded yet. Packed, shipped and refund actions appear here as staff process orders.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-muted-foreground border-b border-border/60">
+                        <th className="text-left font-medium py-2 pr-3">Staff</th>
+                        <th className="text-right font-medium py-2 px-2">Packed</th>
+                        <th className="text-right font-medium py-2 px-2">Shipped</th>
+                        <th className="text-right font-medium py-2 px-2">Refunds</th>
+                        <th className="text-right font-medium py-2 px-2">Avg Handling</th>
+                        <th className="text-right font-medium py-2 pl-2">Last Active</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {staffPerf.map((s) => (
+                        <tr key={s.uid} className="border-b border-border/40 last:border-0">
+                          <td className="py-2 pr-3">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <Avatar name={s.full_name} url={s.avatar_url} size={28} />
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">{s.full_name ?? "Staff"}</p>
+                                {s.roles.length > 0 && <p className="text-[10px] text-muted-foreground truncate">{s.roles.join(", ")}</p>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="text-right tabular-nums py-2 px-2">{num(s.packed)}</td>
+                          <td className="text-right tabular-nums py-2 px-2">{num(s.shipped)}</td>
+                          <td className="text-right tabular-nums py-2 px-2">{num(s.refunds_handled)}</td>
+                          <td className="text-right tabular-nums py-2 px-2">{s.avg_handling_hours != null ? `${s.avg_handling_hours.toFixed(1)}h` : "—"}</td>
+                          <td className="text-right text-muted-foreground py-2 pl-2">{timeAgo(s.last_action)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
 
