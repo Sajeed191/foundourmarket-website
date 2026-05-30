@@ -21,6 +21,7 @@ import { useIsAdmin } from "@/lib/use-admin";
 import { useAdminMode } from "@/lib/admin-mode";
 import { cn } from "@/lib/utils";
 import { StorefrontDashboardPanel } from "@/components/admin/StorefrontDashboardPanel";
+import { BulkVisibilityPanel } from "@/components/admin/BulkVisibilityPanel";
 
 type Action = {
   label: string;
