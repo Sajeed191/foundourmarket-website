@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { MessageCircleQuestion, Loader2, Send, Trash2, CheckCircle2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import brandLogo from "@/assets/logo.jpeg";
 
 type Question = {
   id: string;
