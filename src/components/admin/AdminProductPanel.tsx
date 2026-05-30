@@ -74,7 +74,19 @@ export function AdminProductPanel({ product }: { product: Product }) {
 
   // form state
   const [f, setF] = useState(() => toForm(product));
-  useEffect(() => setF(toForm(product)), [product.slug]);
+  const [baseline, setBaseline] = useState(() => JSON.stringify(toForm(product)));
+  useEffect(() => {
+    setF(toForm(product));
+    setBaseline(JSON.stringify(toForm(product)));
+  }, [product.slug]);
+
+  const protection = useEditorProtection({
+    entityType: "product",
+    entityId: product.slug,
+    value: f as unknown as Record<string, unknown>,
+    baseline,
+    enabled: open,
+  });
 
   function toForm(p: Product) {
     return {
