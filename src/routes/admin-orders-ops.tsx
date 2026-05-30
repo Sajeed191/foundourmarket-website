@@ -238,12 +238,12 @@ function OrderOpsPage() {
   }, [data, q, filter]);
 
   if (loading) {
-    return <AdminShell title="Order Operations Center" allow={ALLOW as unknown as string[]}>
+    return <AdminShell title="Order Operations Center" allow={ALLOW}>
       <div className="min-h-[50vh] grid place-items-center"><Loader2 className="size-5 animate-spin text-accent" /></div>
     </AdminShell>;
   }
   if (error || !data) {
-    return <AdminShell title="Order Operations Center" allow={ALLOW as unknown as string[]}>
+    return <AdminShell title="Order Operations Center" allow={ALLOW}>
       <div className="min-h-[40vh] grid place-items-center text-center"><div><AlertTriangle className="size-6 text-destructive mx-auto mb-2" /><p className="text-sm text-muted-foreground">{error ?? "No data"}</p><button onClick={refresh} className="mt-3 text-xs px-3 py-1.5 rounded-lg border border-border">Retry</button></div></div>
     </AdminShell>;
   }
@@ -260,7 +260,7 @@ function OrderOpsPage() {
     <AdminShell
       title="Order Operations Center"
       subtitle="Live, database-backed fulfilment, delivery & risk intelligence"
-      allow={ALLOW as unknown as string[]}
+      allow={ALLOW}
       actions={
         <div className="flex items-center gap-2">
           {refreshing && <Loader2 className="size-3.5 animate-spin text-accent" />}
