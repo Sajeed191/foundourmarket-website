@@ -178,6 +178,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const add = async (slug: string, qty = 1) => {
     import("@/lib/personalization").then((m) => m.recordEvent({ type: "add_to_cart", productSlug: slug })).catch(() => {});
+    import("@/lib/visitor").then((m) => m.trackEvent("add_to_cart", { productSlug: slug, value: qty })).catch(() => {});
     if (user && cartId) {
       const existing = items.find((i) => i.slug === slug && !i.savedForLater);
       const newQty = (existing?.qty ?? 0) + qty;
