@@ -10,14 +10,18 @@ export type OrderRow = {
 
 export async function fetchOrders(days = 90): Promise<OrderRow[]> {
   const since = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString();
-  const { data } = await supabase
+  const includeSeed = await includeSeedInAnalytics();
+  let query = supabase
     .from("orders")
     .select("id,user_id,status,payment_status,fulfillment_status,total,subtotal,shipping,tax,discount,currency,contact_email,created_at,order_items(name,quantity,product_slug,unit_price,line_total)")
     .gte("created_at", since)
     .order("created_at", { ascending: false })
     .limit(1000);
+  if (!includeSeed) query = query.eq("is_seeded", false);
+  const { data } = await query;
   return (data as OrderRow[]) ?? [];
 }
+
 
 export type ProductRow = {
   id: string; slug: string; name: string; category: string;
