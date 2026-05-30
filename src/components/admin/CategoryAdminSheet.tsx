@@ -293,15 +293,31 @@ export function CategoryAdminSheet({
       return;
     }
     toast.success(editing.id ? "Saved" : "Created");
+    // Record an immutable version snapshot with changed-field highlighting.
+    const changed = diffFields(
+      original ? (JSON.parse(original) as Record<string, unknown>) : {},
+      payload as Record<string, unknown>,
+    );
+    await saveVersion(
+      "category",
+      slug,
+      payload as Record<string, unknown>,
+      changed,
+      editing.id ? `Updated ${changed.length} field(s)` : "Created category",
+    ).catch(() => {});
     logActivity(editing.id ? "category_update" : "category_create", "category", editing.id, {
       slug,
       status: payload.status,
     });
+    // Clear autosave draft now that work is committed.
+    autosave.markClean();
+    await discardDraft("category", entityId).catch(() => {});
     setEditing(null);
     await load();
     invalidateCategories();
     onChanged();
   }
+
 
   async function reorder(row: Row, direction: "up" | "down") {
     setRows((prev) => {
