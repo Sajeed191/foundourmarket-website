@@ -66,36 +66,39 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }, [productSlug]);
 
   const resetForm = () => {
-    setEditingId(null);
     setRating(5);
     setHoverRating(0);
     setTitle("");
     setBody("");
   };
 
-  const startEdit = (r: Review) => {
-    setEditingId(r.id);
-    setRating(r.rating);
-    setTitle(r.title ?? "");
-    setBody(r.body ?? "");
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditRating(5);
+    setEditHoverRating(0);
+    setEditTitle("");
+    setEditBody("");
   };
 
+  const startEdit = (r: Review) => {
+    setEditingId(r.id);
+    setEditRating(r.rating);
+    setEditTitle(r.title ?? "");
+    setEditBody(r.body ?? "");
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setSubmitting(true);
     setError(null);
-    const payload = {
+    const { error: err } = await supabase.from("product_reviews").insert({
       product_slug: productSlug,
       user_id: user.id,
       rating,
       title: title.trim() || null,
       body: body.trim() || null,
-    };
-    const { error: err } = editingId
-      ? await supabase.from("product_reviews").update(payload).eq("id", editingId)
-      : await supabase.from("product_reviews").insert(payload);
+    });
     setSubmitting(false);
     if (err) {
       setError(err.message);
@@ -105,6 +108,29 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     await load();
     onAggregateChange?.();
   };
+
+  const saveEdit = async (id: string) => {
+    if (!user) return;
+    setSubmitting(true);
+    setError(null);
+    const { error: err } = await supabase
+      .from("product_reviews")
+      .update({
+        rating: editRating,
+        title: editTitle.trim() || null,
+        body: editBody.trim() || null,
+      })
+      .eq("id", id);
+    setSubmitting(false);
+    if (err) {
+      setError(err.message);
+      return;
+    }
+    cancelEdit();
+    await load();
+    onAggregateChange?.();
+  };
+
 
   const remove = async (id: string) => {
     if (!confirm("Delete this review?")) return;
