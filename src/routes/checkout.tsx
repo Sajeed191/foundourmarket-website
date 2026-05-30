@@ -258,6 +258,7 @@ function CheckoutPage() {
           items: detailed.map((i) => ({ slug: i.slug, qty: i.qty })),
           addressId: selectedAddress.id,
           promoCode: null,
+          attribution: buildOrderAttribution(),
         },
       });
 
