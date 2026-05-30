@@ -358,6 +358,12 @@ function BannerEditor({ row, onClose, onSaved }: { row: Banner | null; onClose: 
     if (error) { toast.error(error.message); return; }
     toast.success("Draft saved — click Publish to go live");
     logActivity(row ? "banner_draft_update" : "banner_draft_create", "banner", row?.id);
+    await protection.recordVersion(
+      (row?.id ?? entityId) as string,
+      draft as Record<string, unknown>,
+      row ? "Updated" : "Created banner",
+    );
+    await protection.markClean();
     onSaved();
   }
 
