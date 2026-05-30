@@ -63,6 +63,11 @@ export const QUICK_ACTIONS: QuickAction[] = [
   { id: "qa-mkt-top", group: "Marketing", icon: "Rocket", label: "Show top campaigns", to: "/admin-marketing-automation?action=analytics", roles: EDITOR, action: "cmd_mkt_top", keywords: "top best campaigns performance leaderboard" },
   { id: "qa-mkt-health", group: "Marketing", icon: "Activity", label: "Automation health", to: "/admin-marketing-automation?tab=automations", roles: EDITOR, action: "cmd_mkt_health", keywords: "automation health rules status active" },
   { id: "qa-mkt-analytics", group: "Marketing", icon: "BarChart3", label: "Campaign analytics", to: "/admin-marketing-automation?action=analytics", roles: EDITOR, action: "cmd_mkt_analytics", keywords: "campaign analytics roi performance revenue" },
+  // Product ↔ Marketing
+  { id: "qa-prod-marketing", group: "Marketing", icon: "Megaphone", label: "Product marketing", to: "/admin-products?view=marketing", roles: EDITOR, action: "cmd_prod_marketing", keywords: "product marketing campaign promote feature flash sale product analytics" },
+  { id: "qa-prod-promote", group: "Marketing", icon: "Rocket", label: "Launch promotion for product", to: "/admin-products?view=marketing", roles: EDITOR, action: "cmd_prod_promote", keywords: "launch promotion product promote campaign" },
+  { id: "qa-prod-campaigns", group: "Marketing", icon: "Target", label: "Show product campaigns", to: "/admin-products?view=marketing", roles: EDITOR, action: "cmd_prod_campaigns", keywords: "product campaigns which campaigns use product marketing" },
+  { id: "qa-prod-feature", group: "Marketing", icon: "Star", label: "Feature product", to: "/admin-products?view=marketing", roles: EDITOR, action: "cmd_prod_feature", keywords: "feature product homepage featured spotlight" },
   // System
   { id: "qa-analytics", group: "System", icon: "BarChart3", label: "Analytics", to: "/admin-analytics", roles: ["admin", "super_admin", "manager", "support", "editor", "fulfillment", "warehouse_staff"], action: "cmd_analytics" },
   { id: "qa-financial", group: "System", icon: "Wallet", label: "Financial dashboard", to: "/admin-financial", roles: MANAGER, action: "cmd_financial", keywords: "revenue money" },
