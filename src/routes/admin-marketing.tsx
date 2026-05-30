@@ -474,6 +474,18 @@ function FlashEditor({ row, onClose, onSaved }: { row: Flash | null; onClose: ()
           <h2 className="text-lg font-display">{row ? "Edit flash sale" : "New flash sale"}</h2>
           <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
         </div>
+        <div className="mb-5">
+          <EditorSaveBar
+            state={protection.state}
+            lastSavedAt={protection.lastSavedAt}
+            recovery={protection.recovery}
+            onRestore={() => { const d = protection.restoreDraft(); if (d) setF(d as typeof f); }}
+            onDismiss={() => void protection.dismissDraft()}
+            entityType="flash_sale"
+            entityId={entityId}
+            onRestoreVersion={(snap) => setF({ ...f, ...(snap as Partial<typeof f>) })}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Name" className="col-span-2"><input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required className="input" /></Field>
           <Field label="Discount %"><input type="number" value={f.discount_percent} onChange={(e) => setF({ ...f, discount_percent: Number(e.target.value) })} className="input" /></Field>
