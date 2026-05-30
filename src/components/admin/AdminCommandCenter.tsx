@@ -39,7 +39,7 @@ export function AdminCommandCenter() {
   const [pinned, setPinned] = useState<RecentAction[]>([]);
   const [recents, setRecents] = useState<string[]>([]);
   const [recentActions, setRecentActions] = useState<RecentAction[]>([]);
-  const debounce = useRef<ReturnType<typeof setTimeout>>();
+  const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const quickActions = useMemo(() => actionsForRoles(roles), [roles]);
 
