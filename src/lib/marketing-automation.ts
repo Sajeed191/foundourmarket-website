@@ -547,12 +547,14 @@ export { regionalStats, segmentStats };
  * Execution Engine (P1) — client helpers
  * ========================================================== */
 
+export type ExecutionStatus = "success" | "skipped" | "failed";
+
 export type AutomationExecution = {
   id: string;
   run_id: string;
   automation_id: string | null;
   trigger_key: string;
-  status: "success" | "skipped" | "failed";
+  status: ExecutionStatus;
   matched_count: number;
   action_taken: string | null;
   summary: string | null;
@@ -562,33 +564,29 @@ export type AutomationExecution = {
   triggered_by: "cron" | "manual";
   actor_id: string | null;
   created_at: string;
+  duration_ms: number;
+  retry_count: number;
+  failed_permanently: boolean;
+  blocked: boolean;
 };
 
-/** Run the automation engine immediately (staff only, forced). */
-export async function runAutomations(): Promise<{ summary?: Record<string, unknown>; error?: string }> {
-  const { data, error } = await supabase.rpc("run_marketing_automations", {
-    p_force: true,
-    p_triggered_by: "manual",
-  } as never);
-  if (error) return { error: error.message };
-  logActivity("marketing_automation_run", "marketing", undefined, (data ?? {}) as Record<string, unknown>);
-  return { summary: (data ?? {}) as Record<string, unknown> };
-}
+export type RunSummary = {
+  run_id: string;
+  automations_evaluated: number;
+  actions_taken: number;
+  total_matches: number;
+  failures: number;
+  blocked: boolean;
+  ran_at: string;
+};
 
-/** Load the most recent automation executions for the audit log. */
-export async function fetchExecutions(limit = 100): Promise<AutomationExecution[]> {
-  const { data, error } = await supabase
-    .from("automation_executions")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (error) return [];
-  return ((data as Record<string, unknown>[]) ?? []).map((r) => ({
+function mapExecution(r: Record<string, unknown>): AutomationExecution {
+  return {
     id: r.id as string,
     run_id: r.run_id as string,
     automation_id: (r.automation_id as string) ?? null,
     trigger_key: r.trigger_key as string,
-    status: (r.status as AutomationExecution["status"]) ?? "success",
+    status: (r.status as ExecutionStatus) ?? "success",
     matched_count: Number(r.matched_count) || 0,
     action_taken: (r.action_taken as string) ?? null,
     summary: (r.summary as string) ?? null,
@@ -598,7 +596,50 @@ export async function fetchExecutions(limit = 100): Promise<AutomationExecution[
     triggered_by: (r.triggered_by as AutomationExecution["triggered_by"]) ?? "cron",
     actor_id: (r.actor_id as string) ?? null,
     created_at: r.created_at as string,
-  }));
+    duration_ms: Number(r.duration_ms) || 0,
+    retry_count: Number(r.retry_count) || 0,
+    failed_permanently: r.failed_permanently === true,
+    blocked: r.blocked === true,
+  };
+}
+
+/** Run the automation engine immediately (staff only, forced). */
+export async function runAutomations(): Promise<{ summary?: RunSummary; error?: string }> {
+  const { data, error } = await supabase.rpc("run_marketing_automations", {
+    p_force: true,
+    p_triggered_by: "manual",
+  } as never);
+  if (error) return { error: error.message };
+  const summary = (data ?? {}) as RunSummary;
+  logActivity("marketing_automation_run", "marketing", undefined, summary as unknown as Record<string, unknown>);
+  return { summary };
+}
+
+/** Load the most recent automation executions for the audit log. */
+export async function fetchExecutions(limit = 200): Promise<AutomationExecution[]> {
+  const { data, error } = await supabase
+    .from("automation_executions")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return [];
+  return ((data as Record<string, unknown>[]) ?? []).map(mapExecution);
+}
+
+/** Retry a single failed execution. */
+export async function retryExecution(executionId: string): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc("retry_failed_execution", { p_execution_id: executionId } as never);
+  if (error) return { error: error.message };
+  logActivity("marketing_automation_retry", "automation_execution", executionId, {});
+  return {};
+}
+
+/** Retry every retryable failed execution. */
+export async function retryAllFailed(): Promise<{ count?: number; error?: string }> {
+  const { data, error } = await supabase.rpc("retry_all_failed_executions", {} as never);
+  if (error) return { error: error.message };
+  logActivity("marketing_automation_retry_all", "marketing", undefined, { count: data });
+  return { count: Number(data) || 0 };
 }
 
 export type ExecutionAnalytics = {
@@ -606,19 +647,136 @@ export type ExecutionAnalytics = {
   successful: number;
   skipped: number;
   failed: number;
+  blocked: number;
+  retried: number;
+  permanentlyFailed: number;
   actionsTaken: number;
   matchedTotal: number;
+  avgDuration: number;
+  successRate: number;
+  failureRate: number;
+  blockedRate: number;
   lastRunAt: string | null;
 };
 
 export function executionAnalytics(rows: AutomationExecution[]): ExecutionAnalytics {
+  const total = rows.length;
+  const successful = rows.filter((r) => r.status === "success").length;
+  const failed = rows.filter((r) => r.status === "failed").length;
+  const blocked = rows.filter((r) => r.blocked).length;
+  const durs = rows.map((r) => r.duration_ms).filter((d) => d > 0);
   return {
-    totalRuns: rows.length,
-    successful: rows.filter((r) => r.status === "success").length,
+    totalRuns: total,
+    successful,
     skipped: rows.filter((r) => r.status === "skipped").length,
-    failed: rows.filter((r) => r.status === "failed").length,
+    failed,
+    blocked,
+    retried: rows.filter((r) => r.retry_count > 0).length,
+    permanentlyFailed: rows.filter((r) => r.failed_permanently).length,
     actionsTaken: rows.filter((r) => r.action_taken && r.action_taken !== "campaign_exists").length,
     matchedTotal: rows.reduce((a, r) => a + r.matched_count, 0),
-    lastRunAt: rows.length ? rows[0].created_at : null,
+    avgDuration: durs.length ? Math.round(durs.reduce((a, d) => a + d, 0) / durs.length) : 0,
+    successRate: total ? successful / total : 0,
+    failureRate: total ? failed / total : 0,
+    blockedRate: total ? blocked / total : 0,
+    lastRunAt: total ? rows[0].created_at : null,
   };
+}
+
+/* ------------------------------------------------ automation health */
+
+export type HealthLevel = "healthy" | "warning" | "critical";
+
+export type AutomationHealth = {
+  level: HealthLevel;
+  successRate: number;
+  failureRate: number;
+  blockedRate: number;
+  avgDuration: number;
+  active: number;
+  paused: number;
+  failed: number;
+  lastRunAt: string | null;
+};
+
+export function computeHealth(executions: AutomationExecution[], automations: Automation[]): AutomationHealth {
+  const a = executionAnalytics(executions);
+  const active = automations.filter((x) => x.enabled && x.status === "active").length;
+  const paused = automations.filter((x) => !x.enabled || x.status === "paused").length;
+  let level: HealthLevel = "healthy";
+  if (a.failureRate >= 0.25 || a.permanentlyFailed > 0) level = "critical";
+  else if (a.failureRate >= 0.1 || a.blockedRate >= 0.25) level = "warning";
+  return {
+    level,
+    successRate: a.successRate,
+    failureRate: a.failureRate,
+    blockedRate: a.blockedRate,
+    avgDuration: a.avgDuration,
+    active,
+    paused,
+    failed: a.permanentlyFailed,
+    lastRunAt: a.lastRunAt,
+  };
+}
+
+/* ------------------------------------------------ safety settings */
+
+export type AutomationSettings = {
+  emergency_stop: boolean;
+  global_pause: boolean;
+  maintenance_mode: boolean;
+  updated_by: string | null;
+  updated_at: string | null;
+};
+
+export const DEFAULT_SETTINGS: AutomationSettings = {
+  emergency_stop: false, global_pause: false, maintenance_mode: false,
+  updated_by: null, updated_at: null,
+};
+
+export async function fetchAutomationSettings(): Promise<AutomationSettings> {
+  const { data, error } = await supabase.from("automation_settings").select("*").eq("id", true).maybeSingle();
+  if (error || !data) return { ...DEFAULT_SETTINGS };
+  const r = data as Record<string, unknown>;
+  return {
+    emergency_stop: r.emergency_stop === true,
+    global_pause: r.global_pause === true,
+    maintenance_mode: r.maintenance_mode === true,
+    updated_by: (r.updated_by as string) ?? null,
+    updated_at: (r.updated_at as string) ?? null,
+  };
+}
+
+export async function setAutomationSettings(
+  next: Pick<AutomationSettings, "emergency_stop" | "global_pause" | "maintenance_mode">,
+  reason?: string,
+): Promise<{ settings?: AutomationSettings; error?: string }> {
+  const { data, error } = await supabase.rpc("set_automation_settings", {
+    p_emergency: next.emergency_stop,
+    p_global: next.global_pause,
+    p_maintenance: next.maintenance_mode,
+  } as never);
+  if (error) return { error: error.message };
+  logActivity("marketing_automation_controls", "automation_settings", "global", { ...next, reason: reason ?? null });
+  const r = (data ?? {}) as Record<string, unknown>;
+  return {
+    settings: {
+      emergency_stop: r.emergency_stop === true,
+      global_pause: r.global_pause === true,
+      maintenance_mode: r.maintenance_mode === true,
+      updated_by: (r.updated_by as string) ?? null,
+      updated_at: (r.updated_at as string) ?? null,
+    },
+  };
+}
+
+export function systemBlocked(s: AutomationSettings): boolean {
+  return s.emergency_stop || s.global_pause;
+}
+
+export function systemStatusLabel(s: AutomationSettings): string {
+  if (s.emergency_stop) return "Emergency Stop Active";
+  if (s.global_pause) return "Automation System Paused";
+  if (s.maintenance_mode) return "Maintenance Mode";
+  return "Automation System Active";
 }
