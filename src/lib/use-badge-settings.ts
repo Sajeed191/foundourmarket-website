@@ -38,7 +38,7 @@ function rowToSettings(r: Row): BadgeSettings {
   };
 }
 
-function settingsToRow(s: BadgeSettings): Row {
+function settingsToRow(s: BadgeSettings) {
   return {
     trending_enabled: s.trendingEnabled,
     trending_views_min: s.trendingViewsMin,
