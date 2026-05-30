@@ -48,6 +48,7 @@ import { Route as AdminEmailOpsRouteImport } from './routes/admin-email-ops'
 import { Route as AdminEmailHealthRouteImport } from './routes/admin-email-health'
 import { Route as AdminEmailDeliveryRouteImport } from './routes/admin-email-delivery'
 import { Route as AdminCustomersRouteImport } from './routes/admin-customers'
+import { Route as AdminCustomerIntelligenceRouteImport } from './routes/admin-customer-intelligence'
 import { Route as AdminCmsRouteImport } from './routes/admin-cms'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin-analytics'
 import { Route as AdminActivityRouteImport } from './routes/admin-activity'
@@ -278,6 +279,12 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
   path: '/admin-customers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCustomerIntelligenceRoute =
+  AdminCustomerIntelligenceRouteImport.update({
+    id: '/admin-customer-intelligence',
+    path: '/admin-customer-intelligence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminCmsRoute = AdminCmsRouteImport.update({
   id: '/admin-cms',
   path: '/admin-cms',
@@ -456,6 +463,7 @@ export interface FileRoutesByFullPath {
   '/admin-activity': typeof AdminActivityRoute
   '/admin-analytics': typeof AdminAnalyticsRoute
   '/admin-cms': typeof AdminCmsRoute
+  '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRoute
   '/admin-email-delivery': typeof AdminEmailDeliveryRoute
   '/admin-email-health': typeof AdminEmailHealthRoute
@@ -530,6 +538,7 @@ export interface FileRoutesByTo {
   '/admin-activity': typeof AdminActivityRoute
   '/admin-analytics': typeof AdminAnalyticsRoute
   '/admin-cms': typeof AdminCmsRoute
+  '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRoute
   '/admin-email-delivery': typeof AdminEmailDeliveryRoute
   '/admin-email-health': typeof AdminEmailHealthRoute
@@ -605,6 +614,7 @@ export interface FileRoutesById {
   '/admin-activity': typeof AdminActivityRoute
   '/admin-analytics': typeof AdminAnalyticsRoute
   '/admin-cms': typeof AdminCmsRoute
+  '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRoute
   '/admin-email-delivery': typeof AdminEmailDeliveryRoute
   '/admin-email-health': typeof AdminEmailHealthRoute
@@ -681,6 +691,7 @@ export interface FileRouteTypes {
     | '/admin-activity'
     | '/admin-analytics'
     | '/admin-cms'
+    | '/admin-customer-intelligence'
     | '/admin-customers'
     | '/admin-email-delivery'
     | '/admin-email-health'
@@ -755,6 +766,7 @@ export interface FileRouteTypes {
     | '/admin-activity'
     | '/admin-analytics'
     | '/admin-cms'
+    | '/admin-customer-intelligence'
     | '/admin-customers'
     | '/admin-email-delivery'
     | '/admin-email-health'
@@ -829,6 +841,7 @@ export interface FileRouteTypes {
     | '/admin-activity'
     | '/admin-analytics'
     | '/admin-cms'
+    | '/admin-customer-intelligence'
     | '/admin-customers'
     | '/admin-email-delivery'
     | '/admin-email-health'
@@ -904,6 +917,7 @@ export interface RootRouteChildren {
   AdminActivityRoute: typeof AdminActivityRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminCmsRoute: typeof AdminCmsRoute
+  AdminCustomerIntelligenceRoute: typeof AdminCustomerIntelligenceRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminEmailDeliveryRoute: typeof AdminEmailDeliveryRoute
   AdminEmailHealthRoute: typeof AdminEmailHealthRoute
@@ -1244,6 +1258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-customer-intelligence': {
+      id: '/admin-customer-intelligence'
+      path: '/admin-customer-intelligence'
+      fullPath: '/admin-customer-intelligence'
+      preLoaderRoute: typeof AdminCustomerIntelligenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-cms': {
       id: '/admin-cms'
       path: '/admin-cms'
@@ -1515,6 +1536,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminActivityRoute: AdminActivityRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminCmsRoute: AdminCmsRoute,
+  AdminCustomerIntelligenceRoute: AdminCustomerIntelligenceRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminEmailDeliveryRoute: AdminEmailDeliveryRoute,
   AdminEmailHealthRoute: AdminEmailHealthRoute,
