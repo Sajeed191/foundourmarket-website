@@ -46,7 +46,22 @@ const fromLocal = (v: string) => (v ? new Date(v).toISOString() : null);
 export function AnnouncementAdminSheet({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
+  const [original, setOriginal] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const entityId = editing?.id ?? "new";
+  const protection = useEditorProtection({
+    entityType: "announcement",
+    entityId,
+    value: editing as Record<string, unknown> | null,
+    baseline: original,
+    enabled: !!editing,
+  });
+
+  function openEditor(row: Partial<Row>) {
+    setEditing(row);
+    setOriginal(JSON.stringify(row));
+  }
 
   async function load() {
     const { data, error } = await supabase.from("announcements").select("*").order("sort_order");
