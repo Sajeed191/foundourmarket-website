@@ -247,13 +247,8 @@ export function RegionProvider({ children }: { children: ReactNode }) {
           const result = await runDetection().catch(() => null);
           if (cancelled) return;
 
-          if (
-            result &&
-            !result.conflicting &&
-            !result.vpnSuspected &&
-            result.confidence >= CONFIDENCE_THRESHOLD
-          ) {
-            // High confidence → silently lock, no popup.
+          if (result && result.tier === "auto") {
+            // Very high confidence (>=90) → silently lock, no popup.
             try {
               const res = await lockFn({
                 data: { region: result.region, countryCode: result.countryCode },
@@ -262,27 +257,33 @@ export function RegionProvider({ children }: { children: ReactNode }) {
               setMarket(res.region);
               setLocked(true);
               setNeedsSelection(false);
+              setSoftConfirm(false);
               setAutoDetected(true);
-              if (typeof window !== "undefined") {
-                localStorage.setItem(LS_KEY, res.region);
-              }
+              persistRegion(res.region);
               return;
             } catch {
               /* fall through to manual */
             }
           }
 
-          // Ambiguous / VPN / low confidence → require manual confirmation,
-          // but only if we've never shown the selector on this device.
+          // 70–89 → lightweight confirmation; <70 / VPN → full picker.
           if (result) setMarket(result.region);
           setLocked(false);
           if (promptAlreadySeen()) {
             setNeedsSelection(false);
+            setSoftConfirm(false);
           } else {
             markPromptSeen();
-            setNeedsSelection(true);
+            if (result && result.tier === "confirm") {
+              setSoftConfirm(true);
+              setNeedsSelection(false);
+            } else {
+              setSoftConfirm(false);
+              setNeedsSelection(true);
+            }
           }
         } else {
+
           // Guest: silent auto-detect, only prompt when ambiguous.
           const guestChoice =
             typeof window !== "undefined"
