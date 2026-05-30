@@ -186,6 +186,7 @@ function CustomerIntelPage() {
         </div>
       }
     >
+      <div className="mb-3"><AcquisitionSummary title="Acquisition Intelligence" /></div>
       {/* HEALTH OVERVIEW */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KpiCard label="Total Customers" value={fmtNum(health.total)} icon={<Users className="size-4" />} />
