@@ -17,6 +17,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireStaff, logSecurity, adminRpc, type StaffRole } from "./admin-guard.server";
+import type { AcquisitionRaw } from "./acquisition-intelligence";
 
 const ANALYTICS: StaffRole[] = ["admin", "super_admin", "manager", "editor"];
 
