@@ -161,6 +161,18 @@ export function interpretNaturalLanguage(q: string): string | null {
     return "qa-prod-marketing";
   }
   if (s.includes("feature") && s.includes("product")) return "qa-prod-feature";
+  // Financial ↔ Marketing natural language (before generic campaign + financial blocks)
+  if (s.includes("profit") && (s.includes("intelligence") || s.includes("opportunit"))) return s.includes("opportunit") ? "qa-fin-opportunities" : "qa-fin-profit";
+  if (s.includes("marketing") && s.includes("profit")) return "qa-fin-marketing";
+  if (s.includes("marketing") && s.includes("efficiency")) return "qa-fin-marketing";
+  if (s.includes("financial") && s.includes("marketing")) return "qa-fin-marketing";
+  if (s.includes("campaign") && (s.includes("profitab") || (s.includes("margin")))) return "qa-fin-campaigns";
+  if (s.includes("campaign") && (s.includes("roas"))) return "qa-fin-campaigns";
+  if (s.includes("campaign") && s.includes("roi") && s.includes("profit")) return "qa-fin-campaigns";
+  if (s.includes("scale") && (s.includes("winning") || s.includes("winner")) && s.includes("campaign")) return "qa-fin-scale";
+  if (s.includes("pause") && (s.includes("losing") || s.includes("loser")) && s.includes("campaign")) return "qa-fin-pause";
+  if (s.includes("margin") && (s.includes("analysis") || s.includes("risk"))) return s.includes("risk") ? "qa-fin-margin-risk" : "qa-fin-profit";
+
   // Marketing automation natural language
   if (s.includes("campaign") || s.includes("automation")) {
     const make = s.includes("create") || s.includes("new") || s.includes("launch") || s.includes("make");
