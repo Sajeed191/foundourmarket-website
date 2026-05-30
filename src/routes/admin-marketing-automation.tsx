@@ -9,6 +9,7 @@ import {
   Boxes, Package, ChevronRight,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
+import { AcquisitionSummary } from "@/components/admin/AcquisitionSummary";
 import { KpiCard } from "@/components/admin/KpiCard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
