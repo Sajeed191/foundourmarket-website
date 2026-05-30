@@ -75,7 +75,22 @@ function StatusBadge({ hasDraft, isLive }: { hasDraft: boolean; isLive: boolean 
 
 function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
   const [editing, setEditing] = useState<Partial<Page> | null>(null);
+  const [baseline, setBaseline] = useState("");
   const [publishing, setPublishing] = useState<Page | null>(null);
+
+  const entityId = editing?.id ?? "new";
+  const protection = useEditorProtection({
+    entityType: "cms_page",
+    entityId,
+    value: editing as Record<string, unknown> | null,
+    baseline,
+    enabled: !!editing,
+  });
+
+  function open(row: Partial<Page> | null) {
+    setEditing(row);
+    setBaseline(row ? JSON.stringify(row) : "");
+  }
 
   async function saveDraft() {
     if (!editing?.slug || !editing.title) { toast.error("Slug and title are required"); return; }
@@ -84,13 +99,19 @@ function PagesTab({ pages, reload }: { pages: Page[]; reload: () => void }) {
       meta_title: editing.meta_title ?? null, meta_description: editing.meta_description ?? null,
       sort_order: editing.sort_order ?? 0,
     };
-    const { error } = editing.id
-      ? await supabase.from("cms_pages").update({ draft_data: draft, has_draft: true }).eq("id", editing.id)
-      : await supabase.from("cms_pages").insert({ ...draft, published: false, draft_data: draft, has_draft: true });
+    const { data: saved, error } = editing.id
+      ? await supabase.from("cms_pages").update({ draft_data: draft, has_draft: true }).eq("id", editing.id).select("id").single()
+      : await supabase.from("cms_pages").insert({ ...draft, published: false, draft_data: draft, has_draft: true }).select("id").single();
     if (error) { toast.error(error.message); return; }
     toast.success("Draft saved");
     logActivity(editing.id ? "page_draft_update" : "page_draft_create", "cms_page", editing.id, { slug: draft.slug });
-    setEditing(null); reload();
+    await protection.recordVersion(
+      (editing.id ?? saved?.id ?? entityId) as string,
+      draft as Record<string, unknown>,
+      editing.id ? "Updated" : "Created page",
+    );
+    await protection.markClean();
+    open(null); reload();
   }
 
   async function publishPage(p: Page) {
