@@ -110,9 +110,18 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   const [pinState, setPinState] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [geoBusy, setGeoBusy] = useState(false);
   const lastPin = useRef<string>("");
+  const countryTouched = useRef<boolean>(!!initial?.country);
 
   const set = <K extends keyof AddressInput>(k: K, v: AddressInput[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
+
+  // Keep the country field aligned with the detected region until the user
+  // edits it manually (Phase 1 / Phase 8: never strand an Indian user on GB).
+  useEffect(() => {
+    if (countryTouched.current) return;
+    setForm((p) => (p.country === regionCountryName ? p : { ...p, country: regionCountryName }));
+  }, [regionCountryName]);
+
 
   // Auto city/state from Indian pincode
   useEffect(() => {
