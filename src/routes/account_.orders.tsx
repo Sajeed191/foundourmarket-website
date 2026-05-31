@@ -493,10 +493,10 @@ function OrderCard({ order, index, format, onReorder, reordering, onOpenDetails 
 
         {/* actions */}
         <div className="mt-3 flex flex-wrap gap-1.5">
-          <Link to="/orders/$id" params={{ id: order.id }}
+          <button onClick={onOpenDetails}
             className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full bg-accent text-accent-foreground active:scale-95 transition">
             View Details <ArrowRight className="size-3" />
-          </Link>
+          </button>
           <button onClick={onReorder} disabled={reordering}
             className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition disabled:opacity-50">
             {reordering ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />} Reorder
