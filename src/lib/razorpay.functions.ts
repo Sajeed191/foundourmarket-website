@@ -177,7 +177,7 @@ async function repriceFromDb(
     }
   }
 
-  const totals = computeOrderTotals(region, subtotal, discount);
+  const totals = computeOrderTotals(region, subtotal, discount, shippingTotal);
 
   return { region, lines, appliedPromo, totals };
 }
