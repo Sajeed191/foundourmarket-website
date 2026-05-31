@@ -42,6 +42,7 @@ type DrawerData = {
   returns: Return[];
   notifications: Notif[];
   returnWindowDays: number;
+  cost: number;
 };
 
 // Session-scoped cache
