@@ -204,7 +204,7 @@ export const returnActionFn = createServerFn({ method: "POST" })
         patch.refund_status = "completed";
         patch.resolved_at = new Date().toISOString();
         if (input.refundAmount != null) patch.refund_amount = input.refundAmount;
-        const amt = input.refundAmount ?? Number(ret.refund_amount) || 0;
+        const amt = input.refundAmount ?? (Number(ret.refund_amount) || 0);
         title = "Return refunded";
         body = `Your return has been refunded${amt ? ` (₹${Math.round(amt).toLocaleString()})` : ""}.`;
         break;
@@ -230,5 +230,5 @@ export const returnActionFn = createServerFn({ method: "POST" })
       success: true,
       detail: { action: input.action, label, orderId: ret.order_id },
     });
-    return { ok: true, status: patch.status, label };
+    return { ok: true, status: patch.status as string, label };
   });
