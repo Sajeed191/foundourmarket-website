@@ -232,7 +232,7 @@ function OrdersPage() {
     } finally { setReordering(null); }
   }
 
-  async function retryPayment(o: Order) {
+  function retryPayment() {
     nav({ to: "/checkout" });
   }
 
