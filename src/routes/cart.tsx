@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Minus, Plus, X, ArrowRight, ShoppingBag, Bookmark, RotateCcw, Heart,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
+import { refreshProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
 import { RelatedProducts } from "@/components/site/RelatedProducts";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
@@ -70,6 +71,11 @@ function CartPage() {
 
   const [promo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
+
+  // Pull the latest admin pricing/shipping when the cart opens.
+  useEffect(() => { refreshProducts(); }, []);
+
+
 
 
   const savings = useMemo(

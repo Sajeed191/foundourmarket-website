@@ -3,14 +3,37 @@ import { fetchProducts, fetchProduct, type Product } from "./products";
 import { supabase } from "@/integrations/supabase/client";
 
 let realtimeBound = false;
+let lastFreshAt = 0;
+const FRESH_TTL = 20_000; // re-fetch at most every 20s on focus/visibility
+
+/** Force a fresh products fetch, throttled, so stale prices/shipping refresh. */
+function refreshIfStale() {
+  if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+  const now = Date.now();
+  if (now - lastFreshAt < FRESH_TTL) return;
+  lastFreshAt = now;
+  invalidateProducts();
+}
+
+/** Public, throttled refresh trigger for entry points like cart/checkout. */
+export function refreshProducts() {
+  refreshIfStale();
+}
+
 function bindRealtime() {
   if (realtimeBound || typeof window === "undefined") return;
   realtimeBound = true;
+  // Admins (who can read the base table) get instant realtime updates.
   supabase
     .channel("rt-products-public")
     .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => invalidateProducts())
     .subscribe();
+  // Customers read the products_public VIEW and never receive base-table
+  // realtime events (RLS blocks it), so refresh on focus/visibility instead.
+  window.addEventListener("focus", refreshIfStale);
+  document.addEventListener("visibilitychange", refreshIfStale);
 }
+
 
 let cache: Product[] | null = null;
 let inflight: Promise<Product[]> | null = null;
