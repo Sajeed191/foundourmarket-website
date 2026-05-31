@@ -220,6 +220,8 @@ function AdminShipmentsPage() {
       await supabase.from("orders").update(orderPatch).eq("id", s.order_id);
       setOrders((prev) => prev?.map((o) =>
         o.id === s.order_id ? { ...o, fulfillment_status: fulfillment } : o) ?? prev);
+      // Send a permanent in-app notification to the customer.
+      await notifyCustomer(s.user_id, s.order_id, status);
       logActivity("shipment_status", "shipment", s.id, { status });
       toast.success(`Marked ${STATUS_LABEL[status]}`);
     }
