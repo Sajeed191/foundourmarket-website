@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/public/webhooks/$courier")({
         if (!spec) {
           await supabaseAdmin.from("courier_webhook_events").insert({
             courier: params.courier, signature_valid: false, status: "rejected",
-            payload, error: "unsupported_courier",
+            payload: payload as never, error: "unsupported_courier",
           });
           return new Response("Unsupported courier", { status: 404 });
         }
@@ -53,7 +53,7 @@ export const Route = createFileRoute("/api/public/webhooks/$courier")({
             signature_valid: valid,
             status: valid ? "received" : "rejected",
             tracking_number: scan.trackingNumber,
-            payload,
+            payload: payload as never,
           })
           .select("id")
           .maybeSingle();
@@ -76,7 +76,7 @@ export const Route = createFileRoute("/api/public/webhooks/$courier")({
             }).eq("id", logRow.id);
           }
           // 200 so couriers don't retry forever on business-logic outcomes.
-          return Response.json({ ok: result.ok, ...result });
+          return Response.json(result);
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
           if (logRow?.id) await supabaseAdmin.from("courier_webhook_events")
