@@ -204,6 +204,11 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         return f.country.trim() ? undefined : "Country is required";
       case "postal":
         return postalError(f.country, f.postal) ?? undefined;
+      case "nickname":
+        // Required only as a custom label for "Other" address types.
+        return f.address_type === "other" && !(f.nickname ?? "").trim()
+          ? "Add a label for this address"
+          : undefined;
       default:
         return undefined;
     }
