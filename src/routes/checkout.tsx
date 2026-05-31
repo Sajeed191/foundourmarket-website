@@ -299,9 +299,26 @@ function CheckoutPage() {
             setError(e?.message ?? "We couldn't verify your payment. If charged, it will auto-resolve.");
           }
         },
+      } satisfies Parameters<typeof openRazorpay>[0];
+
+      // Full Razorpay Checkout configuration logged immediately before open().
+      console.log("[checkout] Razorpay Checkout config (pre-open)", {
+        key: rzpOptions.key,
+        currency: rzpOptions.currency,
+        amount: rzpOptions.amount,
+        order_id: rzpOptions.order_id,
+        name: rzpOptions.name,
+        description: rzpOptions.description,
+        image: rzpOptions.image,
+        prefill: rzpOptions.prefill,
+        notes: rzpOptions.notes,
+        theme: rzpOptions.theme,
+        method: (rzpOptions as { method?: unknown }).method ?? "none (account defaults)",
+        "config.display": (rzpOptions as { config?: unknown }).config ?? "none (Razorpay adaptive UPI)",
       });
 
-      rzp.on("payment.failed", (resp: any) => {
+      const rzp = openRazorpay(rzpOptions);
+
         setStage("failed");
         setError(resp?.error?.description ?? "Payment failed. Please try again.");
         void import("@/lib/visitor").then((m) =>
