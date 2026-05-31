@@ -418,56 +418,20 @@ function TrackPage() {
               </motion.div>
             )}
 
-            {/* Carrier + ETA Countdown */}
-            {!cancelled && !returned && !failed && (
-              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
-                <CarrierEta orderId={result.order.id} progress={currentStatusIdx} />
-              </motion.div>
-            )}
-
-            {/* Live Delivery Map */}
-            {!cancelled && currentStatusIdx >= 2 && (
-              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
-                <LiveMap progress={currentStatusIdx} />
-              </motion.div>
-            )}
-
-            {/* Live activity feed */}
-            {!cancelled && (
-              <motion.div variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}>
-                <LiveFeed />
-              </motion.div>
-            )}
-
-
-
-            {/* AI Insights */}
-            {!cancelled && (
+            {/* Delivery address (from the order) */}
+            {result.order.shipping_address && (
               <motion.div
                 variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}
-                className="relative glass-strong rounded-3xl p-5 ring-1 ring-white/10 overflow-hidden"
+                className="glass-strong rounded-3xl p-5 sm:p-6 ring-1 ring-white/10"
               >
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="size-7 rounded-full grid place-items-center bg-accent/15 text-accent">
-                    <Sparkles className="size-3.5" />
-                  </div>
-                  <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent">AI Delivery Insights</p>
+                <div className="flex items-center gap-2 mb-3">
+                  <MapPin className="size-4 text-accent" />
+                  <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent">Delivery address</p>
                 </div>
-                <ul className="space-y-2.5">
-                  {AI_INSIGHTS.map(({ icon: Icon, text }, i) => (
-                    <motion.li
-                      key={text}
-                      initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 + i * 0.1 }}
-                      className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.03] ring-1 ring-white/5"
-                    >
-                      <Icon className="size-4 text-accent mt-0.5 shrink-0" />
-                      <span className="text-xs sm:text-sm text-foreground/90">{text}</span>
-                    </motion.li>
-                  ))}
-                </ul>
+                <DeliveryAddress address={result.order.shipping_address} />
               </motion.div>
             )}
+
 
             {/* Items breakdown */}
             <motion.div
