@@ -187,6 +187,7 @@ function ProductPage() {
   const lowStock = effectiveStock > 0 && effectiveStock <= product.lowStockThreshold;
   const isOOS = effectiveStock <= 0;
   const originalPrice = compareOf(product) ?? (product.discount ? effectivePrice * (1 + product.discount / 100) : null);
+  const discountPct = discountPercent(effectivePrice, originalPrice);
 
   const handleAdd = () => {
     add(product.slug, qty);
