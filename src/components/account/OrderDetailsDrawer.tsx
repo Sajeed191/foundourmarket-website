@@ -94,9 +94,13 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
     const order = (orderRes.data as FullOrder) ?? null;
     const slugs = (order?.order_items ?? []).map((i) => i.product_slug).filter(Boolean);
     let returnWindowDays = 0;
+    let cost = 0;
     if (slugs.length) {
-      const { data: prods } = await supabase.from("products").select("return_window_days,return_eligible").in("slug", slugs);
+      const { data: prods } = await supabase.from("products").select("slug,return_window_days,return_eligible,cost_price_inr,cost_price_usd").in("slug", slugs);
       returnWindowDays = Math.max(0, ...((prods ?? []).filter((p) => p.return_eligible).map((p) => Number(p.return_window_days) || 0)), 0);
+      const isInr = (order?.currency ?? "").toUpperCase() === "INR";
+      const costMap = new Map((prods ?? []).map((p) => [p.slug, Number((isInr ? p.cost_price_inr : p.cost_price_usd) ?? 0) || 0]));
+      cost = (order?.order_items ?? []).reduce((n, it) => n + (costMap.get(it.product_slug) ?? 0) * it.quantity, 0);
     }
 
     const notifications = ((notifRes.data as (Notif & { data: { order_id?: string } | null; link: string | null })[]) ?? [])
@@ -111,6 +115,7 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
       returns: (retRes.data as Return[]) ?? [],
       notifications,
       returnWindowDays,
+      cost,
     };
     if (reqRef.current !== id) return;
     cache.set(id, built);
