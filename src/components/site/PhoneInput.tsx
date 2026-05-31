@@ -36,6 +36,12 @@ type Props = {
   onChange: (e164: string, valid: boolean) => void;
   onBlur?: () => void;
   defaultCountry?: CountryCode;
+  /**
+   * When false, the component will NOT auto-detect the country from the
+   * browser locale. Use this when the parent supplies a region-derived
+   * `defaultCountry` so an en-GB browser never forces +44 on an Indian user.
+   */
+  autoDetect?: boolean;
   invalid?: boolean;
   id?: string;
   placeholder?: string;
@@ -46,6 +52,7 @@ export function PhoneInput({
   onChange,
   onBlur,
   defaultCountry = "IN",
+  autoDetect = true,
   invalid,
   id,
   placeholder = "Phone number",
