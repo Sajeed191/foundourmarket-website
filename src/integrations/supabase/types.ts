@@ -3585,13 +3585,17 @@ export type Database = {
       }
       shipments: {
         Row: {
+          cancelled_at: string | null
           carrier: string | null
           created_at: string
           delivered_at: string | null
+          estimated_delivery: string | null
           id: string
           is_seeded: boolean
           notes: string | null
           order_id: string
+          packed_at: string | null
+          returned_at: string | null
           shipped_at: string | null
           status: string
           tracking_number: string | null
@@ -3600,13 +3604,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cancelled_at?: string | null
           carrier?: string | null
           created_at?: string
           delivered_at?: string | null
+          estimated_delivery?: string | null
           id?: string
           is_seeded?: boolean
           notes?: string | null
           order_id: string
+          packed_at?: string | null
+          returned_at?: string | null
           shipped_at?: string | null
           status?: string
           tracking_number?: string | null
@@ -3615,13 +3623,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cancelled_at?: string | null
           carrier?: string | null
           created_at?: string
           delivered_at?: string | null
+          estimated_delivery?: string | null
           id?: string
           is_seeded?: boolean
           notes?: string | null
           order_id?: string
+          packed_at?: string | null
+          returned_at?: string | null
           shipped_at?: string | null
           status?: string
           tracking_number?: string | null
