@@ -309,9 +309,8 @@
 .input-glass-static {
   padding-top: 0.925rem;
   padding-bottom: 0.925rem;
-  display: flex;
-  align-items: center;
 }
+
 
 
 /* Moving light sweep for the flagship CTA */
