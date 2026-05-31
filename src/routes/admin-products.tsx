@@ -16,6 +16,7 @@ import { BulkActionBar } from "@/components/admin/BulkActionBar";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveImage } from "@/lib/products";
 import { invalidateProducts } from "@/lib/use-products";
+import { ProductEditorModal } from "@/components/admin/ProductEditorModal";
 
 export const Route = createFileRoute("/admin-products")({
   head: () => ({
@@ -543,7 +544,7 @@ function ProductsInner() {
       />
 
       {editing && (
-        <ProductEditor
+        <ProductEditorModal
           row={editing === "new" ? null : editing}
           categories={categories}
           nextSort={(products.length ?? 0) + 1}

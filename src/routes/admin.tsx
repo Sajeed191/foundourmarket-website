@@ -4,6 +4,7 @@ import { Loader2, ShieldAlert, Package, Plus, Pencil, Trash2, X, Upload, Tag, Ti
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { invalidateProducts } from "@/lib/use-products";
+import { ProductEditorModal } from "@/components/admin/ProductEditorModal";
 import { invalidateCategories, type Category } from "@/lib/use-categories";
 import { resolveImage } from "@/lib/products";
 import { DashboardOverview } from "@/components/admin/DashboardOverview";
@@ -568,7 +569,7 @@ function AdminPage() {
       )}
 
       {editing && (
-        <ProductEditor
+        <ProductEditorModal
           row={editing === "new" ? null : editing}
           nextSort={(products?.length ?? 0) + 1}
           categories={categories ?? []}
