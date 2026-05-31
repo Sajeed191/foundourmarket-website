@@ -42,10 +42,25 @@ function AuthPage() {
   const [googleBusy, setGoogleBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const nav = useNavigate();
+  const { redirect } = Route.useSearch();
   const { user } = useAuth();
 
+  // Resolve the post-login destination (search param wins, else stored path, else account).
+  const resolveDest = (): string => {
+    if (redirect && redirect.startsWith("/")) return redirect;
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("post_auth_redirect");
+      if (stored && stored.startsWith("/")) {
+        localStorage.removeItem("post_auth_redirect");
+        return stored;
+      }
+    }
+    return "/account";
+  };
+
   useEffect(() => {
-    if (user) nav({ to: "/account" });
+    if (user) nav({ to: resolveDest() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, nav]);
 
   const onSubmit = async (e: React.FormEvent) => {
