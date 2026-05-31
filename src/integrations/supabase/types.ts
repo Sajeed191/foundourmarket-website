@@ -2931,39 +2931,54 @@ export type Database = {
       promo_codes: {
         Row: {
           active: boolean
+          automation_id: string | null
+          campaign_id: string | null
           code: string
           created_at: string
+          created_by: string | null
           expires_at: string | null
           id: string
           kind: string
           max_uses: number | null
           min_subtotal: number
+          segment: string | null
+          source: string | null
           updated_at: string
           uses: number
           value: number
         }
         Insert: {
           active?: boolean
+          automation_id?: string | null
+          campaign_id?: string | null
           code: string
           created_at?: string
+          created_by?: string | null
           expires_at?: string | null
           id?: string
           kind: string
           max_uses?: number | null
           min_subtotal?: number
+          segment?: string | null
+          source?: string | null
           updated_at?: string
           uses?: number
           value: number
         }
         Update: {
           active?: boolean
+          automation_id?: string | null
+          campaign_id?: string | null
           code?: string
           created_at?: string
+          created_by?: string | null
           expires_at?: string | null
           id?: string
           kind?: string
           max_uses?: number | null
           min_subtotal?: number
+          segment?: string | null
+          source?: string | null
           updated_at?: string
           uses?: number
           value?: number
@@ -5178,6 +5193,19 @@ export type Database = {
         Args: { p_since: string; p_window_days: number }
         Returns: Json
       }
+      svc_activate_segment: {
+        Args: {
+          _actor: string
+          p_action: string
+          p_kind?: string
+          p_label?: string
+          p_link?: string
+          p_message?: string
+          p_segment: string
+          p_value?: number
+        }
+        Returns: Json
+      }
       svc_admin_order_detail: {
         Args: { _actor: string; _order_id: string }
         Returns: Json
@@ -5229,6 +5257,7 @@ export type Database = {
         Args: { _actor: string; p_execution_id: string }
         Returns: Json
       }
+      svc_revenue_attribution: { Args: { _actor: string }; Returns: Json }
       svc_run_marketing_automations: {
         Args: {
           _actor: string
