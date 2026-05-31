@@ -138,6 +138,15 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             Add +
           </button>
         </div>
+        {shippingFee > 0 ? (
+          <p className={`font-mono text-muted-foreground/80 ${compact ? "mt-0.5 text-[8px]" : "mt-1 text-[10px]"}`}>
+            Shipping {format(shippingFee)}
+          </p>
+        ) : (
+          <p className={`font-mono uppercase tracking-wider text-emerald-400/90 ${compact ? "mt-0.5 text-[8px]" : "mt-1 text-[9px]"}`}>
+            Free Shipping
+          </p>
+        )}
         {showOnlyLeft && (
           <p className={`font-mono uppercase tracking-wider text-accent/90 ${compact ? "mt-0.5 text-[8px]" : "mt-1 text-[9px]"}`}>
             Only {product.stockQuantity} left
