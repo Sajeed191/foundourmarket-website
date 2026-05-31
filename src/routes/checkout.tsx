@@ -14,7 +14,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { useRegion } from "@/lib/region";
-import { useAddresses, type Address } from "@/lib/use-addresses";
+import { useAddresses, addressCompleteness, type Address } from "@/lib/use-addresses";
+import { computeCheckoutState, type CheckoutState, type DeliveryStatus } from "@/lib/checkout-state";
+import { CheckoutProgress } from "@/components/site/CheckoutProgress";
+import { CheckoutSummaryDrawer } from "@/components/site/CheckoutSummaryDrawer";
 import { useStoreSettings } from "@/lib/use-store-settings";
 import { AddressForm } from "@/components/site/AddressForm";
 import { SavedAddressRail } from "@/components/site/SavedAddressRail";
@@ -87,6 +90,7 @@ function CheckoutPage() {
   const [payMethod, setPayMethod] = useState<"razorpay" | "cod">("razorpay");
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [reserveLeft, setReserveLeft] = useState(15 * 60);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const isIndia = market === "india";
 
@@ -285,17 +289,24 @@ function CheckoutPage() {
       setError(service?.message ?? "This address isn't serviceable yet.");
       return;
     }
-    import("@/lib/visitor").then((m) => m.trackEvent("checkout_start", {
-      value: totalINR, metadata: { pay_method: payMethod },
-    })).catch(() => {});
+    import("@/lib/visitor").then((m) => {
+      m.trackEvent("checkout_start", { value: totalINR, metadata: { pay_method: payMethod } });
+      m.trackEvent("order_attempted", { value: totalINR, metadata: { pay_method: payMethod } });
+    }).catch(() => {});
     if (payMethod === "cod") placeCod();
     else payWithRazorpay();
   };
 
   useEffect(() => {
     if (stage === "success") {
-      import("@/lib/visitor").then((m) => m.trackEvent("purchase", {
-        value: totalINR, metadata: { order_id: placedOrderId, pay_method: payMethod },
+      import("@/lib/visitor").then((m) => {
+        m.trackEvent("purchase", { value: totalINR, metadata: { order_id: placedOrderId, pay_method: payMethod } });
+        m.trackEvent("payment_success", { value: totalINR, metadata: { order_id: placedOrderId, pay_method: payMethod } });
+      }).catch(() => {});
+    }
+    if (stage === "failed") {
+      import("@/lib/visitor").then((m) => m.trackEvent("payment_failed", {
+        value: totalINR, metadata: { pay_method: payMethod },
       })).catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -303,46 +314,61 @@ function CheckoutPage() {
 
   const busy = stage === "processing" || stage === "verifying";
 
-  /* ---------- unified checkout state (single source of truth for the CTA) ---------- */
-  const addressSelected = !!selectedAddress;
-  const paymentMethodSelected = payMethod === "cod" ? !!settings.cod_enabled : true;
-  const serviceabilityStatus: "idle" | "checking" | "serviceable" | "service_down" | "not_serviceable" =
+  /* ---------- checkout readiness engine — single source of truth ---------- */
+  const serviceabilityStatus: DeliveryStatus =
     !selectedPostal ? "idle"
       : serviceChecking ? "checking"
         : serviceDown ? "service_down"
           : allowProceed ? "serviceable"
             : "not_serviceable";
 
-  // Why the order can't be placed yet (null = ready). Order matters: most blocking first.
-  const orderBlockedReason: string | null =
-    !addressSelected ? "Select or save a delivery address"
-      : !paymentMethodSelected ? "Choose a payment method"
-        : serviceabilityStatus === "checking" ? "Checking delivery availability…"
-          : serviceabilityStatus === "not_serviceable" ? (service?.message ?? "This address isn't serviceable yet")
-            : null;
+  const addressComplete = selectedAddress
+    ? addressCompleteness(selectedAddress).score >= 85
+    : false;
+  const paymentMethodSelected = payMethod === "cod" ? !!settings.cod_enabled : true;
+  const stockAvailable = detailed.every((i) => i.product.inStock !== false);
+  const sessionValid = !!user && reserveLeft > 0;
 
-  const checkoutReady = orderBlockedReason === null && !busy;
+  const checkoutState: CheckoutState = computeCheckoutState({
+    region: market,
+    addressSelected: !!selectedAddress,
+    addressComplete,
+    deliveryStatus: serviceabilityStatus,
+    deliveryMessage: service?.message,
+    paymentSelected: paymentMethodSelected,
+    stockAvailable,
+    cartValid: count > 0,
+    sessionValid,
+    regionVerified: true,
+    total: totalINR,
+    busy,
+    orderPlaced: stage === "success",
+  });
+
+  const { checkoutReady, blockedReason: orderBlockedReason } = checkoutState;
 
   const actionLabel = payMethod === "cod" ? "Place Order" : "Continue to Payment";
   const ctaLabel = busy
     ? (stage === "processing" ? "Opening payment…" : "Verifying…")
-    : !addressSelected ? "Select a delivery address"
-      : serviceabilityStatus === "checking" ? "Checking delivery…"
-        : serviceabilityStatus === "not_serviceable" ? "Not deliverable"
-          : actionLabel;
+    : checkoutReady ? actionLabel : (orderBlockedReason ?? actionLabel);
 
   // Checkout state debugging — surfaces exactly why the CTA is/ isn't actionable.
   useEffect(() => {
     if (stage !== "review") return;
     // eslint-disable-next-line no-console
-    console.debug("[checkout]", {
-      addressSelected,
-      paymentMethodSelected,
-      serviceabilityStatus,
-      checkoutReady,
-      orderBlockedReason,
-    });
-  }, [addressSelected, paymentMethodSelected, serviceabilityStatus, checkoutReady, orderBlockedReason, stage]);
+    console.debug("[checkout]", checkoutState);
+  }, [checkoutState, stage]);
+
+  // Funnel analytics — fire once per meaningful transition.
+  const firedRef = useRef<Set<string>>(new Set());
+  const fireOnce = (event: string, metadata?: Record<string, unknown>) => {
+    if (firedRef.current.has(event)) return;
+    firedRef.current.add(event);
+    import("@/lib/visitor").then((m) => m.trackEvent(event, { value: totalINR, metadata })).catch(() => {});
+  };
+  useEffect(() => { if (stage === "review") fireOnce("checkout_started"); }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (checkoutState.addressValid) fireOnce("address_selected"); }, [checkoutState.addressValid]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (checkoutState.deliveryVerified) fireOnce("delivery_verified"); }, [checkoutState.deliveryVerified]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Emergency fallback: if the primary sticky CTA ever fails to render on screen
   // (clipping, z-index, layout edge cases), show a floating button so a ready
@@ -381,6 +407,10 @@ function CheckoutPage() {
         <InternationalSoon live={internationalLive} loading={gatewaysLoading} />
       ) : (
         <>
+          <div className="sticky top-2 z-30 mb-5 sm:mb-7 rounded-2xl glass border border-white/10 px-3 py-2.5 sm:px-5 sm:py-3.5">
+            <CheckoutProgress currentStep={checkoutState.currentStep} completedSteps={checkoutState.completedSteps} />
+          </div>
+
           <div className="mb-6 sm:mb-9 flex flex-wrap items-center gap-2">
             <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-full px-3 py-1.5">
               <Lock className="size-3 text-emerald-400 shrink-0" />
@@ -656,10 +686,12 @@ function CheckoutPage() {
                   </p>
                 )}
                 <div className="flex items-center gap-3">
-                  <div className="pl-1.5 min-w-0">
-                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Total · {itemsCount} item{itemsCount !== 1 ? "s" : ""}</p>
-                    <p className="font-mono text-lg font-semibold text-accent leading-tight truncate">{fmt(totalINR)}</p>
-                  </div>
+                  <button type="button" onClick={() => setSummaryOpen(true)}
+                    aria-label="View order summary"
+                    className="pl-1.5 min-w-0 text-left active:scale-[0.98] transition-transform">
+                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Total · {itemsCount} item{itemsCount !== 1 ? "s" : ""} · tap to view</p>
+                    <p className="font-mono text-lg font-semibold text-accent leading-tight truncate underline decoration-dotted decoration-accent/40 underline-offset-4">{fmt(totalINR)}</p>
+                  </button>
                   <button type="submit" disabled={!checkoutReady}
                     className="ml-auto group inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground font-bold px-5 min-h-[56px] rounded-xl text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0">
                     {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-3.5" />}
@@ -668,6 +700,25 @@ function CheckoutPage() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Mobile order summary drawer (opened by tapping the total) */}
+            <div className="lg:hidden">
+              <CheckoutSummaryDrawer
+                open={summaryOpen}
+                onOpenChange={setSummaryOpen}
+                trigger={<span className="sr-only" aria-hidden />}
+                lines={detailed.map((i) => ({ slug: i.slug, name: i.product.name, image: i.product.image, qty: i.qty, lineTotal: priceOf(i.product) * i.qty }))}
+                fmt={fmt}
+                subtotal={subtotalINR}
+                shipping={shippingINR}
+                tax={taxINR}
+                discount={totals.discount}
+                savings={savingsINR}
+                total={totalINR}
+                taxLabel={`${market === "india" ? "18% GST" : "8%"} est.`}
+                eta={eta}
+              />
             </div>
 
             {/* Emergency floating fallback — only when checkout is ready but the
