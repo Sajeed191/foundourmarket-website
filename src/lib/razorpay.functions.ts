@@ -688,3 +688,114 @@ export const createRazorpayRefund = createServerFn({ method: "POST" })
     return { ok: true, refund: refundRow };
   });
 
+
+/* ===========================================================================
+ * Admin payment diagnostics + health analytics
+ * ======================================================================== */
+
+const PAYMENT_STAFF_ROLES = ["admin", "super_admin", "manager", "support"];
+
+async function assertPaymentStaff(userId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
+  if (error) throw new Error("Could not verify permissions.");
+  const roles = (data ?? []).map((r) => r.role as string);
+  if (!roles.some((r) => PAYMENT_STAFF_ROLES.includes(r))) {
+    throw new Error("You are not authorised to view payment diagnostics.");
+  }
+}
+
+/** Admin — Razorpay account mode + the methods customers will actually see. */
+export const getRazorpayDiagnostics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context as { userId: string };
+    await assertPaymentStaff(userId);
+    return fetchRazorpayDiagnostics();
+  });
+
+/** Normalise a stored payment row's method into a coarse bucket. */
+function methodBucket(method: string | null, meta: any): string {
+  const m = (meta?.rzp_method ?? method ?? "").toString().toLowerCase();
+  if (m.includes("upi")) return "upi";
+  if (m.includes("netbanking")) return "netbanking";
+  if (m.includes("wallet")) return "wallet";
+  if (m.includes("emi")) return "emi";
+  if (m.includes("paylater")) return "paylater";
+  if (m.includes("card")) return "card";
+  if (m === "razorpay" || m === "") return "unknown";
+  return m;
+}
+
+/** Admin — aggregate payment health KPIs + the last 20 attempts. */
+export const getPaymentHealth = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context as { userId: string };
+    await assertPaymentStaff(userId);
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("payments")
+      .select(
+        "id,order_id,method,status,amount,currency,razorpay_payment_id,demo,meta,created_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    if (error) throw new Error("Could not load payments.");
+
+    const all = rows ?? [];
+    const succeeded = all.filter((r) => r.status === "succeeded");
+    const failed = all.filter((r) => r.status === "failed");
+    const total = succeeded.length + failed.length;
+
+    const revenueByMethod: Record<string, number> = {};
+    const countByMethod: Record<string, number> = {};
+    let revenue = 0;
+    for (const r of succeeded) {
+      const b = methodBucket(r.method, r.meta);
+      const amt = Number(r.amount) || 0;
+      revenueByMethod[b] = (revenueByMethod[b] ?? 0) + amt;
+      countByMethod[b] = (countByMethod[b] ?? 0) + 1;
+      revenue += amt;
+    }
+
+    const pct = (n: number) =>
+      succeeded.length ? Math.round((n / succeeded.length) * 1000) / 10 : 0;
+
+    return {
+      totals: {
+        attempts: total,
+        succeeded: succeeded.length,
+        failed: failed.length,
+        successRate: total ? Math.round((succeeded.length / total) * 1000) / 10 : 0,
+        failureRate: total ? Math.round((failed.length / total) * 1000) / 10 : 0,
+        revenue,
+        avgOrderValue: succeeded.length
+          ? Math.round((revenue / succeeded.length) * 100) / 100
+          : 0,
+      },
+      usage: {
+        upi: pct(countByMethod.upi ?? 0),
+        card: pct(countByMethod.card ?? 0),
+        netbanking: pct(countByMethod.netbanking ?? 0),
+        wallet: pct(countByMethod.wallet ?? 0),
+        emi: pct(countByMethod.emi ?? 0),
+        paylater: pct(countByMethod.paylater ?? 0),
+      },
+      revenueByMethod,
+      countByMethod,
+      recent: all.slice(0, 20).map((r) => ({
+        id: r.id,
+        orderId: r.order_id,
+        method: methodBucket(r.method, r.meta),
+        rawMethod: (r.meta as any)?.rzp_method ?? r.method,
+        status: r.status,
+        amount: Number(r.amount) || 0,
+        currency: r.currency,
+        demo: !!r.demo,
+        createdAt: r.created_at,
+      })),
+    };
+  });
