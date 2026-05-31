@@ -63,7 +63,7 @@ function formatEta(daysFrom: number, daysTo: number) {
 function CheckoutPage() {
   const { user, loading } = useAuth();
   const { detailed, subtotalUSD, clear, count, hydrated: cartHydrated } = useCart();
-  const { market, priceOf } = useRegion();
+  const { market, priceOf, shippingFeeOf } = useRegion();
   const fmt = (n: number) => formatMoney(market, n);
   const { internationalLive, loading: gatewaysLoading } = usePaymentGateways();
   const {
