@@ -78,11 +78,11 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        nav({ to: "/account" });
+        nav({ to: resolveDest() });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        nav({ to: "/account" });
+        nav({ to: resolveDest() });
       }
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
