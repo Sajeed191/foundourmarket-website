@@ -302,13 +302,47 @@ function CheckoutPage() {
   }, [stage]);
 
   const busy = stage === "processing" || stage === "verifying";
-  const ctaLabel = stage === "processing"
-    ? "Opening payment…"
-    : stage === "verifying"
-      ? "Verifying…"
-      : payMethod === "cod"
-        ? "Place order"
-        : `Pay ${fmt(totalINR)}`;
+
+  /* ---------- unified checkout state (single source of truth for the CTA) ---------- */
+  const addressSelected = !!selectedAddress;
+  const paymentMethodSelected = payMethod === "cod" ? !!settings.cod_enabled : true;
+  const serviceabilityStatus: "idle" | "checking" | "serviceable" | "service_down" | "not_serviceable" =
+    !selectedPostal ? "idle"
+      : serviceChecking ? "checking"
+        : serviceDown ? "service_down"
+          : allowProceed ? "serviceable"
+            : "not_serviceable";
+
+  // Why the order can't be placed yet (null = ready). Order matters: most blocking first.
+  const orderBlockedReason: string | null =
+    !addressSelected ? "Select or save a delivery address"
+      : !paymentMethodSelected ? "Choose a payment method"
+        : serviceabilityStatus === "checking" ? "Checking delivery availability…"
+          : serviceabilityStatus === "not_serviceable" ? (service?.message ?? "This address isn't serviceable yet")
+            : null;
+
+  const checkoutReady = orderBlockedReason === null && !busy;
+
+  const actionLabel = payMethod === "cod" ? "Place Order" : "Continue to Payment";
+  const ctaLabel = busy
+    ? (stage === "processing" ? "Opening payment…" : "Verifying…")
+    : !addressSelected ? "Select a delivery address"
+      : serviceabilityStatus === "checking" ? "Checking delivery…"
+        : serviceabilityStatus === "not_serviceable" ? "Not deliverable"
+          : actionLabel;
+
+  // Checkout state debugging — surfaces exactly why the CTA is/ isn't actionable.
+  useEffect(() => {
+    if (stage !== "review") return;
+    // eslint-disable-next-line no-console
+    console.debug("[checkout]", {
+      addressSelected,
+      paymentMethodSelected,
+      serviceabilityStatus,
+      checkoutReady,
+      orderBlockedReason,
+    });
+  }, [addressSelected, paymentMethodSelected, serviceabilityStatus, checkoutReady, orderBlockedReason, stage]);
 
   if (loading || !user || !cartHydrated) {
     return <div className="min-h-[60vh] grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
