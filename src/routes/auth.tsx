@@ -59,7 +59,7 @@ function AuthPage() {
   };
 
   useEffect(() => {
-    if (user) nav({ to: resolveDest() });
+    if (user) nav({ to: resolveDest() as string });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, nav]);
 
@@ -78,11 +78,11 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        nav({ to: resolveDest() });
+        nav({ to: resolveDest() as string });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        nav({ to: resolveDest() });
+        nav({ to: resolveDest() as string });
       }
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
