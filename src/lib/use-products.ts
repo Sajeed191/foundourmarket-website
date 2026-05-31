@@ -15,7 +15,7 @@ function refreshIfStale() {
   invalidateProducts();
 }
 
-/** Force a fresh products fetch, throttled, so stale prices/shipping refresh. */
+/** Public, throttled refresh trigger for entry points like cart/checkout. */
 export function refreshProducts() {
   refreshIfStale();
 }
