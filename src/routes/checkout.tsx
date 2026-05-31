@@ -407,6 +407,10 @@ function CheckoutPage() {
         <InternationalSoon live={internationalLive} loading={gatewaysLoading} />
       ) : (
         <>
+          <div className="sticky top-2 z-30 mb-5 sm:mb-7 rounded-2xl glass border border-white/10 px-3 py-2.5 sm:px-5 sm:py-3.5">
+            <CheckoutProgress currentStep={checkoutState.currentStep} completedSteps={checkoutState.completedSteps} />
+          </div>
+
           <div className="mb-6 sm:mb-9 flex flex-wrap items-center gap-2">
             <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-full px-3 py-1.5">
               <Lock className="size-3 text-emerald-400 shrink-0" />
