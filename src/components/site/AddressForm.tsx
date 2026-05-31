@@ -116,13 +116,35 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   const [phoneValid, setPhoneValid] = useState<boolean>(!!initial?.phone);
   const [pinState, setPinState] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [geoBusy, setGeoBusy] = useState(false);
+  const [geo, setGeo] = useState<{ confidence: number; source: string } | null>(null);
+  // City/state/areas the postal service resolved for the current PIN.
+  const [resolvedPin, setResolvedPin] = useState<{
+    city: string | null;
+    state: string | null;
+    areas: string[];
+  } | null>(null);
   const lastPin = useRef<string>("");
   const countryTouched = useRef<boolean>(!!initial?.country);
 
   const set = <K extends keyof AddressInput>(k: K, v: AddressInput[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
 
-  const completeness = useMemo(() => addressCompleteness(form), [form]);
+  const expectedRegion: MarketRegion = market === "india" ? "india" : "international";
+  const quality = useMemo(
+    () => scoreAddressQuality(form, { expectedRegion }),
+    [form, expectedRegion],
+  );
+  const consistency = useMemo(
+    () =>
+      resolvedPin
+        ? pinCityStateConsistency(
+            { city: form.city, state: form.state },
+            resolvedPin,
+          )
+        : { status: "unknown" as const, issues: [] },
+    [form.city, form.state, resolvedPin],
+  );
+  const risk = useMemo(() => assessAddressRisk(form), [form]);
 
 
   // Keep the country field aligned with the detected region until the user
