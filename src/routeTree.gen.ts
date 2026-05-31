@@ -93,6 +93,7 @@ import { Route as AccountPaymentMethodsAddRouteImport } from './routes/account_.
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as ApiPublicWebhooksCourierRouteImport } from './routes/api/public/webhooks/$courier'
 import { Route as ApiPublicTrackOpenRouteImport } from './routes/api/public/track.open'
 import { Route as ApiPublicTrackClickRouteImport } from './routes/api/public/track.click'
 
@@ -525,6 +526,12 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicWebhooksCourierRoute =
+  ApiPublicWebhooksCourierRouteImport.update({
+    id: '/api/public/webhooks/$courier',
+    path: '/api/public/webhooks/$courier',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicTrackOpenRoute = ApiPublicTrackOpenRouteImport.update({
   id: '/api/public/track/open',
   path: '/api/public/track/open',
@@ -620,6 +627,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
+  '/api/public/webhooks/$courier': typeof ApiPublicWebhooksCourierRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -708,6 +716,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
+  '/api/public/webhooks/$courier': typeof ApiPublicWebhooksCourierRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -797,6 +806,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
+  '/api/public/webhooks/$courier': typeof ApiPublicWebhooksCourierRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -887,6 +897,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/track/click'
     | '/api/public/track/open'
+    | '/api/public/webhooks/$courier'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -975,6 +986,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/track/click'
     | '/api/public/track/open'
+    | '/api/public/webhooks/$courier'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -1063,6 +1075,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/track/click'
     | '/api/public/track/open'
+    | '/api/public/webhooks/$courier'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -1149,6 +1162,7 @@ export interface RootRouteChildren {
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicTrackClickRoute: typeof ApiPublicTrackClickRoute
   ApiPublicTrackOpenRoute: typeof ApiPublicTrackOpenRoute
+  ApiPublicWebhooksCourierRoute: typeof ApiPublicWebhooksCourierRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
@@ -1744,6 +1758,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/$courier': {
+      id: '/api/public/webhooks/$courier'
+      path: '/api/public/webhooks/$courier'
+      fullPath: '/api/public/webhooks/$courier'
+      preLoaderRoute: typeof ApiPublicWebhooksCourierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/track/open': {
       id: '/api/public/track/open'
       path: '/api/public/track/open'
@@ -1872,6 +1893,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicTrackClickRoute: ApiPublicTrackClickRoute,
   ApiPublicTrackOpenRoute: ApiPublicTrackOpenRoute,
+  ApiPublicWebhooksCourierRoute: ApiPublicWebhooksCourierRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
