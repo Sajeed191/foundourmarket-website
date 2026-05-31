@@ -3,14 +3,15 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, Package, Search, ArrowRight, ArrowLeft, ShoppingBag, Bell,
-  Truck, CheckCircle2, Clock, RotateCcw,
-  X, HelpCircle, RefreshCw, MapPin, ChevronDown, AlertCircle, Wallet, CreditCard, Boxes,
+  Truck, CheckCircle2, X, HelpCircle, RefreshCw, MapPin, ChevronDown,
+  AlertCircle, Wallet, Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
+import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { OrderDetailsDrawer } from "@/components/account/OrderDetailsDrawer";
 import { fetchPersonalizedSlugs, fetchTrendingSlugs } from "@/lib/personalization";
 
@@ -54,41 +55,55 @@ function isSucceeded(o: { payment_status: string | null; status: string }) {
   const p = (o.payment_status ?? "").toLowerCase();
   const s = (o.status ?? "").toLowerCase();
   if (p === "succeeded" || p === "paid" || p === "captured") return true;
-  // Any order that progressed past payment is considered paid
   return ["paid", "processing", "shipped", "in_transit", "out_for_delivery", "delivered", "returning", "returned", "refunded"].includes(s);
 }
 
-type DisplayStatus = { key: string; label: string; emoji: string; color: string; step: number };
+type DisplayStatus = { key: string; label: string; badge: string; step: number };
+// Status colors per spec: Pending=Yellow, Processing=Blue, Shipped=Orange, Delivered=Green, Refunded=Purple, Failed=Red
 function displayStatus(o: Order): DisplayStatus {
-  if (o.failed) return { key: "failed", label: "Payment Failed", emoji: "❌", color: "text-rose-400", step: 0 };
+  if (o.failed) return { key: "failed", label: "Payment Failed", badge: "bg-rose-500/10 text-rose-300 border-rose-500/30", step: 0 };
   const s = (o.status ?? "").toLowerCase();
   if (o.refundStatus && ["processed", "completed", "refunded", "succeeded"].includes(o.refundStatus.toLowerCase()))
-    return { key: "refunded", label: "Refunded", emoji: "💸", color: "text-fuchsia-400", step: 0 };
-  if (s === "refunded") return { key: "refunded", label: "Refunded", emoji: "💸", color: "text-fuchsia-400", step: 0 };
+    return { key: "refunded", label: "Refunded", badge: "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/30", step: 0 };
+  if (s === "refunded") return { key: "refunded", label: "Refunded", badge: "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/30", step: 0 };
   if (o.returnStatus && ["approved", "received", "returned", "completed"].includes(o.returnStatus.toLowerCase()))
-    return { key: "returned", label: "Returned", emoji: "↩", color: "text-amber-400", step: 0 };
-  if (s === "returning" || s === "returned") return { key: "returned", label: "Returned", emoji: "↩", color: "text-amber-400", step: 0 };
-  if (s === "cancelled") return { key: "cancelled", label: "Cancelled", emoji: "🚫", color: "text-rose-400", step: 0 };
-  if (s === "delivered") return { key: "delivered", label: "Delivered", emoji: "✅", color: "text-emerald-400", step: 100 };
-  if (s === "out_for_delivery") return { key: "ofd", label: "Out For Delivery", emoji: "📍", color: "text-accent", step: 90 };
-  if (s === "shipped" || s === "in_transit") return { key: "shipped", label: "Shipped", emoji: "🚚", color: "text-sky-400", step: 60 };
-  if (s === "processing") return { key: "processing", label: "Processing", emoji: "🟡", color: "text-amber-400", step: 35 };
-  return { key: "confirmed", label: "Confirmed", emoji: "🟢", color: "text-emerald-400", step: 15 };
+    return { key: "returned", label: "Returned", badge: "bg-amber-500/10 text-amber-300 border-amber-500/30", step: 0 };
+  if (s === "returning" || s === "returned") return { key: "returned", label: "Returned", badge: "bg-amber-500/10 text-amber-300 border-amber-500/30", step: 0 };
+  if (s === "cancelled") return { key: "cancelled", label: "Cancelled", badge: "bg-rose-500/10 text-rose-300 border-rose-500/30", step: 0 };
+  if (s === "delivered") return { key: "delivered", label: "Delivered", badge: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30", step: 100 };
+  if (s === "out_for_delivery") return { key: "ofd", label: "Out For Delivery", badge: "bg-orange-500/10 text-orange-300 border-orange-500/30", step: 90 };
+  if (s === "shipped" || s === "in_transit") return { key: "shipped", label: "Shipped", badge: "bg-orange-500/10 text-orange-300 border-orange-500/30", step: 60 };
+  if (s === "processing") return { key: "processing", label: "Processing", badge: "bg-sky-500/10 text-sky-300 border-sky-500/30", step: 35 };
+  return { key: "confirmed", label: "Pending", badge: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30", step: 15 };
+}
+
+const ACTIVE_KEYS = ["confirmed", "processing", "shipped", "ofd"];
+
+function classify(o: Order, id: string): boolean {
+  const k = displayStatus(o).key;
+  switch (id) {
+    case "all": return true;
+    case "active": return ACTIVE_KEYS.includes(k);
+    case "delivered": return k === "delivered";
+    case "in_transit": return k === "shipped" || k === "ofd";
+    case "pending": return k === "confirmed" || k === "processing";
+    case "refunded": return k === "refunded";
+    default: return true;
+  }
 }
 
 const FILTERS = [
   { id: "all", label: "All" },
-  { id: "successful", label: "Successful" },
-  { id: "failed", label: "Failed Payments" },
-  { id: "processing", label: "Processing" },
-  { id: "shipped", label: "Shipped" },
+  { id: "active", label: "Active" },
   { id: "delivered", label: "Delivered" },
-  { id: "returned", label: "Returned" },
+  { id: "in_transit", label: "In Transit" },
+  { id: "pending", label: "Pending" },
   { id: "refunded", label: "Refunded" },
+  { id: "failed", label: "Failed Payments" },
 ] as const;
 type FilterId = (typeof FILTERS)[number]["id"];
 
-function ItemImage({ item, size = "size-16" }: { item: Item; size?: string }) {
+function ItemImage({ item, size = "size-14" }: { item: Item; size?: string }) {
   const [err, setErr] = useState(false);
   if (item.image && !err) {
     return <img src={item.image} alt={item.name} loading="lazy" onError={() => setErr(true)} className={`${size} rounded-xl object-cover border border-border/60 bg-muted`} />;
@@ -96,6 +111,28 @@ function ItemImage({ item, size = "size-16" }: { item: Item; size?: string }) {
   return (
     <div className={`${size} rounded-xl border border-border/60 bg-muted grid place-items-center`}>
       <Package className="size-5 text-muted-foreground" />
+    </div>
+  );
+}
+
+// Stacked product preview: 1 → image, 2 → 2 stacked, 3+ → stack + "+N"
+function ProductStack({ items }: { items: Item[] }) {
+  const shown = items.slice(0, 2);
+  const more = items.length - shown.length;
+  return (
+    <div className="relative shrink-0 flex items-center">
+      <div className="flex -space-x-3">
+        {shown.map((it, i) => (
+          <div key={i} className="ring-2 ring-card rounded-xl" style={{ zIndex: shown.length - i }}>
+            <ItemImage item={it} />
+          </div>
+        ))}
+        {more > 0 && (
+          <div className="size-14 rounded-xl border border-border/60 bg-background/80 backdrop-blur grid place-items-center ring-2 ring-card">
+            <span className="text-xs font-mono font-semibold text-accent">+{more}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -112,6 +149,7 @@ function OrdersPage() {
   const [visible, setVisible] = useState(PAGE);
   const [recSlugs, setRecSlugs] = useState<string[]>([]);
   const [trendSlugs, setTrendSlugs] = useState<string[]>([]);
+  const [recOpen, setRecOpen] = useState(false);
   const [reordering, setReordering] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
 
@@ -192,25 +230,24 @@ function OrdersPage() {
     const totalSpent = paid.reduce((n, o) => n + Number(o.total || 0), 0);
     const delivered = paid.filter((o) => displayStatus(o).key === "delivered").length;
     const refunded = paid.filter((o) => displayStatus(o).key === "refunded").length;
-    const pending = paid.filter((o) => { const k = displayStatus(o).key; return !["delivered", "refunded", "returned", "cancelled"].includes(k); }).length;
-    return { total: paid.length, totalSpent, delivered, refunded, pending };
+    const inTransit = paid.filter((o) => { const k = displayStatus(o).key; return k === "shipped" || k === "ofd"; }).length;
+    return { total: paid.length, totalSpent, delivered, refunded, inTransit };
   }, [orders]);
 
-  const filtered = useMemo(() => {
-    let list = successful;
-    if (filter === "failed") list = failedOrders;
-    else if (filter !== "all") {
-      list = successful.filter((o) => {
-        const k = displayStatus(o).key;
-        if (filter === "successful") return o.succeeded;
-        if (filter === "processing") return k === "processing" || k === "confirmed";
-        if (filter === "shipped") return k === "shipped" || k === "ofd";
-        if (filter === "delivered") return k === "delivered";
-        if (filter === "returned") return k === "returned";
-        if (filter === "refunded") return k === "refunded";
-        return true;
-      });
+  // Per-filter counts
+  const counts = useMemo(() => {
+    const c: Record<FilterId, number> = { all: 0, active: 0, delivered: 0, in_transit: 0, pending: 0, refunded: 0, failed: failedOrders.length };
+    for (const o of successful) {
+      for (const f of FILTERS) {
+        if (f.id === "failed") continue;
+        if (classify(o, f.id)) c[f.id]++;
+      }
     }
+    return c;
+  }, [successful, failedOrders]);
+
+  const filtered = useMemo(() => {
+    let list = filter === "failed" ? failedOrders : successful.filter((o) => classify(o, filter));
     if (q) {
       const n = q.toLowerCase();
       list = list.filter((o) =>
@@ -221,6 +258,14 @@ function OrdersPage() {
     }
     return list;
   }, [successful, failedOrders, filter, q]);
+
+  // On "all" view (no search): split active vs delivered/other for grouped sections
+  const grouped = useMemo(() => {
+    if (filter !== "all" || q) return null;
+    const active = filtered.filter((o) => ACTIVE_KEYS.includes(displayStatus(o).key));
+    const rest = filtered.filter((o) => !ACTIVE_KEYS.includes(displayStatus(o).key));
+    return { active, rest };
+  }, [filtered, filter, q]);
 
   useEffect(() => { setVisible(PAGE); }, [filter, q]);
 
@@ -243,7 +288,12 @@ function OrdersPage() {
   }
 
   const cartCount = cart.items.reduce((n, i) => n + i.qty, 0);
-  const showFailedSection = filter === "all" && failedOrders.length > 0;
+  const showFailedSection = filter === "all" && !q && failedOrders.length > 0;
+
+  const renderCard = (o: Order, i: number) =>
+    o.failed
+      ? <FailedCard key={o.id} order={o} format={format} onRetry={() => retryPayment()} listItem />
+      : <OrderCard key={o.id} order={o} index={i} format={format} onReorder={() => reorder(o)} reordering={reordering === o.id} onOpenDetails={() => setDetailId(o.id)} />;
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -297,28 +347,29 @@ function OrdersPage() {
       </header>
 
       <div className="container-page max-w-3xl pb-16 pt-4">
-        {/* Overview cards — successful paid only */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
-          <StatCard icon={ShoppingBag} label="Total Orders" value={String(stats.total)} tone="text-accent" />
-          <StatCard icon={Wallet} label="Total Spent" value={format(stats.totalSpent)} tone="text-emerald-400" />
-          <StatCard icon={Clock} label="Pending" value={String(stats.pending)} tone="text-amber-400" />
-          <StatCard icon={CheckCircle2} label="Delivered" value={String(stats.delivered)} tone="text-sky-400" />
+        {/* Overview cards — successful paid only — compact */}
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
+          <StatCard icon={ShoppingBag} label="Total" value={String(stats.total)} tone="text-accent" />
+          <StatCard icon={CheckCircle2} label="Delivered" value={String(stats.delivered)} tone="text-emerald-400" />
+          <StatCard icon={Truck} label="In Transit" value={String(stats.inTransit)} tone="text-orange-400" />
           <StatCard icon={RefreshCw} label="Refunded" value={String(stats.refunded)} tone="text-fuchsia-400" />
+          <StatCard icon={Wallet} label="Total Spent" value={format(stats.totalSpent)} tone="text-sky-400" />
         </div>
 
-        {/* Filters */}
+        {/* Filter pills with counts */}
         <div className="-mx-4 px-4 overflow-x-auto no-scrollbar mb-4">
           <div className="flex gap-1.5 w-max">
             {FILTERS.map((f) => {
               const active = filter === f.id;
-              const count = f.id === "failed" ? failedOrders.length : undefined;
+              const count = counts[f.id];
+              if (f.id === "failed" && count === 0) return null;
               return (
                 <button key={f.id} onClick={() => setFilter(f.id)}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-widest font-mono whitespace-nowrap transition-all ${
-                    active ? "bg-accent text-accent-foreground" : "bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground hover:border-accent/40"
+                    active ? "bg-accent text-accent-foreground" : f.id === "failed" ? "bg-rose-500/[0.06] border border-rose-500/30 text-rose-300 hover:border-rose-500/50" : "bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground hover:border-accent/40"
                   }`}>
                   {f.label}
-                  {count ? <span className={`px-1.5 rounded-full text-[9px] ${active ? "bg-accent-foreground/20" : "bg-rose-500/20 text-rose-300"}`}>{count}</span> : null}
+                  <span className={`px-1.5 rounded-full text-[9px] ${active ? "bg-accent-foreground/20" : f.id === "failed" ? "bg-rose-500/20 text-rose-300" : "bg-muted/60"}`}>{count}</span>
                 </button>
               );
             })}
@@ -330,7 +381,7 @@ function OrdersPage() {
           <section className="mb-5">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="size-3.5 text-rose-400" />
-              <h2 className="text-[11px] font-mono uppercase tracking-[0.25em] text-rose-300">Failed Payment Attempts</h2>
+              <h2 className="text-[11px] font-mono uppercase tracking-[0.25em] text-rose-300">Failed Payments</h2>
             </div>
             <ul className="space-y-2">
               {failedOrders.slice(0, 5).map((o) => (
@@ -340,33 +391,60 @@ function OrdersPage() {
           </section>
         )}
 
-        {/* Results count */}
-        {(orders?.length ?? 0) > 0 && (
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
-            {filtered.length} {filter === "failed" ? "failed attempt" : "order"}{filtered.length !== 1 ? "s" : ""}
-          </p>
-        )}
-
         {/* List */}
         {orders === null ? (
           <div className="space-y-2.5">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-28 rounded-2xl bg-card/40 border border-border/40 relative overflow-hidden">
+              <div key={i} className="h-24 rounded-2xl bg-card/40 border border-border/40 relative overflow-hidden">
                 <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.8s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
               </div>
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : filtered.length === 0 && !showFailedSection ? (
           <EmptyState isFiltered={!!q || filter !== "all"} recSlugs={recSlugs} trendSlugs={trendSlugs}
             onClear={() => { setQ(""); setFilter("all"); }} />
+        ) : grouped ? (
+          <>
+            {/* Active Orders first */}
+            {grouped.active.length > 0 && (
+              <section className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Truck className="size-3.5 text-accent" />
+                  <h2 className="text-[11px] font-mono uppercase tracking-[0.25em] text-foreground">Active Orders</h2>
+                  <span className="text-[10px] font-mono text-muted-foreground">({grouped.active.length})</span>
+                </div>
+                <ul className="space-y-2.5">{grouped.active.map((o, i) => renderCard(o, i))}</ul>
+              </section>
+            )}
+            {/* Delivered & past orders */}
+            {grouped.rest.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="size-3.5 text-emerald-400" />
+                  <h2 className="text-[11px] font-mono uppercase tracking-[0.25em] text-foreground">Delivered &amp; Past</h2>
+                  <span className="text-[10px] font-mono text-muted-foreground">({grouped.rest.length})</span>
+                </div>
+                <ul className="space-y-2.5">
+                  {grouped.rest.slice(0, visible).map((o, i) => renderCard(o, i))}
+                </ul>
+                {visible < grouped.rest.length && (
+                  <div className="mt-5 grid place-items-center">
+                    <button onClick={() => setVisible((v) => v + PAGE)}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border/60 bg-card/50 text-xs font-mono uppercase tracking-widest hover:border-accent/50 hover:text-accent active:scale-95 transition">
+                      Load more <ChevronDown className="size-3.5" />
+                    </button>
+                  </div>
+                )}
+              </section>
+            )}
+          </>
         ) : (
           <>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+              {filtered.length} {filter === "failed" ? "failed attempt" : "order"}{filtered.length !== 1 ? "s" : ""}
+            </p>
             <ul className="space-y-2.5">
-              {filtered.slice(0, visible).map((o, i) =>
-                filter === "failed"
-                  ? <FailedCard key={o.id} order={o} format={format} onRetry={() => retryPayment()} listItem />
-                  : <OrderCard key={o.id} order={o} index={i} format={format} onReorder={() => reorder(o)} reordering={reordering === o.id} onOpenDetails={() => setDetailId(o.id)} />
-              )}
+              {filtered.slice(0, visible).map((o, i) => renderCard(o, i))}
             </ul>
             {visible < filtered.length && (
               <div className="mt-5 grid place-items-center">
@@ -379,10 +457,32 @@ function OrdersPage() {
           </>
         )}
 
-        {/* Recommendations only when there is history */}
+        {/* Recently viewed — compact carousel, max 6 */}
+        {(orders?.length ?? 0) > 0 && (
+          <div className="mt-8 -mx-4">
+            <RecentlyViewed title="Recently Viewed" eyebrow="Continue Browsing" limit={6} />
+          </div>
+        )}
+
+        {/* Recommendations — collapsible, default collapsed */}
         {(orders?.length ?? 0) > 0 && recSlugs.length > 0 && (
-          <div className="mt-8">
-            <RecommendationStrip title="Recommended for you" subtitle="Curated from your taste" slugs={recSlugs} />
+          <div className="mt-6 rounded-2xl border border-border/60 bg-card/40 backdrop-blur overflow-hidden">
+            <button onClick={() => setRecOpen((s) => !s)}
+              className="w-full flex items-center gap-2 px-4 py-3.5 text-left active:scale-[0.99] transition">
+              <Sparkles className="size-4 text-accent" />
+              <span className="flex-1 text-sm font-medium">Recommended For You</span>
+              <ChevronDown className={`size-4 text-muted-foreground transition-transform ${recOpen ? "rotate-180" : ""}`} />
+            </button>
+            <AnimatePresence initial={false}>
+              {recOpen && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }}
+                  className="overflow-hidden">
+                  <div className="px-1 pb-2">
+                    <RecommendationStrip title="" subtitle="" slugs={recSlugs} />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>
@@ -400,10 +500,24 @@ function OrdersPage() {
 
 function StatCard({ icon: Icon, label, value, tone }: { icon: typeof ShoppingBag; label: string; value: string; tone: string }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/50 backdrop-blur p-3 flex flex-col gap-1">
-      <Icon className={`size-4 ${tone}`} />
-      <p className="text-lg font-display font-semibold leading-none truncate">{value}</p>
-      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground truncate">{label}</p>
+    <div className="rounded-xl border border-border/60 bg-card/50 backdrop-blur px-2.5 py-2 flex flex-col gap-0.5">
+      <Icon className={`size-3.5 ${tone}`} />
+      <p className="text-base font-display font-semibold leading-none truncate">{value}</p>
+      <p className="text-[8px] font-mono uppercase tracking-widest text-muted-foreground truncate">{label}</p>
+    </div>
+  );
+}
+
+// Compact horizontal tracking bar (6 dots)
+const TRACK = ["placed", "packed", "shipped", "in_transit", "ofd", "delivered"];
+function CompactTrack({ step }: { step: number }) {
+  // map step% to number of completed dots
+  const completed = step >= 100 ? 6 : step >= 90 ? 5 : step >= 60 ? 4 : step >= 35 ? 2 : 1;
+  return (
+    <div className="mt-2.5 flex items-center gap-1">
+      {TRACK.map((_, i) => (
+        <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < completed ? "bg-gradient-to-r from-accent to-amber-300" : "bg-border/50"}`} />
+      ))}
     </div>
   );
 }
@@ -411,108 +525,55 @@ function StatCard({ icon: Icon, label, value, tone }: { icon: typeof ShoppingBag
 function OrderCard({ order, index, format, onReorder, reordering, onOpenDetails }: {
   order: Order; index: number; format: (n: number) => string; onReorder: () => void; reordering: boolean; onOpenDetails: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const meta = displayStatus(order);
   const items = order.order_items;
-  const visibleItems = items.slice(0, 2);
-  const more = items.length - visibleItems.length;
   const itemCount = items.reduce((n, i) => n + i.quantity, 0);
-  const tracking = order.tracking_number ? `${order.carrier ? order.carrier + " · " : ""}${order.tracking_number}` : null;
+  const isActive = ACTIVE_KEYS.includes(meta.key);
+  const isDelivered = meta.key === "delivered";
 
   return (
     <motion.li initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index, 8) * 0.03, duration: 0.3 }}>
-      <div className="group rounded-2xl border border-border/60 bg-card/50 backdrop-blur p-3 hover:border-accent/40 transition-all">
-        {/* top: image left, info right */}
-        <div className="flex gap-3">
-          <div className="relative shrink-0">
-            <ItemImage item={visibleItems[0] ?? { name: "", quantity: 0, image: null, unit_price: 0, product_slug: "" }} />
-            {more > 0 && (
-              <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full bg-background border border-border text-[9px] font-mono">+{more}</span>
-            )}
-          </div>
+      <button onClick={onOpenDetails} className="w-full text-left group rounded-2xl border border-border/60 bg-card/50 backdrop-blur p-3 hover:border-accent/40 transition-all active:scale-[0.995]">
+        <div className="flex gap-3 items-center">
+          <ProductStack items={items} />
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap mb-1">
-              <span className={`inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-background/60 border border-border/60 ${meta.color}`}>
-                <span>{meta.emoji}</span>{meta.label}
-              </span>
-              {order.succeeded && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <CreditCard className="size-2.5" /> Paid
-                </span>
-              )}
-            </div>
-            <p className="text-sm font-medium truncate">{visibleItems[0]?.name ?? "Order"}</p>
-            {visibleItems[1] && <p className="text-[11px] text-muted-foreground truncate">+ {visibleItems[1].name}</p>}
+            <p className="text-sm font-medium truncate">{items[0]?.name ?? "Order"}</p>
+            <p className="text-[11px] text-muted-foreground truncate">
+              {itemCount} item{itemCount !== 1 ? "s" : ""}{items.length > 1 ? ` · ${items.length} products` : ""}
+            </p>
             <p className="text-[10px] text-muted-foreground font-mono mt-0.5 truncate">
               #{order.id.slice(0, 8)} · {new Date(order.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
             </p>
           </div>
           <div className="text-right shrink-0">
             <p className="font-mono text-sm font-semibold">{format(Number(order.total))}</p>
-            <p className="text-[10px] text-muted-foreground">{itemCount} item{itemCount !== 1 ? "s" : ""}</p>
+            <span className={`mt-1 inline-flex items-center text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full border ${meta.badge}`}>
+              {meta.label}
+            </span>
           </div>
         </div>
 
-        {/* progress */}
-        {meta.step > 0 && (
-          <div className="mt-3 h-1 rounded-full bg-border/50 overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-accent to-amber-300 transition-all duration-700" style={{ width: `${meta.step}%` }} />
-          </div>
-        )}
-
-        {/* tracking line */}
-        {tracking && (
-          <div className="mt-2 flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
-            <Truck className="size-3" /> <span className="truncate">{tracking}</span>
-          </div>
-        )}
-
-        {/* expand all products */}
-        {items.length > 0 && (
-          <button onClick={() => setExpanded((e) => !e)}
-            className="mt-2 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-accent hover:underline">
-            <Boxes className="size-3" /> {expanded ? "Hide products" : `View all products (${items.length})`}
-            <ChevronDown className={`size-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
-          </button>
-        )}
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.ul initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}
-              className="overflow-hidden mt-2 space-y-2">
-              {items.map((it, idx) => (
-                <li key={idx} className="flex items-center gap-2.5 rounded-xl bg-background/40 border border-border/40 p-2">
-                  <ItemImage item={it} size="size-11" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{it.name}</p>
-                    <p className="text-[10px] text-muted-foreground">Qty {it.quantity}</p>
-                  </div>
-                  {it.unit_price != null && <p className="text-[11px] font-mono shrink-0">{format(Number(it.unit_price))}</p>}
-                </li>
-              ))}
-            </motion.ul>
-          )}
-        </AnimatePresence>
+        {/* Compact tracking for active orders */}
+        {isActive && <CompactTrack step={meta.step} />}
 
         {/* actions */}
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          <button onClick={onOpenDetails}
-            className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full bg-accent text-accent-foreground active:scale-95 transition">
+        <div className="mt-3 flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full bg-accent text-accent-foreground">
             View Details <ArrowRight className="size-3" />
-          </button>
-          <button onClick={onReorder} disabled={reordering}
-            className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition disabled:opacity-50">
-            {reordering ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />} Reorder
-          </button>
-          {meta.key === "delivered" && (
-            <Link to="/returns" className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
-              <RotateCcw className="size-3" /> Return
+          </span>
+          {isActive && (
+            <Link to="/track" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
+              <MapPin className="size-3" /> Track
             </Link>
           )}
-          <Link to="/track" className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
-            <MapPin className="size-3" /> Track
-          </Link>
+          {isDelivered && (
+            <button onClick={(e) => { e.stopPropagation(); onReorder(); }} disabled={reordering}
+              className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition disabled:opacity-50">
+              {reordering ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />} Buy Again
+            </button>
+          )}
         </div>
-      </div>
+      </button>
     </motion.li>
   );
 }
@@ -524,13 +585,13 @@ function FailedCard({ order, format, onRetry, listItem }: {
   return (
     <motion.li initial={listItem ? { opacity: 0, y: 8 } : false} animate={{ opacity: 1, y: 0 }}>
       <div className="rounded-2xl border border-rose-500/30 bg-rose-500/[0.04] backdrop-blur p-3">
-        <div className="flex gap-3">
-          <div className="opacity-70 grayscale">
+        <div className="flex gap-3 items-center">
+          <div className="opacity-70 grayscale shrink-0">
             <ItemImage item={first ?? { name: "", quantity: 0, image: null, unit_price: 0, product_slug: "" }} />
           </div>
           <div className="flex-1 min-w-0">
             <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/30">
-              ❌ Payment Failed
+              Payment Failed
             </span>
             <p className="text-sm font-medium truncate mt-1">{first?.name ?? "Order"}</p>
             <p className="text-[10px] text-muted-foreground font-mono truncate">#{order.id.slice(0, 8)}</p>
@@ -547,7 +608,7 @@ function FailedCard({ order, format, onRetry, listItem }: {
             <RefreshCw className="size-3" /> Retry Payment
           </button>
           <Link to="/help" className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-3 py-1.5 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
-            <HelpCircle className="size-3" /> Support
+            <HelpCircle className="size-3" /> Contact Support
           </Link>
         </div>
       </div>

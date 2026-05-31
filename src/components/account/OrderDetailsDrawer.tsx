@@ -3,11 +3,12 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import {
   X, Loader2, Package, Truck, MapPin, CheckCircle2, Clock, Boxes, RefreshCw,
-  ExternalLink, FileText, RotateCcw, LifeBuoy, MessageSquare, Bell, CreditCard,
-  ShieldCheck, AlertCircle, ChevronRight, Receipt, Download,
+  ExternalLink, RotateCcw, LifeBuoy, MessageSquare, Bell, CreditCard,
+  ShieldCheck, ChevronRight, Receipt, Download, Copy, Check, Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useIsAdmin } from "@/lib/use-admin";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { downloadInvoice } from "@/lib/invoice";
@@ -41,6 +42,7 @@ type DrawerData = {
   returns: Return[];
   notifications: Notif[];
   returnWindowDays: number;
+  cost: number;
 };
 
 // Session-scoped cache
@@ -63,6 +65,7 @@ function fmtDate(d: string | Date | null | undefined, withTime = false) {
 
 export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | null; onClose: () => void }) {
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const { format } = useRegion();
   const cart = useCart();
   const nav = useNavigate();
@@ -92,9 +95,13 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
     const order = (orderRes.data as FullOrder) ?? null;
     const slugs = (order?.order_items ?? []).map((i) => i.product_slug).filter(Boolean);
     let returnWindowDays = 0;
+    let cost = 0;
     if (slugs.length) {
-      const { data: prods } = await supabase.from("products").select("return_window_days,return_eligible").in("slug", slugs);
+      const { data: prods } = await supabase.from("products").select("slug,return_window_days,return_eligible,cost_price_inr,cost_price_usd").in("slug", slugs);
       returnWindowDays = Math.max(0, ...((prods ?? []).filter((p) => p.return_eligible).map((p) => Number(p.return_window_days) || 0)), 0);
+      const isInr = (order?.currency ?? "").toUpperCase() === "INR";
+      const costMap = new Map((prods ?? []).map((p) => [p.slug, Number((isInr ? p.cost_price_inr : p.cost_price_usd) ?? 0) || 0]));
+      cost = (order?.order_items ?? []).reduce((n, it) => n + (costMap.get(it.product_slug) ?? 0) * it.quantity, 0);
     }
 
     const notifications = ((notifRes.data as (Notif & { data: { order_id?: string } | null; link: string | null })[]) ?? [])
@@ -109,6 +116,7 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
       returns: (retRes.data as Return[]) ?? [],
       notifications,
       returnWindowDays,
+      cost,
     };
     if (reqRef.current !== id) return;
     cache.set(id, built);
@@ -237,9 +245,17 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
               <div className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-accent/80 leading-none">Order details</p>
-                  <h2 className="font-display font-semibold tracking-tight text-base truncate">
-                    {order ? `#${order.id.slice(0, 8).toUpperCase()}` : "Loading…"}
-                  </h2>
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="font-display font-semibold tracking-tight text-base truncate">
+                      {order ? `#${order.id.slice(0, 8).toUpperCase()}` : "Loading…"}
+                    </h2>
+                    {order && (
+                      <button onClick={() => { navigator.clipboard.writeText(order.id).then(() => toast.success("Order ID copied")).catch(() => {}); }}
+                        aria-label="Copy order ID" className="size-6 grid place-items-center rounded-md border border-border/60 hover:border-accent/50 hover:text-accent active:scale-90 transition">
+                        <Copy className="size-3" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <button onClick={onClose} aria-label="Close" className="size-9 grid place-items-center rounded-full border border-border/60 hover:border-accent/50 active:scale-95 transition">
                   <X className="size-4" />
@@ -338,18 +354,26 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
                       <Field label="Country" value={order.shipping_address?.country ?? "—"} />
                       <Field label="PIN Code" value={order.shipping_address?.postal_code ?? "—"} />
                       <Field label="Courier" value={shipment?.carrier ?? order.carrier ?? "—"} />
-                      <Field label="Tracking No." value={shipment?.tracking_number ?? order.tracking_number ?? "—"} />
+                      <CopyField label="Tracking No." value={shipment?.tracking_number ?? order.tracking_number ?? "—"} />
                       <Field label="Est. Delivery" value={fmtDate(shipment?.estimated_delivery)} />
                     </div>
                     {order.shipping_address?.line1 && (
                       <p className="text-xs text-muted-foreground mt-2">{[order.shipping_address.line1, order.shipping_address.line2].filter(Boolean).join(", ")}</p>
                     )}
-                    {(shipment?.tracking_url) && (
-                      <a href={shipment.tracking_url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-accent mt-2 hover:underline">
-                        Tracking link <ExternalLink className="size-3" />
-                      </a>
-                    )}
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <CopyButton label="Copy Address" value={[
+                        order.shipping_address?.name, order.shipping_address?.phone,
+                        order.shipping_address?.line1, order.shipping_address?.line2,
+                        order.shipping_address?.city, order.shipping_address?.region,
+                        order.shipping_address?.postal_code, order.shipping_address?.country,
+                      ].filter(Boolean).join(", ")} />
+                      {shipment?.tracking_url && (
+                        <a href={shipment.tracking_url} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
+                          Tracking link <ExternalLink className="size-3" />
+                        </a>
+                      )}
+                    </div>
                   </Section>
 
                   {/* SECTION 5 — Payment details */}
@@ -357,8 +381,10 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <Field label="Method" value={order.payment_method === "cod" ? "Cash on Delivery" : (payment?.method ?? order.payment_method ?? "Razorpay")} />
                       <Field label="Status" value={payment?.status ?? order.payment_status ?? "—"} />
-                      <Field label="Payment Date" value={fmtDate(payment?.created_at, true)} />
-                      <Field label="Transaction ID" value={payment?.razorpay_payment_id ?? payment?.transaction_id ?? order.razorpay_payment_id ?? "—"} mono />
+                      <Field label="Paid Date" value={fmtDate(payment?.created_at, true)} />
+                      <Field label="Amount" value={payment ? format(Number(payment.amount)) : format(Number(order.total))} />
+                      <CopyField label="Razorpay Payment ID" value={payment?.razorpay_payment_id ?? order.razorpay_payment_id ?? "—"} />
+                      <CopyField label="Transaction ID" value={payment?.transaction_id ?? "—"} />
                       <Field label="Invoice No." value={`INV-${order.id.slice(0, 8).toUpperCase()}`} mono />
                     </div>
                     <button onClick={handleInvoice} disabled={downloading}
@@ -366,6 +392,33 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
                       {downloading ? <Loader2 className="size-3 animate-spin" /> : <Download className="size-3" />} Download Invoice
                     </button>
                   </Section>
+
+                  {/* ADMIN-ONLY — internal intelligence */}
+                  {isAdmin && (
+                    <section className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.04] p-3">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Lock className="size-3.5 text-amber-400" />
+                        <h3 className="text-[11px] font-mono uppercase tracking-[0.25em] text-amber-300">Admin Only</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <Field label="Customer" value={order.shipping_address?.name ?? order.contact_email ?? "—"} />
+                        <Field label="Phone" value={order.shipping_address?.phone ?? "—"} />
+                        <CopyField label="Razorpay Payment ID" value={payment?.razorpay_payment_id ?? order.razorpay_payment_id ?? "—"} />
+                        <CopyField label="Transaction ID" value={payment?.transaction_id ?? "—"} />
+                        <Field label="Cost Price" value={data!.cost > 0 ? format(data!.cost) : "—"} />
+                        <Field label="Shipping Cost" value={format(Number(order.shipping))} />
+                        <Field label="Order Profit" value={data!.cost > 0 ? format(Number(order.subtotal) - data!.cost) : "—"} />
+                        <Field label="Order Revenue" value={format(Number(order.total))} />
+                      </div>
+                      <CopyButton label="Copy Address" value={[
+                        order.shipping_address?.name, order.shipping_address?.phone,
+                        order.shipping_address?.line1, order.shipping_address?.line2,
+                        order.shipping_address?.city, order.shipping_address?.region,
+                        order.shipping_address?.postal_code, order.shipping_address?.country,
+                      ].filter(Boolean).join(", ")} />
+                    </section>
+                  )}
+
 
                   {/* SECTION 6 — Returns & refunds */}
                   <Section title="Returns & Refunds" icon={RotateCcw}>
@@ -469,6 +522,49 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
     </div>
   );
 }
+
+function useCopy() {
+  const [copied, setCopied] = useState(false);
+  return {
+    copied,
+    copy: async (v: string) => {
+      try { await navigator.clipboard.writeText(v); setCopied(true); toast.success("Copied"); setTimeout(() => setCopied(false), 1500); }
+      catch { toast.error("Couldn't copy"); }
+    },
+  };
+}
+
+// Copyable field with one-tap copy button
+function CopyField({ label, value, disabled }: { label: string; value: string; disabled?: boolean }) {
+  const { copied, copy } = useCopy();
+  const empty = disabled || !value || value === "—";
+  return (
+    <div className="rounded-lg bg-background/40 border border-border/40 px-2.5 py-1.5 flex items-center gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{label}</p>
+        <p className="text-xs font-mono truncate">{value || "—"}</p>
+      </div>
+      {!empty && (
+        <button onClick={() => copy(value)} aria-label={`Copy ${label}`}
+          className="size-7 shrink-0 grid place-items-center rounded-md border border-border/60 hover:border-accent/50 hover:text-accent active:scale-90 transition">
+          {copied ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function CopyButton({ label, value }: { label: string; value: string }) {
+  const { copied, copy } = useCopy();
+  if (!value) return null;
+  return (
+    <button onClick={() => copy(value)}
+      className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
+      {copied ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />} {label}
+    </button>
+  );
+}
+
 
 function Row({ label, value, bold, tone }: { label: string; value: string; bold?: boolean; tone?: string }) {
   return (
