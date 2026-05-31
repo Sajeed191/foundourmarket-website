@@ -81,6 +81,9 @@ function GrowthCenterPage() {
   const [d, setD] = useState<MarketingIntelligence | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("overview");
+  const [execs, setExecs] = useState<ExecRow[]>([]);
+  const [attr, setAttr] = useState<RevenueAttribution | null>(null);
+  const [attrLoading, setAttrLoading] = useState(false);
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = useCallback(async (silent = false) => {
@@ -94,7 +97,30 @@ function GrowthCenterPage() {
     }
   }, [fetchIntel]);
 
-  useEffect(() => { void load(); }, [load]);
+  const loadExecs = useCallback(async () => {
+    const { data } = await supabase
+      .from("automation_executions")
+      .select("id, run_id, trigger_key, status, matched_count, action_taken, summary, details, campaign_id, triggered_by, created_at")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    setExecs((data ?? []) as unknown as ExecRow[]);
+  }, []);
+
+  const loadAttr = useCallback(async () => {
+    setAttrLoading(true);
+    try {
+      setAttr(await getRevenueAttribution());
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load revenue data");
+    } finally {
+      setAttrLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void load(); void loadExecs(); }, [load, loadExecs]);
+  useEffect(() => {
+    if ((tab === "revenue" || tab === "overview") && !attr) void loadAttr();
+  }, [tab, attr, loadAttr]);
 
   // Realtime — debounced refresh on any growth-relevant change.
   useEffect(() => {
