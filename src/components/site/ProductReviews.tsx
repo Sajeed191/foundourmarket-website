@@ -221,10 +221,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         <div className="mb-8 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center rounded-2xl border border-white/10 bg-card/40 p-5">
           <div className="text-center sm:pr-6 sm:border-r sm:border-border/60">
             <p className="text-4xl font-display">{avg.toFixed(1)}</p>
-            <div className="mt-1 flex items-center justify-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className={cn("size-3.5", i < Math.round(avg) ? "fill-accent text-accent" : "text-muted-foreground/30")} />
-              ))}
+            <div className="mt-1 flex items-center justify-center">
+              <StarRating rating={avg} starClassName="size-3.5" />
             </div>
             <p className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{published.length} reviews</p>
           </div>
