@@ -70,9 +70,9 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
                 {b.label}
               </span>
             ))}
-            {product.discount ? (
+            {discount ? (
               <span className="bg-accent/90 text-accent-foreground text-[10px] font-bold font-mono px-2 py-0.5 rounded-full">
-                −{product.discount}%
+                −{discount}%
               </span>
             ) : null}
           </div>
