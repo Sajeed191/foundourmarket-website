@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Heart, Truck, Shield, RotateCcw, Star, Minus, Plus, Loader2, Scale,
+  Heart, Truck, Shield, RotateCcw, Minus, Plus, Loader2, Scale,
   ChevronDown, Share2, Sparkles, Package, Clock, CheckCircle2, Users, ShoppingBag as ShoppingBagIcon, BadgeCheck,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
@@ -13,6 +13,7 @@ import { RelatedProducts } from "@/components/site/RelatedProducts";
 
 import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
+import { StarRating } from "@/components/site/StarRating";
 import { useCompare } from "@/hooks/use-compare";
 import { useWishlist } from "@/lib/wishlist";
 import { fetchProductImages, fetchProductVariants, fetchProduct, type ProductImage, type ProductVariant } from "@/lib/products";
@@ -335,11 +336,8 @@ function ProductPage() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-3.5 text-balance leading-[1.12]">{product.name}</h1>
 
             <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <div className="flex items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={`size-3.5 ${i < Math.round(product.rating) ? "fill-accent text-accent drop-shadow-[0_0_6px_oklch(0.74_0.19_49/0.6)]" : "text-muted-foreground/30"}`} />
-                ))}
-              </div>
+              <StarRating rating={product.rating} starClassName="size-3.5" glow />
+
               <span className="text-xs font-mono text-muted-foreground/70">{product.rating} · {product.reviews} reviews</span>
               <a href="#reviews" className="text-[10px] font-mono uppercase tracking-widest text-accent hover:underline">See reviews →</a>
             </div>
@@ -364,7 +362,7 @@ function ProductPage() {
               {[
                 { icon: Shield, label: "Secure Checkout" },
                 { icon: Truck, label: "Global Shipping" },
-                { icon: RotateCcw, label: "Easy Returns" },
+                { icon: RotateCcw, label: product.returnEligible ? `${product.returnWindowDays}-Day Returns` : "No Returns" },
                 { icon: BadgeCheck, label: "Trusted Seller" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-wider text-muted-foreground/80">
@@ -467,7 +465,7 @@ function ProductPage() {
             <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-6 sm:pt-8 border-t border-border">
               {[
                 { icon: Truck, label: unitShipping <= 0 ? "Free shipping" : `Shipping ${format(unitShipping)}` },
-                { icon: RotateCcw, label: "7 Days Return" },
+                { icon: RotateCcw, label: product.returnEligible ? `${product.returnWindowDays} Days Return` : "No Returns" },
                 { icon: Shield, label: "Secure checkout" },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="glass rounded-2xl p-3 sm:p-4 text-center">
@@ -496,9 +494,17 @@ function ProductPage() {
               <ul className="text-sm text-muted-foreground space-y-2 leading-relaxed">
                 <li>• {unitShipping <= 0 ? "Free standard shipping on this product." : `Shipping for this product: ${format(unitShipping)} per unit.`}</li>
                 <li>• Standard delivery takes 5–10 business days.</li>
-                <li>• Selected-product returns — check <Link to="/returns" className="text-accent underline">return eligibility</Link>.</li>
+                {product.returnEligible ? (
+                  <li>• Returns &amp; refunds accepted within {product.returnWindowDays} days of delivery — check <Link to="/returns" className="text-accent underline">return eligibility</Link>.</li>
+                ) : (
+                  <li>• This product is not eligible for returns or refunds.</li>
+                )}
+                {product.returnEligible && product.replacementEligible && (
+                  <li>• Eligible for replacement within {product.returnWindowDays} days of delivery.</li>
+                )}
               </ul>
             </Accordion>
+
 
             <Accordion title="FAQ" icon={Sparkles}>
               <div className="space-y-4 text-sm">

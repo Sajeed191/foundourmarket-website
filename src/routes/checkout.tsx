@@ -155,10 +155,21 @@ function CheckoutPage() {
   const allowProceed = service?.allowProceed === true;
   const serviceDown = service?.status === "service_down";
 
-  // Force COD off if admin disabled it
+  // COD availability is the global admin toggle AND every product in the cart
+  // having COD enabled at the product level. If any item has COD disabled by
+  // the admin, COD must not be offered for this order.
+  const codAllowed = useMemo(
+    () =>
+      !!settings.cod_enabled &&
+      detailed.length > 0 &&
+      detailed.every((i) => i.product.codEnabled !== false),
+    [settings.cod_enabled, detailed],
+  );
+
+  // Force COD off if it is not allowed (admin disabled globally or per product)
   useEffect(() => {
-    if (!settings.cod_enabled && payMethod === "cod") setPayMethod("razorpay");
-  }, [settings.cod_enabled, payMethod]);
+    if (!codAllowed && payMethod === "cod") setPayMethod("razorpay");
+  }, [codAllowed, payMethod]);
 
   // Region-native totals — identical math to the server re-pricer, no conversion.
   // Shipping comes from admin-defined per-product fees (fee × qty), summed.
@@ -452,7 +463,7 @@ function CheckoutPage() {
   const addressComplete = selectedAddress
     ? addressCompleteness(selectedAddress).score >= 85
     : false;
-  const paymentMethodSelected = payMethod === "cod" ? !!settings.cod_enabled : true;
+  const paymentMethodSelected = payMethod === "cod" ? codAllowed : true;
   const stockAvailable = detailed.every((i) => i.product.inStock !== false);
   const sessionValid = !!user && reserveLeft > 0;
 
@@ -651,7 +662,7 @@ function CheckoutPage() {
                   checking={serviceChecking}
                   eta={eta}
                   shippingLabel={shippingINR === 0 ? "FREE" : fmt(shippingINR)}
-                  codAvailable={!!settings.cod_enabled}
+                  codAvailable={codAllowed}
                   city={service?.city ?? selectedAddress.city}
                   postal={selectedAddress.postal}
                   region={isIndia ? "India" : "International"}
@@ -694,8 +705,8 @@ function CheckoutPage() {
                   </div>
                 </motion.button>
 
-                <div className={`mt-3 w-full text-left border rounded-2xl p-4 transition-all duration-300 ${!settings.cod_enabled ? "opacity-50" : payMethod === "cod" ? "border-accent bg-accent/[0.07]" : "border-white/10"}`}>
-                  <button type="button" disabled={!settings.cod_enabled} onClick={() => setPayMethod("cod")}
+                <div className={`mt-3 w-full text-left border rounded-2xl p-4 transition-all duration-300 ${!codAllowed ? "opacity-50" : payMethod === "cod" ? "border-accent bg-accent/[0.07]" : "border-white/10"}`}>
+                  <button type="button" disabled={!codAllowed} onClick={() => setPayMethod("cod")}
                     className="w-full text-left disabled:cursor-not-allowed">
                     <div className="flex items-center gap-2.5">
                       <span className={`size-4 grid place-items-center rounded-full border ${payMethod === "cod" ? "border-accent" : "border-muted-foreground/40"}`}>
@@ -704,7 +715,7 @@ function CheckoutPage() {
                       <Truck className="size-4 text-muted-foreground" />
                       <span className="text-sm font-medium">Cash on Delivery</span>
                       <span className="ml-auto text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                        {settings.cod_enabled ? "Available" : "Unavailable"}
+                        {codAllowed ? "Available" : "Unavailable"}
                       </span>
                     </div>
                   </button>
