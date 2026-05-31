@@ -31,6 +31,8 @@ export function SmartDeliveryCard({
   codAvailable,
   city,
   postal,
+  returnsDays = 7,
+  region = "India",
 }: Props) {
   const serviceable = service?.serviceable === true;
   const serviceDown = service?.status === "service_down";
