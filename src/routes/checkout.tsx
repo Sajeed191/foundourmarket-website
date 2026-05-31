@@ -187,10 +187,21 @@ function CheckoutPage() {
       });
 
       // Audit: the displayed price must equal the charged Razorpay amount.
-      console.log("[checkout] Razorpay order created", {
+      // Logs currency, amount, customer country, detected/profile region,
+      // pricing source and the payment-options policy before opening checkout.
+      console.log("[checkout] Razorpay order payload", {
         razorpayOrderId: created.razorpayOrderId,
+        currency: created.currency,
         amount_minor: created.amount,
-        ...created.debug,
+        customer_country: created.debug?.detectedCountry ?? null,
+        detected_region: created.debug?.market ?? null,
+        profile_region:
+          created.debug?.pricingSource === "profile_locked"
+            ? created.debug?.market
+            : null,
+        pricing_source: created.debug?.pricingSource ?? null,
+        confidence: created.debug?.confidence ?? null,
+        payment_options: "all-enabled (no client method filter)",
       });
 
 
