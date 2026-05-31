@@ -541,7 +541,6 @@ function AgentPerformanceView({ enriched, profiles }: { enriched: Enriched[]; pr
       id, name: profiles.get(id) ?? `Agent ${id.slice(0, 6)}`,
       closed: a.closed, open: a.open, escalations: a.escalations,
       avgResponse: avg(a.responses), avgResolution: avg(a.resolutions),
-      csat: a.resolutions.length ? Math.round((a.resolutions.filter((h, i) => true).length / a.resolutions.length) * 100) : null,
     })).sort((x, y) => y.closed - x.closed);
   }, [enriched, profiles]);
 
