@@ -235,7 +235,7 @@ function CheckoutPage() {
         setTimeout(() => resolve(LOGO_PRIMARY), 1500);
       });
 
-      const rzp = openRazorpay({
+      const rzpOptions = {
         key: created.keyId,
         amount: created.amount,
         currency: created.currency,
@@ -251,40 +251,14 @@ function CheckoutPage() {
         },
         notes: { order_id: created.orderId },
         theme: { color: "#ff7a00", backdrop_color: "#0a0a0f" },
-        // No `method` filter: let Razorpay surface every method enabled on the
-        // account for the order currency — UPI, Google Pay, PhonePe, Paytm,
-        // BHIM, Net Banking, Cards, Wallets, EMI and Pay Later for INR orders.
-        // For INR we additionally promote a UPI block to the top that exposes
-        // UPI Intent (GPay/PhonePe/Paytm/BHIM/Amazon Pay), "Pay via UPI ID"
-        // (collect/VPA entry) and QR — while still showing all default blocks.
-        ...(created.currency === "INR"
-          ? {
-              config: {
-                display: {
-                  blocks: {
-                    upi: {
-                      name: "Pay using UPI",
-                      instruments: [
-                        {
-                          method: "upi",
-                          flows: ["intent", "collect", "qr"],
-                          apps: [
-                            "google_pay",
-                            "phonepe",
-                            "paytm",
-                            "bhim",
-                            "amazon_pay",
-                          ],
-                        },
-                      ],
-                    },
-                  },
-                  sequence: ["block.upi"],
-                  preferences: { show_default_blocks: true },
-                },
-              },
-            }
-          : {}),
+        // IMPORTANT: No custom `config.display` and no `method` filter.
+        // A custom UPI block with explicit instruments/flows/apps overrides
+        // Razorpay's adaptive UPI experience and collapses checkout to a
+        // non-selectable QR ("Please select some option"). With the minimal
+        // recommended config, Razorpay natively renders the correct UPI UI per
+        // device — Intent app buttons (GPay/PhonePe/Paytm/Amazon Pay) + "Enter
+        // UPI ID" on mobile, and QR + "Enter UPI ID" on desktop — plus every
+        // other method enabled on the account for the order currency.
         modal: {
           ondismiss: () => {
             setStage("failed");
@@ -325,7 +299,25 @@ function CheckoutPage() {
             setError(e?.message ?? "We couldn't verify your payment. If charged, it will auto-resolve.");
           }
         },
+      } satisfies Parameters<typeof openRazorpay>[0];
+
+      // Full Razorpay Checkout configuration logged immediately before open().
+      console.log("[checkout] Razorpay Checkout config (pre-open)", {
+        key: rzpOptions.key,
+        currency: rzpOptions.currency,
+        amount: rzpOptions.amount,
+        order_id: rzpOptions.order_id,
+        name: rzpOptions.name,
+        description: rzpOptions.description,
+        image: rzpOptions.image,
+        prefill: rzpOptions.prefill,
+        notes: rzpOptions.notes,
+        theme: rzpOptions.theme,
+        method: (rzpOptions as { method?: unknown }).method ?? "none (account defaults)",
+        "config.display": (rzpOptions as { config?: unknown }).config ?? "none (Razorpay adaptive UPI)",
       });
+
+      const rzp = openRazorpay(rzpOptions);
 
       rzp.on("payment.failed", (resp: any) => {
         setStage("failed");
