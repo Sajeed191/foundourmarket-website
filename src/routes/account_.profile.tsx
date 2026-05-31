@@ -423,13 +423,14 @@ function EditProfilePage() {
             <Section title="Region" delay={0.15}>
               {isIndia ? (
                 <div className="relative">
-                  <div className="input-glass !pl-11 flex items-center gap-2 cursor-not-allowed opacity-95">
+                  <div className="input-glass input-glass-static !pl-11 flex items-center gap-2 cursor-not-allowed opacity-95">
                     <span className="text-base leading-none">🇮🇳</span>
                     <span>India</span>
                     <span className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent">INR ₹ · Locked</span>
                   </div>
                   <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 </div>
+
               ) : (
                 <>
                   <CountrySelect
