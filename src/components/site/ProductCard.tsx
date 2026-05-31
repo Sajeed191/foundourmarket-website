@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Star, Plus, BadgeCheck } from "lucide-react";
-import type { Product } from "@/lib/products";
+import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
@@ -16,6 +16,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
   const saved = has(product.slug);
   const price = priceOf(product);
   const originalPrice = compareOf(product) ?? (product.discount ? price * (1 + product.discount / 100) : null);
+  const discount = discountPercent(price, originalPrice);
   const shippingFee = shippingFeeOf(product);
 
   const badgeSettings = useBadgeSettings();
@@ -70,9 +71,9 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
                 {b.label}
               </span>
             ))}
-            {product.discount ? (
+            {discount ? (
               <span className="bg-accent/90 text-accent-foreground text-[10px] font-bold font-mono px-2 py-0.5 rounded-full">
-                −{product.discount}%
+                −{discount}%
               </span>
             ) : null}
           </div>
