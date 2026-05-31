@@ -214,13 +214,21 @@ function CheckoutPage() {
         /* saving methods is optional — continue checkout regardless */
       }
 
+      // Absolute, publicly-fetchable logo URL (Razorpay fetches it server-side).
+      // Falls back to the production custom domain during SSR / non-browser.
+      const logoUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/logo.jpeg`
+          : "https://foundourmarket.com/logo.jpeg";
+
       const rzp = openRazorpay({
         key: created.keyId,
         amount: created.amount,
         currency: created.currency,
         order_id: created.razorpayOrderId,
         name: "FoundOurMarket™",
-        description: `Order ${created.orderId.slice(0, 8)}`,
+        description: "Secure Checkout",
+        image: logoUrl,
         ...(customerId ? { customer_id: customerId, save: 1 } : {}),
         prefill: {
           name: selectedAddress.full_name,
@@ -228,10 +236,41 @@ function CheckoutPage() {
           contact: selectedAddress.phone ?? undefined,
         },
         notes: { order_id: created.orderId },
-        theme: { color: "#ff7a1a", backdrop_color: "#0a0a0f" },
+        theme: { color: "#ff7a00", backdrop_color: "#0a0a0f" },
         // No `method` filter: let Razorpay surface every method enabled on the
         // account for the order currency — UPI, Google Pay, PhonePe, Paytm,
         // BHIM, Net Banking, Cards, Wallets, EMI and Pay Later for INR orders.
+        // For INR we additionally promote a UPI block to the top that exposes
+        // UPI Intent (GPay/PhonePe/Paytm/BHIM/Amazon Pay), "Pay via UPI ID"
+        // (collect/VPA entry) and QR — while still showing all default blocks.
+        ...(created.currency === "INR"
+          ? {
+              config: {
+                display: {
+                  blocks: {
+                    upi: {
+                      name: "Pay using UPI",
+                      instruments: [
+                        {
+                          method: "upi",
+                          flows: ["intent", "collect", "qr"],
+                          apps: [
+                            "google_pay",
+                            "phonepe",
+                            "paytm",
+                            "bhim",
+                            "amazon_pay",
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                  sequence: ["block.upi"],
+                  preferences: { show_default_blocks: true },
+                },
+              },
+            }
+          : {}),
         modal: {
           ondismiss: () => {
             setStage("failed");
