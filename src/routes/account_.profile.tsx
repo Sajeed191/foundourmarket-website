@@ -404,16 +404,18 @@ function EditProfilePage() {
               </FloatingField>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="relative group">
-                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                  <select value={form.gender} onChange={(e) => set("gender", e.target.value)} className="input-glass !pl-11 appearance-none">
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-accent transition-colors z-10" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+                  <select value={form.gender} onChange={(e) => set("gender", e.target.value)} className="input-glass input-glass-static !pl-11 !pr-10 appearance-none">
                     {GENDERS.map((g) => <option key={g} value={g} className="bg-card">{g || "Gender"}</option>)}
                   </select>
                 </div>
                 <div className="relative group">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-accent transition-colors z-10" />
-                  <input type="date" max={maxDob} value={form.birthDate} onChange={(e) => set("birthDate", e.target.value)} className="input-glass !pl-11" />
+                  <input type="date" max={maxDob} value={form.birthDate} onChange={(e) => set("birthDate", e.target.value)} className="input-glass input-glass-static !pl-11" />
                 </div>
               </div>
+
               <FieldError msg={dobError} />
             </Section>
 
@@ -421,13 +423,14 @@ function EditProfilePage() {
             <Section title="Region" delay={0.15}>
               {isIndia ? (
                 <div className="relative">
-                  <div className="input-glass !pl-11 flex items-center gap-2 cursor-not-allowed opacity-95">
+                  <div className="input-glass input-glass-static !pl-11 flex items-center gap-2 cursor-not-allowed opacity-95">
                     <span className="text-base leading-none">🇮🇳</span>
                     <span>India</span>
                     <span className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent">INR ₹ · Locked</span>
                   </div>
                   <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 </div>
+
               ) : (
                 <>
                   <CountrySelect
@@ -589,8 +592,9 @@ function CountrySelect({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="input-glass !pl-11 flex items-center gap-2 text-left min-h-[44px]"
+        className="input-glass input-glass-static !pl-11 flex items-center gap-2 text-left"
       >
+
         <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         {selected ? (
           <>
@@ -677,9 +681,10 @@ function PhoneField({
         )}
       >
         <span
-          className="flex items-center gap-1.5 pl-3 pr-2.5 text-sm border-r border-border/70 shrink-0 select-none"
+          className="flex items-center gap-1.5 pl-4 pr-2.5 text-sm border-r border-border/70 shrink-0 select-none"
           aria-label={locked ? "Country code locked" : "Country code"}
         >
+
           <Icon className="size-4 text-muted-foreground" />
           <span className="text-base leading-none">{flag}</span>
           <span className="font-mono text-xs text-muted-foreground">{dial ? `+${dial}` : ""}</span>
@@ -694,7 +699,7 @@ function PhoneField({
             e.preventDefault();
             handle((value + e.clipboardData.getData("text")));
           }}
-          className="flex-1 min-w-0 bg-transparent px-3 py-3 text-sm outline-none"
+          className="flex-1 min-w-0 bg-transparent px-3 py-[0.925rem] text-sm outline-none"
         />
       </div>
       <FieldError msg={error ?? (typedSymbol ? "Only numbers are allowed" : null)} />
