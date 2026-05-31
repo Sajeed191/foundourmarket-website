@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle, Clock, Building2 } from "lucide-react";
+import { Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle, Clock, Building2, ShieldAlert, Navigation } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import type { CountryCode } from "libphonenumber-js";
-import { addressCompleteness, type Address, type AddressInput, type AddressType } from "@/lib/use-addresses";
+import { type Address, type AddressInput, type AddressType } from "@/lib/use-addresses";
 import { validateIndianPincode } from "@/lib/address.functions";
 import { PhoneInput } from "@/components/site/PhoneInput";
 import { useRegion } from "@/lib/region";
+import {
+  scoreAddressQuality,
+  pinCityStateConsistency,
+  assessAddressRisk,
+  gpsFillConfidence,
+  type MarketRegion,
+} from "@/lib/address-intelligence";
 
 /** Friendly country name from an ISO code, with a safe fallback. */
 const REGION_NAMES =
