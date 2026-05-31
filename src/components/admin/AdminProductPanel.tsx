@@ -165,6 +165,8 @@ export function AdminProductPanel({ product }: { product: Product }) {
       comparePriceInr: numOrNull(f.comparePriceInr),
       priceUsd: numOrNull(f.priceUsd),
       comparePriceUsd: numOrNull(f.comparePriceUsd),
+      costPriceInr: numOrNull(f.costPriceInr),
+      costPriceUsd: numOrNull(f.costPriceUsd),
       shippingFeeInr: Math.max(0, Number(f.shippingFeeInr) || 0),
       shippingFeeUsd: Math.max(0, Number(f.shippingFeeUsd) || 0),
       indiaVisible: f.indiaVisible,
