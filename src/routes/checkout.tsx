@@ -90,6 +90,7 @@ function CheckoutPage() {
   const [payMethod, setPayMethod] = useState<"razorpay" | "cod">("razorpay");
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [reserveLeft, setReserveLeft] = useState(15 * 60);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const isIndia = market === "india";
 
