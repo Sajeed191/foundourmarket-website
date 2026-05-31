@@ -72,6 +72,11 @@ function CartPage() {
   const [promo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
 
+  // Pull the latest admin pricing/shipping when the cart opens.
+  useEffect(() => { refreshProducts(); }, []);
+
+
+
 
   const savings = useMemo(
     () => detailed.reduce((s, i) => s + unitPricing(priceOf(i.product), compareOf(i.product), i.product.discount).save * i.qty, 0),
