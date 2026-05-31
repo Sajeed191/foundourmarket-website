@@ -61,8 +61,18 @@ export async function logSecurity(entry: SecurityAuditEntry): Promise<void> {
       success: entry.success,
       detail: (entry.detail ?? {}) as never,
     });
-  } catch {
-    // Auditing must never break the request path.
+  } catch (err: any) {
+    // Auditing must never break the request path — but the failure MUST be
+    // visible. A silent catch here is why audit gaps went unnoticed before.
+    console.error("[security-audit] failed to write audit entry", {
+      action: entry.action,
+      actor: entry.actorId,
+      actorRole: entry.actorRole,
+      target: entry.target ?? null,
+      success: entry.success,
+      error: String(err?.message ?? err),
+      stack: err?.stack,
+    });
   }
 }
 
