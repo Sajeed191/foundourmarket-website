@@ -364,10 +364,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                             </p>
                             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/70">{new Date(r.created_at).toLocaleDateString()}</p>
                           </div>
-                          <div className="ml-auto flex items-center gap-0.5">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star key={i} className={cn("size-3", i < r.rating ? "fill-accent text-accent" : "text-muted-foreground/30")} />
-                            ))}
+                          <div className="ml-auto flex items-center">
+                            <StarRating rating={r.rating} starClassName="size-3" />
                           </div>
                         </div>
 
