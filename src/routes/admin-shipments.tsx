@@ -86,30 +86,19 @@ const ORDER_FULFILLMENT: Record<string, string> = {
   failed_delivery: "shipped", returned: "returned", cancelled: "cancelled",
 };
 
-// Customer-facing in-app notification copy for each status change.
-const STATUS_NOTIFICATION: Record<string, { title: string; body: string }> = {
-  packed: { title: "📦 Order packed", body: "Your order has been packed and is ready to ship." },
-  shipped: { title: "🚚 Order shipped", body: "Your order is on its way." },
-  in_transit: { title: "🚚 In transit", body: "Your package is moving through the courier network." },
-  out_for_delivery: { title: "📍 Out for delivery", body: "Your package is out for delivery today." },
-  delivered: { title: "✅ Delivered", body: "Your package has been delivered. Enjoy!" },
-  failed_delivery: { title: "⚠️ Delivery attempt failed", body: "We couldn't deliver your package. We'll retry shortly." },
-  returned: { title: "↩️ Order returned", body: "Your order has been returned." },
-  cancelled: { title: "❌ Order cancelled", body: "Your order has been cancelled." },
-};
-
+// Customer notifications are created server-side with the service role so that
+// any approved staff role (not just admins) can trigger them without loosening
+// the notifications table RLS. Failure here never blocks the shipment update.
 async function notifyCustomer(userId: string | null, orderId: string, status: string) {
-  const copy = STATUS_NOTIFICATION[status];
-  if (!userId || !copy) return;
-  await supabase.from("notifications").insert({
-    user_id: userId,
-    type: "shipment",
-    title: copy.title,
-    body: copy.body,
-    link: "/track",
-    priority: status === "delivered" || status === "out_for_delivery" ? "high" : "normal",
-    data: { order_id: orderId, status },
-  });
+  if (!userId) return;
+  try {
+    const res = await createShipmentNotification({
+      data: { targetUserId: userId, orderId, status: status as never },
+    });
+    if (!res.ok) console.error("[shipment.notify] failed", res.reason);
+  } catch (e) {
+    console.error("[shipment.notify] error", e);
+  }
 }
 
 const PAGE = 25;
