@@ -283,7 +283,10 @@
 /* Glass input with floating-label spacing + neon focus glow */
 .input-glass {
   width: 100%;
-  padding: 1.35rem 1rem 0.5rem 2.75rem;
+  /* Same total vertical padding (1.85rem) as .input-glass-static so every
+     field shares an identical height. Slightly top-weighted to leave room for
+     the floated mini-label while keeping the value near vertical center. */
+  padding: 1rem 1rem 0.85rem 2.75rem;
   font-size: 0.875rem;
   border-radius: 1rem;
   background: oklch(1 0 0 / 0.03);
