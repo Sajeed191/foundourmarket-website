@@ -406,8 +406,8 @@ function StatCard({ icon: Icon, label, value, tone }: { icon: typeof ShoppingBag
   );
 }
 
-function OrderCard({ order, index, format, onReorder, reordering }: {
-  order: Order; index: number; format: (n: number) => string; onReorder: () => void; reordering: boolean;
+function OrderCard({ order, index, format, onReorder, reordering, onOpenDetails }: {
+  order: Order; index: number; format: (n: number) => string; onReorder: () => void; reordering: boolean; onOpenDetails: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const meta = displayStatus(order);
