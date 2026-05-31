@@ -99,6 +99,10 @@ function CheckoutPage() {
     if (!loading && !user) nav({ to: "/auth" });
   }, [loading, user, nav]);
 
+  // Ensure shipping/prices reflect the latest admin changes at checkout.
+  useEffect(() => { refreshProducts(); }, []);
+
+
   useEffect(() => {
     if (!loading && user && cartHydrated && count === 0 && stage !== "success") nav({ to: "/cart" });
   }, [loading, user, cartHydrated, count, nav, stage]);
