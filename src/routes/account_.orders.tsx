@@ -113,6 +113,7 @@ function OrdersPage() {
   const [recSlugs, setRecSlugs] = useState<string[]>([]);
   const [trendSlugs, setTrendSlugs] = useState<string[]>([]);
   const [reordering, setReordering] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
