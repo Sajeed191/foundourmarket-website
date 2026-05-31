@@ -597,9 +597,25 @@ function Timeline({ currentIdx }: { currentIdx: number }) {
   );
 }
 
-/* ─────────────────────────  CARRIER + ETA COUNTDOWN  ───────────────────────── */
+function DeliveryAddress({ address }: { address: ShipAddress }) {
+  if (!address) return null;
+  const lines = [
+    address.full_name,
+    [address.line1, address.line2].filter(Boolean).join(", "),
+    [address.city, address.state, address.postal].filter(Boolean).join(", "),
+    address.country,
+    address.phone ? `Phone: ${address.phone}` : null,
+  ].filter(Boolean);
+  return (
+    <div className="space-y-0.5">
+      {lines.map((l, i) => (
+        <p key={i} className={`text-sm ${i === 0 ? "font-medium" : "text-muted-foreground"}`}>{l}</p>
+      ))}
+    </div>
+  );
+}
 
-function CarrierEta({ orderId, progress }: { orderId: string; progress: number }) {
+
   // Deterministic ETA derived from order id so it stays stable per order
   const seed = useMemo(
     () => Array.from(orderId).reduce((a, c) => a + c.charCodeAt(0), 0),
