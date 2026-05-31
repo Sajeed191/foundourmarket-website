@@ -99,6 +99,7 @@ const EMPTY: Form = {
 const GENDERS = ["", "Female", "Male", "Non-binary", "Prefer not to say"];
 
 const DIGITS_ONLY = /[^0-9]/g;
+const HAS_NON_DIGIT = /[^0-9]/;
 const EMOJI_RE = /\p{Extended_Pictographic}/gu;
 
 function EditProfilePage() {
