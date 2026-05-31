@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ArrowLeft, Loader2, Radio, ShieldAlert, IndianRupee, ShoppingBag, Package, Truck,
+  ArrowLeft, Loader2, Radio, ShieldAlert, IndianRupee, ShoppingBag, Truck,
   RotateCcw, LifeBuoy, Bell, MapPin, Copy, Check, Download, Mail, Plus, X, CreditCard,
   User, Clock, ExternalLink,
 } from "lucide-react";
