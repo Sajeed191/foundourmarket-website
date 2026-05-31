@@ -140,6 +140,9 @@ function CheckoutPage() {
   }, [selectedPostal, checkPincode]);
 
   const serviceable = service?.serviceable === true;
+  // Allow checkout when verified OR when the lookup service is temporarily down.
+  const allowProceed = service?.allowProceed === true;
+  const serviceDown = service?.status === "service_down";
 
   // Force COD off if admin disabled it
   useEffect(() => {
