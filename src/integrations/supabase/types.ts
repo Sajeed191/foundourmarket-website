@@ -5170,6 +5170,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       support_admin_unread_count: { Args: never; Returns: number }
       support_unread_count: { Args: never; Returns: number }
       svc_acquisition_metrics: {
@@ -5192,6 +5194,16 @@ export type Database = {
       }
       svc_campaign_timeline: {
         Args: { p_campaign: string; p_since: string }
+        Returns: Json
+      }
+      svc_payment_center: {
+        Args: {
+          _actor: string
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+        }
         Returns: Json
       }
       svc_retry_all_failed_executions: {
