@@ -71,7 +71,7 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
     if (input.stage === "shipped" || input.stage === "delivered" || input.stage === "cancelled") {
       orderPatch.status = input.stage;
     }
-    const { error: oErr } = await supabaseAdmin.from("orders").update(orderPatch).eq("id", input.orderId);
+    const { error: oErr } = await supabaseAdmin.from("orders").update(orderPatch as never).eq("id", input.orderId);
     if (oErr) throw new Error(oErr.message);
 
     const ship = await latestShipment(input.orderId);
@@ -81,7 +81,7 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
       if (input.stage === "shipped") sPatch.shipped_at = nowIso;
       if (input.stage === "delivered") { sPatch.delivered_at = nowIso; sPatch.actual_delivery = nowIso; }
       if (input.stage === "cancelled") sPatch.cancelled_at = nowIso;
-      await supabaseAdmin.from("shipments").update(sPatch).eq("id", ship.id);
+      await supabaseAdmin.from("shipments").update(sPatch as never).eq("id", ship.id);
       await addEvent(ship.id, input.stage, `Order marked ${input.stage} by staff`, ship.carrier ?? order.carrier);
     }
 
