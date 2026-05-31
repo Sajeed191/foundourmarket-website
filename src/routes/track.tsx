@@ -722,6 +722,99 @@ function Pill({ icon: Icon, label, hint }: { icon: typeof Truck; label: string; 
   );
 }
 
+type ShipmentInfo = {
+  id: string;
+  status: string;
+  carrier: string | null;
+  carrierLabel: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  estimated_delivery: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  packed_at: string | null;
+};
+
+function ShipmentDetails({ shipment }: { shipment: ShipmentInfo }) {
+  const eta = shipment.estimated_delivery
+    ? new Date(shipment.estimated_delivery).toLocaleDateString(undefined, {
+        weekday: "short", month: "short", day: "numeric",
+      })
+    : null;
+  return (
+    <div className="relative glass-strong rounded-3xl p-5 sm:p-6 ring-1 ring-white/10 overflow-hidden">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent">Shipment</p>
+        <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border border-accent/30 bg-accent/10 text-accent">
+          {SHIP_LABEL[shipment.status] ?? shipment.status}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Pill icon={Truck} label={shipment.carrierLabel ?? "Assigning…"} hint="Courier" />
+        <Pill icon={Navigation} label={eta ?? "Calculating…"} hint="Est. delivery" />
+      </div>
+      {shipment.tracking_number && (
+        <div className="mt-3 flex items-center justify-between gap-3 glass rounded-2xl px-4 py-3 ring-1 ring-white/5">
+          <div className="min-w-0">
+            <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Tracking #</p>
+            <p className="text-sm font-mono truncate">{shipment.tracking_number}</p>
+          </div>
+          {shipment.tracking_url && (
+            <a
+              href={shipment.tracking_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider"
+            >
+              Track <ChevronRight className="size-3.5" />
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type ShipEvent = {
+  id: string;
+  status: string;
+  description: string | null;
+  location: string | null;
+  occurred_at: string | null;
+  created_at: string;
+};
+
+function EventTimeline({ events }: { events: ShipEvent[] }) {
+  const ordered = [...events].reverse(); // newest first
+  return (
+    <div className="relative glass-strong rounded-3xl p-5 sm:p-6 ring-1 ring-white/10">
+      <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent mb-4">Shipment timeline</p>
+      <ol className="relative space-y-4 before:absolute before:left-[7px] before:top-1 before:bottom-1 before:w-px before:bg-white/10">
+        {ordered.map((e, i) => (
+          <li key={e.id} className="relative pl-7">
+            <span
+              className={`absolute left-0 top-0.5 size-3.5 rounded-full ring-2 ring-background ${
+                i === 0 ? "bg-accent" : "bg-white/30"
+              }`}
+            />
+            <p className="text-sm font-medium">{SHIP_LABEL[e.status] ?? e.status}</p>
+            {e.description && (
+              <p className="text-xs text-muted-foreground">{e.description}</p>
+            )}
+            <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mt-0.5">
+              {new Date(e.occurred_at ?? e.created_at).toLocaleString([], {
+                month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+              })}
+              {e.location ? ` · ${e.location}` : ""}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+
 /* ───────────────────────────────  LIVE MAP  ─────────────────────────────── */
 
 function LiveMap({ progress }: { progress: number }) {
