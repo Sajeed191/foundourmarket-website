@@ -4,6 +4,7 @@ import {
   Loader2, LifeBuoy, MessageSquare, Search, X, Gauge, Inbox, RotateCcw,
   Banknote, AlertTriangle, Clock, Flame, Sparkles, User, Package, Truck,
   Bell, ShieldAlert, Copy, ChevronRight, TrendingUp,
+  Check, Ban, FileText, Mail, Phone, MapPin, Users, Activity, Radio,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { ThreadSheet } from "@/routes/account_.support";
 import { notifySupportEvent } from "@/lib/support.functions";
 import { suggestSupportReply } from "@/lib/support-ai.functions";
+import { refundActionFn, returnActionFn } from "@/lib/support-actions.functions";
 import {
   deriveStage, computeSla, computeSupportKpis, detectEscalation,
   groupByStatus, refundRisk, normPriority, isStaffSender,
@@ -20,6 +22,7 @@ import {
   type TicketRow, type MessageRow, type OrderLite, type RefundRow, type ReturnRow,
   type TicketStage, type SlaInfo, type EscalationReason, type EscalationContext, type Priority,
 } from "@/lib/support-analytics";
+
 
 export const Route = createFileRoute("/admin-support")({
   head: () => ({ meta: [{ title: "Support Command Center — Admin" }] }),
