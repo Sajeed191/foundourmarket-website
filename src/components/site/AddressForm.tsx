@@ -689,6 +689,6 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           </button>
         )}
       </div>
-    </form>
+    </div>
   );
 }
