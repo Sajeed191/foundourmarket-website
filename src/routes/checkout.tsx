@@ -686,10 +686,12 @@ function CheckoutPage() {
                   </p>
                 )}
                 <div className="flex items-center gap-3">
-                  <div className="pl-1.5 min-w-0">
-                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Total · {itemsCount} item{itemsCount !== 1 ? "s" : ""}</p>
-                    <p className="font-mono text-lg font-semibold text-accent leading-tight truncate">{fmt(totalINR)}</p>
-                  </div>
+                  <button type="button" onClick={() => setSummaryOpen(true)}
+                    aria-label="View order summary"
+                    className="pl-1.5 min-w-0 text-left active:scale-[0.98] transition-transform">
+                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Total · {itemsCount} item{itemsCount !== 1 ? "s" : ""} · tap to view</p>
+                    <p className="font-mono text-lg font-semibold text-accent leading-tight truncate underline decoration-dotted decoration-accent/40 underline-offset-4">{fmt(totalINR)}</p>
+                  </button>
                   <button type="submit" disabled={!checkoutReady}
                     className="ml-auto group inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground font-bold px-5 min-h-[56px] rounded-xl text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0">
                     {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-3.5" />}
