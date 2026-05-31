@@ -279,7 +279,7 @@ function CheckoutPage() {
 
   const placeOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!serviceable) {
+    if (!allowProceed) {
       setError(service?.message ?? "This address isn't serviceable yet.");
       return;
     }
