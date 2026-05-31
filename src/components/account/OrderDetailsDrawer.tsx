@@ -478,6 +478,49 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
   );
 }
 
+function useCopy() {
+  const [copied, setCopied] = useState(false);
+  return {
+    copied,
+    copy: async (v: string) => {
+      try { await navigator.clipboard.writeText(v); setCopied(true); toast.success("Copied"); setTimeout(() => setCopied(false), 1500); }
+      catch { toast.error("Couldn't copy"); }
+    },
+  };
+}
+
+// Copyable field with one-tap copy button
+function CopyField({ label, value, disabled }: { label: string; value: string; disabled?: boolean }) {
+  const { copied, copy } = useCopy();
+  const empty = disabled || !value || value === "—";
+  return (
+    <div className="rounded-lg bg-background/40 border border-border/40 px-2.5 py-1.5 flex items-center gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{label}</p>
+        <p className="text-xs font-mono truncate">{value || "—"}</p>
+      </div>
+      {!empty && (
+        <button onClick={() => copy(value)} aria-label={`Copy ${label}`}
+          className="size-7 shrink-0 grid place-items-center rounded-md border border-border/60 hover:border-accent/50 hover:text-accent active:scale-90 transition">
+          {copied ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function CopyButton({ label, value }: { label: string; value: string }) {
+  const { copied, copy } = useCopy();
+  if (!value) return null;
+  return (
+    <button onClick={() => copy(value)}
+      className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
+      {copied ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />} {label}
+    </button>
+  );
+}
+
+
 function Row({ label, value, bold, tone }: { label: string; value: string; bold?: boolean; tone?: string }) {
   return (
     <div className="flex items-center justify-between">
