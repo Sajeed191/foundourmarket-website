@@ -59,8 +59,9 @@ export function SavedAddressRail({
 }: Props) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory sm:grid sm:grid-cols-2 sm:overflow-visible sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {addresses.map((a) => {
+      {rankAddresses(addresses).map((a) => {
         const Icon = iconFor(a);
+        const badge = addressBadge(a, addresses);
         const active = selectedId === a.id;
         return (
           <motion.button
