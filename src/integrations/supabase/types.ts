@@ -2583,6 +2583,7 @@ export type Database = {
           attributes: Json
           barcode: string | null
           bestseller: boolean
+          brand: string | null
           category: string
           cod_enabled: boolean
           collection: string | null
@@ -2596,11 +2597,13 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           delivery_estimate: string | null
+          demo_url: string | null
           description: string | null
           discount: number | null
           featured: boolean
           features: string[]
           fragile: boolean
+          height: number | null
           homepage_section: string | null
           hot_deal: boolean
           id: string
@@ -2610,6 +2613,7 @@ export type Database = {
           international_shipping: boolean
           international_visible: boolean
           inventory_tracking: boolean
+          length: number | null
           low_stock_threshold: number
           meta_keywords: string[]
           name: string
@@ -2620,6 +2624,7 @@ export type Database = {
           price: number
           price_inr: number | null
           price_usd: number | null
+          product_type: string | null
           rating: number
           razorpay_enabled: boolean
           replacement_eligible: boolean
@@ -2648,9 +2653,12 @@ export type Database = {
           tags: string[]
           trending: boolean
           updated_at: string
+          video_url: string | null
           views_count: number
           warehouse_location: string | null
           warranty: string
+          weight: number | null
+          width: number | null
           wishlist_count: number
         }
         Insert: {
@@ -2658,6 +2666,7 @@ export type Database = {
           attributes?: Json
           barcode?: string | null
           bestseller?: boolean
+          brand?: string | null
           category: string
           cod_enabled?: boolean
           collection?: string | null
@@ -2671,11 +2680,13 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           delivery_estimate?: string | null
+          demo_url?: string | null
           description?: string | null
           discount?: number | null
           featured?: boolean
           features?: string[]
           fragile?: boolean
+          height?: number | null
           homepage_section?: string | null
           hot_deal?: boolean
           id?: string
@@ -2685,6 +2696,7 @@ export type Database = {
           international_shipping?: boolean
           international_visible?: boolean
           inventory_tracking?: boolean
+          length?: number | null
           low_stock_threshold?: number
           meta_keywords?: string[]
           name: string
@@ -2695,6 +2707,7 @@ export type Database = {
           price?: number
           price_inr?: number | null
           price_usd?: number | null
+          product_type?: string | null
           rating?: number
           razorpay_enabled?: boolean
           replacement_eligible?: boolean
@@ -2723,9 +2736,12 @@ export type Database = {
           tags?: string[]
           trending?: boolean
           updated_at?: string
+          video_url?: string | null
           views_count?: number
           warehouse_location?: string | null
           warranty?: string
+          weight?: number | null
+          width?: number | null
           wishlist_count?: number
         }
         Update: {
@@ -2733,6 +2749,7 @@ export type Database = {
           attributes?: Json
           barcode?: string | null
           bestseller?: boolean
+          brand?: string | null
           category?: string
           cod_enabled?: boolean
           collection?: string | null
@@ -2746,11 +2763,13 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           delivery_estimate?: string | null
+          demo_url?: string | null
           description?: string | null
           discount?: number | null
           featured?: boolean
           features?: string[]
           fragile?: boolean
+          height?: number | null
           homepage_section?: string | null
           hot_deal?: boolean
           id?: string
@@ -2760,6 +2779,7 @@ export type Database = {
           international_shipping?: boolean
           international_visible?: boolean
           inventory_tracking?: boolean
+          length?: number | null
           low_stock_threshold?: number
           meta_keywords?: string[]
           name?: string
@@ -2770,6 +2790,7 @@ export type Database = {
           price?: number
           price_inr?: number | null
           price_usd?: number | null
+          product_type?: string | null
           rating?: number
           razorpay_enabled?: boolean
           replacement_eligible?: boolean
@@ -2798,9 +2819,12 @@ export type Database = {
           tags?: string[]
           trending?: boolean
           updated_at?: string
+          video_url?: string | null
           views_count?: number
           warehouse_location?: string | null
           warranty?: string
+          weight?: number | null
+          width?: number | null
           wishlist_count?: number
         }
         Relationships: []
@@ -4951,6 +4975,7 @@ export type Database = {
           attributes: Json
           barcode: string | null
           bestseller: boolean
+          brand: string | null
           category: string
           cod_enabled: boolean
           collection: string | null
@@ -4964,11 +4989,13 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           delivery_estimate: string | null
+          demo_url: string | null
           description: string | null
           discount: number | null
           featured: boolean
           features: string[]
           fragile: boolean
+          height: number | null
           homepage_section: string | null
           hot_deal: boolean
           id: string
@@ -4978,6 +5005,7 @@ export type Database = {
           international_shipping: boolean
           international_visible: boolean
           inventory_tracking: boolean
+          length: number | null
           low_stock_threshold: number
           meta_keywords: string[]
           name: string
@@ -4988,6 +5016,7 @@ export type Database = {
           price: number
           price_inr: number | null
           price_usd: number | null
+          product_type: string | null
           rating: number
           razorpay_enabled: boolean
           replacement_eligible: boolean
@@ -5016,9 +5045,12 @@ export type Database = {
           tags: string[]
           trending: boolean
           updated_at: string
+          video_url: string | null
           views_count: number
           warehouse_location: string | null
           warranty: string
+          weight: number | null
+          width: number | null
           wishlist_count: number
         }[]
         SetofOptions: {
