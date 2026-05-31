@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useProduct, invalidateProducts } from "@/lib/use-products";
+import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
@@ -93,7 +93,7 @@ export const Route = createFileRoute("/products/$slug")({
 function ProductPage() {
   const { slug } = Route.useParams();
   const { product, loading } = useProduct(slug);
-  const { format, priceOf, compareOf } = useRegion();
+  const { format, priceOf, compareOf, shippingFeeOf } = useRegion();
   const { isProductAdmin: isAdmin } = useIsProductAdmin();
   const { add } = useCart();
   const { record } = useRecentlyViewed();
@@ -130,6 +130,9 @@ function ProductPage() {
     }, 300);
     return () => clearTimeout(t);
   }, [product?.slug]);
+
+  // Pull the latest admin pricing/shipping when the product page opens.
+  useEffect(() => { refreshProducts(); }, []);
 
   useEffect(() => {
     if (!slug) return;
@@ -178,6 +181,7 @@ function ProductPage() {
   const effectivePrice = selectedVariant?.priceOverride ?? basePrice;
   const effectiveStock = selectedVariant ? selectedVariant.stockQuantity : product.stockQuantity;
   const effectiveSku = selectedVariant?.sku ?? product.sku;
+  const unitShipping = shippingFeeOf(product);
   const lowStock = effectiveStock > 0 && effectiveStock <= product.lowStockThreshold;
   const isOOS = effectiveStock <= 0;
   const originalPrice = compareOf(product) ?? (product.discount ? effectivePrice * (1 + product.discount / 100) : null);
@@ -417,7 +421,7 @@ function ProductPage() {
                 <Truck className="size-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium">Free delivery</p>
+                <p className="text-sm font-medium">{unitShipping <= 0 ? "Free delivery" : `Shipping ${format(unitShipping)}`}</p>
                 <p className="text-xs text-muted-foreground">Arrives <span className="text-foreground">{deliveryWindow}</span></p>
               </div>
               <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
@@ -462,7 +466,7 @@ function ProductPage() {
             {/* Trust grid */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-6 sm:pt-8 border-t border-border">
               {[
-                { icon: Truck, label: "Free shipping over $50" },
+                { icon: Truck, label: unitShipping <= 0 ? "Free shipping" : `Shipping ${format(unitShipping)}` },
                 { icon: RotateCcw, label: "7 Days Return" },
                 { icon: Shield, label: "Secure checkout" },
               ].map(({ icon: Icon, label }) => (
@@ -490,7 +494,7 @@ function ProductPage() {
 
             <Accordion title="Shipping & returns" icon={Truck}>
               <ul className="text-sm text-muted-foreground space-y-2 leading-relaxed">
-                <li>• Free standard shipping on orders over $50.</li>
+                <li>• {unitShipping <= 0 ? "Free standard shipping on this product." : `Shipping for this product: ${format(unitShipping)} per unit.`}</li>
                 <li>• Standard delivery takes 5–10 business days.</li>
                 <li>• Selected-product returns — check <Link to="/returns" className="text-accent underline">return eligibility</Link>.</li>
               </ul>
