@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useProduct, invalidateProducts } from "@/lib/use-products";
+import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
