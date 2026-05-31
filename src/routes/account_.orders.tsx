@@ -365,7 +365,7 @@ function OrdersPage() {
               {filtered.slice(0, visible).map((o, i) =>
                 filter === "failed"
                   ? <FailedCard key={o.id} order={o} format={format} onRetry={() => retryPayment()} listItem />
-                  : <OrderCard key={o.id} order={o} index={i} format={format} onReorder={() => reorder(o)} reordering={reordering === o.id} />
+                  : <OrderCard key={o.id} order={o} index={i} format={format} onReorder={() => reorder(o)} reordering={reordering === o.id} onOpenDetails={() => setDetailId(o.id)} />
               )}
             </ul>
             {visible < filtered.length && (
