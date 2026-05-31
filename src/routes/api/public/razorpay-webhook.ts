@@ -236,10 +236,17 @@ async function handleEvent(event: string, payload: any) {
           .update({ status: "refunded", payment_status: "refunded" })
           .eq("id", pay.order_id);
 
-        await enqueueOrderEmail(pay.order_id, "refund-processed", {
-          refundAmount: (refundEntity?.amount ?? 0) / 100,
-          refundCurrency: refundEntity?.currency ?? "INR",
-        });
+        try {
+          await enqueueOrderEmail(pay.order_id, "refund-processed", {
+            refundAmount: (refundEntity?.amount ?? 0) / 100,
+            refundCurrency: refundEntity?.currency ?? "INR",
+          });
+        } catch (emailErr: any) {
+          console.error("[razorpay-webhook] refund email dispatch failed", {
+            orderId: pay.order_id,
+            error: String(emailErr?.message ?? emailErr),
+          });
+        }
       }
       break;
     }
