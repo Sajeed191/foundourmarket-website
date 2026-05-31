@@ -136,8 +136,17 @@ function AdminShipmentsPage() {
     }).select().single();
     setCreating(null);
     if (error) { toast.error(error.message); return; }
+    // Seed an initial "pending" event so the customer timeline is never empty.
+    const created = data as { id: string } | null;
+    if (created?.id) {
+      await supabase.from("shipment_events").insert({
+        shipment_id: created.id,
+        status: "pending",
+        description: "Shipment created — preparing your order",
+      });
+    }
     toast.success("Shipment created");
-    logActivity("shipment_create", "shipment", (data as { id: string } | null)?.id, { order_id: o.id });
+    logActivity("shipment_create", "shipment", created?.id, { order_id: o.id });
     setShipments((prev) => [data as Shipment, ...prev]);
   }
 
