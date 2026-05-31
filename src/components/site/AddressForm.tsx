@@ -671,7 +671,8 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
 
       <div className="flex gap-2 pt-0.5 sticky bottom-0">
         <button
-          type="submit"
+          type="button"
+          onClick={submit}
           disabled={busy}
           className="flex-1 bg-accent text-accent-foreground font-bold px-5 py-3.5 rounded-2xl text-[11px] uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2 shadow-[0_0_30px_-8px_var(--color-accent)]"
         >
