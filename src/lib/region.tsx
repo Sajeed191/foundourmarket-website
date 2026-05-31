@@ -418,6 +418,14 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     [market],
   );
 
+  const shippingFeeOf = useCallback(
+    (p: Product) => {
+      const fee = market === "india" ? p.shippingFeeInr : p.shippingFeeUsd;
+      return Math.max(0, Number(fee ?? 0));
+    },
+    [market],
+  );
+
   const format = useCallback((amount: number) => formatMoney(amount, currency), [currency]);
   const formatProduct = useCallback(
     (p: Product) => formatMoney(priceOf(p), currency),
