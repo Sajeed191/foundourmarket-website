@@ -622,8 +622,11 @@ function ActBtn({ label, icon, tone, loading, onClick }: { label: string; icon: 
 // ── Customer 360 sheet ───────────────────────────────────────────────────────
 function Customer360Sheet({ userId, name, onClose }: { userId: string; name: string; onClose: () => void }) {
   const [data, setData] = useState<null | {
-    profile: { full_name: string | null; country: string | null; market_region: string | null; created_at: string } | null;
-    orders: number; ltv: number; refunds: number; refundTotal: number; returns: number; activeShipments: number;
+    profile: { full_name: string | null; phone: string | null; country: string | null; market_region: string | null; created_at: string } | null;
+    email: string | null; address: string | null;
+    orders: number; successfulOrders: number; failedPayments: number; ltv: number;
+    refunds: number; refundTotal: number; returns: number; activeShipments: number;
+    support: number; riskScore: number;
     notifications: { id: string; title: string; created_at: string }[];
     tickets: { id: string; subject: string; status: string; created_at: string }[];
     fraud: number;
@@ -633,30 +636,43 @@ function Customer360Sheet({ userId, name, onClose }: { userId: string; name: str
     let alive = true;
     (async () => {
       const [pf, ord, ref, ret, ship, notif, tk, fr] = await Promise.all([
-        supabase.from("profiles").select("full_name,country,market_region,created_at").eq("id", userId).maybeSingle(),
-        supabase.from("orders").select("total,currency,status").eq("user_id", userId),
+        supabase.from("profiles").select("full_name,phone,country,market_region,created_at").eq("id", userId).maybeSingle(),
+        supabase.from("orders").select("total,currency,status,payment_status,contact_email,shipping_address").eq("user_id", userId),
         supabase.from("refunds").select("amount,order_id,orders!inner(user_id)").eq("orders.user_id", userId),
         supabase.from("returns").select("id").eq("user_id", userId),
         supabase.from("shipments").select("id,status").eq("user_id", userId),
         supabase.from("notifications").select("id,title,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(6),
-        supabase.from("support_tickets").select("id,subject,status,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(6),
-        supabase.from("fraud_alerts").select("id").eq("subject_id", userId).eq("subject_type", "user"),
+        supabase.from("support_tickets").select("id,subject,status,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+        supabase.from("fraud_alerts").select("id,score").eq("subject_id", userId).eq("subject_type", "user"),
       ]);
       if (!alive) return;
-      const orders = (ord.data as { total: number; status: string }[]) ?? [];
+      const orders = (ord.data as { total: number; status: string; payment_status: string | null; contact_email: string | null; shipping_address: Record<string, unknown> | null }[]) ?? [];
       const refundsArr = (ref.data as { amount: number }[]) ?? [];
       const shipArr = (ship.data as { status: string }[]) ?? [];
+      const fraudArr = (fr.data as { score: number | null }[]) ?? [];
+      const paid = (o: { status: string; payment_status: string | null }) => ["paid", "succeeded", "delivered", "shipped", "completed"].includes((o.payment_status ?? o.status ?? "").toLowerCase());
+      const successfulOrders = orders.filter(paid).length;
+      const failedPayments = orders.filter((o) => ["failed", "cancelled"].includes((o.payment_status ?? "").toLowerCase())).length;
+      const support = ((tk.data as unknown[]) ?? []).length;
+      const ltv = orders.filter(paid).reduce((a, b) => a + (b.total || 0), 0);
+      const addr = orders.find((o) => o.shipping_address)?.shipping_address as { line1?: string; city?: string; state?: string; country?: string } | null;
+      // Composite risk score (0-100) from real signals: fraud alerts, refund rate, failed payments.
+      const fraudMax = fraudArr.reduce((m, f) => Math.max(m, f.score ?? 50), 0);
+      const refundRatio = successfulOrders ? refundsArr.length / successfulOrders : 0;
+      const riskScore = Math.min(100, Math.round(fraudMax * 0.6 + refundRatio * 100 * 0.3 + Math.min(failedPayments, 5) * 4));
       setData({
         profile: (pf.data as never) ?? null,
-        orders: orders.length,
-        ltv: orders.reduce((a, b) => a + (b.total || 0), 0),
+        email: orders.find((o) => o.contact_email)?.contact_email ?? null,
+        address: addr ? [addr.line1, addr.city, addr.state, addr.country].filter(Boolean).join(", ") : null,
+        orders: orders.length, successfulOrders, failedPayments, ltv,
         refunds: refundsArr.length,
         refundTotal: refundsArr.reduce((a, b) => a + (b.amount || 0), 0),
         returns: ((ret.data as unknown[]) ?? []).length,
         activeShipments: shipArr.filter((s) => !["delivered", "cancelled", "returned"].includes(s.status)).length,
+        support, riskScore,
         notifications: (notif.data as { id: string; title: string; created_at: string }[]) ?? [],
-        tickets: (tk.data as { id: string; subject: string; status: string; created_at: string }[]) ?? [],
-        fraud: ((fr.data as unknown[]) ?? []).length,
+        tickets: ((tk.data as { id: string; subject: string; status: string; created_at: string }[]) ?? []).slice(0, 6),
+        fraud: fraudArr.length,
       });
     })();
     return () => { alive = false; };
@@ -666,13 +682,21 @@ function Customer360Sheet({ userId, name, onClose }: { userId: string; name: str
     <Sheet title="Customer 360" subtitle={name} onClose={onClose}>
       {!data ? <Loader2 className="size-5 animate-spin text-accent mx-auto my-12" /> : (
         <div className="space-y-4">
+          <div className="rounded-xl border border-border/50 bg-background/40 p-3 space-y-1.5 text-xs">
+            {data.email && <p className="flex items-center gap-2 truncate"><Mail className="size-3.5 text-muted-foreground shrink-0" />{data.email}</p>}
+            {data.profile?.phone && <p className="flex items-center gap-2 truncate"><Phone className="size-3.5 text-muted-foreground shrink-0" />{data.profile.phone}</p>}
+            {data.address && <p className="flex items-center gap-2"><MapPin className="size-3.5 text-muted-foreground shrink-0 mt-0.5" /><span className="truncate">{data.address}</span></p>}
+          </div>
           <div className="grid grid-cols-3 gap-2">
-            <Stat label="Orders" value={String(data.orders)} icon={<Package className="size-3.5" />} />
+            <Stat label="Total Orders" value={String(data.orders)} icon={<Package className="size-3.5" />} />
             <Stat label="Lifetime Value" value={money(data.ltv, null)} icon={<TrendingUp className="size-3.5" />} />
+            <Stat label="Successful" value={String(data.successfulOrders)} icon={<Check className="size-3.5" />} />
+            <Stat label="Failed Payments" value={String(data.failedPayments)} tone={data.failedPayments ? "destructive" : undefined} />
             <Stat label="Refunds" value={`${data.refunds}`} icon={<Banknote className="size-3.5" />} />
             <Stat label="Returns" value={String(data.returns)} icon={<RotateCcw className="size-3.5" />} />
+            <Stat label="Support Tickets" value={String(data.support)} icon={<MessageSquare className="size-3.5" />} />
             <Stat label="Active Shipments" value={String(data.activeShipments)} icon={<Truck className="size-3.5" />} />
-            <Stat label="Fraud Signals" value={String(data.fraud)} icon={<ShieldAlert className="size-3.5" />} tone={data.fraud ? "destructive" : undefined} />
+            <Stat label="Risk Score" value={String(data.riskScore)} icon={<ShieldAlert className="size-3.5" />} tone={data.riskScore >= 60 ? "destructive" : undefined} />
           </div>
           {data.profile && (
             <p className="text-xs text-muted-foreground">
