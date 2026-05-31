@@ -33,8 +33,9 @@ function bindRealtime() {
     .subscribe();
   // Customers read the products_public VIEW and never receive base-table
   // realtime events (RLS blocks it), so refresh on focus/visibility instead.
-  window.addEventListener("focus", refreshIfStale);
-  document.addEventListener("visibilitychange", refreshIfStale);
+  const refreshFromBrowserEvent = () => refreshIfStale(false);
+  window.addEventListener("focus", refreshFromBrowserEvent);
+  document.addEventListener("visibilitychange", refreshFromBrowserEvent);
 }
 
 
