@@ -189,7 +189,6 @@ function CheckoutPage() {
       // Audit: the displayed price must equal the charged Razorpay amount.
       console.log("[checkout] Razorpay order created", {
         razorpayOrderId: created.razorpayOrderId,
-        currency: created.currency,
         amount_minor: created.amount,
         ...created.debug,
       });
