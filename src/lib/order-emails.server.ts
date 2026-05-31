@@ -116,12 +116,8 @@ export async function enqueueOrderEmail(
         : undefined,
   }
 
-  const element = React.createElement(entry.component, props as any)
-  const html = await render(element)
-  const text = await render(element, { plainText: true })
-  const subject = typeof entry.subject === 'function' ? entry.subject(props as any) : entry.subject
-
-  // Audit: log pending before enqueue.
+  // Audit: log the attempt BEFORE rendering so we never lose visibility,
+  // even if the React-Email render path throws.
   await supabaseAdmin.from('email_send_log').insert({
     message_id: messageId,
     template_name: event,
@@ -129,41 +125,80 @@ export async function enqueueOrderEmail(
     status: 'pending',
   })
 
-  const { error: enqueueError } = await supabaseAdmin.rpc('enqueue_email', {
-    queue_name: 'transactional_emails',
-    payload: {
-      message_id: messageId,
-      to: recipient,
-      from: `${SITE_NAME} <orders@${FROM_DOMAIN}>`,
-      sender_domain: SENDER_DOMAIN,
-      subject,
-      html,
-      text,
-      purpose: 'transactional',
-      label: event,
-      idempotency_key: messageId,
-      queued_at: new Date().toISOString(),
-      ...(unsub
-        ? {
-            headers: {
-              'List-Unsubscribe': `<${unsub.oneClickUrl}>, <${unsub.pageUrl}>`,
-              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-            },
-          }
-        : {}),
-    },
-  })
-
-  if (enqueueError) {
+  // --- Render (resilient): a render failure must be logged, never thrown. ---
+  let html: string
+  let text: string
+  let subject: string
+  try {
+    const element = React.createElement(entry.component, props as any)
+    html = await render(element)
+    text = await render(element, { plainText: true })
+    subject = typeof entry.subject === 'function' ? entry.subject(props as any) : entry.subject
+  } catch (err: any) {
+    const msg = `render_failed: ${String(err?.message ?? err)}`.slice(0, 500)
+    console.error('[order-emails] render failed', { event, orderId, error: msg, stack: err?.stack })
     await supabaseAdmin.from('email_send_log').insert({
       message_id: messageId,
       template_name: event,
       recipient_email: recipient,
       status: 'failed',
-      error_message: 'Failed to enqueue order email',
+      error_message: msg,
     })
-    return { ok: false, reason: 'enqueue_failed' }
+    return { ok: false, reason: 'render_failed' }
+  }
+
+  // --- Enqueue (resilient): an enqueue failure must be logged, never thrown. ---
+  try {
+    const { error: enqueueError } = await supabaseAdmin.rpc('enqueue_email', {
+      queue_name: 'transactional_emails',
+      payload: {
+        message_id: messageId,
+        to: recipient,
+        from: `${SITE_NAME} <orders@${FROM_DOMAIN}>`,
+        sender_domain: SENDER_DOMAIN,
+        subject,
+        html,
+        text,
+        purpose: 'transactional',
+        label: event,
+        idempotency_key: messageId,
+        queued_at: new Date().toISOString(),
+        ...(unsub
+          ? {
+              headers: {
+                'List-Unsubscribe': `<${unsub.oneClickUrl}>, <${unsub.pageUrl}>`,
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+              },
+            }
+          : {}),
+      },
+    })
+
+    if (enqueueError) {
+      const msg = `enqueue_failed: ${String(enqueueError.message ?? enqueueError)}`.slice(0, 500)
+      console.error('[order-emails] enqueue failed', { event, orderId, error: msg })
+      await supabaseAdmin.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: event,
+        recipient_email: recipient,
+        status: 'failed',
+        error_message: msg,
+      })
+      return { ok: false, reason: 'enqueue_failed' }
+    }
+  } catch (err: any) {
+    const msg = `enqueue_threw: ${String(err?.message ?? err)}`.slice(0, 500)
+    console.error('[order-emails] enqueue threw', { event, orderId, error: msg, stack: err?.stack })
+    await supabaseAdmin.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: event,
+      recipient_email: recipient,
+      status: 'failed',
+      error_message: msg,
+    })
+    return { ok: false, reason: 'enqueue_threw' }
   }
 
   return { ok: true }
+
 }
