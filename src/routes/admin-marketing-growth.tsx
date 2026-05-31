@@ -59,7 +59,21 @@ function Stat({ icon, label, value, sub }: { icon: React.ReactNode; label: strin
   );
 }
 
-type Tab = "overview" | "segments" | "carts" | "coupons" | "products" | "campaigns" | "channels";
+type Tab = "overview" | "segments" | "revenue" | "automations" | "carts" | "coupons" | "products" | "campaigns" | "channels";
+
+const SEG_DEFS: { key: SegmentKey; label: string; count: (d: MarketingIntelligence) => number | null; buyer: boolean }[] = [
+  { key: "vip", label: "VIP", count: (d) => d.segments.vip, buyer: true },
+  { key: "high_value", label: "High Value", count: (d) => d.segments.vip, buyer: true },
+  { key: "high_ltv", label: "High LTV", count: (d) => d.segments.high_ltv, buyer: true },
+  { key: "frequent", label: "Frequent Buyers", count: (d) => d.segments.frequent, buyer: true },
+  { key: "dormant", label: "Dormant", count: (d) => d.segments.dormant, buyer: true },
+  { key: "winback", label: "Winback", count: (d) => d.segments.dormant, buyer: true },
+  { key: "new", label: "New Customers", count: (d) => d.segments.new, buyer: false },
+  { key: "refund_risk", label: "Refund Risk", count: (d) => d.segments.refund_risk, buyer: false },
+  { key: "abandoned_cart", label: "Abandoned Cart", count: (d) => d.segments.abandoned_cart, buyer: false },
+  { key: "wishlist", label: "Wishlist", count: () => null, buyer: false },
+  { key: "coupon_hunters", label: "Coupon Hunters", count: () => null, buyer: false },
+];
 
 function GrowthCenterPage() {
   const fetchIntel = useServerFn(getMarketingIntelligenceFn);
