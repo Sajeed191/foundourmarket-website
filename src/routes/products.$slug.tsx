@@ -626,7 +626,42 @@ function Faq({ q, a }: { q: string; a: string }) {
   return (
     <div>
       <p className="font-medium flex items-center gap-2"><Clock className="size-3.5 text-accent" /> {q}</p>
-      <p className="text-muted-foreground mt-1 leading-relaxed">{a}</p>
+      <p className="text-muted-foreground mt-1 leading-relaxed whitespace-pre-wrap break-words">{a}</p>
     </div>
   );
 }
+
+function ProductFaqList({ slug }: { slug: string }) {
+  const [faqs, setFaqs] = useState<ProductFaq[] | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setFaqs(null);
+    setError(false);
+    fetchActiveFaqs(slug)
+      .then((data) => active && setFaqs(data))
+      .catch(() => active && setError(true));
+    return () => {
+      active = false;
+    };
+  }, [slug]);
+
+  if (error) {
+    return <p className="text-sm text-muted-foreground">Couldn't load FAQs right now.</p>;
+  }
+  if (faqs === null) {
+    return <p className="text-sm text-muted-foreground">Loading FAQs…</p>;
+  }
+  if (faqs.length === 0) {
+    return <p className="text-sm text-muted-foreground">No FAQs available.</p>;
+  }
+  return (
+    <div className="space-y-4 text-sm">
+      {faqs.map((f) => (
+        <Faq key={f.id} q={f.question} a={f.answer} />
+      ))}
+    </div>
+  );
+}
+
