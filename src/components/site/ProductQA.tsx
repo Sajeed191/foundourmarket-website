@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { MessageCircleQuestion, Loader2, Send, Trash2, CheckCircle2, Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import brandLogo from "@/assets/logo.jpeg";
+
+const draftKey = (slug: string) => `pq_draft_${slug}`;
+const pendingKey = (slug: string) => `pq_pending_${slug}`;
 
 type Question = {
   id: string;
