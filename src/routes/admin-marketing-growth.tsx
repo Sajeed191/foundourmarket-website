@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import {
   getMarketingIntelligenceFn, logMarketingExportFn, type MarketingIntelligence,
 } from "@/lib/marketing-center.functions";
+import { getRevenueAttribution, type RevenueAttribution, type SegmentKey } from "@/lib/revenue-engine";
+import { SegmentActivationCenter, type SegDef, type ExecRow } from "@/components/admin/SegmentActivationCenter";
+import { AutomationMonitor } from "@/components/admin/AutomationMonitor";
 
 export const Route = createFileRoute("/admin-marketing-growth")({
   head: () => ({ meta: [{ title: "Growth Center — Admin" }] }),
