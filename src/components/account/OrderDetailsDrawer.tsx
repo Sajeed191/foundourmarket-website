@@ -245,9 +245,17 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
               <div className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-accent/80 leading-none">Order details</p>
-                  <h2 className="font-display font-semibold tracking-tight text-base truncate">
-                    {order ? `#${order.id.slice(0, 8).toUpperCase()}` : "Loading…"}
-                  </h2>
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="font-display font-semibold tracking-tight text-base truncate">
+                      {order ? `#${order.id.slice(0, 8).toUpperCase()}` : "Loading…"}
+                    </h2>
+                    {order && (
+                      <button onClick={() => { navigator.clipboard.writeText(order.id).then(() => toast.success("Order ID copied")).catch(() => {}); }}
+                        aria-label="Copy order ID" className="size-6 grid place-items-center rounded-md border border-border/60 hover:border-accent/50 hover:text-accent active:scale-90 transition">
+                        <Copy className="size-3" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <button onClick={onClose} aria-label="Close" className="size-9 grid place-items-center rounded-full border border-border/60 hover:border-accent/50 active:scale-95 transition">
                   <X className="size-4" />
