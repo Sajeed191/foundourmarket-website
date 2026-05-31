@@ -41,6 +41,8 @@ type Patch = {
   comparePriceInr?: number | null;
   priceUsd?: number | null;
   comparePriceUsd?: number | null;
+  shippingFeeInr?: number;
+  shippingFeeUsd?: number;
   indiaVisible?: boolean;
   internationalVisible?: boolean;
   featured?: boolean;
