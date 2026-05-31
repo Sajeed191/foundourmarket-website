@@ -456,6 +456,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
         lockMarket,
         priceOf,
         compareOf,
+        shippingFeeOf,
         format,
         formatProduct,
       }}
