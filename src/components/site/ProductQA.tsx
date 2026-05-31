@@ -40,11 +40,18 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("product_questions")
       .select("*")
       .eq("product_slug", productSlug)
       .order("created_at", { ascending: false });
+    if (error) {
+      console.error("[ProductQA] failed to load questions", {
+        productSlug,
+        code: error.code,
+        message: error.message,
+      });
+    }
     const list = (data ?? []) as Question[];
     setItems(list);
     const ids = Array.from(new Set(list.map((q) => q.user_id)));
