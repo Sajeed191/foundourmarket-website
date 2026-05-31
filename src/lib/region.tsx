@@ -58,6 +58,8 @@ type Ctx = {
   priceOf: (p: Product) => number;
   /** Region compare-at / strike-through price, or null. */
   compareOf: (p: Product) => number | null;
+  /** Admin-defined per-product shipping fee in the active region's currency. */
+  shippingFeeOf: (p: Product) => number;
   /** Format a region-native amount with the correct symbol (no conversion). */
   format: (amount: number) => string;
   /** Convenience: formatted region price for a product. */
@@ -416,6 +418,14 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     [market],
   );
 
+  const shippingFeeOf = useCallback(
+    (p: Product) => {
+      const fee = market === "india" ? p.shippingFeeInr : p.shippingFeeUsd;
+      return Math.max(0, Number(fee ?? 0));
+    },
+    [market],
+  );
+
   const format = useCallback((amount: number) => formatMoney(amount, currency), [currency]);
   const formatProduct = useCallback(
     (p: Product) => formatMoney(priceOf(p), currency),
@@ -446,6 +456,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
         lockMarket,
         priceOf,
         compareOf,
+        shippingFeeOf,
         format,
         formatProduct,
       }}

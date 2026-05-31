@@ -123,7 +123,7 @@ async function repriceFromDb(
   // Trusted server-side read via admin client (base products table is staff-only RLS).
   const { data: products, error } = await supabaseAdmin
     .from("products")
-    .select("slug,name,image,price_inr,price_usd")
+    .select("slug,name,image,price_inr,price_usd,shipping_fee_inr,shipping_fee_usd")
     .in("slug", slugs);
   if (error) throw new Error("Could not load products.");
 
@@ -136,6 +136,8 @@ async function repriceFromDb(
       throw new Error(`Pricing unavailable for ${i.slug} in your region.`);
     }
     const unit = roundMoney(region, Number(raw));
+    const shipFeeRaw = region === "india" ? p.shipping_fee_inr : p.shipping_fee_usd;
+    const shipFee = Math.max(0, Number(shipFeeRaw ?? 0));
     return {
       slug: i.slug,
       name: p.name as string,
@@ -143,10 +145,16 @@ async function repriceFromDb(
       unit,
       qty: i.qty,
       lineTotal: roundMoney(region, unit * i.qty),
+      shipFee,
     };
   });
 
   const subtotal = roundMoney(region, lines.reduce((s, l) => s + l.lineTotal, 0));
+  // Admin-defined per-product shipping (fee × qty), summed across the cart.
+  const shippingTotal = roundMoney(
+    region,
+    lines.reduce((s, l) => s + l.shipFee * l.qty, 0),
+  );
 
   let discount = 0;
   let appliedPromo: string | null = null;
@@ -169,7 +177,7 @@ async function repriceFromDb(
     }
   }
 
-  const totals = computeOrderTotals(region, subtotal, discount);
+  const totals = computeOrderTotals(region, subtotal, discount, shippingTotal);
 
   return { region, lines, appliedPromo, totals };
 }

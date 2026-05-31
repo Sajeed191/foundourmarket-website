@@ -63,7 +63,7 @@ function formatEta(daysFrom: number, daysTo: number) {
 function CheckoutPage() {
   const { user, loading } = useAuth();
   const { detailed, subtotalUSD, clear, count, hydrated: cartHydrated } = useCart();
-  const { market, priceOf } = useRegion();
+  const { market, priceOf, shippingFeeOf } = useRegion();
   const fmt = (n: number) => formatMoney(market, n);
   const { internationalLive, loading: gatewaysLoading } = usePaymentGateways();
   const {
@@ -156,12 +156,17 @@ function CheckoutPage() {
   }, [settings.cod_enabled, payMethod]);
 
   // Region-native totals — identical math to the server re-pricer, no conversion.
-  const totals = computeOrderTotals(market, subtotalUSD);
+  // Shipping comes from admin-defined per-product fees (fee × qty), summed.
+  const productShipping = useMemo(
+    () => detailed.reduce((s, i) => s + shippingFeeOf(i.product) * i.qty, 0),
+    [detailed, shippingFeeOf],
+  );
+  const totals = computeOrderTotals(market, subtotalUSD, 0, productShipping);
   const subtotalINR = totals.subtotal;
   const shippingINR = totals.shipping;
   const taxINR = totals.tax;
   const totalINR = totals.total;
-  const savingsINR = totals.shipping === 0 ? (market === "india" ? 99 : 9.99) : 0;
+  const savingsINR = 0;
   const itemsCount = useMemo(() => detailed.reduce((s, i) => s + i.qty, 0), [detailed]);
 
   const eta = formatEta(3, 5);

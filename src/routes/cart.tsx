@@ -66,7 +66,7 @@ function CartPage() {
     detailed, savedDetailed, setQty, remove, saveForLater, moveToCart,
     moveToWishlist, undoRemove, lastRemoved, subtotalUSD, count,
   } = useCart();
-  const { format, priceOf, compareOf } = useRegion();
+  const { format, priceOf, compareOf, shippingFeeOf } = useRegion();
 
   const [promo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
@@ -78,7 +78,12 @@ function CartPage() {
   );
 
   const discount = promo?.discount ?? 0;
-  const shipping = ship ? ship.shippingUsd : subtotalUSD > FREE_SHIP_THRESHOLD ? 0 : 9.99;
+  // Admin-defined per-product shipping fees (fee × qty) drive the cart total,
+  // matching what is charged at payment.
+  const shipping = useMemo(
+    () => detailed.reduce((s, i) => s + shippingFeeOf(i.product) * i.qty, 0),
+    [detailed, shippingFeeOf],
+  );
   const tax = subtotalUSD * 0.08;
   const total = Math.max(0, subtotalUSD + shipping + tax - discount);
   const totalSavings = savings + discount;
