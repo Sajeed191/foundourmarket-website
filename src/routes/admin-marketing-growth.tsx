@@ -249,6 +249,7 @@ function GrowthCenterPage() {
                   </div>
                 ))}
               </div>
+              <SegmentActivationCenter segments={segDefs} execs={execs} onActivated={() => { void loadExecs(); void loadAttr(); }} />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Table title="By country" cols={["Country", "Customers", "Revenue"]} rows={d.segments_by_country.map((r) => [r.k, fmtN(r.customers), fmtM(r.revenue)])}
                   onExport={() => exportCsv("segments-by-country", d.segments_by_country)} />
@@ -257,6 +258,35 @@ function GrowthCenterPage() {
               </div>
             </div>
           )}
+
+          {tab === "revenue" && (
+            attrLoading && !attr ? (
+              <div className="grid place-items-center py-24"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>
+            ) : attr ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <Stat icon={<TrendingUp className="size-3.5" />} label="Total revenue" value={fmtM(attr.total_revenue)} />
+                  <Stat icon={<ShoppingCart className="size-3.5" />} label="Recovered" value={fmtM(attr.recovered_revenue)} sub={`${fmtN(attr.recovered_orders)} orders`} />
+                  <Stat icon={<Ticket className="size-3.5" />} label="Coupon revenue" value={fmtM(attr.coupon_revenue)} sub={`${fmtN(attr.coupon_orders)} orders`} />
+                  <Stat icon={<Megaphone className="size-3.5" />} label="Campaign revenue" value={fmtM(attr.campaign_revenue)} sub={`ROI ${attr.campaign_roi}×`} />
+                  <Stat icon={<Rocket className="size-3.5" />} label="Repeat revenue" value={fmtM(attr.repeat_revenue)} sub={`${fmtN(attr.repeat_orders)} orders`} />
+                  <Stat icon={<Zap className="size-3.5" />} label="Winback revenue" value={fmtM(attr.winback_revenue)} />
+                  <Stat icon={<Bell className="size-3.5" />} label="Notif. conversion" value={(attr.notif_conversion_rate * 100).toFixed(1) + "%"} sub={`${fmtN(attr.notif_converted)}/${fmtN(attr.notif_sent)}`} />
+                  <Stat icon={<Download className="size-3.5" />} label="Campaign spend" value={fmtM(attr.campaign_spend)} />
+                </div>
+                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                  Attribution from live records · generated {new Date(attr.generated_at).toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <div className="grid place-items-center py-24 text-sm text-muted-foreground">No revenue data yet.</div>
+            )
+          )}
+
+          {tab === "automations" && (
+            <AutomationMonitor execs={execs} onExport={exportExecs} />
+          )}
+
 
           {tab === "carts" && (
             <div className="space-y-6">
