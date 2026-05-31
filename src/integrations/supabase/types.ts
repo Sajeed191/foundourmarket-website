@@ -5196,6 +5196,16 @@ export type Database = {
         Args: { p_campaign: string; p_since: string }
         Returns: Json
       }
+      svc_payment_center: {
+        Args: {
+          _actor: string
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+        }
+        Returns: Json
+      }
       svc_retry_all_failed_executions: {
         Args: { _actor: string }
         Returns: Json
