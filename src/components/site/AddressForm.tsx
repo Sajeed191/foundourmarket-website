@@ -1,9 +1,25 @@
-import { useEffect, useRef, useState } from "react";
-import { Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle, Clock, Building2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
+import type { CountryCode } from "libphonenumber-js";
 import type { Address, AddressInput, AddressType } from "@/lib/use-addresses";
 import { validateIndianPincode } from "@/lib/address.functions";
 import { PhoneInput } from "@/components/site/PhoneInput";
+import { useRegion } from "@/lib/region";
+
+/** Friendly country name from an ISO code, with a safe fallback. */
+const REGION_NAMES =
+  typeof Intl !== "undefined" && "DisplayNames" in Intl
+    ? new Intl.DisplayNames(["en"], { type: "region" })
+    : null;
+
+/** Map detected region/country-code to the ISO country used by the phone input. */
+function regionToCountry(market: string, countryCode: string | null): CountryCode {
+  if (market === "india") return "IN";
+  const cc = (countryCode ?? "").toUpperCase();
+  if (/^[A-Z]{2}$/.test(cc)) return cc as CountryCode;
+  return "US";
+}
 
 type Props = {
   initial?: Partial<Address>;
