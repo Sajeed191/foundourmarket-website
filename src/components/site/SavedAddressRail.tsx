@@ -13,6 +13,7 @@ import {
   PackageCheck,
 } from "lucide-react";
 import type { Address } from "@/lib/use-addresses";
+import { rankAddresses, addressBadge } from "@/lib/address-intelligence";
 
 type Props = {
   addresses: Address[];
@@ -58,8 +59,9 @@ export function SavedAddressRail({
 }: Props) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory sm:grid sm:grid-cols-2 sm:overflow-visible sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {addresses.map((a) => {
+      {rankAddresses(addresses).map((a) => {
         const Icon = iconFor(a);
+        const badge = addressBadge(a, addresses);
         const active = selectedId === a.id;
         return (
           <motion.button
@@ -84,9 +86,17 @@ export function SavedAddressRail({
               <span className="text-[10px] font-mono uppercase tracking-widest text-accent truncate max-w-[8rem]">
                 {labelFor(a)}
               </span>
-              {a.is_default_shipping && (
-                <span className="text-[9px] font-mono uppercase tracking-widest text-emerald-400 inline-flex items-center gap-1">
-                  <Star className="size-2.5 fill-current" /> Default
+              {badge && (
+                <span
+                  className={`text-[9px] font-mono uppercase tracking-widest inline-flex items-center gap-1 ${
+                    badge.tone === "emerald"
+                      ? "text-emerald-400"
+                      : badge.tone === "accent"
+                        ? "text-accent"
+                        : "text-muted-foreground"
+                  }`}
+                >
+                  <Star className="size-2.5 fill-current" /> {badge.label}
                 </span>
               )}
               <AnimatePresence>

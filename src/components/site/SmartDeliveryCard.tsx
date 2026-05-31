@@ -1,4 +1,4 @@
-import { Loader2, CheckCircle2, XCircle, Truck, CalendarClock, Wallet, ShieldAlert } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Truck, CalendarClock, Wallet, ShieldAlert, RotateCcw, Globe, Gauge } from "lucide-react";
 import type { ServiceabilityResult } from "@/lib/serviceability.functions";
 
 type Props = {
@@ -12,6 +12,10 @@ type Props = {
   codAvailable: boolean;
   city?: string | null;
   postal?: string | null;
+  /** Return window in days (defaults to 7). */
+  returnsDays?: number;
+  /** Market the destination resolved to. */
+  region?: "India" | "International";
 };
 
 /**
@@ -27,6 +31,8 @@ export function SmartDeliveryCard({
   codAvailable,
   city,
   postal,
+  returnsDays = 7,
+  region = "India",
 }: Props) {
   const serviceable = service?.serviceable === true;
   const serviceDown = service?.status === "service_down";
@@ -103,6 +109,24 @@ export function SmartDeliveryCard({
             label="COD"
             value={codAvailable ? "Available" : "Unavailable"}
             tone={codAvailable ? "emerald" : "muted"}
+          />
+          <Stat
+            icon={<RotateCcw className="size-3.5" />}
+            label="Returns"
+            value={`${returnsDays} days`}
+            tone="default"
+          />
+          <Stat
+            icon={<Globe className="size-3.5" />}
+            label="Region"
+            value={region}
+            tone="accent"
+          />
+          <Stat
+            icon={<Gauge className="size-3.5" />}
+            label="Confidence"
+            value={serviceable ? "High" : "Pending"}
+            tone={serviceable ? "emerald" : "muted"}
           />
         </div>
       )}

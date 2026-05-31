@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle, Clock, Building2 } from "lucide-react";
+import { Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle, Clock, Building2, ShieldAlert, Navigation } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import type { CountryCode } from "libphonenumber-js";
-import { addressCompleteness, type Address, type AddressInput, type AddressType } from "@/lib/use-addresses";
+import { type Address, type AddressInput, type AddressType } from "@/lib/use-addresses";
 import { validateIndianPincode } from "@/lib/address.functions";
 import { PhoneInput } from "@/components/site/PhoneInput";
 import { useRegion } from "@/lib/region";
+import {
+  scoreAddressQuality,
+  pinCityStateConsistency,
+  assessAddressRisk,
+  gpsFillConfidence,
+  type MarketRegion,
+} from "@/lib/address-intelligence";
 
 /** Friendly country name from an ISO code, with a safe fallback. */
 const REGION_NAMES =
@@ -109,13 +116,35 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   const [phoneValid, setPhoneValid] = useState<boolean>(!!initial?.phone);
   const [pinState, setPinState] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [geoBusy, setGeoBusy] = useState(false);
+  const [geo, setGeo] = useState<{ confidence: number; source: string } | null>(null);
+  // City/state/areas the postal service resolved for the current PIN.
+  const [resolvedPin, setResolvedPin] = useState<{
+    city: string | null;
+    state: string | null;
+    areas: string[];
+  } | null>(null);
   const lastPin = useRef<string>("");
   const countryTouched = useRef<boolean>(!!initial?.country);
 
   const set = <K extends keyof AddressInput>(k: K, v: AddressInput[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
 
-  const completeness = useMemo(() => addressCompleteness(form), [form]);
+  const expectedRegion: MarketRegion = market === "india" ? "india" : "international";
+  const quality = useMemo(
+    () => scoreAddressQuality(form, { expectedRegion }),
+    [form, expectedRegion],
+  );
+  const consistency = useMemo(
+    () =>
+      resolvedPin
+        ? pinCityStateConsistency(
+            { city: form.city, state: form.state },
+            resolvedPin,
+          )
+        : { status: "unknown" as const, issues: [] },
+    [form.city, form.state, resolvedPin],
+  );
+  const risk = useMemo(() => assessAddressRisk(form), [form]);
 
 
   // Keep the country field aligned with the detected region until the user
@@ -126,12 +155,16 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   }, [regionCountryName]);
 
 
-  // Auto city/state from Indian pincode
+  // Auto city/state from Indian pincode (and remember resolved data for the
+  // PIN ↔ City ↔ State consistency check + area autocomplete).
   useEffect(() => {
     const pin = (form.postal ?? "").trim();
     if (form.country !== "India") return;
     if (!/^\d{6}$/.test(pin)) {
-      if (pin.length === 0) setPinState("idle");
+      if (pin.length === 0) {
+        setPinState("idle");
+        setResolvedPin(null);
+      }
       return;
     }
     if (pin === lastPin.current) return;
@@ -143,9 +176,11 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
       if (cancelled) return;
       if (r.valid) {
         setPinState("valid");
+        setResolvedPin({ city: r.city, state: r.state, areas: r.areas ?? [] });
         setForm((p) => ({ ...p, city: p.city || r.city || "", state: p.state || r.state || "" }));
       } else {
         setPinState("invalid");
+        setResolvedPin(null);
       }
     })();
     return () => {
@@ -153,12 +188,15 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     };
   }, [form.postal, form.country, validatePin]);
 
+  // Phase 1 — full structured GPS fill: reverse-geocode coordinates into every
+  // address field, detect the region, sync country, and store a confidence score.
   const useCurrentLocation = async () => {
     if (!navigator.geolocation) {
       setError("Location is not supported on this device.");
       return;
     }
     setGeoBusy(true);
+    setError(null);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -166,22 +204,44 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         set("longitude", longitude);
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latitude}&lon=${longitude}`,
             { headers: { Accept: "application/json" } }
           );
           const j = await res.json();
           const a = j?.address ?? {};
-          if (a.country) countryTouched.current = true;
+
+          const line1 = [a.house_number, a.road || a.pedestrian || a.footway]
+            .filter(Boolean)
+            .join(" ");
+          const area = a.neighbourhood || a.suburb || a.quarter || a.hamlet || "";
+          const locality = a.suburb || a.city_district || a.residential || "";
+          const city = a.city || a.town || a.village || a.municipality || a.county || "";
+          const district = a.state_district || a.county || "";
+          const state = a.state || "";
+          const postal = a.postcode || "";
+          const country = a.country || "";
+
+          if (country) countryTouched.current = true;
+
+          const components = { line1, area, city, district, state, postal, country };
+          setGeo({
+            confidence: gpsFillConfidence(components),
+            source: "GPS + Reverse Geocode + Region Engine",
+          });
+
           setForm((p) => ({
             ...p,
-            line1: p.line1 || [a.road, a.house_number].filter(Boolean).join(" "),
-            city: a.city || a.town || a.village || a.county || p.city,
-            state: a.state || p.state,
-            postal: a.postcode || p.postal,
-            country: a.country || p.country,
+            line1: p.line1 || line1,
+            line2: p.line2 || [locality, area].filter(Boolean).join(", "),
+            landmark: p.landmark || (area && area !== locality ? area : p.landmark),
+            city: city || p.city,
+            state: state || p.state,
+            postal: postal || p.postal,
+            country: country || p.country,
           }));
         } catch {
-          /* coordinates saved even if reverse geocode fails */
+          // Coordinates are still saved even if reverse geocode fails.
+          setGeo({ confidence: 35, source: "GPS coordinates only" });
         }
         setGeoBusy(false);
       },
@@ -319,6 +379,24 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         Use current location
       </button>
 
+      {/* Location confidence after a GPS fill (Phase 1) */}
+      {geo && (
+        <div className="flex items-center justify-between rounded-2xl border border-accent/30 bg-accent/[0.06] px-3.5 py-2.5">
+          <div className="flex items-center gap-2">
+            <Navigation className="size-3.5 text-accent" />
+            <div>
+              <p className="text-[11px] font-medium text-accent">Location confidence {geo.confidence}%</p>
+              <p className="text-[10px] text-muted-foreground">Source: {geo.source}</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            {market === "india" ? "🇮🇳 India" : "🌍 International"}
+          </span>
+        </div>
+      )}
+
+
+
       {/* Smart, type-aware label (Phase 2) */}
       {form.address_type === "work" ? (
         <div>
@@ -455,25 +533,48 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
 
       </div>
 
-      {/* City + State */}
+      {/* City + State (Phase 5 — area/locality autocomplete from the PIN) */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <input
-            placeholder="City *"
+            placeholder="City / Area *"
             value={form.city}
+            list="pin-areas"
+            autoComplete="address-level2"
             onChange={(e) => set("city", e.target.value)}
             onBlur={() => markTouched("city")}
             className={cls("city")}
           />
+          {resolvedPin && (resolvedPin.areas?.length ?? 0) > 0 && (
+            <datalist id="pin-areas">
+              {[resolvedPin.city, ...resolvedPin.areas]
+                .filter((v, i, arr): v is string => !!v && arr.indexOf(v) === i)
+                .map((area) => (
+                  <option key={area} value={area} />
+                ))}
+            </datalist>
+          )}
           <Err k="city" />
         </div>
         <input
           placeholder="State / Region"
           value={form.state ?? ""}
+          autoComplete="address-level1"
           onChange={(e) => set("state", e.target.value)}
           className={cls("state")}
         />
       </div>
+
+      {/* Phase 3 — PIN ↔ City ↔ State consistency warning */}
+      {consistency.status === "mismatch" && (
+        <div className="rounded-2xl border border-amber-500/40 bg-amber-500/[0.08] px-3.5 py-2.5 space-y-1">
+          {consistency.issues.map((issue) => (
+            <p key={issue} className="text-[11px] text-amber-400 flex items-center gap-1.5">
+              <AlertCircle className="size-3 shrink-0" /> {issue}
+            </p>
+          ))}
+        </div>
+      )}
 
       <textarea
         placeholder="Delivery instructions (optional)"
@@ -483,30 +584,30 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         className={`${base} border-border resize-none`}
       />
 
-      {/* Address completeness score */}
+      {/* Address quality score (Phase 2 — weighted + region-aware) */}
       <div className="rounded-2xl border border-border bg-background/40 px-3.5 py-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            Address quality
+            Address quality · {quality.grade}
           </span>
           <span
             className={`text-xs font-semibold tabular-nums ${
-              completeness.score >= 85 ? "text-emerald-400" : completeness.score >= 60 ? "text-accent" : "text-muted-foreground"
+              quality.score >= 90 ? "text-emerald-400" : quality.score >= 75 ? "text-accent" : "text-muted-foreground"
             }`}
           >
-            {completeness.score}%
+            {quality.score}%
           </span>
         </div>
         <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
-              completeness.score >= 85 ? "bg-emerald-400" : "bg-accent"
+              quality.score >= 90 ? "bg-emerald-400" : "bg-accent"
             }`}
-            style={{ width: `${completeness.score}%` }}
+            style={{ width: `${quality.score}%` }}
           />
         </div>
         <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1">
-          {completeness.checks.map((c) => (
+          {quality.checks.map((c) => (
             <span
               key={c.label}
               className={`inline-flex items-center gap-1 text-[10px] ${
@@ -518,7 +619,25 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             </span>
           ))}
         </div>
+        {/* Phase 6 — surface fraud/risk flags inline */}
+        {risk.level !== "low" && risk.flags.length > 0 && (
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-white/5 pt-2">
+            <span
+              className={`inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest ${
+                risk.level === "high" ? "text-destructive" : "text-amber-400"
+              }`}
+            >
+              <ShieldAlert className="size-3" /> {risk.level} risk
+            </span>
+            {risk.flags.map((f) => (
+              <span key={f} className="text-[10px] text-muted-foreground">
+                {f}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
+
 
       <div className="flex flex-wrap gap-x-6 gap-y-2 pt-0.5 text-xs text-muted-foreground">
         <label className="flex items-center gap-2 cursor-pointer">
