@@ -241,6 +241,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
         shipping_address: addr,
         payment_method: "razorpay",
         payment_status: "pending",
+        contact_email: claims?.email ?? null,
         attribution_session_id: data.attribution?.session_id ?? null,
         attribution_utm: (data.attribution?.utm ?? {}) as never,
       })
