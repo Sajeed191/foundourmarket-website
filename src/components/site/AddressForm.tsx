@@ -115,6 +115,9 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   const set = <K extends keyof AddressInput>(k: K, v: AddressInput[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
 
+  const completeness = useMemo(() => addressCompleteness(form), [form]);
+
+
   // Keep the country field aligned with the detected region until the user
   // edits it manually (Phase 1 / Phase 8: never strand an Indian user on GB).
   useEffect(() => {
