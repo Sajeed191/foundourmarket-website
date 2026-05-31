@@ -76,6 +76,18 @@ function postalError(country: string, postal: string): string | null {
 
 export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save address" }: Props) {
   const validatePin = useServerFn(validateIndianPincode);
+  const { market, countryCode } = useRegion();
+
+  // Region-derived defaults so we never fall back to GB/+44 for Indian users.
+  const regionCountry = useMemo<CountryCode>(
+    () => regionToCountry(market, countryCode),
+    [market, countryCode],
+  );
+  const regionCountryName = useMemo(
+    () => (market === "india" ? "India" : REGION_NAMES?.of(regionCountry) ?? regionCountry),
+    [market, regionCountry],
+  );
+
   const [form, setForm] = useState<AddressInput>({
     ...empty,
     ...(initial ?? {}),
@@ -88,7 +100,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     state: initial?.state ?? "",
     delivery_notes: initial?.delivery_notes ?? "",
     address_type: (initial?.address_type as AddressType) ?? "home",
-    country: initial?.country ?? "India",
+    country: initial?.country ?? regionCountryName,
   } as AddressInput);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
