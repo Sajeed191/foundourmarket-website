@@ -111,7 +111,7 @@ export async function updateFaq(
   id: string,
   patch: { question?: string; answer?: string; isActive?: boolean },
 ): Promise<void> {
-  const update: Record<string, unknown> = {};
+  const update: { question?: string; answer?: string; is_active?: boolean } = {};
   if (patch.question !== undefined) {
     const q = patch.question.trim();
     if (!q) throw new Error("Question is required.");
