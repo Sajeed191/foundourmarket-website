@@ -4,6 +4,7 @@ import {
   Loader2, LifeBuoy, MessageSquare, Search, X, Gauge, Inbox, RotateCcw,
   Banknote, AlertTriangle, Clock, Flame, Sparkles, User, Package, Truck,
   Bell, ShieldAlert, Copy, ChevronRight, TrendingUp,
+  Check, Ban, FileText, Mail, Phone, MapPin, Users, Activity, Radio,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { ThreadSheet } from "@/routes/account_.support";
 import { notifySupportEvent } from "@/lib/support.functions";
 import { suggestSupportReply } from "@/lib/support-ai.functions";
+import { refundActionFn, returnActionFn } from "@/lib/support-actions.functions";
 import {
   deriveStage, computeSla, computeSupportKpis, detectEscalation,
   groupByStatus, refundRisk, normPriority, isStaffSender,
@@ -20,6 +22,7 @@ import {
   type TicketRow, type MessageRow, type OrderLite, type RefundRow, type ReturnRow,
   type TicketStage, type SlaInfo, type EscalationReason, type EscalationContext, type Priority,
 } from "@/lib/support-analytics";
+
 
 export const Route = createFileRoute("/admin-support")({
   head: () => ({ meta: [{ title: "Support Command Center — Admin" }] }),
@@ -55,7 +58,7 @@ const PRIORITY_CLS: Record<Priority, string> = {
   urgent: "text-destructive border-destructive/30 bg-destructive/10",
 };
 
-type Section = "dashboard" | "tickets" | "refunds" | "returns";
+type Section = "dashboard" | "tickets" | "refunds" | "returns" | "agents" | "warroom";
 
 type Enriched = {
   ticket: TicketRow;
@@ -189,6 +192,8 @@ function AdminSupportPage() {
     { key: "tickets", label: "Tickets", icon: <Inbox className="size-3.5" /> },
     { key: "refunds", label: "Refunds", icon: <Banknote className="size-3.5" /> },
     { key: "returns", label: "Returns", icon: <RotateCcw className="size-3.5" /> },
+    { key: "agents", label: "Agents", icon: <Users className="size-3.5" /> },
+    { key: "warroom", label: "War Room", icon: <Radio className="size-3.5" /> },
   ];
 
   return (
@@ -220,9 +225,13 @@ function AdminSupportPage() {
             onStatus={(id, st) => update(id, { status: st })} onPriority={(id, p) => update(id, { priority: priorityToDb(p) })}
           />
         ) : section === "refunds" ? (
-          <RefundsView refunds={refunds} />
+          <RefundsView refunds={refunds} orders={orders} onChanged={load} />
+        ) : section === "returns" ? (
+          <ReturnsView returns={returns} onChanged={load} />
+        ) : section === "agents" ? (
+          <AgentPerformanceView enriched={enriched} profiles={profiles} />
         ) : (
-          <ReturnsView returns={returns} />
+          <WarRoomView enriched={enriched} refunds={refunds} returns={returns} fraudCount={fraudUsers.size} />
         )}
       </div>
 
@@ -371,32 +380,77 @@ function TicketCard({ e, onOpen, on360, onAi, onStatus, onPriority }: {
 }
 
 // ── Refunds command center ───────────────────────────────────────────────────
-function RefundsView({ refunds }: { refunds: RefundRow[] }) {
+type RefundAction = "approve" | "reject" | "escalate" | "processing" | "complete" | "request_evidence";
+
+function RefundsView({ refunds, orders, onChanged }: { refunds: RefundRow[]; orders: OrderLite[]; onChanged: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
   const groups = groupByStatus(refunds);
   const refundsByOrder = new Map<string, number>();
   for (const r of refunds) refundsByOrder.set(r.order_id, (refundsByOrder.get(r.order_id) ?? 0) + 1);
-  const buckets = ["pending", "approved", "processing", "completed", "rejected", "failed"];
+  const buckets = ["pending", "approved", "processing", "completed", "rejected", "evidence_requested"];
+
+  // Real revenue impact: total approved/processing/completed refund value vs paid revenue.
+  const impactStatuses = new Set(["approved", "processing", "completed"]);
+  const refundValue = refunds.filter((r) => impactStatuses.has((r.status ?? "").toLowerCase())).reduce((a, b) => a + (b.amount || 0), 0);
+  const paidOrders = orders.filter((o) => ["paid", "succeeded", "delivered", "shipped", "completed"].includes((o.payment_status ?? o.status ?? "").toLowerCase()));
+  const paidRevenue = paidOrders.reduce((a, b) => a + (b.total || 0), 0);
+  const refundRate = paidOrders.length ? Math.round((refunds.length / paidOrders.length) * 1000) / 10 : 0;
+  const revenueImpact = paidRevenue ? Math.round((refundValue / paidRevenue) * 1000) / 10 : 0;
+
+  async function act(refundId: string, action: RefundAction) {
+    setBusy(refundId + action);
+    try {
+      await refundActionFn({ data: { refundId, action } });
+      logActivity("refund_action", "refund", refundId, { action });
+      toast.success(`Refund ${action.replace("_", " ")}`);
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-        {buckets.map((b) => <Kpi key={b} label={b[0].toUpperCase() + b.slice(1)} value={(groups[b] ?? []).length} />)}
+        {buckets.map((b) => <Kpi key={b} label={b.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} value={(groups[b] ?? []).length} />)}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <KpiText label="Refund Value" value={money(refundValue, orders[0]?.currency ?? null)} icon={<Banknote className="size-4" />} />
+        <KpiText label="Refund Rate" value={`${refundRate}%`} tone={refundRate >= 10 ? "destructive" : refundRate >= 5 ? "amber" : "emerald"} />
+        <KpiText label="Revenue Impact" value={`${revenueImpact}%`} icon={<TrendingUp className="size-4" />} tone={revenueImpact >= 10 ? "destructive" : revenueImpact >= 5 ? "amber" : undefined} />
       </div>
       {refunds.length === 0 ? <Empty text="No refunds recorded." card /> : (
         <div className="space-y-2">
           {refunds.slice(0, 50).map((r) => {
             const risk = refundRisk(r, refundsByOrder, HIGH_VALUE_ORDER);
+            const st = (r.status ?? "").toLowerCase();
+            const settled = ["rejected", "completed"].includes(st);
             return (
-              <div key={r.id} className="card-premium rounded-xl p-3 flex items-center gap-3 flex-wrap">
-                <Banknote className="size-4 text-muted-foreground shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium tabular-nums">{money(r.amount, r.currency)}</p>
-                  <p className="font-mono text-[11px] text-muted-foreground truncate">order #{r.order_id.slice(0, 8)} · {r.reason ?? "no reason"} · {fmtTime(r.created_at)}</p>
+              <div key={r.id} className="card-premium rounded-xl p-3 space-y-2.5">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Banknote className="size-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium tabular-nums">{money(r.amount, r.currency)}</p>
+                    <p className="font-mono text-[11px] text-muted-foreground truncate">order #{r.order_id.slice(0, 8)} · {r.reason ?? "no reason"} · {fmtTime(r.created_at)}</p>
+                  </div>
+                  <span className="rounded-full px-2 py-0.5 text-[10px] font-mono uppercase border border-border bg-muted/30">{r.status}</span>
+                  <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-mono uppercase border",
+                    risk.tier === "high" ? "text-destructive border-destructive/30 bg-destructive/10" : risk.tier === "medium" ? "text-amber-400 border-amber-400/30 bg-amber-400/10" : "text-muted-foreground border-border")}>
+                    risk {risk.score}
+                  </span>
                 </div>
-                <span className="rounded-full px-2 py-0.5 text-[10px] font-mono uppercase border border-border bg-muted/30">{r.status}</span>
-                <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-mono uppercase border",
-                  risk.tier === "high" ? "text-destructive border-destructive/30 bg-destructive/10" : risk.tier === "medium" ? "text-amber-400 border-amber-400/30 bg-amber-400/10" : "text-muted-foreground border-border")}>
-                  risk {risk.score}
-                </span>
+                {!settled && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <ActBtn label="Approve" icon={<Check className="size-3" />} tone="emerald" loading={busy === r.id + "approve"} onClick={() => act(r.id, "approve")} />
+                    <ActBtn label="Reject" icon={<Ban className="size-3" />} tone="destructive" loading={busy === r.id + "reject"} onClick={() => act(r.id, "reject")} />
+                    <ActBtn label="Processing" icon={<Clock className="size-3" />} loading={busy === r.id + "processing"} onClick={() => act(r.id, "processing")} />
+                    <ActBtn label="Complete" icon={<Check className="size-3" />} tone="emerald" loading={busy === r.id + "complete"} onClick={() => act(r.id, "complete")} />
+                    <ActBtn label="Escalate" icon={<Flame className="size-3" />} tone="amber" loading={busy === r.id + "escalate"} onClick={() => act(r.id, "escalate")} />
+                    <ActBtn label="Request Evidence" icon={<FileText className="size-3" />} loading={busy === r.id + "request_evidence"} onClick={() => act(r.id, "request_evidence")} />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -407,9 +461,27 @@ function RefundsView({ refunds }: { refunds: RefundRow[] }) {
 }
 
 // ── Returns command center ───────────────────────────────────────────────────
-function ReturnsView({ returns }: { returns: ReturnRow[] }) {
+type ReturnAction = "approve" | "reject" | "generate_label" | "received" | "refunded";
+
+function ReturnsView({ returns, onChanged }: { returns: ReturnRow[]; onChanged: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
   const groups = groupByStatus(returns);
-  const buckets = ["requested", "approved", "in_transit", "received", "completed", "rejected"];
+  const buckets = ["requested", "approved", "received", "inspected", "refunded", "rejected"];
+
+  async function act(returnId: string, action: ReturnAction) {
+    setBusy(returnId + action);
+    try {
+      await returnActionFn({ data: { returnId, action } });
+      logActivity("return_action", "return", returnId, { action });
+      toast.success(`Return ${action.replace("_", " ")}`);
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -417,28 +489,144 @@ function ReturnsView({ returns }: { returns: ReturnRow[] }) {
       </div>
       {returns.length === 0 ? <Empty text="No returns recorded." card /> : (
         <div className="space-y-2">
-          {returns.slice(0, 50).map((r) => (
-            <div key={r.id} className="card-premium rounded-xl p-3 flex items-center gap-3 flex-wrap">
-              <RotateCcw className="size-4 text-muted-foreground shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{r.reason ?? "Return request"}</p>
-                <p className="font-mono text-[11px] text-muted-foreground truncate">order #{r.order_id.slice(0, 8)} · {fmtTime(r.created_at)}{r.refund_amount ? ` · refund ${money(r.refund_amount, null)}` : ""}</p>
+          {returns.slice(0, 50).map((r) => {
+            const st = (r.status ?? "").toLowerCase();
+            const settled = ["rejected", "refunded"].includes(st);
+            return (
+              <div key={r.id} className="card-premium rounded-xl p-3 space-y-2.5">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <RotateCcw className="size-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{r.reason ?? "Return request"}</p>
+                    <p className="font-mono text-[11px] text-muted-foreground truncate">order #{r.order_id.slice(0, 8)} · {fmtTime(r.created_at)}{r.refund_amount ? ` · refund ${money(r.refund_amount, null)}` : ""}</p>
+                  </div>
+                  {r.refund_status && <span className="rounded-full px-2 py-0.5 text-[10px] font-mono uppercase border border-border bg-muted/30">refund {r.refund_status}</span>}
+                  <span className="rounded-full px-2 py-0.5 text-[10px] font-mono uppercase border border-border bg-muted/30">{r.status}</span>
+                </div>
+                {!settled && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <ActBtn label="Approve" icon={<Check className="size-3" />} tone="emerald" loading={busy === r.id + "approve"} onClick={() => act(r.id, "approve")} />
+                    <ActBtn label="Reject" icon={<Ban className="size-3" />} tone="destructive" loading={busy === r.id + "reject"} onClick={() => act(r.id, "reject")} />
+                    <ActBtn label="Generate Label" icon={<FileText className="size-3" />} loading={busy === r.id + "generate_label"} onClick={() => act(r.id, "generate_label")} />
+                    <ActBtn label="Mark Received" icon={<Package className="size-3" />} loading={busy === r.id + "received"} onClick={() => act(r.id, "received")} />
+                    <ActBtn label="Mark Refunded" icon={<Banknote className="size-3" />} tone="emerald" loading={busy === r.id + "refunded"} onClick={() => act(r.id, "refunded")} />
+                  </div>
+                )}
               </div>
-              {r.refund_status && <span className="rounded-full px-2 py-0.5 text-[10px] font-mono uppercase border border-border bg-muted/30">refund {r.refund_status}</span>}
-              <span className="rounded-full px-2 py-0.5 text-[10px] font-mono uppercase border border-border bg-muted/30">{r.status}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
+// ── Agent performance dashboard (derived from real ticket assignment) ─────────
+function AgentPerformanceView({ enriched, profiles }: { enriched: Enriched[]; profiles: Map<string, string> }) {
+  const agents = useMemo(() => {
+    const map = new Map<string, { closed: number; open: number; escalations: number; responses: number[]; resolutions: number[] }>();
+    for (const e of enriched) {
+      const id = e.ticket.assigned_to;
+      if (!id) continue;
+      const a = map.get(id) ?? { closed: 0, open: 0, escalations: 0, responses: [], resolutions: [] };
+      if (e.stage === "resolved" || e.stage === "closed") a.closed++;
+      else a.open++;
+      if (e.stage === "escalated" || e.escalations.length) a.escalations++;
+      if (e.sla.firstResponseH != null) a.responses.push(e.sla.firstResponseH);
+      if (e.sla.resolutionH != null) a.resolutions.push(e.sla.resolutionH);
+      map.set(id, a);
+    }
+    const avg = (n: number[]) => (n.length ? Math.round((n.reduce((x, y) => x + y, 0) / n.length) * 10) / 10 : null);
+    return [...map.entries()].map(([id, a]) => ({
+      id, name: profiles.get(id) ?? `Agent ${id.slice(0, 6)}`,
+      closed: a.closed, open: a.open, escalations: a.escalations,
+      avgResponse: avg(a.responses), avgResolution: avg(a.resolutions),
+    })).sort((x, y) => y.closed - x.closed);
+  }, [enriched, profiles]);
+
+  if (agents.length === 0) return <Empty text="No tickets are assigned to agents yet." card />;
+  return (
+    <div className="space-y-2">
+      {agents.map((a) => (
+        <div key={a.id} className="card-premium rounded-xl p-4">
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="size-8 grid place-items-center rounded-xl bg-accent/10 text-accent shrink-0"><User className="size-4" /></span>
+            <p className="text-sm font-semibold truncate">{a.name}</p>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            <Stat label="Closed" value={String(a.closed)} />
+            <Stat label="Open" value={String(a.open)} />
+            <Stat label="Escalations" value={String(a.escalations)} tone={a.escalations ? "destructive" : undefined} />
+            <Stat label="Avg Response" value={hrs(a.avgResponse)} />
+            <Stat label="Avg Resolution" value={hrs(a.avgResolution)} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Realtime war room ─────────────────────────────────────────────────────────
+function WarRoomView({ enriched, refunds, returns, fraudCount }: { enriched: Enriched[]; refunds: RefundRow[]; returns: ReturnRow[]; fraudCount: number }) {
+  type Feed = { id: string; at: string; kind: string; tone: "destructive" | "amber" | "muted"; title: string; sub: string };
+  const feed: Feed[] = [];
+  for (const e of enriched) {
+    feed.push({ id: "t" + e.ticket.id, at: e.ticket.last_message_at, kind: e.stage === "escalated" ? "Escalation" : "Ticket", tone: e.stage === "escalated" ? "destructive" : e.sla.overdue ? "amber" : "muted", title: e.ticket.subject, sub: `${e.customerName} · ${STAGE_LABEL[e.stage]}` });
+  }
+  for (const r of refunds) feed.push({ id: "r" + r.id, at: r.created_at, kind: "Refund", tone: "amber", title: money(r.amount, r.currency), sub: `order #${r.order_id.slice(0, 8)} · ${r.status}` });
+  for (const r of returns) feed.push({ id: "rt" + r.id, at: r.created_at, kind: "Return", tone: "muted", title: r.reason ?? "Return request", sub: `order #${r.order_id.slice(0, 8)} · ${r.status}` });
+  feed.sort((a, b) => +new Date(b.at) - +new Date(a.at));
+
+  const newTickets = enriched.filter((e) => e.stage === "new").length;
+  const escalations = enriched.filter((e) => e.stage === "escalated").length;
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+        <Kpi label="New Tickets" value={newTickets} icon={<Inbox className="size-4" />} />
+        <Kpi label="Refund Requests" value={refunds.length} icon={<Banknote className="size-4" />} />
+        <Kpi label="Return Requests" value={returns.length} icon={<RotateCcw className="size-4" />} />
+        <Kpi label="Escalations" value={escalations} icon={<Flame className="size-4" />} tone={escalations ? "destructive" : undefined} />
+        <Kpi label="Fraud Signals" value={fraudCount} icon={<ShieldAlert className="size-4" />} tone={fraudCount ? "destructive" : undefined} />
+      </div>
+      <Panel title="Live activity feed" icon={<Activity className="size-4 text-accent" />}>
+        {feed.length === 0 ? <Empty text="No activity yet." /> : feed.slice(0, 40).map((f) => (
+          <div key={f.id} className="flex items-center gap-2 border-b border-border/40 pb-2 last:border-0">
+            <span className={cn("size-1.5 rounded-full shrink-0", f.tone === "destructive" ? "bg-destructive" : f.tone === "amber" ? "bg-amber-400" : "bg-muted-foreground")} />
+            <span className="rounded-full px-2 py-0.5 text-[9px] font-mono uppercase border border-border bg-muted/30 shrink-0">{f.kind}</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium truncate">{f.title}</p>
+              <p className="text-[11px] text-muted-foreground truncate">{f.sub}</p>
+            </div>
+            <span className="text-[10px] text-muted-foreground shrink-0">{fmtTime(f.at)}</span>
+          </div>
+        ))}
+      </Panel>
+    </div>
+  );
+}
+
+function ActBtn({ label, icon, tone, loading, onClick }: { label: string; icon: React.ReactNode; tone?: "emerald" | "destructive" | "amber"; loading?: boolean; onClick: () => void }) {
+  const cls = tone === "emerald" ? "border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10"
+    : tone === "destructive" ? "border-destructive/30 text-destructive hover:bg-destructive/10"
+    : tone === "amber" ? "border-amber-400/30 text-amber-400 hover:bg-amber-400/10"
+    : "border-border text-muted-foreground hover:border-accent/40 hover:text-foreground";
+  return (
+    <button disabled={loading} onClick={onClick}
+      className={cn("inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors disabled:opacity-50", cls)}>
+      {loading ? <Loader2 className="size-3 animate-spin" /> : icon}{label}
+    </button>
+  );
+}
+
+
 // ── Customer 360 sheet ───────────────────────────────────────────────────────
 function Customer360Sheet({ userId, name, onClose }: { userId: string; name: string; onClose: () => void }) {
   const [data, setData] = useState<null | {
-    profile: { full_name: string | null; country: string | null; market_region: string | null; created_at: string } | null;
-    orders: number; ltv: number; refunds: number; refundTotal: number; returns: number; activeShipments: number;
+    profile: { full_name: string | null; phone: string | null; country: string | null; market_region: string | null; created_at: string } | null;
+    email: string | null; address: string | null;
+    orders: number; successfulOrders: number; failedPayments: number; ltv: number;
+    refunds: number; refundTotal: number; returns: number; activeShipments: number;
+    support: number; riskScore: number;
     notifications: { id: string; title: string; created_at: string }[];
     tickets: { id: string; subject: string; status: string; created_at: string }[];
     fraud: number;
@@ -448,30 +636,43 @@ function Customer360Sheet({ userId, name, onClose }: { userId: string; name: str
     let alive = true;
     (async () => {
       const [pf, ord, ref, ret, ship, notif, tk, fr] = await Promise.all([
-        supabase.from("profiles").select("full_name,country,market_region,created_at").eq("id", userId).maybeSingle(),
-        supabase.from("orders").select("total,currency,status").eq("user_id", userId),
+        supabase.from("profiles").select("full_name,phone,country,market_region,created_at").eq("id", userId).maybeSingle(),
+        supabase.from("orders").select("total,currency,status,payment_status,contact_email,shipping_address").eq("user_id", userId),
         supabase.from("refunds").select("amount,order_id,orders!inner(user_id)").eq("orders.user_id", userId),
         supabase.from("returns").select("id").eq("user_id", userId),
         supabase.from("shipments").select("id,status").eq("user_id", userId),
         supabase.from("notifications").select("id,title,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(6),
-        supabase.from("support_tickets").select("id,subject,status,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(6),
-        supabase.from("fraud_alerts").select("id").eq("subject_id", userId).eq("subject_type", "user"),
+        supabase.from("support_tickets").select("id,subject,status,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+        supabase.from("fraud_alerts").select("id,score").eq("subject_id", userId).eq("subject_type", "user"),
       ]);
       if (!alive) return;
-      const orders = (ord.data as { total: number; status: string }[]) ?? [];
+      const orders = (ord.data as { total: number; status: string; payment_status: string | null; contact_email: string | null; shipping_address: Record<string, unknown> | null }[]) ?? [];
       const refundsArr = (ref.data as { amount: number }[]) ?? [];
       const shipArr = (ship.data as { status: string }[]) ?? [];
+      const fraudArr = (fr.data as { score: number | null }[]) ?? [];
+      const paid = (o: { status: string; payment_status: string | null }) => ["paid", "succeeded", "delivered", "shipped", "completed"].includes((o.payment_status ?? o.status ?? "").toLowerCase());
+      const successfulOrders = orders.filter(paid).length;
+      const failedPayments = orders.filter((o) => ["failed", "cancelled"].includes((o.payment_status ?? "").toLowerCase())).length;
+      const support = ((tk.data as unknown[]) ?? []).length;
+      const ltv = orders.filter(paid).reduce((a, b) => a + (b.total || 0), 0);
+      const addr = orders.find((o) => o.shipping_address)?.shipping_address as { line1?: string; city?: string; state?: string; country?: string } | null;
+      // Composite risk score (0-100) from real signals: fraud alerts, refund rate, failed payments.
+      const fraudMax = fraudArr.reduce((m, f) => Math.max(m, f.score ?? 50), 0);
+      const refundRatio = successfulOrders ? refundsArr.length / successfulOrders : 0;
+      const riskScore = Math.min(100, Math.round(fraudMax * 0.6 + refundRatio * 100 * 0.3 + Math.min(failedPayments, 5) * 4));
       setData({
         profile: (pf.data as never) ?? null,
-        orders: orders.length,
-        ltv: orders.reduce((a, b) => a + (b.total || 0), 0),
+        email: orders.find((o) => o.contact_email)?.contact_email ?? null,
+        address: addr ? [addr.line1, addr.city, addr.state, addr.country].filter(Boolean).join(", ") : null,
+        orders: orders.length, successfulOrders, failedPayments, ltv,
         refunds: refundsArr.length,
         refundTotal: refundsArr.reduce((a, b) => a + (b.amount || 0), 0),
         returns: ((ret.data as unknown[]) ?? []).length,
         activeShipments: shipArr.filter((s) => !["delivered", "cancelled", "returned"].includes(s.status)).length,
+        support, riskScore,
         notifications: (notif.data as { id: string; title: string; created_at: string }[]) ?? [],
-        tickets: (tk.data as { id: string; subject: string; status: string; created_at: string }[]) ?? [],
-        fraud: ((fr.data as unknown[]) ?? []).length,
+        tickets: ((tk.data as { id: string; subject: string; status: string; created_at: string }[]) ?? []).slice(0, 6),
+        fraud: fraudArr.length,
       });
     })();
     return () => { alive = false; };
@@ -481,13 +682,21 @@ function Customer360Sheet({ userId, name, onClose }: { userId: string; name: str
     <Sheet title="Customer 360" subtitle={name} onClose={onClose}>
       {!data ? <Loader2 className="size-5 animate-spin text-accent mx-auto my-12" /> : (
         <div className="space-y-4">
+          <div className="rounded-xl border border-border/50 bg-background/40 p-3 space-y-1.5 text-xs">
+            {data.email && <p className="flex items-center gap-2 truncate"><Mail className="size-3.5 text-muted-foreground shrink-0" />{data.email}</p>}
+            {data.profile?.phone && <p className="flex items-center gap-2 truncate"><Phone className="size-3.5 text-muted-foreground shrink-0" />{data.profile.phone}</p>}
+            {data.address && <p className="flex items-center gap-2"><MapPin className="size-3.5 text-muted-foreground shrink-0 mt-0.5" /><span className="truncate">{data.address}</span></p>}
+          </div>
           <div className="grid grid-cols-3 gap-2">
-            <Stat label="Orders" value={String(data.orders)} icon={<Package className="size-3.5" />} />
+            <Stat label="Total Orders" value={String(data.orders)} icon={<Package className="size-3.5" />} />
             <Stat label="Lifetime Value" value={money(data.ltv, null)} icon={<TrendingUp className="size-3.5" />} />
+            <Stat label="Successful" value={String(data.successfulOrders)} icon={<Check className="size-3.5" />} />
+            <Stat label="Failed Payments" value={String(data.failedPayments)} tone={data.failedPayments ? "destructive" : undefined} />
             <Stat label="Refunds" value={`${data.refunds}`} icon={<Banknote className="size-3.5" />} />
             <Stat label="Returns" value={String(data.returns)} icon={<RotateCcw className="size-3.5" />} />
+            <Stat label="Support Tickets" value={String(data.support)} icon={<MessageSquare className="size-3.5" />} />
             <Stat label="Active Shipments" value={String(data.activeShipments)} icon={<Truck className="size-3.5" />} />
-            <Stat label="Fraud Signals" value={String(data.fraud)} icon={<ShieldAlert className="size-3.5" />} tone={data.fraud ? "destructive" : undefined} />
+            <Stat label="Risk Score" value={String(data.riskScore)} icon={<ShieldAlert className="size-3.5" />} tone={data.riskScore >= 60 ? "destructive" : undefined} />
           </div>
           {data.profile && (
             <p className="text-xs text-muted-foreground">
