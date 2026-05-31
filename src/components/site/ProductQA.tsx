@@ -205,36 +205,31 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
         <span className="text-xs font-mono text-muted-foreground">{items.length} {items.length === 1 ? "question" : "questions"}</span>
       </div>
 
-      {user ? (
-        <form onSubmit={submit} className="bg-card border border-border rounded-2xl p-4 sm:p-5 mb-8">
-          <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Ask a question</label>
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={3}
-            maxLength={500}
-            placeholder="What size does this come in? How does it fit?"
-            className="mt-2 w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent resize-none"
-          />
-          <div className="flex items-center justify-between mt-3">
-            <span className="text-[10px] font-mono text-muted-foreground">{draft.length}/500</span>
-            <button
-              type="submit"
-              disabled={busy || !draft.trim()}
-              className="inline-flex items-center gap-2 bg-accent text-accent-foreground font-bold px-5 py-2.5 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50"
-            >
-              {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
-              Submit
-            </button>
-          </div>
-        </form>
-      ) : (
-        <div className="bg-card border border-border rounded-2xl p-6 mb-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            <Link to="/auth" className="text-accent underline">Sign in</Link> to ask a question.
-          </p>
+      <form onSubmit={submit} className="bg-card border border-border rounded-2xl p-4 sm:p-5 mb-8">
+        <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Ask a question</label>
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={3}
+          maxLength={500}
+          placeholder="What size does this come in? How does it fit?"
+          className="mt-2 w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent resize-none"
+        />
+        <div className="flex items-center justify-between mt-3 gap-3">
+          <span className="text-[10px] font-mono text-muted-foreground">
+            {draft.length}/500{!user && draft.trim() ? " · sign in to post" : ""}
+          </span>
+          <button
+            type="submit"
+            disabled={busy || !draft.trim()}
+            className="inline-flex items-center gap-2 bg-accent text-accent-foreground font-bold px-5 py-2.5 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+            {busy ? "Submitting…" : user ? "Submit" : "Sign in to submit"}
+          </button>
         </div>
-      )}
+      </form>
+
 
       {loading ? (
         <div className="py-12 grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
