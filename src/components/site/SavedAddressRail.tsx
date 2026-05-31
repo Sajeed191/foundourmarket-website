@@ -13,6 +13,7 @@ import {
   PackageCheck,
 } from "lucide-react";
 import type { Address } from "@/lib/use-addresses";
+import { rankAddresses, addressBadge } from "@/lib/address-intelligence";
 
 type Props = {
   addresses: Address[];
