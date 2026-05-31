@@ -463,7 +463,7 @@ function CheckoutPage() {
   const addressComplete = selectedAddress
     ? addressCompleteness(selectedAddress).score >= 85
     : false;
-  const paymentMethodSelected = payMethod === "cod" ? !!settings.cod_enabled : true;
+  const paymentMethodSelected = payMethod === "cod" ? codAllowed : true;
   const stockAvailable = detailed.every((i) => i.product.inStock !== false);
   const sessionValid = !!user && reserveLeft > 0;
 
