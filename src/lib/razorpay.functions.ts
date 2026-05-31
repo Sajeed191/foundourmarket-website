@@ -184,13 +184,20 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
     const { supabase, userId } = context as { supabase: any; userId: string };
     const { keyId } = getRazorpayCreds();
 
-    const region = await resolveRegion(supabase, userId);
+    const resolution = await resolveRegion(supabase, userId);
+    const region = resolution.region;
     const priced = await repriceFromDb(supabase, region, data.items, data.promoCode);
-    if (priced.totals.total < 1) {
-      throw new Error("Order total is too low to process.");
-    }
 
-    // Load shipping address (RLS guarantees ownership)
+    // Region/pricing audit trail (visible in server function logs).
+    console.log("[razorpay.createOrder] region resolved", {
+      user_id: userId,
+      detected_country: resolution.detectedCountry,
+      detected_market: region,
+      confidence_score: resolution.confidence,
+      currency_selected: priced.totals.currency,
+      pricing_source: resolution.pricingSource,
+      amount_minor: toMinorUnits(priced.totals.total),
+    });
     const { data: addr, error: addrErr } = await supabase
       .from("addresses")
       .select("full_name,phone,line1,line2,city,state,postal,country")
