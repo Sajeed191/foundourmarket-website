@@ -16,6 +16,11 @@ import {
   Loader2,
   ShieldCheck,
   Megaphone,
+  Truck,
+  Percent,
+  RotateCcw,
+  Package,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +33,7 @@ import { useEditorProtection } from "@/hooks/use-editor-protection";
 import { EditorSaveBar } from "@/components/admin/EditorSaveBar";
 import { logActivity } from "@/components/admin/AdminShell";
 import { ProductMarketingPanel } from "@/components/admin/ProductMarketingPanel";
+import { CollapsibleModule } from "@/components/admin/CollapsibleModule";
 
 type Patch = {
   name?: string;
