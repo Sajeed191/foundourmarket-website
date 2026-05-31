@@ -335,11 +335,8 @@ function ProductPage() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-3.5 text-balance leading-[1.12]">{product.name}</h1>
 
             <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <div className="flex items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={`size-3.5 ${i < Math.round(product.rating) ? "fill-accent text-accent drop-shadow-[0_0_6px_oklch(0.74_0.19_49/0.6)]" : "text-muted-foreground/30"}`} />
-                ))}
-              </div>
+              <StarRating rating={product.rating} starClassName="size-3.5" glow />
+
               <span className="text-xs font-mono text-muted-foreground/70">{product.rating} · {product.reviews} reviews</span>
               <a href="#reviews" className="text-[10px] font-mono uppercase tracking-widest text-accent hover:underline">See reviews →</a>
             </div>
