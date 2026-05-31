@@ -302,6 +302,18 @@
 }
 .input-glass:disabled { opacity: 0.7; cursor: not-allowed; }
 
+/* Centered variant for fields without a floating label
+   (selects, date, country, locked region, phone). Keeps the exact same
+   overall height as floating-label inputs (1.85rem total vertical padding)
+   while vertically centering the value, icons and arrows. */
+.input-glass-static {
+  padding-top: 0.925rem;
+  padding-bottom: 0.925rem;
+  display: flex;
+  align-items: center;
+}
+
+
 /* Moving light sweep for the flagship CTA */
 @keyframes cta-sweep {
   0% { transform: translateX(-150%) skewX(-20deg); }
