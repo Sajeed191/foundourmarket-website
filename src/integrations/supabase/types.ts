@@ -5170,6 +5170,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       support_admin_unread_count: { Args: never; Returns: number }
       support_unread_count: { Args: never; Returns: number }
       svc_acquisition_metrics: {
