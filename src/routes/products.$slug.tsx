@@ -178,6 +178,7 @@ function ProductPage() {
   const effectivePrice = selectedVariant?.priceOverride ?? basePrice;
   const effectiveStock = selectedVariant ? selectedVariant.stockQuantity : product.stockQuantity;
   const effectiveSku = selectedVariant?.sku ?? product.sku;
+  const unitShipping = shippingFeeOf(product);
   const lowStock = effectiveStock > 0 && effectiveStock <= product.lowStockThreshold;
   const isOOS = effectiveStock <= 0;
   const originalPrice = compareOf(product) ?? (product.discount ? effectivePrice * (1 + product.discount / 100) : null);
