@@ -1,4 +1,4 @@
-import { Loader2, CheckCircle2, XCircle, Truck, CalendarClock, Wallet, ShieldAlert } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Truck, CalendarClock, Wallet, ShieldAlert, RotateCcw, Globe, Gauge } from "lucide-react";
 import type { ServiceabilityResult } from "@/lib/serviceability.functions";
 
 type Props = {
@@ -12,6 +12,10 @@ type Props = {
   codAvailable: boolean;
   city?: string | null;
   postal?: string | null;
+  /** Return window in days (defaults to 7). */
+  returnsDays?: number;
+  /** Market the destination resolved to. */
+  region?: "India" | "International";
 };
 
 /**
