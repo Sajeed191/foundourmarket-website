@@ -166,10 +166,19 @@ function TrackPage() {
   const secsAgo = lastUpdated ? Math.max(0, Math.floor((Date.now() - lastUpdated) / 1000)) : null;
   void tick; // keep dependency to re-render every second
 
-  const currentStatusIdx = result?.found
-    ? Math.max(0, STATUSES.findIndex((s) => s.key === result.order.status))
+  // Prefer the real shipment status, then the order's fulfillment status,
+  // then the raw order status — so the tracker reflects warehouse updates.
+  const liveStatus = result?.found
+    ? (result.shipment?.status ?? result.order.fulfillment_status ?? result.order.status)
+    : null;
+  const currentStatusIdx = liveStatus
+    ? (SHIP_STEP[liveStatus] ?? Math.max(0, STATUSES.findIndex((s) => s.key === liveStatus)))
     : -1;
-  const cancelled = result?.found && result.order.status === "cancelled";
+  const cancelled =
+    result?.found &&
+    (result.shipment?.status === "cancelled" || result.order.status === "cancelled");
+  const returned = result?.found && result.shipment?.status === "returned";
+  const failed = result?.found && result.shipment?.status === "failed_delivery";
 
   return (
     <div className="relative min-h-screen pb-24">
