@@ -198,6 +198,11 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       pricing_source: resolution.pricingSource,
       amount_minor: toMinorUnits(priced.totals.total),
     });
+    if (priced.totals.total < 1) {
+      throw new Error("Order total is too low to process.");
+    }
+
+    // Load shipping address (RLS guarantees ownership)
     const { data: addr, error: addrErr } = await supabase
       .from("addresses")
       .select("full_name,phone,line1,line2,city,state,postal,country")
