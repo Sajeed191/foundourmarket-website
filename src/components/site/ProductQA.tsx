@@ -137,9 +137,10 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
       if (typeof window !== "undefined") {
         localStorage.setItem(draftKey(productSlug), draft);
         localStorage.setItem(pendingKey(productSlug), "1");
+        localStorage.setItem("post_auth_redirect", window.location.pathname);
       }
       toast.message("Sign in to post your question — we'll keep your draft.");
-      navigate({ to: "/auth" });
+      navigate({ to: "/auth", search: { redirect: window.location.pathname } });
       return;
     }
     await insertQuestion();
