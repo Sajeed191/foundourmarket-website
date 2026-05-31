@@ -606,13 +606,19 @@ function CheckoutPage() {
                   <PackageCheck className="size-3.5 text-accent" /> Estimated delivery {eta}
                 </div>
 
-                {/* Desktop CTA */}
-                <button disabled={!selectedAddress || busy || (!allowProceed && !serviceChecking)}
-                  className="hidden lg:inline-flex w-full mt-5 group relative overflow-hidden bg-accent text-accent-foreground font-bold py-3.5 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-60 items-center justify-center gap-2">
+                {/* Desktop CTA — always rendered; disabled with a reason when not ready */}
+                <button type="submit" disabled={!checkoutReady}
+                  className="hidden lg:inline-flex w-full mt-5 min-h-[56px] group relative overflow-hidden bg-accent text-accent-foreground font-bold py-3.5 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed items-center justify-center gap-2">
                   {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-3.5" />}
-                  <span>{selectedAddress && !allowProceed ? (serviceChecking ? "Checking delivery…" : "Not deliverable") : ctaLabel}</span>
-                  {!busy && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />}
+                  <span>{ctaLabel}</span>
+                  {!busy && checkoutReady && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />}
                 </button>
+
+                {orderBlockedReason && !busy && (
+                  <p className="hidden lg:flex text-[11px] text-amber-400/90 text-center mt-2.5 items-center justify-center gap-1.5 w-full">
+                    <XCircle className="size-3.5 shrink-0" /> {orderBlockedReason}
+                  </p>
+                )}
 
                 <p className="hidden lg:flex text-[10px] text-muted-foreground text-center mt-3 font-mono uppercase tracking-widest items-center justify-center gap-1.5 w-full">
                   <ShieldCheck className="size-3" /> Encrypted · PCI-DSS · 7-day returns
@@ -620,20 +626,28 @@ function CheckoutPage() {
               </div>
             </aside>
 
-            {/* Mobile sticky CTA */}
-            <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 pointer-events-none">
+            {/* Mobile sticky checkout bar — sits ABOVE the bottom navigation, always visible */}
+            <div
+              className="lg:hidden fixed inset-x-0 z-50 px-3 pointer-events-none"
+              style={{ bottom: "calc(5.25rem + env(safe-area-inset-bottom))" }}
+            >
               <div className="pointer-events-auto rounded-2xl border border-white/12 p-2.5"
-                style={{ background: "color-mix(in oklab, var(--color-background) 78%, transparent)", backdropFilter: "blur(28px) saturate(160%)", boxShadow: "0 16px 40px -16px color-mix(in oklab, var(--color-accent) 45%, transparent)" }}>
+                style={{ background: "color-mix(in oklab, var(--color-background) 82%, transparent)", backdropFilter: "blur(28px) saturate(160%)", boxShadow: "0 16px 40px -16px color-mix(in oklab, var(--color-accent) 45%, transparent)" }}>
+                {orderBlockedReason && !busy && (
+                  <p className="flex items-center gap-1.5 text-[11px] text-amber-400/90 px-1.5 pb-2 pt-0.5">
+                    <XCircle className="size-3.5 shrink-0" /> {orderBlockedReason}
+                  </p>
+                )}
                 <div className="flex items-center gap-3">
                   <div className="pl-1.5 min-w-0">
                     <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Total · {itemsCount} item{itemsCount !== 1 ? "s" : ""}</p>
                     <p className="font-mono text-lg font-semibold text-accent leading-tight truncate">{fmt(totalINR)}</p>
                   </div>
-                  <button disabled={!selectedAddress || busy || (!allowProceed && !serviceChecking)}
-                    className="ml-auto group inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground font-bold px-5 py-3 rounded-xl text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-60 shrink-0">
+                  <button type="submit" disabled={!checkoutReady}
+                    className="ml-auto group inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground font-bold px-5 min-h-[56px] rounded-xl text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0">
                     {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-3.5" />}
-                    <span>{selectedAddress && !allowProceed ? (serviceChecking ? "Checking…" : "Not deliverable") : stage === "processing" ? "Opening…" : stage === "verifying" ? "Verifying…" : payMethod === "cod" ? "Place order" : "Pay now"}</span>
-                    {!busy && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />}
+                    <span>{ctaLabel}</span>
+                    {!busy && checkoutReady && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />}
                   </button>
                 </div>
               </div>
