@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Loader2, Plus, Search, X, Package, Truck, CheckCircle2, RotateCcw, Ban,
   MapPin, Mail, Phone, User, CalendarClock, Hash, RefreshCw, AlertTriangle,
-  Activity, Gauge, Users, Radio, Download, Send, BadgeCheck, TrendingUp,
+  Activity, Gauge, Users, Radio, Download, Send, TrendingUp,
   ShieldAlert, Clock, PackageCheck,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
