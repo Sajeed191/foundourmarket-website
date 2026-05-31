@@ -235,7 +235,7 @@ function CheckoutPage() {
         setTimeout(() => resolve(LOGO_PRIMARY), 1500);
       });
 
-      const rzp = openRazorpay({
+      const rzpOptions = {
         key: created.keyId,
         amount: created.amount,
         currency: created.currency,
