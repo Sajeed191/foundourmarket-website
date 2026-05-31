@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Loader2, Plus, Search, X, Package, Truck, CheckCircle2, RotateCcw, Ban,
-  MapPin, Mail, Phone, User, CalendarClock, Hash, RefreshCw, AlertTriangle,
+  MapPin, Mail, Phone, User, CalendarClock, Hash, RefreshCw,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
