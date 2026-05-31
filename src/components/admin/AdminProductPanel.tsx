@@ -41,6 +41,8 @@ type Patch = {
   comparePriceInr?: number | null;
   priceUsd?: number | null;
   comparePriceUsd?: number | null;
+  shippingFeeInr?: number;
+  shippingFeeUsd?: number;
   indiaVisible?: boolean;
   internationalVisible?: boolean;
   featured?: boolean;
@@ -104,6 +106,8 @@ export function AdminProductPanel({ product }: { product: Product }) {
       comparePriceInr: p.comparePriceInr != null ? String(p.comparePriceInr) : "",
       priceUsd: p.priceUsd != null ? String(p.priceUsd) : "",
       comparePriceUsd: p.comparePriceUsd != null ? String(p.comparePriceUsd) : "",
+      shippingFeeInr: String(p.shippingFeeInr ?? 0),
+      shippingFeeUsd: String(p.shippingFeeUsd ?? 0),
       indiaVisible: p.indiaVisible,
       internationalVisible: p.internationalVisible,
       featured: p.featured,
@@ -151,6 +155,8 @@ export function AdminProductPanel({ product }: { product: Product }) {
       comparePriceInr: numOrNull(f.comparePriceInr),
       priceUsd: numOrNull(f.priceUsd),
       comparePriceUsd: numOrNull(f.comparePriceUsd),
+      shippingFeeInr: Math.max(0, Number(f.shippingFeeInr) || 0),
+      shippingFeeUsd: Math.max(0, Number(f.shippingFeeUsd) || 0),
       indiaVisible: f.indiaVisible,
       internationalVisible: f.internationalVisible,
       featured: f.featured,
@@ -409,6 +415,23 @@ export function AdminProductPanel({ product }: { product: Product }) {
                     <Input
                       value={f.comparePriceUsd}
                       onChange={(e) => setF({ ...f, comparePriceUsd: e.target.value })}
+                    />
+                  </Field>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="₹ India shipping fee">
+                    <Input
+                      type="number"
+                      value={f.shippingFeeInr}
+                      onChange={(e) => setF({ ...f, shippingFeeInr: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="$ Intl shipping fee">
+                    <Input
+                      type="number"
+                      value={f.shippingFeeUsd}
+                      onChange={(e) => setF({ ...f, shippingFeeUsd: e.target.value })}
                     />
                   </Field>
                 </div>
