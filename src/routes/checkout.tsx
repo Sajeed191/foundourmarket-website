@@ -299,8 +299,14 @@ function CheckoutPage() {
 
   useEffect(() => {
     if (stage === "success") {
-      import("@/lib/visitor").then((m) => m.trackEvent("purchase", {
-        value: totalINR, metadata: { order_id: placedOrderId, pay_method: payMethod },
+      import("@/lib/visitor").then((m) => {
+        m.trackEvent("purchase", { value: totalINR, metadata: { order_id: placedOrderId, pay_method: payMethod } });
+        m.trackEvent("payment_success", { value: totalINR, metadata: { order_id: placedOrderId, pay_method: payMethod } });
+      }).catch(() => {});
+    }
+    if (stage === "failed") {
+      import("@/lib/visitor").then((m) => m.trackEvent("payment_failed", {
+        value: totalINR, metadata: { pay_method: payMethod },
       })).catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
