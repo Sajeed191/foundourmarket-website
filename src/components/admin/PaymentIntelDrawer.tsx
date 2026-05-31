@@ -41,7 +41,7 @@ function Field({ label, value, mono, copyable }: { label: string; value?: string
   );
 }
 
-function Section({ icon: Icon, title, children }: { icon: typeof User; title: string; children: React.ReactNode }) {
+function Section({ icon: Icon, title, children }: { icon: typeof User; title: string; children: ReactNode }) {
   return (
     <div className="glass border border-white/10 rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-2">
