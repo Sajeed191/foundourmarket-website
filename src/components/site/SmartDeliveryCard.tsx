@@ -110,6 +110,24 @@ export function SmartDeliveryCard({
             value={codAvailable ? "Available" : "Unavailable"}
             tone={codAvailable ? "emerald" : "muted"}
           />
+          <Stat
+            icon={<RotateCcw className="size-3.5" />}
+            label="Returns"
+            value={`${returnsDays} days`}
+            tone="default"
+          />
+          <Stat
+            icon={<Globe className="size-3.5" />}
+            label="Region"
+            value={region}
+            tone="accent"
+          />
+          <Stat
+            icon={<Gauge className="size-3.5" />}
+            label="Confidence"
+            value={serviceable ? "High" : "Pending"}
+            tone={serviceable ? "emerald" : "muted"}
+          />
         </div>
       )}
     </section>
