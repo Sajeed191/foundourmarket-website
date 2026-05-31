@@ -2,12 +2,13 @@ import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   X, Upload, Loader2, Package, IndianRupee, DollarSign, AlertTriangle,
-  Truck, Percent, RotateCcw, Eye, Sparkles, Boxes, Tag,
+  Truck, Percent, RotateCcw, Eye, Sparkles, Boxes, Tag, HelpCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/components/admin/AdminShell";
 import { CollapsibleModule } from "@/components/admin/CollapsibleModule";
+import { ProductFaqManager } from "@/components/admin/ProductFaqManager";
 import { useStoreSettings } from "@/lib/use-store-settings";
 
 /** Permissive snake_case row accepted from both /admin and /admin-products. */
@@ -430,6 +431,14 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
             </div>
           </div>
         </CollapsibleModule>
+
+        {row?.slug && (
+          <CollapsibleModule eyebrow="Content" title="Product FAQs" badge={<HelpCircle className="size-3.5 text-accent" />} defaultOpen={false}>
+            <ProductFaqManager productSlug={row.slug} />
+          </CollapsibleModule>
+        )}
+
+
 
         {validation.length > 0 && (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-1.5">
