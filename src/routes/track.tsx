@@ -4,10 +4,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  Package, Search, Loader2, CheckCircle2, Truck, Clock, XCircle,
-  Sparkles, ShieldCheck, MapPin, Radio, MessageCircle, Mail, HelpCircle,
-  PackageCheck, PackageOpen, Send, Zap, ChevronRight, Navigation, Timer,
-  Activity, Wind,
+  Package, Search, Loader2, CheckCircle2, Truck, XCircle,
+  ShieldCheck, MapPin, Radio, MessageCircle, Mail, HelpCircle,
+  PackageCheck, PackageOpen, Send, ChevronRight, Navigation,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { trackOrder } from "@/lib/track-order.functions";
