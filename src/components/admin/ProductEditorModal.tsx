@@ -30,6 +30,10 @@ export type ProductEditorRow = {
   cod_enabled?: boolean; pickup_supported?: boolean; international_shipping?: boolean; fragile?: boolean;
   return_eligible?: boolean; replacement_eligible?: boolean; return_window_days?: number;
   warranty?: string | null;
+  brand?: string | null; product_type?: string | null;
+  weight?: number | null; length?: number | null; width?: number | null; height?: number | null;
+  shipping_class?: string | null; video_url?: string | null; demo_url?: string | null;
+  new_arrival?: boolean;
 };
 
 type Category = { slug: string; name: string };
@@ -122,6 +126,16 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
     status: row?.status ?? "published",
     bestseller: row?.bestseller ?? false,
     trending: row?.trending ?? false,
+    new_arrival: row?.new_arrival ?? false,
+    brand: row?.brand ?? "",
+    product_type: row?.product_type ?? "",
+    weight: row?.weight != null ? String(row.weight) : "",
+    length: row?.length != null ? String(row.length) : "",
+    width: row?.width != null ? String(row.width) : "",
+    height: row?.height != null ? String(row.height) : "",
+    shipping_class: row?.shipping_class ?? "",
+    video_url: row?.video_url ?? "",
+    demo_url: row?.demo_url ?? "",
     tags: (row?.tags ?? []).join(", "),
     features: (row?.features ?? []).join("\n"),
     meta_keywords: (row?.meta_keywords ?? []).join(", "),
@@ -194,6 +208,12 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
       return_eligible: form.return_eligible, replacement_eligible: form.replacement_eligible,
       return_window_days: Number(form.return_window_days) || 0, warranty: form.warranty.trim(),
       status: form.status, bestseller: form.bestseller, trending: form.trending,
+      new_arrival: form.new_arrival,
+      brand: form.brand.trim() || null, product_type: form.product_type.trim() || null,
+      weight: numOrNull(form.weight), length: numOrNull(form.length),
+      width: numOrNull(form.width), height: numOrNull(form.height),
+      shipping_class: form.shipping_class.trim() || null,
+      video_url: form.video_url.trim() || null, demo_url: form.demo_url.trim() || null,
       tags: parseList(form.tags), features: parseList(form.features), meta_keywords: parseList(form.meta_keywords),
       seo_title: form.seo_title.trim() || null, seo_description: form.seo_description.trim() || null,
       specifications: textToKv(form.specifications), attributes: textToKv(form.attributes),
@@ -254,6 +274,9 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
               </select>
             </div>
             <EField label="SKU" value={form.sku} onChange={(v) => set({ sku: v })} />
+            <EField label="Brand" value={form.brand} onChange={(v) => set({ brand: v })} />
+            <EField label="Product Type" value={form.product_type} onChange={(v) => set({ product_type: v })} />
+            <EField label="Product Tags (comma separated)" value={form.tags} onChange={(v) => set({ tags: v })} className="col-span-2" />
             <div className="col-span-2">
               <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Description</label>
               <textarea value={form.description} onChange={(e) => set({ description: e.target.value })} rows={3}
@@ -328,6 +351,11 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
               <p className="text-sm mt-1">{settings.free_shipping_threshold_usd != null ? usd(settings.free_shipping_threshold_usd) : "Not set"}</p>
             </div>
             <p className="col-span-2 text-[10px] text-muted-foreground">Free-shipping thresholds are global and managed in Store Settings → keeps a single source of truth across the platform.</p>
+            <EField label="Weight (kg)" type="number" value={form.weight} onChange={(v) => set({ weight: v })} />
+            <EField label="Shipping Class" value={form.shipping_class} onChange={(v) => set({ shipping_class: v })} />
+            <EField label="Length (cm)" type="number" value={form.length} onChange={(v) => set({ length: v })} />
+            <EField label="Width (cm)" type="number" value={form.width} onChange={(v) => set({ width: v })} />
+            <EField label="Height (cm)" type="number" value={form.height} onChange={(v) => set({ height: v })} className="col-span-2" />
             <div className="col-span-2 flex flex-wrap gap-4 rounded-xl border border-white/10 bg-white/[0.02] p-3">
               <Toggle checked={form.cod_enabled} onChange={(v) => set({ cod_enabled: v })} label="COD" />
               <Toggle checked={form.pickup_supported} onChange={(v) => set({ pickup_supported: v })} label="Pickup" />
@@ -359,10 +387,19 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
               <Toggle checked={form.status === "hidden"} onChange={(v) => set({ status: v ? "hidden" : "published" })} label="Hidden" />
               <Toggle checked={form.bestseller} onChange={(v) => set({ bestseller: v })} label="Bestseller" />
               <Toggle checked={form.trending} onChange={(v) => set({ trending: v })} label="Trending" />
+              <Toggle checked={form.new_arrival} onChange={(v) => set({ new_arrival: v })} label="New Arrival" />
             </div>
-            <EField label="Tags (comma separated)" value={form.tags} onChange={(v) => set({ tags: v })} />
           </div>
         </CollapsibleModule>
+
+        {/* Media */}
+        <CollapsibleModule eyebrow="Optional" title="Media" badge={<Sparkles className="size-3.5 text-accent" />} defaultOpen={false}>
+          <div className="grid grid-cols-1 gap-3">
+            <EField label="Product Video URL" value={form.video_url} onChange={(v) => set({ video_url: v })} />
+            <EField label="Product Demo URL" value={form.demo_url} onChange={(v) => set({ demo_url: v })} />
+          </div>
+        </CollapsibleModule>
+
 
         {/* Advanced */}
         <CollapsibleModule eyebrow="Optional" title="Advanced (SEO & specs)" badge={<Sparkles className="size-3.5 text-accent" />} defaultOpen={false}>
