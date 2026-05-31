@@ -605,10 +605,10 @@ function CheckoutPage() {
                 </div>
 
                 {/* Desktop CTA */}
-                <button disabled={!selectedAddress || busy || !serviceable}
+                <button disabled={!selectedAddress || busy || (!allowProceed && !serviceChecking)}
                   className="hidden lg:inline-flex w-full mt-5 group relative overflow-hidden bg-accent text-accent-foreground font-bold py-3.5 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-60 items-center justify-center gap-2">
                   {busy ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-3.5" />}
-                  <span>{!serviceable && selectedAddress ? (serviceChecking ? "Checking delivery…" : "Not deliverable") : ctaLabel}</span>
+                  <span>{selectedAddress && !allowProceed ? (serviceChecking ? "Checking delivery…" : "Not deliverable") : ctaLabel}</span>
                   {!busy && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />}
                 </button>
 
