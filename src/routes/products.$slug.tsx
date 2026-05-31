@@ -352,8 +352,8 @@ function ProductPage() {
               {originalPrice && (
                 <span className="text-sm font-mono text-muted-foreground/60 line-through decoration-muted-foreground/40">{format(originalPrice)}</span>
               )}
-              {product.discount && (
-                <span className="animate-save text-[10px] font-mono font-bold uppercase tracking-widest bg-accent/15 text-accent px-2.5 py-1 rounded-full border border-accent/30">Save {product.discount}%</span>
+              {discountPct && (
+                <span className="animate-save text-[10px] font-mono font-bold uppercase tracking-widest bg-accent/15 text-accent px-2.5 py-1 rounded-full border border-accent/30">Save {discountPct}%</span>
               )}
             </div>
 
