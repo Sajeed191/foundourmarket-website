@@ -24,7 +24,7 @@ import { SavedAddressRail } from "@/components/site/SavedAddressRail";
 import { SmartDeliveryCard } from "@/components/site/SmartDeliveryCard";
 import { createRazorpayOrder, verifyRazorpayPayment, cancelRazorpayOrder, placeCodOrder } from "@/lib/razorpay.functions";
 import { buildOrderAttribution } from "@/lib/marketing-tracking";
-import { createRazorpayCustomer, syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
+import { syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
 import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpay-loader";
 import { validatePincode, type ServiceabilityResult } from "@/lib/serviceability.functions";
 import { usePaymentGateways } from "@/lib/use-payment-gateways";
@@ -79,7 +79,7 @@ function CheckoutPage() {
   const verifyPayment = useServerFn(verifyRazorpayPayment);
   const cancelOrder = useServerFn(cancelRazorpayOrder);
   const placeCodOrderFn = useServerFn(placeCodOrder);
-  const ensureCustomer = useServerFn(createRazorpayCustomer);
+  // createRazorpayCustomer intentionally not used at checkout — see customer_id note.
   const syncMethods = useServerFn(syncRazorpayPaymentMethods);
 
   const [stage, setStage] = useState<Stage>("review");
@@ -206,13 +206,11 @@ function CheckoutPage() {
 
 
 
-      let customerId: string | undefined;
-      try {
-        const c = await ensureCustomer();
-        customerId = c.customerId;
-      } catch {
-        /* saving methods is optional — continue checkout regardless */
-      }
+      // NOTE: Do NOT pass `customer_id` to Razorpay Checkout. Razorpay customer
+      // IDs (cust_xxx) are mode-specific — IDs created under the test account are
+      // invalid under live keys and trigger "Customer-id validation failed".
+      // Customer info is conveyed via `prefill` only.
+
 
       // Stable, public HTTPS logo hosted on Cloud storage. Razorpay fetches the
       // image server-side, so it must be reachable WITHOUT auth and regardless of
@@ -243,7 +241,7 @@ function CheckoutPage() {
         name: "FoundOurMarket™",
         description: "Secure Checkout",
         image: logoUrl,
-        ...(customerId ? { customer_id: customerId, save: 1 } : {}),
+        // No customer_id — see note above.
         prefill: {
           name: selectedAddress.full_name,
           email: user.email ?? undefined,
@@ -316,6 +314,9 @@ function CheckoutPage() {
         method: (rzpOptions as { method?: unknown }).method ?? "none (account defaults)",
         "config.display": (rzpOptions as { config?: unknown }).config ?? "none (Razorpay adaptive UPI)",
       });
+
+      // Final checkout payload (must contain NO customer_id; prefill only).
+      console.log("RAZORPAY_PAYLOAD", rzpOptions);
 
       const rzp = openRazorpay(rzpOptions);
 
