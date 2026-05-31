@@ -35,6 +35,30 @@ const STATUSES = [
   { key: "delivered", label: "Delivered", icon: CheckCircle2, hint: "Enjoy your order" },
 ] as const;
 
+// Map a shipment status (or order status fallback) onto the 5-step tracker.
+const SHIP_STEP: Record<string, number> = {
+  pending: 0,
+  paid: 1,
+  packed: 1,
+  shipped: 2,
+  in_transit: 2,
+  out_for_delivery: 3,
+  delivered: 4,
+};
+
+// Human labels for every shipment lifecycle status.
+const SHIP_LABEL: Record<string, string> = {
+  pending: "Pending",
+  packed: "Packed",
+  shipped: "Shipped",
+  in_transit: "In Transit",
+  out_for_delivery: "Out for Delivery",
+  delivered: "Delivered",
+  returned: "Returned",
+  cancelled: "Cancelled",
+  failed_delivery: "Failed Delivery",
+};
+
 const TRUST = [
   { icon: ShieldCheck, label: "Secure Tracking" },
   { icon: ShieldCheck, label: "Buyer Protection" },
