@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, Package, Search, ArrowRight, ArrowLeft, ShoppingBag, Bell,
-  Truck, CheckCircle2, Clock, RotateCcw, XCircle, ShieldCheck,
+  Truck, CheckCircle2, Clock, RotateCcw,
   X, HelpCircle, RefreshCw, MapPin, ChevronDown, AlertCircle, Wallet, CreditCard, Boxes,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
