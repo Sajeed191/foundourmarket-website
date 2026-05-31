@@ -3,11 +3,12 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import {
   X, Loader2, Package, Truck, MapPin, CheckCircle2, Clock, Boxes, RefreshCw,
-  ExternalLink, FileText, RotateCcw, LifeBuoy, MessageSquare, Bell, CreditCard,
-  ShieldCheck, AlertCircle, ChevronRight, Receipt, Download,
+  ExternalLink, RotateCcw, LifeBuoy, MessageSquare, Bell, CreditCard,
+  ShieldCheck, ChevronRight, Receipt, Download, Copy, Check, Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useIsAdmin } from "@/lib/use-admin";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { downloadInvoice } from "@/lib/invoice";
