@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle, Clock, Building2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import type { CountryCode } from "libphonenumber-js";
-import type { Address, AddressInput, AddressType } from "@/lib/use-addresses";
+import { addressCompleteness, type Address, type AddressInput, type AddressType } from "@/lib/use-addresses";
 import { validateIndianPincode } from "@/lib/address.functions";
 import { PhoneInput } from "@/components/site/PhoneInput";
 import { useRegion } from "@/lib/region";
@@ -114,6 +114,9 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
 
   const set = <K extends keyof AddressInput>(k: K, v: AddressInput[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
+
+  const completeness = useMemo(() => addressCompleteness(form), [form]);
+
 
   // Keep the country field aligned with the detected region until the user
   // edits it manually (Phase 1 / Phase 8: never strand an Indian user on GB).
@@ -479,6 +482,43 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         rows={2}
         className={`${base} border-border resize-none`}
       />
+
+      {/* Address completeness score */}
+      <div className="rounded-2xl border border-border bg-background/40 px-3.5 py-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Address quality
+          </span>
+          <span
+            className={`text-xs font-semibold tabular-nums ${
+              completeness.score >= 85 ? "text-emerald-400" : completeness.score >= 60 ? "text-accent" : "text-muted-foreground"
+            }`}
+          >
+            {completeness.score}%
+          </span>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              completeness.score >= 85 ? "bg-emerald-400" : "bg-accent"
+            }`}
+            style={{ width: `${completeness.score}%` }}
+          />
+        </div>
+        <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1">
+          {completeness.checks.map((c) => (
+            <span
+              key={c.label}
+              className={`inline-flex items-center gap-1 text-[10px] ${
+                c.ok ? "text-emerald-400" : "text-muted-foreground/60"
+              }`}
+            >
+              {c.ok ? <CheckCircle2 className="size-2.5" /> : <AlertCircle className="size-2.5" />}
+              {c.label}
+            </span>
+          ))}
+        </div>
+      </div>
 
       <div className="flex flex-wrap gap-x-6 gap-y-2 pt-0.5 text-xs text-muted-foreground">
         <label className="flex items-center gap-2 cursor-pointer">

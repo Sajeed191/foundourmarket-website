@@ -17,6 +17,8 @@ import { useRegion } from "@/lib/region";
 import { useAddresses, type Address } from "@/lib/use-addresses";
 import { useStoreSettings } from "@/lib/use-store-settings";
 import { AddressForm } from "@/components/site/AddressForm";
+import { SavedAddressRail } from "@/components/site/SavedAddressRail";
+import { SmartDeliveryCard } from "@/components/site/SmartDeliveryCard";
 import { createRazorpayOrder, verifyRazorpayPayment, cancelRazorpayOrder, placeCodOrder } from "@/lib/razorpay.functions";
 import { buildOrderAttribution } from "@/lib/marketing-tracking";
 import { createRazorpayCustomer, syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
@@ -420,68 +422,32 @@ function CheckoutPage() {
                     submitLabel="Save changes"
                   />
                 ) : (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {addresses.map((a) => {
-                      const meta = ADDRESS_META[a.address_type] ?? ADDRESS_META.other;
-                      const Icon = meta.icon;
-                      const active = selectedAddressId === a.id;
-                      return (
-                        <motion.button
-                          key={a.id} type="button" onClick={() => setSelectedAddressId(a.id)}
-                          whileTap={{ scale: 0.98 }}
-                          className={`relative text-left border rounded-2xl p-4 transition-all duration-300 ${active ? "border-accent bg-accent/[0.07] shadow-[0_0_0_1px_var(--color-accent),0_12px_30px_-12px_color-mix(in_oklab,var(--color-accent)_45%,transparent)]" : "border-white/10 hover:border-accent/40"}`}>
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className={`size-6 grid place-items-center rounded-lg ${active ? "bg-accent/15 text-accent" : "bg-white/[0.04] text-muted-foreground"}`}>
-                              <Icon className="size-3.5" />
-                            </span>
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-accent">{a.nickname || meta.label}</span>
-                            {a.is_default_shipping && (
-                              <span className="text-[9px] font-mono uppercase tracking-widest text-emerald-400 inline-flex items-center gap-1">
-                                <Star className="size-2.5 fill-current" /> Default
-                              </span>
-                            )}
-                            <AnimatePresence>
-                              {active && (
-                                <motion.span
-                                  initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
-                                  className="ml-auto text-accent">
-                                  <CheckCircle2 className="size-4" />
-                                </motion.span>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                          <p className="text-sm font-medium">{a.full_name}</p>
-                          <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                            {a.line1}{a.line2 ? `, ${a.line2}` : ""}<br />
-                            {a.city}{a.state ? `, ${a.state}` : ""} {a.postal}
-                          </p>
-                          <div className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] text-emerald-400">
-                            <PackageCheck className="size-3" /> Delivers {eta}
-                          </div>
-                          <div className="mt-3 flex items-center gap-3 text-[10px] uppercase tracking-widest text-muted-foreground">
-                            <span onClick={(e) => { e.stopPropagation(); setEditingId(a.id); }}
-                              className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer">
-                              <Pencil className="size-2.5" /> Edit
-                            </span>
-                            {!a.is_default_shipping && (
-                              <span onClick={(e) => { e.stopPropagation(); setDefaultShipping(a.id).catch(() => {}); }}
-                                className="inline-flex items-center gap-1 hover:text-emerald-400 transition-colors cursor-pointer">
-                                <Star className="size-2.5" /> Default
-                              </span>
-                            )}
-                            {addresses.length > 1 && (
-                              <span onClick={(e) => { e.stopPropagation(); removeAddress(a.id).catch(() => {}); }}
-                                className="inline-flex items-center gap-1 hover:text-destructive transition-colors cursor-pointer ml-auto">
-                                <Trash2 className="size-2.5" /> Delete
-                              </span>
-                            )}
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
+                  <SavedAddressRail
+                    addresses={addresses}
+                    selectedId={selectedAddressId}
+                    onSelect={setSelectedAddressId}
+                    onEdit={(id) => setEditingId(id)}
+                    onSetDefault={(id) => setDefaultShipping(id).catch(() => {})}
+                    onDelete={(id) => removeAddress(id).catch(() => {})}
+                    onAddNew={() => setAddingAddress(true)}
+                    eta={eta}
+                  />
                 )}
               </section>
+
+              {/* Smart delivery card for the selected address */}
+              {selectedAddress && !addingAddress && !editingId && (
+                <SmartDeliveryCard
+                  service={service}
+                  checking={serviceChecking}
+                  eta={eta}
+                  shippingLabel={shippingINR === 0 ? "FREE" : fmt(shippingINR)}
+                  codAvailable={!!settings.cod_enabled}
+                  city={service?.city ?? selectedAddress.city}
+                  postal={selectedAddress.postal}
+                />
+              )}
+
 
               {/* Payment method */}
               <section className="glass border border-white/10 rounded-2xl p-5 sm:p-6">

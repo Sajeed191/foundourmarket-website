@@ -36,10 +36,49 @@ export type AddressInput = Omit<
   "id" | "user_id" | "created_at" | "updated_at" | "last_used_at" | "use_count"
 >;
 
+/** Normalised fingerprint used to detect duplicate saved addresses. */
+export function addressFingerprint(a: {
+  line1?: string | null;
+  line2?: string | null;
+  postal?: string | null;
+  city?: string | null;
+}): string {
+  const norm = (s?: string | null) =>
+    (s ?? "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  return [norm(a.line1), norm(a.line2), norm(a.postal), norm(a.city)].join("|");
+}
+
+/** Address completeness score (0–100) with a per-field checklist. */
+export function addressCompleteness(a: {
+  full_name?: string | null;
+  phone?: string | null;
+  line1?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal?: string | null;
+  country?: string | null;
+}): { score: number; checks: { label: string; ok: boolean }[] } {
+  const checks = [
+    { label: "Name", ok: !!(a.full_name ?? "").trim() },
+    { label: "Phone", ok: !!(a.phone ?? "").trim() },
+    { label: "Address", ok: !!(a.line1 ?? "").trim() },
+    { label: "City", ok: !!(a.city ?? "").trim() },
+    { label: "State", ok: !!(a.state ?? "").trim() },
+    { label: "PIN", ok: !!(a.postal ?? "").trim() },
+    { label: "Country", ok: !!(a.country ?? "").trim() },
+  ];
+  const ok = checks.filter((c) => c.ok).length;
+  return { score: Math.round((ok / checks.length) * 100), checks };
+}
+
 export function useAddresses() {
   const { user } = useAuth();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
+
 
   const refresh = useCallback(async () => {
     if (!user) {
@@ -77,8 +116,20 @@ export function useAddresses() {
     };
   }, [user, refresh]);
 
+  /** Returns an existing address matching the same physical location, or null. */
+  const findDuplicate = useCallback(
+    (input: { line1?: string | null; line2?: string | null; postal?: string | null; city?: string | null }, ignoreId?: string) => {
+      const fp = addressFingerprint(input);
+      return addresses.find((a) => a.id !== ignoreId && addressFingerprint(a) === fp) ?? null;
+    },
+    [addresses],
+  );
+
   const create = async (input: AddressInput) => {
     if (!user) throw new Error("Not signed in");
+    if (findDuplicate(input)) {
+      throw new Error("You've already saved this address.");
+    }
     const { data, error } = await supabase
       .from("addresses")
       .insert({ ...input, user_id: user.id })
@@ -88,6 +139,7 @@ export function useAddresses() {
     await refresh();
     return data as Address;
   };
+
 
   const update = async (id: string, input: Partial<AddressInput>) => {
     const { error } = await supabase.from("addresses").update(input).eq("id", id);
@@ -145,6 +197,8 @@ export function useAddresses() {
     update,
     remove,
     duplicate,
+    findDuplicate,
+
     markUsed,
     setDefaultShipping,
     setDefaultBilling,
