@@ -463,7 +463,7 @@ function ProductPage() {
             {/* Trust grid */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-6 sm:pt-8 border-t border-border">
               {[
-                { icon: Truck, label: "Free shipping over $50" },
+                { icon: Truck, label: unitShipping <= 0 ? "Free shipping" : `Shipping ${format(unitShipping)}` },
                 { icon: RotateCcw, label: "7 Days Return" },
                 { icon: Shield, label: "Secure checkout" },
               ].map(({ icon: Icon, label }) => (
