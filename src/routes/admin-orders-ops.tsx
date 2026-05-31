@@ -200,10 +200,11 @@ function MonoRow({ k, v, copy }: { k: string; v: string | null | undefined; copy
   );
 }
 
-function OrderDrawer({ o, onClose }: { o: EnrichedOrder; onClose: () => void }) {
+function OrderDrawer({ o, onClose, onRefresh }: { o: EnrichedOrder; onClose: () => void; onRefresh: () => void }) {
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [bump, setBump] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -213,7 +214,7 @@ function OrderDrawer({ o, onClose }: { o: EnrichedOrder; onClose: () => void }) 
       .catch((e) => { if (alive) setErr(e instanceof Error ? e.message : "Failed to load detail"); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [o.id]);
+  }, [o.id, bump]);
 
   const a = (detail?.order.shipping_address ?? o.shipping_address ?? {}) as Record<string, string | undefined>;
   const pay = detail?.payment;
