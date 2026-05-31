@@ -303,46 +303,61 @@ function CheckoutPage() {
 
   const busy = stage === "processing" || stage === "verifying";
 
-  /* ---------- unified checkout state (single source of truth for the CTA) ---------- */
-  const addressSelected = !!selectedAddress;
-  const paymentMethodSelected = payMethod === "cod" ? !!settings.cod_enabled : true;
-  const serviceabilityStatus: "idle" | "checking" | "serviceable" | "service_down" | "not_serviceable" =
+  /* ---------- checkout readiness engine — single source of truth ---------- */
+  const serviceabilityStatus: DeliveryStatus =
     !selectedPostal ? "idle"
       : serviceChecking ? "checking"
         : serviceDown ? "service_down"
           : allowProceed ? "serviceable"
             : "not_serviceable";
 
-  // Why the order can't be placed yet (null = ready). Order matters: most blocking first.
-  const orderBlockedReason: string | null =
-    !addressSelected ? "Select or save a delivery address"
-      : !paymentMethodSelected ? "Choose a payment method"
-        : serviceabilityStatus === "checking" ? "Checking delivery availability…"
-          : serviceabilityStatus === "not_serviceable" ? (service?.message ?? "This address isn't serviceable yet")
-            : null;
+  const addressComplete = selectedAddress
+    ? addressCompleteness(selectedAddress).score >= 85
+    : false;
+  const paymentMethodSelected = payMethod === "cod" ? !!settings.cod_enabled : true;
+  const stockAvailable = detailed.every((i) => i.product.inStock !== false);
+  const sessionValid = !!user && reserveLeft > 0;
 
-  const checkoutReady = orderBlockedReason === null && !busy;
+  const checkoutState: CheckoutState = computeCheckoutState({
+    region: market,
+    addressSelected: !!selectedAddress,
+    addressComplete,
+    deliveryStatus: serviceabilityStatus,
+    deliveryMessage: service?.message,
+    paymentSelected: paymentMethodSelected,
+    stockAvailable,
+    cartValid: count > 0,
+    sessionValid,
+    regionVerified: true,
+    total: totalINR,
+    busy,
+    orderPlaced: stage === "success",
+  });
+
+  const { checkoutReady, blockedReason: orderBlockedReason } = checkoutState;
 
   const actionLabel = payMethod === "cod" ? "Place Order" : "Continue to Payment";
   const ctaLabel = busy
     ? (stage === "processing" ? "Opening payment…" : "Verifying…")
-    : !addressSelected ? "Select a delivery address"
-      : serviceabilityStatus === "checking" ? "Checking delivery…"
-        : serviceabilityStatus === "not_serviceable" ? "Not deliverable"
-          : actionLabel;
+    : checkoutReady ? actionLabel : (orderBlockedReason ?? actionLabel);
 
   // Checkout state debugging — surfaces exactly why the CTA is/ isn't actionable.
   useEffect(() => {
     if (stage !== "review") return;
     // eslint-disable-next-line no-console
-    console.debug("[checkout]", {
-      addressSelected,
-      paymentMethodSelected,
-      serviceabilityStatus,
-      checkoutReady,
-      orderBlockedReason,
-    });
-  }, [addressSelected, paymentMethodSelected, serviceabilityStatus, checkoutReady, orderBlockedReason, stage]);
+    console.debug("[checkout]", checkoutState);
+  }, [checkoutState, stage]);
+
+  // Funnel analytics — fire once per meaningful transition.
+  const firedRef = useRef<Set<string>>(new Set());
+  const fireOnce = (event: string, metadata?: Record<string, unknown>) => {
+    if (firedRef.current.has(event)) return;
+    firedRef.current.add(event);
+    import("@/lib/visitor").then((m) => m.trackEvent(event, { value: totalINR, metadata })).catch(() => {});
+  };
+  useEffect(() => { if (stage === "review") fireOnce("checkout_started"); }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (checkoutState.addressValid) fireOnce("address_selected"); }, [checkoutState.addressValid]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (checkoutState.deliveryVerified) fireOnce("delivery_verified"); }, [checkoutState.deliveryVerified]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Emergency fallback: if the primary sticky CTA ever fails to render on screen
   // (clipping, z-index, layout edge cases), show a floating button so a ready
