@@ -158,13 +158,13 @@ export async function processCourierScan(courier: CourierKey, scan: NormalizedSc
   if (status === "returned") patch.returned_at = now;
   if (status === "cancelled") patch.cancelled_at = now;
   if (scan.estimatedDelivery) { patch.estimated_delivery = scan.estimatedDelivery; patch.eta_source = "courier"; }
-  await supabaseAdmin.from("shipments").update(patch).eq("id", shipment.id);
+  await supabaseAdmin.from("shipments").update(patch as never).eq("id", shipment.id);
 
   // Mirror onto the order so the customer order view reflects reality.
   const orderPatch: Record<string, unknown> = { fulfillment_status: ORDER_FULFILLMENT[status] };
   if (status === "delivered") orderPatch.status = "delivered";
   if (status === "cancelled") orderPatch.status = "cancelled";
-  await supabaseAdmin.from("orders").update(orderPatch).eq("id", shipment.order_id);
+  await supabaseAdmin.from("orders").update(orderPatch as never).eq("id", shipment.order_id);
 
   // Automatic customer notification (service role; no manual admin action).
   const copy = NOTIFY[status];
