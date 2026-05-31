@@ -67,11 +67,10 @@ const TRUST = [
   { icon: MessageCircle, label: "24/7 Support" },
 ];
 
-const AI_INSIGHTS = [
-  { icon: Zap, text: "Your package may arrive earlier than expected." },
-  { icon: MapPin, text: "Driver is currently near your delivery zone." },
-  { icon: Sparkles, text: "High delivery success rate in your region." },
-];
+type ShipAddress = {
+  full_name?: string; phone?: string; line1?: string; line2?: string;
+  city?: string; state?: string; postal?: string; country?: string;
+} | null;
 
 const RECENT_KEY = "fom_recent_tracked";
 
