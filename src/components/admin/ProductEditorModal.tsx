@@ -30,6 +30,10 @@ export type ProductEditorRow = {
   cod_enabled?: boolean; pickup_supported?: boolean; international_shipping?: boolean; fragile?: boolean;
   return_eligible?: boolean; replacement_eligible?: boolean; return_window_days?: number;
   warranty?: string | null;
+  brand?: string | null; product_type?: string | null;
+  weight?: number | null; length?: number | null; width?: number | null; height?: number | null;
+  shipping_class?: string | null; video_url?: string | null; demo_url?: string | null;
+  new_arrival?: boolean;
 };
 
 type Category = { slug: string; name: string };
