@@ -705,8 +705,8 @@ function CheckoutPage() {
                   </div>
                 </motion.button>
 
-                <div className={`mt-3 w-full text-left border rounded-2xl p-4 transition-all duration-300 ${!settings.cod_enabled ? "opacity-50" : payMethod === "cod" ? "border-accent bg-accent/[0.07]" : "border-white/10"}`}>
-                  <button type="button" disabled={!settings.cod_enabled} onClick={() => setPayMethod("cod")}
+                <div className={`mt-3 w-full text-left border rounded-2xl p-4 transition-all duration-300 ${!codAllowed ? "opacity-50" : payMethod === "cod" ? "border-accent bg-accent/[0.07]" : "border-white/10"}`}>
+                  <button type="button" disabled={!codAllowed} onClick={() => setPayMethod("cod")}
                     className="w-full text-left disabled:cursor-not-allowed">
                     <div className="flex items-center gap-2.5">
                       <span className={`size-4 grid place-items-center rounded-full border ${payMethod === "cod" ? "border-accent" : "border-muted-foreground/40"}`}>
@@ -715,7 +715,7 @@ function CheckoutPage() {
                       <Truck className="size-4 text-muted-foreground" />
                       <span className="text-sm font-medium">Cash on Delivery</span>
                       <span className="ml-auto text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                        {settings.cod_enabled ? "Available" : "Unavailable"}
+                        {codAllowed ? "Available" : "Unavailable"}
                       </span>
                     </div>
                   </button>
