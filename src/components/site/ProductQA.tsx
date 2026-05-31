@@ -23,11 +23,15 @@ type ProfileMap = Record<string, { full_name: string | null; avatar_url: string 
 
 export function ProductQA({ productSlug }: { productSlug: string }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [items, setItems] = useState<Question[]>([]);
   const [profiles, setProfiles] = useState<ProfileMap>({});
   const [loading, setLoading] = useState(true);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem(draftKey(productSlug)) ?? "";
+  });
   const [busy, setBusy] = useState(false);
   const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
