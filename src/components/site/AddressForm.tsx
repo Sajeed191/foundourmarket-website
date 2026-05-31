@@ -434,12 +434,16 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           <input
             placeholder="Country *"
             value={form.country}
-            onChange={(e) => set("country", e.target.value)}
+            onChange={(e) => {
+              countryTouched.current = true;
+              set("country", e.target.value);
+            }}
             onBlur={() => markTouched("country")}
             className={cls("country")}
           />
           <Err k="country" />
         </div>
+
       </div>
 
       {/* City + State */}
