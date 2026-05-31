@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
+import { OrderDetailsDrawer } from "@/components/account/OrderDetailsDrawer";
 import { fetchPersonalizedSlugs, fetchTrendingSlugs } from "@/lib/personalization";
 
 export const Route = createFileRoute("/account_/orders")({
