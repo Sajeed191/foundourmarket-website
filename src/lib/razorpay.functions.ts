@@ -190,7 +190,11 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => createSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { supabase, userId, claims } = context as {
+      supabase: any;
+      userId: string;
+      claims?: { email?: string };
+    };
     const { keyId } = getRazorpayCreds();
 
     const resolution = await resolveRegion(supabase, userId);
@@ -237,6 +241,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
         shipping_address: addr,
         payment_method: "razorpay",
         payment_status: "pending",
+        contact_email: claims?.email ?? null,
         attribution_session_id: data.attribution?.session_id ?? null,
         attribution_utm: (data.attribution?.utm ?? {}) as never,
       })
