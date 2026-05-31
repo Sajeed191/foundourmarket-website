@@ -134,8 +134,15 @@ async function handleEvent(event: string, payload: any) {
           })
           .eq("id", existing.id);
       }
-      await enqueueOrderEmail(order.id, "order-confirmed");
-      await enqueueOrderEmail(order.id, "payment-verified");
+      try {
+        await enqueueOrderEmail(order.id, "order-confirmed");
+        await enqueueOrderEmail(order.id, "payment-verified");
+      } catch (emailErr: any) {
+        console.error("[razorpay-webhook] order email dispatch failed", {
+          orderId: order.id,
+          error: String(emailErr?.message ?? emailErr),
+        });
+      }
       break;
     }
 
