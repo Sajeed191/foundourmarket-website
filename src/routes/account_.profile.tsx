@@ -206,7 +206,7 @@ function EditProfilePage() {
 
   const validatePhone = (digits: string): string | null => {
     if (!digits) return null; // optional
-    if (DIGITS_ONLY.test(digits)) return "Only numbers are allowed";
+    if (HAS_NON_DIGIT.test(digits)) return "Only numbers are allowed";
     if (activeCC) {
       const parsed = parsePhoneNumberFromString(digits, activeCC);
       if (!parsed || !parsed.isValid()) return "Enter a valid phone number";
