@@ -207,6 +207,9 @@ function PaymentsInner() {
 
   return (
     <div className="space-y-6">
+      {/* Admin-only checkout region / currency debug */}
+      <CheckoutRegionDebug />
+
       {/* International payment gateway status */}
       <PaymentGatewayStatusCenter />
 
