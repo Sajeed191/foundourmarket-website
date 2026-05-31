@@ -469,7 +469,15 @@ export const placeCodOrder = createServerFn({ method: "POST" })
       claims?: { email?: string };
     };
 
-    const region = await resolveRegion(supabase, userId);
+    const codResolution = await resolveRegion(supabase, userId);
+    const region = codResolution.region;
+    console.log("[razorpay.placeCod] region resolved", {
+      user_id: userId,
+      detected_country: codResolution.detectedCountry,
+      detected_market: region,
+      confidence_score: codResolution.confidence,
+      pricing_source: codResolution.pricingSource,
+    });
     const priced = await repriceFromDb(supabase, region, data.items, data.promoCode);
     if (priced.totals.total < 1) {
       throw new Error("Order total is too low to process.");
