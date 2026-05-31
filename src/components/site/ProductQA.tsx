@@ -68,20 +68,74 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
       .then(({ data }) => setIsAdmin((data?.length ?? 0) > 0));
   }, [user]);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!user || !draft.trim()) return;
+  // Persist the in-progress question so it survives navigation/login.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (draft.trim()) localStorage.setItem(draftKey(productSlug), draft);
+    else localStorage.removeItem(draftKey(productSlug));
+  }, [draft, productSlug]);
+
+  // After the user signs in (returning from /auth) auto-continue a pending submit.
+  useEffect(() => {
+    if (!user || typeof window === "undefined") return;
+    if (localStorage.getItem(pendingKey(productSlug)) === "1") {
+      localStorage.removeItem(pendingKey(productSlug));
+      void insertQuestion();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, productSlug]);
+
+  async function insertQuestion() {
+    if (!user) return false;
+    const text = draft.trim();
+    if (!text) return false;
+    if (busy) return false; // guard against double submission
     setBusy(true);
     const { error } = await supabase.from("product_questions").insert({
       product_slug: productSlug,
       user_id: user.id,
-      question: draft.trim(),
+      question: text,
     });
     setBusy(false);
-    if (!error) {
-      setDraft("");
-      load();
+    if (error) {
+      console.error("[ProductQA] question insert failed", {
+        productSlug,
+        userId: user.id,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      });
+      toast.error("Couldn't submit your question. Please try again.");
+      return false;
     }
+    setDraft("");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(draftKey(productSlug));
+      localStorage.removeItem(pendingKey(productSlug));
+    }
+    toast.success("Your question was submitted.");
+    await load();
+    return true;
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    if (!draft.trim()) {
+      toast.error("Please type a question first.");
+      return;
+    }
+    if (!user) {
+      // Preserve the question and continue after authentication.
+      if (typeof window !== "undefined") {
+        localStorage.setItem(draftKey(productSlug), draft);
+        localStorage.setItem(pendingKey(productSlug), "1");
+      }
+      toast.message("Sign in to post your question — we'll keep your draft.");
+      navigate({ to: "/auth" });
+      return;
+    }
+    await insertQuestion();
   }
 
   async function postAnswer(id: string) {
@@ -91,17 +145,26 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
       .from("product_questions")
       .update({ answer: text, answered_by: user.id, answered_at: new Date().toISOString() })
       .eq("id", id);
-    if (!error) {
-      setAnswerDrafts((d) => ({ ...d, [id]: "" }));
-      setEditingId(null);
-      load();
+    if (error) {
+      console.error("[ProductQA] answer update failed", { id, code: error.code, message: error.message });
+      toast.error("Couldn't post the answer.");
+      return;
     }
+    setAnswerDrafts((d) => ({ ...d, [id]: "" }));
+    setEditingId(null);
+    toast.success("Answer posted.");
+    await load();
   }
 
   async function remove(id: string) {
     if (!confirm("Delete this question?")) return;
-    await supabase.from("product_questions").delete().eq("id", id);
-    load();
+    const { error } = await supabase.from("product_questions").delete().eq("id", id);
+    if (error) {
+      console.error("[ProductQA] delete failed", { id, code: error.code, message: error.message });
+      toast.error("Couldn't delete the question.");
+      return;
+    }
+    await load();
   }
 
   async function saveQuestion(id: string) {
