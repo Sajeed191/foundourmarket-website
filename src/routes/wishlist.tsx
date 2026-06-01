@@ -536,6 +536,79 @@ function WishlistPage() {
   );
 }
 
+function CollectionPicker({
+  count,
+  onSubmit,
+}: {
+  count: number;
+  onSubmit: (name: string) => void;
+}) {
+  const [name, setName] = useState("");
+  const [existing, setExisting] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const store = JSON.parse(localStorage.getItem("wishlist_collections") || "{}");
+      setExisting(Object.keys(store));
+    } catch {
+      setExisting([]);
+    }
+  }, []);
+
+  return (
+    <div>
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="size-10 grid place-items-center rounded-xl bg-accent/15 border border-accent/30 text-accent">
+          <Layers className="size-5" />
+        </div>
+        <div>
+          <h3 className="text-base font-display font-semibold leading-none">Move to collection</h3>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {count} item{count > 1 ? "s" : ""} selected
+          </p>
+        </div>
+      </div>
+
+      {existing.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {existing.map((c) => (
+            <button
+              key={c}
+              onClick={() => onSubmit(c)}
+              className="rounded-full border border-border px-3 py-1.5 text-[11px] font-bold hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit(name);
+        }}
+        className="flex items-center gap-2"
+      >
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="New collection name"
+          className="flex-1 rounded-full bg-background border border-border px-4 py-2.5 text-sm outline-none focus:border-accent/50"
+        />
+        <button
+          type="submit"
+          disabled={!name.trim()}
+          className="shrink-0 rounded-full bg-accent text-accent-foreground px-5 py-2.5 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 transition-all shadow-[var(--shadow-ember)] disabled:opacity-40"
+        >
+          Save
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
 function InsightCard({
   icon,
   label,
