@@ -545,3 +545,117 @@ export function trackBadgeClick(badgeTypeId: string, slug: string) {
     .from("badge_events")
     .insert({ badge_type_id: badgeTypeId, product_slug: slug, event_type: "click" } as never);
 }
+
+export function trackBadgeImpression(badgeTypeId: string, slug: string) {
+  if (typeof window === "undefined") return;
+  void supabase
+    .from("badge_events")
+    .insert({ badge_type_id: badgeTypeId, product_slug: slug, event_type: "impression" } as never);
+}
+
+// ---- Analytics dashboard data ----
+export type BadgeStat = {
+  badge: BadgeType;
+  impressions: number;
+  clicks: number;
+  ctr: number; // 0..1
+  products: number;
+};
+
+export type BadgeAnalytics = {
+  totalImpressions: number;
+  totalClicks: number;
+  avgCtr: number;
+  activeBadges: number;
+  totalAssignments: number;
+  perBadge: BadgeStat[];
+  series: { date: string; impressions: number; clicks: number }[];
+  topProducts: { slug: string; clicks: number }[];
+};
+
+/** Loads aggregated badge analytics for the last `days` days. */
+export async function loadBadgeAnalytics(days = 30): Promise<BadgeAnalytics> {
+  const since = new Date(Date.now() - days * 86400000);
+  const sinceIso = since.toISOString();
+
+  const [snap, evRes, asgRes] = await Promise.all([
+    load(),
+    supabase
+      .from("badge_events")
+      .select("badge_type_id, product_slug, event_type, created_at")
+      .gte("created_at", sinceIso)
+      .limit(50000),
+    supabase.from("product_badges").select("badge_type_id, product_slug"),
+  ]);
+
+  const events = (evRes.data ?? []) as {
+    badge_type_id: string; product_slug: string; event_type: string; created_at: string;
+  }[];
+  const assignments = (asgRes.data ?? []) as { badge_type_id: string; product_slug: string }[];
+
+  const clicksByBadge = new Map<string, number>();
+  const imprByBadge = new Map<string, number>();
+  const clicksByProduct = new Map<string, number>();
+  const dayBuckets = new Map<string, { impressions: number; clicks: number }>();
+
+  // seed day buckets so the chart has continuous days
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    dayBuckets.set(d, { impressions: 0, clicks: 0 });
+  }
+
+  let totalClicks = 0;
+  let totalImpressions = 0;
+  for (const e of events) {
+    const day = e.created_at.slice(0, 10);
+    const bucket = dayBuckets.get(day) ?? { impressions: 0, clicks: 0 };
+    if (e.event_type === "click") {
+      totalClicks++;
+      clicksByBadge.set(e.badge_type_id, (clicksByBadge.get(e.badge_type_id) ?? 0) + 1);
+      clicksByProduct.set(e.product_slug, (clicksByProduct.get(e.product_slug) ?? 0) + 1);
+      bucket.clicks++;
+    } else {
+      totalImpressions++;
+      imprByBadge.set(e.badge_type_id, (imprByBadge.get(e.badge_type_id) ?? 0) + 1);
+      bucket.impressions++;
+    }
+    dayBuckets.set(day, bucket);
+  }
+
+  const productsByBadge = new Map<string, number>();
+  for (const a of assignments) {
+    productsByBadge.set(a.badge_type_id, (productsByBadge.get(a.badge_type_id) ?? 0) + 1);
+  }
+
+  const perBadge: BadgeStat[] = snap.types.map((badge) => {
+    const impressions = imprByBadge.get(badge.id) ?? 0;
+    const clicks = clicksByBadge.get(badge.id) ?? 0;
+    return {
+      badge,
+      impressions,
+      clicks,
+      ctr: impressions > 0 ? clicks / impressions : 0,
+      products: productsByBadge.get(badge.id) ?? 0,
+    };
+  }).sort((a, b) => b.clicks - a.clicks || b.products - a.products);
+
+  const series = Array.from(dayBuckets.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, v]) => ({ date, ...v }));
+
+  const topProducts = Array.from(clicksByProduct.entries())
+    .map(([slug, clicks]) => ({ slug, clicks }))
+    .sort((a, b) => b.clicks - a.clicks)
+    .slice(0, 8);
+
+  return {
+    totalImpressions,
+    totalClicks,
+    avgCtr: totalImpressions > 0 ? totalClicks / totalImpressions : 0,
+    activeBadges: snap.types.filter((t) => t.enabled && !t.archived).length,
+    totalAssignments: assignments.length,
+    perBadge,
+    series,
+    topProducts,
+  };
+}

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Heart, Plus, Minus, Check } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
@@ -8,7 +8,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminControls";
 import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { computeBadges } from "@/lib/badges";
-import { useProductBadges, trackBadgeClick, badgeAnimationClass } from "@/lib/use-product-badges";
+import { useProductBadges, trackBadgeClick, trackBadgeImpression, badgeAnimationClass } from "@/lib/use-product-badges";
 import { StarRating } from "@/components/site/StarRating";
 
 type DisplayBadge = {
@@ -51,6 +51,13 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
   const badgeSettings = useBadgeSettings();
   const assigned = useProductBadges(product.slug);
+  // Record a single impression per card for the admin-assigned badges shown.
+  const imprDone = useRef(false);
+  useEffect(() => {
+    if (imprDone.current || assigned.length === 0) return;
+    imprDone.current = true;
+    assigned.slice(0, 3).forEach((b) => b.id && trackBadgeImpression(b.id, product.slug));
+  }, [assigned, product.slug]);
   // Admin-assigned badges win; otherwise fall back to auto-computed badges.
   const badges: DisplayBadge[] = assigned.length
     ? assigned.map((b) => ({
