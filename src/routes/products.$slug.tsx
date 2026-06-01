@@ -580,6 +580,7 @@ function ProductPage() {
         <ProductQA productSlug={product.slug} />
       </div>
       <RelatedProducts product={product} />
+      <div aria-hidden className="sm:hidden h-[var(--product-page-bottom-clearance)]" />
       
 
       {/* Sticky mobile purchase dock — only mounts once the page is fully
