@@ -292,7 +292,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
         {/* Price + ADD — pinned to the bottom with a subtle divider so it aligns across all cards */}
         <div className="mt-auto pt-2.5 border-t border-white/[0.07] flex items-center justify-between gap-2">
-          <div class="min-w-0">
+          <div className="min-w-0">
             <Price value={price} className={`font-display font-semibold tabular-nums leading-none block ${compact ? "text-sm" : "text-base sm:text-lg"}`} />
             {originalPrice && discount ? (
               <Price value={originalPrice} className={`font-mono text-muted-foreground/60 line-through tabular-nums block ${compact ? "text-[9px] mt-0.5" : "text-[10px] mt-1"}`} />
