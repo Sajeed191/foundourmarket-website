@@ -671,6 +671,28 @@ function ProductCard({
   );
 }
 
+function ProductBadgeStrip({ slug, onManage }: { slug: string; onManage: () => void }) {
+  const badges = useProductBadges(slug);
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+      {badges.slice(0, 3).map((b) => (
+        <span key={b.id}
+          className={`inline-flex items-center gap-1 px-1.5 min-h-[20px] text-[9px] font-bold font-mono leading-none tracking-wider ${badgeAnimationClass(b.animation)}`}
+          style={{ backgroundColor: b.backgroundColor || b.color, color: b.textColor, borderRadius: `${b.radius}px`, border: b.borderColor ? `1px solid ${b.borderColor}` : undefined }}>
+          {b.emoji && <span aria-hidden>{b.emoji}</span>}{b.label}
+        </span>
+      ))}
+      {badges.length > 3 && (
+        <span className="inline-flex items-center rounded-md bg-white/10 px-1.5 min-h-[20px] text-[9px] font-mono font-bold text-muted-foreground">+{badges.length - 3}</span>
+      )}
+      <button onClick={onManage}
+        className="inline-flex items-center gap-1 rounded-full border border-white/10 px-2 min-h-[20px] text-[9px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent hover:border-accent/40">
+        <Tag className="size-2.5" /> {badges.length ? "Manage" : "Add badge"}
+      </button>
+    </div>
+  );
+}
+
 function Metric({ icon: Icon, label, value }: { icon: typeof Eye; label: string; value: string }) {
   return (
     <div className="rounded-lg bg-white/[0.02] border border-white/5 px-2 py-1.5">
