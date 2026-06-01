@@ -118,7 +118,9 @@ function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 product-page-clearance lg:pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 pb-8 lg:pb-16">
+      {/* Bottom safe-area clearance for the fixed checkout dock lives on the
+          shared footer, so the content ends ~32px above the footer with no gap. */}
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex items-end justify-between gap-4 flex-wrap">
