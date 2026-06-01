@@ -224,7 +224,9 @@ function BadgeManagerInner() {
             >
               <div className="pointer-events-none absolute -top-6 -right-5 size-16 rounded-full opacity-30" style={{ background: "var(--gradient-ember-soft)", filter: "blur(16px)" }} />
               <k.icon className="size-4 text-accent mb-2" />
-              <p className="text-lg font-display tabular-nums leading-none truncate">{k.value}</p>
+              <p className="text-lg font-display tabular-nums leading-none truncate">
+                {k.num != null ? <Counter value={k.num} suffix={k.suffix} /> : k.value}
+              </p>
               <p className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80 mt-2">{k.label}</p>
             </motion.div>
           ))}
@@ -241,6 +243,26 @@ function BadgeManagerInner() {
           <Plus className="size-3.5" /> New badge
         </button>
       </div>
+
+      {/* Category filters + archived toggle */}
+      <div className="flex flex-wrap items-center gap-2">
+        {categories.map((c) => (
+          <button
+            key={c}
+            onClick={() => setCategoryFilter(c)}
+            className={`px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider border transition-colors ${categoryFilter === c ? "bg-accent text-accent-foreground border-accent" : "border-white/10 text-muted-foreground hover:bg-white/5"}`}
+          >
+            {c}
+          </button>
+        ))}
+        <button
+          onClick={() => setShowArchived((v) => !v)}
+          className={`ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider border transition-colors ${showArchived ? "bg-white/10 text-foreground border-white/20" : "border-white/10 text-muted-foreground hover:bg-white/5"}`}
+        >
+          <Archive className="size-3" /> {showArchived ? "Archived" : "Active"}
+        </button>
+      </div>
+
 
       {/* Catalog grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
