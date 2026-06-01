@@ -7,6 +7,7 @@ import { useCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
+import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Slider } from "@/components/ui/slider";
 
