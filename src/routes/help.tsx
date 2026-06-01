@@ -162,6 +162,8 @@ function StatusBanner() {
 
 // ------- Support Contacts -------
 function SupportContacts() {
+  const { settings } = useSupportSettings();
+  const whatsappNumbers = settings.whatsappNumbers;
   const [waOpen, setWaOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
