@@ -15,6 +15,7 @@ import { RegionProvider } from "@/lib/region";
 import { CartProvider } from "@/lib/cart";
 import { AuthProvider } from "@/lib/auth";
 import { WishlistProvider } from "@/lib/wishlist";
+import { WishlistAlertsProvider } from "@/lib/wishlist-alerts";
 import { NotificationsProvider } from "@/lib/notifications";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
@@ -178,6 +179,7 @@ function RootComponent() {
         <NotificationsProvider>
           <WishlistProvider>
             <RegionProvider>
+              <WishlistAlertsProvider>
               <CartProvider>
                 <AdminModeProvider>
                  <CommandCenterProvider>
@@ -200,6 +202,7 @@ function RootComponent() {
                  </CommandCenterProvider>
                 </AdminModeProvider>
               </CartProvider>
+              </WishlistAlertsProvider>
             </RegionProvider>
           </WishlistProvider>
         </NotificationsProvider>
