@@ -7,6 +7,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminControls";
 import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { computeBadges } from "@/lib/badges";
+import { StarRating } from "@/components/site/StarRating";
 
 
 export function ProductCard({ product, compact }: { product: Product; compact?: boolean }) {
