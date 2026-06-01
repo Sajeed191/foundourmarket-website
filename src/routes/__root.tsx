@@ -169,6 +169,7 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => { registerServiceWorker(); }, []);
+  useEffect(() => { preloadCrisp(); }, []);
   useEffect(() => {
     trackPageView(pathname);
     void captureAttribution();
