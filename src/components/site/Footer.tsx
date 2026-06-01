@@ -47,7 +47,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="relative px-4 sm:px-6 pt-5 mobile-page-clearance sm:pt-6 md:py-6 border-t border-border bg-background overflow-hidden">
+    <footer className="relative px-4 sm:px-6 pt-4 mobile-page-clearance sm:pt-4 md:py-4 border-t border-border bg-background overflow-hidden">
       {/* Ambient divider glow */}
       <div aria-hidden className="pointer-events-none absolute -top-px left-1/2 -translate-x-1/2 w-[70%] h-px" style={{ background: "linear-gradient(90deg, transparent, var(--color-accent), transparent)", opacity: 0.6 }} />
       <div aria-hidden className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[70%] h-32 opacity-40" style={{ background: "var(--gradient-ember-soft)", filter: "blur(70px)" }} />
