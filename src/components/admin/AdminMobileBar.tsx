@@ -162,7 +162,7 @@ export function AdminMobileBar() {
       <nav
         data-app-bottom-nav
         aria-label="Admin mobile navigation"
-        className="lg:hidden fixed inset-x-0 bottom-0 z-50 h-[var(--mobile-nav-clearance)] px-[max(1rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none print:hidden"
+        className="lg:hidden fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] h-[var(--mobile-nav-clearance)] px-[max(1rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none print:hidden"
       >
         <div
           aria-hidden

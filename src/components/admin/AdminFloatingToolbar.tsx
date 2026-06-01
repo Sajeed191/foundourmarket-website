@@ -81,7 +81,7 @@ export function AdminFloatingToolbar() {
   if (loading || !isAdmin) return null;
 
   return (
-    <div className="fixed bottom-24 right-3 z-[60] md:bottom-6 md:right-6 print:hidden">
+    <div data-floating-control className="fixed right-3 z-[var(--z-floating-controls)] bottom-[var(--floating-bottom-offset)] md:bottom-6 md:right-6 print:hidden">
       <AnimatePresence>
         {open && (
           <motion.div

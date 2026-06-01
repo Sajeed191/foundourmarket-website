@@ -69,13 +69,13 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
     const viewportHeight = Math.round(document.documentElement.clientHeight || window.innerHeight);
     const safeBottom = readCssPx("--mobile-safe-bottom");
     const headerHeight = visibleHeight("[data-app-header]");
-    // The bottom nav clearance is a FIXED CSS constant (base chrome 6rem + safe-area
+    // The bottom nav clearance is a FIXED CSS constant (base chrome 6.5rem + safe-area
     // inset). We intentionally do NOT measure the rendered nav or override
     // --app-bottom-nav-height — measuring caused the navbar to change height / shift
     // after product data loaded and differed per device. Keeping it constant means
     // the navbar is identical before and after hydration, on every page and refresh.
     const rootFontPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-    const bottomNavHeight = rootFontPx * 6 + safeBottom;
+    const bottomNavHeight = rootFontPx * 6.5 + safeBottom;
     const ctaHeight = ctaRef.current?.getBoundingClientRect().height || expectedCtaHeightRef.current;
     const contentHeight = Math.max(0, viewportHeight - headerHeight - bottomNavHeight - ctaHeight);
 
