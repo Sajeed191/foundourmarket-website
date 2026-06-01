@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ThreadSheet } from "@/routes/account_.support";
 import { notifySupportEvent } from "@/lib/support.functions";
+import { useSupportSettings, updateSupportSettings, type SupportStatusMode } from "@/lib/use-support-settings";
 import { suggestSupportReply } from "@/lib/support-ai.functions";
 import { refundActionFn, returnActionFn } from "@/lib/support-actions.functions";
 import {
