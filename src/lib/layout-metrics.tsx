@@ -132,8 +132,9 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
     schedule();
     window.addEventListener("resize", schedule, { passive: true });
     window.addEventListener("orientationchange", schedule, { passive: true });
-    window.visualViewport?.addEventListener("resize", schedule, { passive: true });
-    window.visualViewport?.addEventListener("scroll", schedule, { passive: true });
+    // NOTE: intentionally NOT listening to window.visualViewport resize/scroll.
+    // Those fire on pinch-zoom and address-bar scaling and would make the layout
+    // zoom-dependent. Layout must stay fixed relative to the layout viewport.
 
     const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
     resizeObserver?.observe(document.body);
