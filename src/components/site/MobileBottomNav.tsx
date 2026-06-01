@@ -32,7 +32,7 @@ export function MobileBottomNav() {
     <nav
       data-app-bottom-nav
       aria-label="Primary mobile navigation"
-      className="md:hidden fixed inset-x-0 bottom-0 z-40 px-[max(0.75rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
+      className="md:hidden fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] px-[max(0.75rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
     >
       <div
         aria-hidden
