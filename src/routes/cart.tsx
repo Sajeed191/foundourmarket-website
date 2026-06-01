@@ -315,7 +315,6 @@ function CartPage() {
                   <Row label={promo?.label ?? "Discount applied"} value={`−${format(discount)}`} accent />
                 )}
                 <Row label="Shipping" value={shipping === 0 ? "Free" : format(shipping)} />
-                <Row label="Tax (est.)" value={format(tax)} />
                 {ship?.etaIso && (
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <dt className="inline-flex items-center gap-1"><Clock className="size-3" /> Est. delivery</dt>
