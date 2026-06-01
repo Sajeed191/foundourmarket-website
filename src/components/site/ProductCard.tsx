@@ -252,16 +252,20 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
           <p className={`text-muted-foreground/70 capitalize truncate ${compact ? "text-[8px] mt-0.5" : "text-[11px] mt-0.5"}`}>{product.category.replace(/-/g, " ")}</p>
         ) : null}
 
-        {/* Rating row */}
-        <div className={`flex items-center font-mono text-muted-foreground min-w-0 ${compact ? "mt-1 text-[9px] min-h-[14px]" : "mt-1.5 text-[10px] min-h-[16px]"}`}>
+        {/* Social proof — stars + value on one row, review count beneath for cleaner hierarchy */}
+        <div className={`flex flex-col justify-center min-w-0 ${compact ? "mt-1 min-h-[26px]" : "mt-1.5 min-h-[30px]"}`}>
           {product.reviews > 0 ? (
-            <StarRating
-              rating={product.rating}
-              count={product.reviews}
-              showValue
-              starClassName={compact ? "size-2.5" : "size-3"}
-              textClassName={compact ? "text-[9px]" : "text-[10px]"}
-            />
+            <>
+              <StarRating
+                rating={product.rating}
+                showValue
+                starClassName={compact ? "size-2.5" : "size-3"}
+                textClassName={compact ? "text-[9px]" : "text-[10px]"}
+              />
+              <span className={`font-mono text-muted-foreground/70 ${compact ? "text-[8px] mt-0.5" : "text-[9px] mt-0.5"}`}>
+                {product.reviews.toLocaleString()} Reviews
+              </span>
+            </>
           ) : (
             <span className={`font-mono uppercase tracking-wider text-emerald-400/90 ${compact ? "text-[8px]" : "text-[9px]"}`}>
               New Product
