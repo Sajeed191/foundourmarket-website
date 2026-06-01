@@ -401,52 +401,125 @@ function WishlistPage() {
         </>
       )}
 
-      {/* Floating bulk-action bar — sits above the bottom navigation, never overlaps it */}
+      {/* Floating selection toolbar — floats above the bottom nav, never overlaps it */}
       {selectMode && selected.size > 0 && (
         <div
           className="fixed inset-x-0 z-40 flex justify-center px-3 pointer-events-none"
-          style={{ bottom: "calc(96px + env(safe-area-inset-bottom, 0px))" }}
+          style={{
+            bottom:
+              "calc(env(safe-area-inset-bottom, 0px) + 16px + var(--wishlist-nav-offset, 86px))",
+          }}
         >
           <div
-            className="pointer-events-auto w-full max-w-3xl rounded-[20px] border border-white/15 bg-background/70 backdrop-blur-2xl shadow-2xl shadow-black/60 p-3.5 animate-[slide-in-up_0.3s_cubic-bezier(0.16,1,0.3,1)]"
-            style={{ width: "calc(100% - 24px)" }}
+            className="pointer-events-auto w-full max-w-2xl rounded-[18px] border bg-background/65 backdrop-blur-xl shadow-[0_18px_50px_-12px_rgba(0,0,0,0.7),0_0_30px_-10px_var(--shadow-ember-color,oklch(0.74_0.19_49/0.45))] px-2.5 sm:px-3.5 animate-[slide-in-up_0.22s_cubic-bezier(0.16,1,0.3,1)]"
+            style={{
+              width: "calc(100% - 24px)",
+              minHeight: "60px",
+              borderColor: "rgba(255,255,255,0.08)",
+            }}
           >
-            {/* Top row: count · value · clear */}
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="min-w-0">
-                <p className="text-sm font-display font-semibold leading-none">
-                  {selected.size} of {filtered.length} selected
-                </p>
-                <p className="text-[11px] font-mono text-accent mt-1 tabular-nums">
-                  {format(selectedTotal)} total
-                </p>
-              </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 h-[60px]">
+              {/* Select all */}
               <button
-                onClick={exitSelect}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground hover:border-accent/40 transition-colors active:scale-95"
+                onClick={selectAll}
+                aria-label={allSelected ? "Clear selection" : "Select all"}
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 sm:px-3.5 h-9 text-[10px] uppercase tracking-widest font-bold hover:border-accent/40 transition-colors active:scale-95"
               >
-                <X className="size-3.5" /> Clear
+                <CheckSquare className="size-3.5" />
+                <span className="hidden sm:inline">{allSelected ? "Clear" : "All"}</span>
               </button>
-            </div>
 
-            {/* Bottom row: primary + secondary CTA */}
-            <div className="flex items-center gap-2">
+              {/* Count + clear */}
+              <div className="min-w-0 flex flex-col leading-none">
+                <span className="text-[13px] font-display font-semibold tabular-nums whitespace-nowrap">
+                  {selected.size} item{selected.size > 1 ? "s" : ""}
+                </span>
+                <button
+                  onClick={exitSelect}
+                  className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors text-left"
+                >
+                  Clear
+                </button>
+              </div>
+
+              <div className="flex-1 min-w-1" />
+
+              {/* Share */}
+              <button
+                onClick={shareSelected}
+                aria-label="Share selected"
+                className="shrink-0 grid place-items-center rounded-full border border-border size-9 text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors active:scale-90"
+              >
+                <Share2 className="size-4" />
+              </button>
+
+              {/* Move to collection */}
+              <button
+                onClick={() => setCollectionOpen(true)}
+                aria-label="Move to collection"
+                className="shrink-0 grid place-items-center rounded-full border border-border size-9 text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors active:scale-90"
+              >
+                <Layers className="size-4" />
+              </button>
+
+              {/* Remove */}
+              <button
+                onClick={() => setConfirmRemove(true)}
+                aria-label="Remove selected"
+                className="shrink-0 grid place-items-center rounded-full border border-border size-9 text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors active:scale-90"
+              >
+                <Trash2 className="size-4" />
+              </button>
+
+              {/* Add to cart (primary) */}
               <button
                 onClick={addSelectedToCart}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-accent text-accent-foreground px-5 py-3 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 transition-all shadow-[var(--shadow-ember)] active:scale-95"
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground px-3 sm:px-4 h-9 text-[10px] uppercase tracking-widest font-bold hover:brightness-110 transition-all shadow-[var(--shadow-ember)] active:scale-95"
               >
-                <ShoppingBag className="size-3.5" /> Add to cart
-              </button>
-              <button
-                onClick={removeSelected}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-5 py-3 text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors active:scale-95"
-              >
-                <Trash2 className="size-3.5" /> Remove
+                <ShoppingBag className="size-3.5" />
+                <span className="hidden xs:inline sm:inline">Add</span>
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Bulk remove confirmation */}
+      <Dialog open={confirmRemove} onOpenChange={setConfirmRemove}>
+        <DialogContent className="max-w-sm bg-card border-border">
+          <div className="text-center">
+            <div className="size-12 mx-auto mb-4 grid place-items-center rounded-full bg-destructive/15 border border-destructive/30 text-destructive">
+              <AlertTriangle className="size-5" />
+            </div>
+            <h3 className="text-lg font-display font-semibold">Remove {selected.size} item{selected.size > 1 ? "s" : ""}?</h3>
+            <p className="text-sm text-muted-foreground mt-1.5">
+              They'll be removed from your wishlist. You can always save them again later.
+            </p>
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                onClick={() => setConfirmRemove(false)}
+                className="flex-1 rounded-full border border-border py-3 text-[11px] uppercase tracking-widest font-bold hover:border-accent/40 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={removeSelected}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-destructive text-destructive-foreground py-3 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 transition-all"
+              >
+                <Trash2 className="size-3.5" /> Remove
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Move to collection */}
+      <Dialog open={collectionOpen} onOpenChange={setCollectionOpen}>
+        <DialogContent className="max-w-sm bg-card border-border">
+          <CollectionPicker count={selected.size} onSubmit={moveToCollection} />
+        </DialogContent>
+      </Dialog>
+
 
 
       {/* Quick View */}
