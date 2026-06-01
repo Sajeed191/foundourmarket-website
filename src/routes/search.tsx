@@ -7,6 +7,7 @@ import { useCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
+import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Slider } from "@/components/ui/slider";
 
@@ -260,7 +261,7 @@ function SearchPage() {
             <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <button
                 onClick={() => update({ cat: undefined })}
-                className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest transition-colors ${!search.cat ? "border-accent bg-accent/15 text-accent" : "border-border text-foreground hover:border-accent/60"}`}
+                className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest transition-all ${!search.cat ? "border-accent bg-accent/15 text-accent shadow-[0_0_18px_-4px_var(--accent)]" : "border-border text-foreground hover:border-accent/60"}`}
               >
                 All
               </button>
@@ -268,7 +269,7 @@ function SearchPage() {
                 <button
                   key={c.slug}
                   onClick={() => update({ cat: search.cat === c.slug ? undefined : c.slug })}
-                  className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest transition-colors ${search.cat === c.slug ? "border-accent bg-accent/15 text-accent" : "border-border text-foreground hover:border-accent/60"}`}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest transition-all ${search.cat === c.slug ? "border-accent bg-accent/15 text-accent shadow-[0_0_18px_-4px_var(--accent)]" : "border-border text-foreground hover:border-accent/60"}`}
                 >
                   {c.name}
                 </button>
@@ -277,21 +278,8 @@ function SearchPage() {
           </div>
         )}
 
-        {/* Trust strip */}
-        <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          {[
-            { icon: ShieldCheck, label: "Secure Payments" },
-            { icon: RefreshCw, label: "Easy Returns" },
-            { icon: BadgeCheck, label: "Verified Products" },
-            { icon: Globe, label: "Worldwide Shipping" },
-          ].map(({ icon: Icon, label }) => (
-            <div key={label} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card/40 px-3 py-2">
-              <Icon className="size-4 text-accent shrink-0" />
-              <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-muted-foreground truncate">{label}</span>
-            </div>
-          ))}
-        </div>
       </div>
+
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
@@ -391,6 +379,26 @@ function SearchPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Trust strip — moved below the products so listings appear higher on screen */}
+      <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        {[
+          { icon: ShieldCheck, label: "Secure Payments" },
+          { icon: RefreshCw, label: "Easy Returns" },
+          { icon: BadgeCheck, label: "Verified Products" },
+          { icon: Globe, label: "Worldwide Shipping" },
+        ].map(({ icon: Icon, label }) => (
+          <div key={label} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card/40 px-3 py-2">
+            <Icon className="size-4 text-accent shrink-0" />
+            <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-muted-foreground truncate">{label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Recently viewed — real per-user history, hides itself when empty */}
+      <div className="-mx-4 sm:-mx-6">
+        <RecentlyViewed />
       </div>
     </div>
   );
