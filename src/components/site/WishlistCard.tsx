@@ -176,7 +176,7 @@ export function WishlistCard({
           )}
 
           {/* Glassmorphism action buttons */}
-          <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5">
+          <div className="absolute top-2 right-2 flex flex-col gap-1.5">
             <button
               onClick={(e) => {
                 e.preventDefault();
