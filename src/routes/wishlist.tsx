@@ -454,7 +454,7 @@ function WishlistPage() {
 
 
           {/* Filters */}
-          <div className="-mx-4 sm:mx-0 mb-6 overflow-x-auto no-scrollbar">
+          <div className="-mx-4 sm:mx-0 mb-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex items-center gap-2 px-4 sm:px-0">
               {FILTERS.map((f) => {
                 const count =
@@ -464,27 +464,34 @@ function WishlistPage() {
                       ? insights.freeShip
                       : f.key === "out-of-stock"
                         ? insights.outOfStock
-                        : f.key === "in-stock"
-                          ? items.filter((p) => p.inStock).length
-                          : items.length;
+                        : f.key === "low-stock"
+                          ? insights.lowStock
+                          : f.key === "in-stock"
+                            ? items.filter((p) => p.inStock).length
+                            : f.key === "new-arrivals" || f.key === "recently-added"
+                              ? insights.recent
+                              : items.length;
                 const activeF = filter === f.key;
                 return (
                   <button
                     key={f.key}
                     onClick={() => setFilter(f.key)}
-                    className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[11px] uppercase tracking-widest font-bold transition-all ${
+                    className={`snap-start shrink-0 inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[11px] uppercase tracking-widest font-bold transition-all active:scale-95 ${
                       activeF
                         ? "border-accent text-accent bg-accent/10 shadow-[0_0_18px_-4px_var(--accent)]"
                         : "border-border text-muted-foreground hover:border-accent/40"
                     }`}
                   >
                     {f.label}
-                    <span className="font-mono opacity-70">{count}</span>
+                    {(count > 0 || activeF) && (
+                      <span className="font-mono opacity-70">{count}</span>
+                    )}
                   </button>
                 );
               })}
             </div>
           </div>
+
 
 
           {filtered.length === 0 ? (
