@@ -582,8 +582,10 @@ function ProductPage() {
       <RelatedProducts product={product} />
       
 
-      {/* Sticky mobile purchase dock */}
-      <div className="sm:hidden fixed inset-x-0 z-40 px-3" style={{ bottom: "var(--product-dock-bottom)" }}>
+      {/* Sticky mobile purchase dock — only mounts once the page is fully
+          initialized and the user has scrolled past the hero. */}
+      {showPurchaseDock && (
+      <div className="sm:hidden fixed inset-x-0 z-40 px-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300" style={{ bottom: "var(--product-dock-bottom)" }}>
         <div className="rounded-2xl p-1.5 flex items-center gap-1.5 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9)]" style={{ background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))", backdropFilter: "blur(32px) saturate(160%)", WebkitBackdropFilter: "blur(32px) saturate(160%)" }}>
           <button
             onClick={() => toggleWishlist(product.slug)}
