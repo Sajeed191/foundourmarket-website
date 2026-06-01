@@ -277,21 +277,8 @@ function SearchPage() {
           </div>
         )}
 
-        {/* Trust strip */}
-        <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          {[
-            { icon: ShieldCheck, label: "Secure Payments" },
-            { icon: RefreshCw, label: "Easy Returns" },
-            { icon: BadgeCheck, label: "Verified Products" },
-            { icon: Globe, label: "Worldwide Shipping" },
-          ].map(({ icon: Icon, label }) => (
-            <div key={label} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card/40 px-3 py-2">
-              <Icon className="size-4 text-accent shrink-0" />
-              <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-muted-foreground truncate">{label}</span>
-            </div>
-          ))}
-        </div>
       </div>
+
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
