@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
   useCallback,
   type ReactNode,
 } from "react";
@@ -47,6 +48,12 @@ type Ctx = {
   /** Dismiss the lightweight confirmation and open the full picker instead. */
   rejectDetectedRegion: () => void;
   loading: boolean;
+  /**
+   * True once the active currency is trustworthy and safe to paint. Stays false
+   * during SSR / first client render and while a first-time visitor's region is
+   * still being detected, so pricing renders a skeleton instead of flashing USD.
+   */
+  currencyReady: boolean;
   countryCode: string | null;
 
   /** Staff accounts bypass the region lock and can view both markets. */
@@ -134,7 +141,15 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   const lockFn = useServerFn(lockMarketRegion);
 
   // For guests / pre-selection we keep a suggested region so prices render.
-  const [market, setMarket] = useState<MarketRegion>("international");
+  // Lazily seed from any previously-stored choice so returning shoppers paint
+  // their correct currency on the very first frame instead of flashing USD.
+  const [market, setMarket] = useState<MarketRegion>(
+    () => getPreviousChoice() ?? "international",
+  );
+  // True when we already had a trustworthy region cached before any async work.
+  const hadCachedChoice = useRef(getPreviousChoice() !== null);
+  // Avoid SSR/client hydration mismatches: only trust the client region post-mount.
+  const [mounted, setMounted] = useState(false);
   const [locked, setLocked] = useState(false);
   const [needsSelection, setNeedsSelection] = useState(false);
   const [countryCode, setCountryCode] = useState<string | null>(null);
@@ -146,6 +161,9 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   const [vpnSuspected, setVpnSuspected] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Read any cached suggestion immediately (avoids flash on reload).
   useEffect(() => {
@@ -399,6 +417,11 @@ export function RegionProvider({ children }: { children: ReactNode }) {
 
   const currency: Currency = market === "india" ? "INR" : "USD";
   const symbol = currency === "INR" ? "₹" : "$";
+  // Currency is safe to paint once mounted AND either we had a cached region
+  // from the first frame or async detection/lock has settled. Admins (who can
+  // freely switch markets) are always ready.
+  const currencyReady = mounted && (hadCachedChoice.current || isAdmin || !loading);
+
   const USD_TO_INR = 83; // fallback only, for legacy rows missing region prices
 
   const priceOf = useCallback(
@@ -455,6 +478,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
         rejectDetectedRegion,
 
         loading,
+        currencyReady,
         countryCode,
         isAdmin,
         setPreviewMarket,

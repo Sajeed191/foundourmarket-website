@@ -95,7 +95,7 @@ export const Route = createFileRoute("/products/$slug")({
 function ProductPage() {
   const { slug } = Route.useParams();
   const { product, loading } = useProduct(slug);
-  const { format, priceOf, compareOf, shippingFeeOf } = useRegion();
+  const { format, priceOf, compareOf, shippingFeeOf, currencyReady } = useRegion();
   const { isProductAdmin: isAdmin } = useIsProductAdmin();
   const { add } = useCart();
   const { record } = useRecentlyViewed();
@@ -210,7 +210,7 @@ function ProductPage() {
         <div className="absolute -top-32 -left-24 size-[36rem] rounded-full opacity-50 animate-orb" style={{ background: "var(--gradient-ember-soft)", filter: "blur(110px)" }} />
         <div className="absolute top-1/3 -right-32 size-[34rem] rounded-full opacity-40 animate-orb" style={{ background: "var(--gradient-violet)", filter: "blur(120px)", animationDelay: "-8s" }} />
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-52 sm:pb-24 lg:pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-[calc(var(--product-dock-bottom)+5rem)] sm:pb-24 lg:pb-16">
         {/* Breadcrumb */}
         <nav className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6 sm:mb-8 truncate">
           <Link to="/" className="hover:text-foreground">Shop</Link>
@@ -354,9 +354,15 @@ function ProductPage() {
             <div aria-hidden className="h-px w-full mb-4 bg-gradient-to-r from-border/0 via-border/70 to-border/0" />
 
             <div className="flex items-baseline gap-3 sm:gap-4 mb-4 flex-wrap">
-              <span className="text-4xl sm:text-5xl font-display font-semibold tracking-tight text-gradient-ember tabular-nums">{format(effectivePrice)}</span>
-              {originalPrice && (
-                <span className="text-sm font-mono text-muted-foreground/60 line-through decoration-muted-foreground/40">{format(originalPrice)}</span>
+              {currencyReady ? (
+                <>
+                  <span className="text-4xl sm:text-5xl font-display font-semibold tracking-tight text-gradient-ember tabular-nums">{format(effectivePrice)}</span>
+                  {originalPrice && (
+                    <span className="text-sm font-mono text-muted-foreground/60 line-through decoration-muted-foreground/40">{format(originalPrice)}</span>
+                  )}
+                </>
+              ) : (
+                <span aria-hidden className="h-11 sm:h-12 w-40 rounded-xl bg-white/[0.06] animate-pulse" />
               )}
               {discountPct && (
                 <span className="animate-save text-[10px] font-mono font-bold uppercase tracking-widest bg-accent/15 text-accent px-2.5 py-1 rounded-full border border-accent/30">Save {discountPct}%</span>
@@ -551,7 +557,7 @@ function ProductPage() {
       
 
       {/* Sticky mobile purchase dock */}
-      <div className="sm:hidden fixed bottom-[calc(7rem+env(safe-area-inset-bottom))] inset-x-0 z-40 px-3">
+      <div className="sm:hidden fixed inset-x-0 z-40 px-3" style={{ bottom: "var(--product-dock-bottom)" }}>
         <div className="rounded-2xl p-1.5 flex items-center gap-1.5 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9)]" style={{ background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))", backdropFilter: "blur(32px) saturate(160%)", WebkitBackdropFilter: "blur(32px) saturate(160%)" }}>
           <button
             onClick={() => toggleWishlist(product.slug)}
@@ -562,7 +568,11 @@ function ProductPage() {
           </button>
           <div className="flex flex-col leading-none px-1 shrink-0">
             <span className="text-[8px] font-mono uppercase tracking-widest text-muted-foreground/70">Total</span>
-            <span className="text-base font-display font-semibold tabular-nums text-gradient-ember">{format(effectivePrice * qty)}</span>
+            {currencyReady ? (
+              <span className="text-base font-display font-semibold tabular-nums text-gradient-ember">{format(effectivePrice * qty)}</span>
+            ) : (
+              <span aria-hidden className="mt-0.5 h-4 w-14 rounded bg-white/[0.08] animate-pulse" />
+            )}
           </div>
           <button
             onClick={handleAdd}

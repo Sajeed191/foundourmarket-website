@@ -43,6 +43,14 @@
 :root {
   --radius: 1rem;
 
+  /* Mobile bottom-navigation clearance. The dock measures roughly 5.75rem of
+     chrome; we add the device safe-area inset so the sticky product action bar
+     always clears Android gesture/3-button bars, iPhone notch home indicators,
+     Safari/Chrome UI, WebView and PWA shells. */
+  --mobile-nav-clearance: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  /* Sticky product action bar sits one 16px gap above the bottom navigation. */
+  --product-dock-bottom: calc(var(--mobile-nav-clearance) + 1rem);
+
   /* Deep charcoal noir */
   --background: oklch(0.115 0.008 260);
   --foreground: oklch(0.985 0 0);
