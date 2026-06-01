@@ -183,19 +183,26 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
 
           <button
-            onClick={(e) => { e.preventDefault(); toggle(product.slug); }}
+            onClick={(e) => {
+              e.preventDefault();
+              toggle(product.slug);
+              if (!saved) {
+                setJustSaved(true);
+                window.setTimeout(() => setJustSaved(false), 600);
+              }
+            }}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
             className={`absolute grid place-items-center rounded-full backdrop-blur-xl border shadow-lg shadow-black/30 transition-all duration-300 active:scale-90 ${
               compact
                 ? "top-2 right-2 size-7"
                 : "top-2.5 right-2.5 size-8"
-            } ${
+            } ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""} ${
               saved
                 ? "bg-accent/25 border-accent text-accent scale-110"
                 : "bg-black/40 border-white/20 text-white hover:bg-accent/25 hover:border-accent hover:text-accent hover:scale-110"
             }`}
           >
-            <Heart className={`transition-all ${compact ? "size-2.5" : "size-3"} ${saved ? "fill-accent" : ""}`} />
+            <Heart className={`transition-all duration-300 ${compact ? "size-2.5" : "size-3"} ${saved ? "fill-accent scale-110" : ""}`} />
           </button>
 
           {/* Quick add — slides up on hover (desktop) */}
