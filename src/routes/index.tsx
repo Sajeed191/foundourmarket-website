@@ -469,7 +469,7 @@ function Home() {
                 to="/category/$slug"
                 params={{ slug: cat.slug }}
                 onClick={() => { void supabase.rpc("track_category_event", { _id: cat.id, _event: "click" }); }}
-                className={`group relative block aspect-square bg-card border border-border rounded-2xl overflow-hidden hover:border-accent/50 transition-all hover:-translate-y-1.5 hover:shadow-[0_24px_60px_-24px_oklch(0.74_0.19_49_/_0.45)] ${isProductAdmin && !cat.homepage_visible ? "opacity-50" : ""}`}
+                className={`group product-card-glass relative block aspect-square overflow-hidden hover:-translate-y-1.5 ${isProductAdmin && !cat.homepage_visible ? "opacity-50" : ""}`}
               >
                 {cat.image ? (
                   <img
