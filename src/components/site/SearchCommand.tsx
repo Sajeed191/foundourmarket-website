@@ -3,7 +3,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Search, X, TrendingUp, Clock, Tag, ArrowRight, Loader2, CornerDownLeft, ArrowUp, ArrowDown } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { useCategories } from "@/lib/use-categories";
-import { useRegion } from "@/lib/region";
 import { Price } from "@/components/site/Price";
 
 const TRENDING = ["Wireless headphones", "Leather jacket", "Ceramic mug", "Smart watch", "Linen shirt"];
