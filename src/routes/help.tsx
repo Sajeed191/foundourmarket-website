@@ -36,7 +36,6 @@ type FAQ = { q: string; a: string; cat: Category };
 type Category = "Orders" | "Shipping" | "Returns" | "Refunds" | "Payments" | "Warranty" | "Seller";
 
 const SUPPORT_EMAIL = "foundourmarket@gmail.com";
-const WHATSAPP_NUMBERS = ["+91 97458 44213", "+91 62820 88380", "+91 87144 59240"];
 
 const CATEGORIES: { key: Category | "All"; icon: any }[] = [
   { key: "All", icon: Sparkles },
