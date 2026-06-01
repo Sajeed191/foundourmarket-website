@@ -52,7 +52,7 @@ export function Footer() {
       <div aria-hidden className="pointer-events-none absolute -top-px left-1/2 -translate-x-1/2 w-[70%] h-px" style={{ background: "linear-gradient(90deg, transparent, var(--color-accent), transparent)", opacity: 0.6 }} />
       <div aria-hidden className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[70%] h-32 opacity-40" style={{ background: "var(--gradient-ember-soft)", filter: "blur(70px)" }} />
 
-      <div className="relative max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-5 sm:gap-6">
+      <div className="relative max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-x-5 gap-y-4 sm:gap-5">
         <div className="col-span-2 space-y-3">
           <div className="text-lg sm:text-xl font-display tracking-tighter font-semibold">
             FoundOurMarket<span className="text-accent">™</span>
