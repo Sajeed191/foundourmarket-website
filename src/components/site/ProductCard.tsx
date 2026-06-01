@@ -51,7 +51,7 @@ function badgePriority(key?: string, label?: string): number {
 
 
 export function ProductCard({ product, compact }: { product: Product; compact?: boolean }) {
-  const { format, priceOf, compareOf, shippingFeeOf } = useRegion();
+  const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const { add, items, setQty } = useCart();
   const { has, toggle } = useWishlist();
   const saved = has(product.slug);
