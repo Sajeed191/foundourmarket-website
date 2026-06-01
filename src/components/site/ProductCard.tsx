@@ -45,10 +45,17 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
   const badges: DisplayBadge[] = assigned.length
     ? assigned.map((b) => ({
         key: b.badgeKey,
+        id: b.id,
         label: b.label,
         emoji: b.emoji,
         color: b.color,
         textColor: b.textColor,
+        backgroundColor: b.backgroundColor,
+        borderColor: b.borderColor,
+        glowColor: b.glowColor,
+        iconColor: b.iconColor,
+        shadowStrength: b.shadowStrength,
+        radius: b.radius,
       }))
     : computeBadges(product, badgeSettings).map((b) => ({
         key: b.key,
