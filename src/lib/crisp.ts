@@ -263,6 +263,7 @@ export function closeCrispChat(): void {
   window.$crisp.push(["do", "chat:close"]);
   window.$crisp.push(["do", "chat:hide"]);
   ensureHideStyle();
+  hideBackButton();
   document.documentElement.setAttribute("data-crisp-hidden", "true");
 }
 
