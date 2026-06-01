@@ -209,13 +209,14 @@ function SearchPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const sort = search.sort ?? "relevance";
     (supabase.rpc as any)("search_products", {
       q: search.q ?? null,
       category_filter: search.cat ?? null,
       min_price: search.min ?? null,
       max_price: search.max ?? null,
       min_rating: search.rating ?? null,
-      sort_by: search.sort ?? "relevance",
+      sort_by: RPC_SORTS.has(sort) ? sort : "relevance",
       page_limit: 60,
       page_offset: 0,
     }).then(({ data }: { data: any[] | null }) => {
@@ -224,11 +225,13 @@ function SearchPage() {
       if (search.stock === "in") rows = rows.filter((p) => p.inStock);
       if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
       if (search.disc === "1") rows = rows.filter((p) => discountPercent(p.price, compareOf(p)) != null);
+      rows = applyClientSort(rows, sort, (p) => discountPercent(p.price, compareOf(p)) ?? 0);
       setResults(rows);
       setLoading(false);
     });
     return () => { cancelled = true; };
   }, [search.q, search.cat, search.min, search.max, search.sort, search.stock, search.rating, search.free, search.disc]);
+
 
   function update(patch: Partial<SearchParams>) {
     nav({ search: (prev: SearchParams) => ({ ...prev, ...patch }), replace: true });
