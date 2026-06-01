@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Heart,
-  Loader2,
   ShoppingBag,
   Trash2,
   CheckSquare,
@@ -14,6 +13,13 @@ import {
   Layers,
   Share2,
   AlertTriangle,
+  Star,
+  Eye,
+  Percent,
+  Tag,
+  Sparkles,
+  Flame,
+  Box,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
