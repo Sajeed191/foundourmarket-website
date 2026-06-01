@@ -9,7 +9,7 @@ import type { Product, ProductStatus } from "@/lib/products";
 import { resolveImage } from "@/lib/products";
 import { adminUpdateProduct } from "@/lib/admin-products.functions";
 import { invalidateProducts } from "@/lib/use-products";
-import { useBadgeCatalog, assignBadge, unassignBadge } from "@/lib/use-product-badges";
+import { ProductBadgeManager } from "@/components/admin/ProductBadgeManager";
 import { cn } from "@/lib/utils";
 
 const STATUSES: ProductStatus[] = [
