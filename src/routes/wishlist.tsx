@@ -526,6 +526,10 @@ function WishlistPage() {
         </>
       )}
 
+      {/* AI recommendation rails — lazy, mobile-first, hide when empty */}
+      <WishlistRecommendations wishlistSlugs={items.map((p) => p.slug)} />
+
+
       {/* Floating selection toolbar — floats above the bottom nav, never overlaps it */}
       {selectMode && selected.size > 0 && (
         <div
