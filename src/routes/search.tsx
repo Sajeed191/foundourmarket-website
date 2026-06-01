@@ -439,20 +439,23 @@ function SearchPage() {
         </div>
       </div>
 
-      {/* Trust strip — moved below the products so listings appear higher on screen */}
-      <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        {[
-          { icon: ShieldCheck, label: "Secure Payments" },
-          { icon: RefreshCw, label: "Easy Returns" },
-          { icon: BadgeCheck, label: "Verified Products" },
-          { icon: Globe, label: "Worldwide Shipping" },
-        ].map(({ icon: Icon, label }) => (
-          <div key={label} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card/40 px-3 py-2">
-            <Icon className="size-4 text-accent shrink-0" />
-            <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-muted-foreground truncate">{label}</span>
-          </div>
-        ))}
+      {/* Trust bar — compact premium chips in a single scrollable row */}
+      <div className="mt-10 -mx-4 sm:mx-0 px-4 sm:px-0">
+        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {[
+            { icon: ShieldCheck, label: "Secure Payments" },
+            { icon: RefreshCw, label: "Easy Returns" },
+            { icon: BadgeCheck, label: "Verified Products" },
+            { icon: Globe, label: "Worldwide Shipping" },
+          ].map(({ icon: Icon, label }) => (
+            <div key={label} className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border bg-card/40 px-3 py-1.5">
+              <Icon className="size-3.5 text-accent shrink-0" />
+              <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-muted-foreground whitespace-nowrap">{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
+
 
       {/* Recently viewed — real per-user history, hides itself when empty */}
       <div className="-mx-4 sm:-mx-6">
