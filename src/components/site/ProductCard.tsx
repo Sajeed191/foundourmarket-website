@@ -288,11 +288,6 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             Only {product.stockQuantity} left
           </p>
         )}
-        {!product.inStock && (
-          <p className={`font-mono uppercase tracking-wider text-muted-foreground ${compact ? "mt-0.5 text-[8px]" : "mt-1 text-[9px]"}`}>
-            Out of stock
-          </p>
-        )}
 
         {/* Price + ADD — pinned to the bottom with a subtle divider so it aligns across all cards */}
         <div className="mt-auto pt-2.5 border-t border-white/[0.07] flex items-center justify-between gap-2">
