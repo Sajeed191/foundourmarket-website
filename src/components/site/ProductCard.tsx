@@ -215,7 +215,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
         ) : null}
 
         {/* Rating row */}
-        <div className={`flex items-center font-mono text-muted-foreground min-w-0 ${compact ? "mt-1 text-[9px]" : "mt-1.5 text-[10px]"}`}>
+        <div className={`flex items-center font-mono text-muted-foreground min-w-0 ${compact ? "mt-1 text-[9px] min-h-[14px]" : "mt-1.5 text-[10px] min-h-[16px]"}`}>
           {product.reviews > 0 ? (
             <StarRating
               rating={product.rating}
