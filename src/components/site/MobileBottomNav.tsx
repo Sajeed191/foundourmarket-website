@@ -32,16 +32,15 @@ export function MobileBottomNav() {
     <nav
       data-app-bottom-nav
       aria-label="Primary mobile navigation"
-      className="md:hidden fixed inset-x-0 bottom-0 z-40 h-[var(--mobile-nav-clearance)] px-[max(1rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
+      className="md:hidden fixed inset-x-0 bottom-0 z-40 px-[max(0.75rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
     >
       <div
         aria-hidden
-        className="absolute inset-x-10 bottom-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] h-16 -z-10 blur-3xl opacity-45"
+        className="absolute inset-x-10 bottom-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] h-20 -z-10 blur-3xl opacity-45"
         style={{ background: "var(--gradient-ember-soft)" }}
       />
       <ul
-        className="pointer-events-auto relative grid h-[var(--mobile-nav-surface-height)] grid-cols-5 gap-0.5 rounded-[26px] px-2.5 py-2.5 ring-1 ring-white/[0.09] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.75),0_0_26px_-14px_oklch(0.74_0.19_49/0.4),inset_0_1px_0_oklch(1_0_0/0.08)] backdrop-blur-2xl backdrop-saturate-150"
-        style={{ background: "linear-gradient(180deg, rgba(22,13,9,0.62), rgba(10,6,4,0.78))" }}
+        className="pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 gap-0.5 rounded-2xl glass-strong ring-1 ring-white/10 shadow-[var(--shadow-float),0_0_60px_-22px_oklch(0.74_0.19_49/0.45)] px-2.5 py-2.5"
       >
         {items.map(({ to, label, icon: Icon, match, badge }) => {
           const active = match(pathname);
@@ -49,7 +48,7 @@ export function MobileBottomNav() {
             <li key={label} className="relative">
               <Link
                 to={to}
-                className={`relative flex flex-col items-center justify-center gap-1 py-2 rounded-2xl text-[10px] font-mono uppercase tracking-widest transition-colors ${
+                className={`relative flex h-full flex-col items-center justify-center gap-1.5 py-2 rounded-2xl text-[10px] font-mono uppercase tracking-widest transition-colors ${
                   active ? "text-accent-foreground" : "text-white/70 hover:text-white"
                 }`}
               >
