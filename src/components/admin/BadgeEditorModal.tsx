@@ -240,6 +240,31 @@ export function BadgeEditorModal({
             </label>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Subtitle (optional)</span>
+              <input
+                value={form.subtitle}
+                onChange={(e) => set("subtitle", e.target.value)}
+                placeholder="Ends tonight"
+                className="mt-1 w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Category</span>
+              <select
+                value={form.category}
+                onChange={(e) => set("category", e.target.value)}
+                className="mt-1 w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm"
+              >
+                {BADGE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                {!BADGE_CATEGORIES.includes(form.category as never) && form.category && (
+                  <option value={form.category}>{form.category}</option>
+                )}
+              </select>
+            </label>
+          </div>
+
           <label className="block">
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Description</span>
             <input
@@ -249,6 +274,27 @@ export function BadgeEditorModal({
               className="mt-1 w-full bg-white/5 border border-border rounded-lg px-3 py-2 text-sm"
             />
           </label>
+
+          {/* Typography + animation */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <label className="block">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground flex justify-between">Font size <span>{form.fontSize}px</span></span>
+              <input type="range" min={8} max={16} value={form.fontSize} onChange={(e) => set("fontSize", Number(e.target.value))} className="mt-2 w-full accent-[var(--accent)]" />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Font weight</span>
+              <select value={form.fontWeight} onChange={(e) => set("fontWeight", Number(e.target.value))} className="mt-1 w-full bg-white/5 border border-border rounded-lg px-2 py-2 text-xs">
+                {[400, 500, 600, 700, 800, 900].map((w) => <option key={w} value={w}>{w}</option>)}
+              </select>
+            </label>
+            <label className="block col-span-2 sm:col-span-1">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Animation</span>
+              <select value={form.animation} onChange={(e) => set("animation", e.target.value as BadgeAnimation)} className="mt-1 w-full bg-white/5 border border-border rounded-lg px-2 py-2 text-xs capitalize">
+                {BADGE_ANIMATIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </label>
+          </div>
+
 
           {/* Icon */}
           <div>
