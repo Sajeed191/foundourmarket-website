@@ -76,18 +76,18 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
           <div className={`absolute flex flex-col gap-1 items-start ${compact ? "top-2 left-2" : "top-2.5 left-2.5 gap-1.5"}`}>
-            {badges.map((b) => (
+            {badges.slice(0, 3).map((b) => (
               <span
                 key={b.key}
-                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider ${b.className}`}
+                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap ${b.className}`}
               >
                 <span aria-hidden>{b.emoji}</span>
                 {b.label}
               </span>
             ))}
             {discount ? (
-              <span className="bg-accent/90 text-accent-foreground text-[10px] font-bold font-mono px-2 py-0.5 rounded-full">
-                −{discount}%
+              <span className="bg-accent/90 text-accent-foreground text-[10px] font-bold font-mono px-2 py-0.5 rounded-full whitespace-nowrap">
+                SAVE {discount}%
               </span>
             ) : null}
           </div>
