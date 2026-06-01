@@ -114,17 +114,39 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
           {/* Bottom gradient for badges */}
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-          <div className={`absolute flex flex-col gap-1 items-start ${compact ? "top-2 left-2" : "top-2.5 left-2.5 gap-1.5"}`}>
-            {badges.slice(0, 3).map((b) => (
-              <span
-                key={b.key}
-                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className ?? ""}`}
-                style={b.color ? { backgroundColor: b.color, color: b.textColor } : undefined}
-              >
-                {b.emoji && <span aria-hidden>{b.emoji}</span>}
-                {b.label}
-              </span>
-            ))}
+          <div className={`absolute flex flex-col items-start ${compact ? "top-2 left-2 gap-1" : "top-2.5 left-2.5 gap-1.5"}`}>
+            {badges.slice(0, 3).map((b) => {
+              const bg = b.backgroundColor || b.color;
+              const styled = !b.className;
+              const shadow = b.shadowStrength
+                ? `0 ${Math.round(b.shadowStrength / 12)}px ${Math.round(b.shadowStrength / 4)}px -2px ${b.glowColor || bg || "rgba(0,0,0,0.4)"}`
+                : undefined;
+              return (
+                <span
+                  key={b.key}
+                  onClick={b.id ? () => trackBadgeClick(b.id!, product.slug) : undefined}
+                  className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 min-h-[18px] leading-none rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className ?? ""}`}
+                  style={
+                    styled
+                      ? {
+                          backgroundColor: bg,
+                          color: b.textColor,
+                          border: b.borderColor ? `1px solid ${b.borderColor}` : undefined,
+                          borderRadius: b.radius != null ? `${b.radius}px` : undefined,
+                          boxShadow: shadow,
+                        }
+                      : undefined
+                  }
+                >
+                  {b.emoji && (
+                    <span aria-hidden style={b.iconColor ? { color: b.iconColor } : undefined}>
+                      {b.emoji}
+                    </span>
+                  )}
+                  {b.label}
+                </span>
+              );
+            })}
             {badges.length > 3 && (
               <span className="inline-flex items-center text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider bg-black/60 text-white/90 backdrop-blur-md">
                 +{badges.length - 3}
