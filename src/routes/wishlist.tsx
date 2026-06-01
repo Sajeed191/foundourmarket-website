@@ -333,10 +333,34 @@ function WishlistPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
       <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">
-        Saved · {items.length}
+        Wishlist · {items.length} {items.length === 1 ? "Item" : "Items"}
       </p>
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
-        <h1 className="text-3xl md:text-5xl font-display font-semibold">Your Wishlist</h1>
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-8">
+        <div>
+          <h1 className="text-3xl md:text-5xl font-display font-semibold">Your Wishlist</h1>
+          {items.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+              <span className="text-sm">
+                <span className="font-display font-semibold tabular-nums">
+                  {format(insights.total)}
+                </span>{" "}
+                <span className="text-muted-foreground text-[11px] uppercase tracking-widest font-mono">
+                  Value
+                </span>
+              </span>
+              {insights.savings > 0 && (
+                <span className="text-sm text-emerald-400">
+                  <span className="font-display font-semibold tabular-nums">
+                    {format(insights.savings)}
+                  </span>{" "}
+                  <span className="text-[11px] uppercase tracking-widest font-mono opacity-80">
+                    Savings
+                  </span>
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         {items.length > 0 && (
           <div className="flex items-center gap-2">
             {selectMode && (
@@ -356,6 +380,15 @@ function WishlistPage() {
               {selectMode ? "Cancel" : "Select"}
             </button>
             <button
+              onClick={() => {
+                setSelected(new Set(items.map((p) => p.slug)));
+                shareSelected();
+              }}
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-[11px] uppercase tracking-widest font-bold hover:border-accent/40 transition-colors"
+            >
+              <Share2 className="size-3.5" /> Share
+            </button>
+            <button
               onClick={addAll}
               className="bg-accent text-accent-foreground font-bold px-5 py-2.5 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all inline-flex items-center gap-2 shadow-[var(--shadow-ember)]"
             >
@@ -364,6 +397,7 @@ function WishlistPage() {
           </div>
         )}
       </div>
+
 
       {items.length === 0 ? (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
