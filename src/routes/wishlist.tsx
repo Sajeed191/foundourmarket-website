@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Heart,
-  Loader2,
   ShoppingBag,
   Trash2,
   CheckSquare,
@@ -14,6 +13,13 @@ import {
   Layers,
   Share2,
   AlertTriangle,
+  Star,
+  Eye,
+  Percent,
+  Tag,
+  Sparkles,
+  Flame,
+  Box,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
@@ -21,7 +27,7 @@ import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
 import { useRegion } from "@/lib/region";
 import { supabase } from "@/integrations/supabase/client";
-import { type Product } from "@/lib/products";
+import { type Product, discountPercent } from "@/lib/products";
 import { WishlistCard } from "@/components/site/WishlistCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { StarRating } from "@/components/site/StarRating";
@@ -32,13 +38,34 @@ export const Route = createFileRoute("/wishlist")({
   component: WishlistPage,
 });
 
-type FilterKey = "all" | "in-stock" | "price-drops" | "free-shipping" | "out-of-stock";
+type FilterKey =
+  | "all"
+  | "in-stock"
+  | "price-drops"
+  | "free-shipping"
+  | "out-of-stock"
+  | "low-stock"
+  | "recently-added"
+  | "new-arrivals"
+  | "highest-discount"
+  | "lowest-price"
+  | "highest-price"
+  | "best-rated"
+  | "most-viewed";
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "all", label: "All" },
   { key: "in-stock", label: "In Stock" },
   { key: "price-drops", label: "Price Drops" },
   { key: "free-shipping", label: "Free Shipping" },
+  { key: "recently-added", label: "Recently Added" },
+  { key: "highest-discount", label: "Highest Discount" },
+  { key: "lowest-price", label: "Lowest Price" },
+  { key: "highest-price", label: "Highest Price" },
+  { key: "new-arrivals", label: "New Arrivals" },
+  { key: "best-rated", label: "Best Rated" },
+  { key: "low-stock", label: "Low Stock" },
+  { key: "most-viewed", label: "Most Viewed" },
   { key: "out-of-stock", label: "Out of Stock" },
 ];
 
@@ -67,7 +94,7 @@ function WishlistPage() {
   const { slugs, toggle, loading: wlLoading } = useWishlist();
   const { products, loading: pLoading } = useProducts();
   const { add } = useCart();
-  const { format, priceOf, shippingFeeOf, currency } = useRegion();
+  const { format, priceOf, compareOf, shippingFeeOf, currency } = useRegion();
   const nav = useNavigate();
 
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -78,6 +105,7 @@ function WishlistPage() {
   const [drops, setDrops] = useState<Record<string, number>>({});
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [collectionOpen, setCollectionOpen] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -145,35 +173,83 @@ function WishlistPage() {
     };
   }, [items]);
 
+  const lowStockOf = (p: Product) =>
+    p.inStock && p.stockQuantity > 0 && p.stockQuantity <= (p.lowStockThreshold || 10);
+  const discOf = (p: Product) => discountPercent(priceOf(p), compareOf(p));
+
   const filtered = useMemo(() => {
+    const byDate = (a: Product, b: Product) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     switch (filter) {
       case "in-stock":
         return items.filter((p) => p.inStock);
       case "out-of-stock":
         return items.filter((p) => !p.inStock);
+      case "low-stock":
+        return items.filter(lowStockOf);
       case "price-drops":
         return items.filter((p) => (drops[p.slug] ?? 0) > 0);
       case "free-shipping":
         return items.filter((p) => shippingFeeOf(p) <= 0);
+      case "recently-added":
+        return [...items].reverse();
+      case "new-arrivals":
+        return [...items].sort(byDate);
+      case "highest-discount":
+        return [...items].sort((a, b) => (discOf(b) ?? 0) - (discOf(a) ?? 0));
+      case "lowest-price":
+        return [...items].sort((a, b) => priceOf(a) - priceOf(b));
+      case "highest-price":
+        return [...items].sort((a, b) => priceOf(b) - priceOf(a));
+      case "best-rated":
+        return [...items].sort((a, b) => b.rating - a.rating);
+      case "most-viewed":
+        return [...items].sort((a, b) => (b.viewsCount ?? 0) - (a.viewsCount ?? 0));
       default:
         return items;
     }
-  }, [items, filter, drops, shippingFeeOf]);
+  }, [items, filter, drops, shippingFeeOf, priceOf, compareOf]);
 
   // Smart insights
   const insights = useMemo(() => {
     let dropCount = 0;
     let outOfStock = 0;
+    let lowStock = 0;
     let freeShip = 0;
     let total = 0;
+    let savings = 0;
+    let discSum = 0;
+    let discCount = 0;
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    let recent = 0;
     for (const p of items) {
       if ((drops[p.slug] ?? 0) > 0) dropCount++;
       if (!p.inStock) outOfStock++;
+      if (lowStockOf(p)) lowStock++;
       if (shippingFeeOf(p) <= 0) freeShip++;
       total += priceOf(p);
+      const cmp = compareOf(p);
+      if (cmp && cmp > priceOf(p)) savings += cmp - priceOf(p);
+      const d = discOf(p);
+      if (d && d > 0) {
+        discSum += d;
+        discCount++;
+      }
+      if (new Date(p.createdAt).getTime() >= weekAgo) recent++;
     }
-    return { dropCount, outOfStock, freeShip, total, count: items.length };
-  }, [items, drops, priceOf, shippingFeeOf]);
+    return {
+      dropCount,
+      outOfStock,
+      lowStock,
+      freeShip,
+      total,
+      savings,
+      avgDiscount: discCount ? Math.round(discSum / discCount) : 0,
+      recent,
+      count: items.length,
+    };
+  }, [items, drops, priceOf, compareOf, shippingFeeOf]);
+
 
   const selectedTotal = useMemo(
     () => items.filter((p) => selected.has(p.slug)).reduce((s, p) => s + priceOf(p), 0),
@@ -257,10 +333,34 @@ function WishlistPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
       <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">
-        Saved · {items.length}
+        Wishlist · {items.length} {items.length === 1 ? "Item" : "Items"}
       </p>
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
-        <h1 className="text-3xl md:text-5xl font-display font-semibold">Your Wishlist</h1>
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-8">
+        <div>
+          <h1 className="text-3xl md:text-5xl font-display font-semibold">Your Wishlist</h1>
+          {items.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+              <span className="text-sm">
+                <span className="font-display font-semibold tabular-nums">
+                  {format(insights.total)}
+                </span>{" "}
+                <span className="text-muted-foreground text-[11px] uppercase tracking-widest font-mono">
+                  Value
+                </span>
+              </span>
+              {insights.savings > 0 && (
+                <span className="text-sm text-emerald-400">
+                  <span className="font-display font-semibold tabular-nums">
+                    {format(insights.savings)}
+                  </span>{" "}
+                  <span className="text-[11px] uppercase tracking-widest font-mono opacity-80">
+                    Savings
+                  </span>
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         {items.length > 0 && (
           <div className="flex items-center gap-2">
             {selectMode && (
@@ -280,6 +380,15 @@ function WishlistPage() {
               {selectMode ? "Cancel" : "Select"}
             </button>
             <button
+              onClick={() => {
+                setSelected(new Set(items.map((p) => p.slug)));
+                shareSelected();
+              }}
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-[11px] uppercase tracking-widest font-bold hover:border-accent/40 transition-colors"
+            >
+              <Share2 className="size-3.5" /> Share
+            </button>
+            <button
               onClick={addAll}
               className="bg-accent text-accent-foreground font-bold px-5 py-2.5 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all inline-flex items-center gap-2 shadow-[var(--shadow-ember)]"
             >
@@ -289,55 +398,63 @@ function WishlistPage() {
         )}
       </div>
 
+
       {items.length === 0 ? (
-        <div className="bg-card border border-border rounded-2xl p-12 text-center">
-          <div className="size-14 mx-auto mb-5 grid place-items-center rounded-full border border-border">
-            <Heart className="size-5 text-muted-foreground" />
+        <div className="card-premium rounded-2xl p-12 text-center animate-[fade-up_0.5s_ease-out]">
+          <div className="size-16 mx-auto mb-5 grid place-items-center rounded-full bg-accent/15 border border-accent/30 text-accent animate-[float-soft_3s_ease-in-out_infinite]">
+            <Heart className="size-6 fill-accent/40" />
           </div>
-          <p className="text-sm text-muted-foreground mb-6">
-            Nothing saved yet. Tap the heart on anything you love.
+          <h2 className="text-xl font-display font-semibold mb-1.5">Your Wishlist Is Empty 🧡</h2>
+          <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
+            Discover products you'll love and tap the heart to save them here.
           </p>
-          <Link
-            to="/"
-            className="inline-block bg-accent text-accent-foreground rounded-full px-6 py-3 text-xs uppercase tracking-widest font-bold"
-          >
-            Browse
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 bg-accent text-accent-foreground rounded-full px-6 py-3 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 transition-all shadow-[var(--shadow-ember)]"
+            >
+              <ShoppingBag className="size-3.5" /> Browse Products
+            </Link>
+            <Link
+              to="/search"
+              className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-3 text-[11px] uppercase tracking-widest font-bold hover:border-accent/40 transition-colors"
+            >
+              <Flame className="size-3.5" /> Trending
+            </Link>
+            <Link
+              to="/search"
+              className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-3 text-[11px] uppercase tracking-widest font-bold hover:border-accent/40 transition-colors"
+            >
+              <Sparkles className="size-3.5" /> New Arrivals
+            </Link>
+          </div>
+
         </div>
       ) : (
         <>
-          {/* Smart insights */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
-            <InsightCard
-              icon={<Wallet className="size-4" />}
-              label="Total Value"
-              value={format(insights.total)}
-              accent
-            />
-            <InsightCard
-              icon={<Heart className="size-4" />}
-              label="Products"
-              value={String(insights.count)}
-            />
-            <InsightCard
-              icon={<Truck className="size-4" />}
-              label="Free Shipping"
-              value={String(insights.freeShip)}
-            />
-            <InsightCard
-              icon={<TrendingDown className="size-4" />}
-              label="Price Drops"
-              value={String(insights.dropCount)}
-            />
-            <InsightCard
-              icon={<PackageX className="size-4" />}
-              label="Out of Stock"
-              value={String(insights.outOfStock)}
-            />
+          {/* Smart alert center */}
+          <AlertCenter
+            insights={insights}
+            dismissed={dismissedAlerts}
+            onDismiss={(k) => setDismissedAlerts((prev) => new Set(prev).add(k))}
+            onView={(k) => setFilter(k)}
+          />
+
+          {/* Advanced statistics dashboard */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-8">
+            <InsightCard icon={<Wallet className="size-4" />} label="Total Value" value={format(insights.total)} accent />
+            <InsightCard icon={<Heart className="size-4" />} label="Saved" value={String(insights.count)} />
+            <InsightCard icon={<Truck className="size-4" />} label="Free Ship" value={String(insights.freeShip)} />
+            <InsightCard icon={<TrendingDown className="size-4" />} label="Price Drops" value={String(insights.dropCount)} />
+            <InsightCard icon={<PackageX className="size-4" />} label="Out of Stock" value={String(insights.outOfStock)} />
+            <InsightCard icon={<Tag className="size-4" />} label="Savings" value={format(insights.savings)} />
+            <InsightCard icon={<Percent className="size-4" />} label="Avg Discount" value={`${insights.avgDiscount}%`} />
+            <InsightCard icon={<Sparkles className="size-4" />} label="Recently Added" value={String(insights.recent)} />
           </div>
 
+
           {/* Filters */}
-          <div className="-mx-4 sm:mx-0 mb-6 overflow-x-auto no-scrollbar">
+          <div className="-mx-4 sm:mx-0 mb-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex items-center gap-2 px-4 sm:px-0">
               {FILTERS.map((f) => {
                 const count =
@@ -347,27 +464,34 @@ function WishlistPage() {
                       ? insights.freeShip
                       : f.key === "out-of-stock"
                         ? insights.outOfStock
-                        : f.key === "in-stock"
-                          ? items.filter((p) => p.inStock).length
-                          : items.length;
+                        : f.key === "low-stock"
+                          ? insights.lowStock
+                          : f.key === "in-stock"
+                            ? items.filter((p) => p.inStock).length
+                            : f.key === "new-arrivals" || f.key === "recently-added"
+                              ? insights.recent
+                              : items.length;
                 const activeF = filter === f.key;
                 return (
                   <button
                     key={f.key}
                     onClick={() => setFilter(f.key)}
-                    className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[11px] uppercase tracking-widest font-bold transition-all ${
+                    className={`snap-start shrink-0 inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[11px] uppercase tracking-widest font-bold transition-all active:scale-95 ${
                       activeF
                         ? "border-accent text-accent bg-accent/10 shadow-[0_0_18px_-4px_var(--accent)]"
                         : "border-border text-muted-foreground hover:border-accent/40"
                     }`}
                   >
                     {f.label}
-                    <span className="font-mono opacity-70">{count}</span>
+                    {(count > 0 || activeF) && (
+                      <span className="font-mono opacity-70">{count}</span>
+                    )}
                   </button>
                 );
               })}
             </div>
           </div>
+
 
 
           {filtered.length === 0 ? (
@@ -621,7 +745,7 @@ function InsightCard({
   accent?: boolean;
 }) {
   return (
-    <div className="card-premium p-4 flex flex-col gap-2">
+    <div className="card-premium p-4 flex flex-col gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_0_24px_-8px_var(--accent)]">
       <div
         className={`size-9 grid place-items-center rounded-xl border ${
           accent
@@ -640,6 +764,108 @@ function InsightCard({
     </div>
   );
 }
+
+type WishlistInsights = {
+  dropCount: number;
+  outOfStock: number;
+  lowStock: number;
+  freeShip: number;
+  total: number;
+  savings: number;
+  avgDiscount: number;
+  recent: number;
+  count: number;
+};
+
+function AlertCenter({
+  insights,
+  dismissed,
+  onDismiss,
+  onView,
+}: {
+  insights: WishlistInsights;
+  dismissed: Set<string>;
+  onDismiss: (k: string) => void;
+  onView: (k: FilterKey) => void;
+}) {
+  const alerts: {
+    key: string;
+    filter: FilterKey;
+    icon: React.ReactNode;
+    title: string;
+    desc: string;
+    tone: "accent" | "emerald" | "amber";
+  }[] = [];
+  if (insights.dropCount > 0)
+    alerts.push({
+      key: "drops",
+      filter: "price-drops",
+      icon: <TrendingDown className="size-4" />,
+      title: "Price Drop",
+      desc: `${insights.dropCount} product${insights.dropCount > 1 ? "s" : ""} reduced`,
+      tone: "emerald",
+    });
+  if (insights.lowStock > 0)
+    alerts.push({
+      key: "low",
+      filter: "low-stock",
+      icon: <Box className="size-4" />,
+      title: "Limited Stock",
+      desc: `${insights.lowStock} selling fast`,
+      tone: "amber",
+    });
+  if (insights.outOfStock > 0)
+    alerts.push({
+      key: "oos",
+      filter: "out-of-stock",
+      icon: <PackageX className="size-4" />,
+      title: "Out of Stock",
+      desc: `${insights.outOfStock} unavailable`,
+      tone: "accent",
+    });
+
+  const visible = alerts.filter((a) => !dismissed.has(a.key));
+  if (!visible.length) return null;
+
+  const tones = {
+    accent: "bg-accent/10 border-accent/30 text-accent",
+    emerald: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
+    amber: "bg-amber-500/10 border-amber-500/30 text-amber-300",
+  };
+
+  return (
+    <div className="-mx-4 sm:mx-0 mb-6 overflow-x-auto no-scrollbar">
+      <div className="flex items-stretch gap-2.5 px-4 sm:px-0">
+        {visible.map((a) => (
+          <div
+            key={a.key}
+            className={`shrink-0 flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 backdrop-blur-xl animate-[fade-up_0.4s_ease-out] ${tones[a.tone]}`}
+          >
+            <button onClick={() => onView(a.filter)} className="flex items-center gap-3 text-left">
+              <span className="grid place-items-center size-8 rounded-xl bg-background/40 border border-current/20">
+                {a.icon}
+              </span>
+              <span className="leading-tight">
+                <span className="block text-[12px] font-display font-semibold text-foreground">
+                  {a.title}
+                </span>
+                <span className="block text-[10px] font-mono opacity-80">{a.desc}</span>
+              </span>
+            </button>
+            <button
+              onClick={() => onDismiss(a.key)}
+              aria-label="Dismiss"
+              className="grid place-items-center size-6 rounded-full hover:bg-background/40 text-muted-foreground transition-colors"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 function QuickView({ product, onClose }: { product: Product; onClose: () => void }) {
   const { format, priceOf, compareOf } = useRegion();
