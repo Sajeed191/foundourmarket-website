@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Search, Shield, Truck, Headset, ArrowRight, Star, Sparkles, Award, Package, Globe2, Users, ShoppingBag, Zap, Flame, BadgeCheck, Pencil } from "lucide-react";
+import { Search, Shield, Headset, ArrowRight, Star, Sparkles, Award, Package, Globe2, Users, Zap, Flame, BadgeCheck, Pencil, RotateCcw, Lock } from "lucide-react";
 import { useCategories, useAdminCategories, toggleCategoryVisible } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { useProductAdminEditing } from "@/lib/admin-overlay";
@@ -45,12 +45,14 @@ function useRotatingPlaceholder(active: boolean) {
   return PLACEHOLDERS[idx];
 }
 
-function AnimatedCounter({ to, suffix = "", duration = 2 }: { to: number; suffix?: string; duration?: number }) {
+function AnimatedCounter({ to, suffix = "", duration = 2, decimals = 0 }: { to: number; suffix?: string; duration?: number; decimals?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   const mv = useMotionValue(0);
   const spring = useSpring(mv, { duration: duration * 1000, bounce: 0 });
-  const display = useTransform(spring, (v) => Math.round(v).toLocaleString() + suffix);
+  const display = useTransform(spring, (v) =>
+    (decimals > 0 ? v.toFixed(decimals) : Math.round(v).toLocaleString()) + suffix
+  );
   useEffect(() => { if (inView) mv.set(to); }, [inView, to, mv]);
   return <motion.span ref={ref}>{display}</motion.span>;
 }
@@ -378,11 +380,11 @@ function Home() {
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.7 }}
             className="mt-7 sm:mt-9 flex flex-wrap justify-center gap-3"
           >
-            <Link to="/category/$slug" params={{ slug: "electronics" }} className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-full bg-foreground text-background text-[11px] sm:text-xs uppercase tracking-widest font-semibold hover:brightness-110 hover:-translate-y-0.5 transition-all">
-              Explore Products <ArrowRight className="size-3.5" />
+            <Link to="/category/$slug" params={{ slug: "electronics" }} className="inline-flex items-center gap-2 px-6 sm:px-7 py-3 rounded-full bg-accent text-accent-foreground text-[11px] sm:text-xs uppercase tracking-widest font-semibold hover:brightness-110 hover:-translate-y-0.5 transition-all shadow-[var(--shadow-ember)]">
+              Shop Now <ArrowRight className="size-3.5" />
             </Link>
-            <a href="#categories" className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-full glass text-[11px] sm:text-xs uppercase tracking-widest font-semibold hover:bg-white/10 transition-all">
-              Shop Categories
+            <a href="#categories" className="inline-flex items-center gap-2 px-6 sm:px-7 py-3 rounded-full glass text-[11px] sm:text-xs uppercase tracking-widest font-semibold hover:bg-white/10 transition-all">
+              Browse Categories
             </a>
           </motion.div>
 
@@ -421,22 +423,24 @@ function Home() {
 
       <CinematicDivider />
 
-      {/* 3 · Trust & Benefits — compact premium glass cards */}
-      <section className="px-4 sm:px-6 py-8 sm:py-12 max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* 3 · Trust Bar — horizontal scroll premium glass cards */}
+      <section className="py-8 sm:py-12 max-w-7xl mx-auto">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar px-4 sm:px-6 snap-x snap-mandatory sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible">
           {[
-            { icon: Truck, title: "Worldwide Shipping", desc: "Tracked delivery to 180+ countries." },
-            { icon: Shield, title: "Secure Payments", desc: "Bank-grade encryption on checkout." },
-            { icon: Star, title: "Curated Quality", desc: "Hand-verified, premium-only catalog." },
-            { icon: Headset, title: "24/7 Support", desc: "Real humans, ready anytime." },
+            { icon: Lock, title: "Secure Checkout", desc: "Bank-grade encryption." },
+            { icon: Globe2, title: "Global Shipping", desc: "Delivery to 180+ countries." },
+            { icon: Zap, title: "Fast Delivery", desc: "Express tracked dispatch." },
+            { icon: RotateCcw, title: "Easy Returns", desc: "Hassle-free refunds." },
+            { icon: Headset, title: "24/7 Support", desc: "Real humans, anytime." },
+            { icon: BadgeCheck, title: "Verified Products", desc: "Hand-checked quality." },
           ].map((b, i) => (
-            <Reveal key={b.title} delay={i}>
+            <Reveal key={b.title} delay={i} className="snap-start shrink-0 w-[44%] xs:w-[40%] sm:w-auto">
               <div className="group relative h-full glass glass-reflect rounded-2xl p-4 sm:p-5 overflow-hidden hover:border-accent/40 transition-colors">
                 <div aria-hidden className="absolute -top-10 -right-10 size-28 rounded-full opacity-0 group-hover:opacity-60 blur-2xl transition-opacity" style={{ background: "var(--gradient-ember-soft)" }} />
                 <div className="relative size-9 sm:size-10 grid place-items-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/20 mb-3 group-hover:scale-105 group-hover:shadow-[0_0_22px_-6px_var(--color-accent)] transition-all">
                   <b.icon className="size-4" />
                 </div>
-                <h4 className="relative text-xs sm:text-sm font-medium mb-1">{b.title}</h4>
+                <h4 className="relative text-xs sm:text-sm font-medium mb-1 whitespace-nowrap">{b.title}</h4>
                 <p className="relative text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{b.desc}</p>
               </div>
             </Reveal>
@@ -627,10 +631,10 @@ function Home() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-12">
           {[
-            { icon: Globe2, value: 180, suffix: "+", label: "Countries served" },
-            { icon: Users, value: 48230, suffix: "", label: "Active shoppers" },
-            { icon: Package, value: 2412, suffix: "", label: "Products available" },
-            { icon: ShoppingBag, value: 17, suffix: "/min", label: "Orders right now" },
+            { icon: Users, value: 50000, suffix: "+", label: "Happy customers" },
+            { icon: Package, value: 10000, suffix: "+", label: "Products available" },
+            { icon: Globe2, value: 120, suffix: "+", label: "Countries served" },
+            { icon: Star, value: 4.8, suffix: "★", label: "Average rating" },
           ].map((s, i) => (
             <Reveal key={s.label} delay={i}>
               <div className="group relative glass-strong glass-reflect rounded-2xl p-5 sm:p-7 h-full overflow-hidden">
@@ -642,7 +646,7 @@ function Home() {
                   <Zap className="size-3.5 text-accent/60 animate-glow" />
                 </div>
                 <div className="relative text-3xl sm:text-4xl font-display font-semibold tracking-tight text-gradient-ember">
-                  <AnimatedCounter to={s.value} suffix={s.suffix} />
+                  <AnimatedCounter to={s.value} suffix={s.suffix} decimals={Number.isInteger(s.value) ? 0 : 1} />
                 </div>
                 <div className="relative text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-muted-foreground mt-2">{s.label}</div>
               </div>
