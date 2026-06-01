@@ -88,6 +88,8 @@ function BadgeManagerInner() {
   const [clicks, setClicks] = useState<Record<string, number>>({});
   const [order, setOrder] = useState<string[]>([]);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>("All");
+  const [showArchived, setShowArchived] = useState(false);
 
   // Usage count per badge type from the assignment map.
   const usage = useMemo(() => {
