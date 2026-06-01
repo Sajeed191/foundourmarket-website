@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { TrendingUp, ShoppingBag, Users, Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Star, Clock } from "lucide-react";
+import { TrendingUp, ShoppingBag, Users, Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react";
 import { resolveImage } from "@/lib/products";
+import { StarRating } from "@/components/site/StarRating";
 import { CollapsibleModule } from "@/components/admin/CollapsibleModule";
 import { DraftActivityWidget } from "@/components/admin/DraftActivityWidget";
 
