@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Heart, Truck, Shield, RotateCcw, Minus, Plus, Loader2, Scale,
+  Heart, Truck, Shield, RotateCcw, Minus, Plus, Scale,
   ChevronDown, Share2, Sparkles, Package, Clock, CheckCircle2, Users, ShoppingBag as ShoppingBagIcon, BadgeCheck,
 } from "lucide-react";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
