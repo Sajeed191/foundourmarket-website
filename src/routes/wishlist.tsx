@@ -344,38 +344,53 @@ function WishlistPage() {
         </>
       )}
 
-      {/* Sticky action bar */}
-      {selectMode && (
-        <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-4 pt-2 pointer-events-none">
-          <div className="pointer-events-auto max-w-3xl mx-auto rounded-2xl border border-white/10 bg-background/80 backdrop-blur-2xl shadow-2xl shadow-black/50 p-3 flex flex-wrap items-center gap-2">
-            <button
-              onClick={selectAll}
-              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-[11px] uppercase tracking-widest font-bold hover:border-accent/40 transition-colors"
-            >
-              <CheckSquare className="size-3.5" />
-              {allSelected ? "Clear" : "Select all"}
-            </button>
-            <span className="text-xs font-mono text-muted-foreground px-1">
-              {selected.size} selected
-            </span>
-            <div className="flex-1" />
-            <button
-              onClick={removeSelected}
-              disabled={selected.size === 0}
-              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors disabled:opacity-40"
-            >
-              <Trash2 className="size-3.5" /> Remove
-            </button>
-            <button
-              onClick={addSelectedToCart}
-              disabled={selected.size === 0}
-              className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-foreground px-5 py-2.5 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 transition-all shadow-[var(--shadow-ember)] disabled:opacity-40"
-            >
-              <ShoppingBag className="size-3.5" /> Add to cart
-            </button>
+      {/* Floating bulk-action bar — sits above the bottom navigation, never overlaps it */}
+      {selectMode && selected.size > 0 && (
+        <div
+          className="fixed inset-x-0 z-40 flex justify-center px-3 pointer-events-none"
+          style={{ bottom: "calc(96px + env(safe-area-inset-bottom, 0px))" }}
+        >
+          <div
+            className="pointer-events-auto w-full max-w-3xl rounded-[20px] border border-white/15 bg-background/70 backdrop-blur-2xl shadow-2xl shadow-black/60 p-3.5 animate-[slide-in-up_0.3s_cubic-bezier(0.16,1,0.3,1)]"
+            style={{ width: "calc(100% - 24px)" }}
+          >
+            {/* Top row: count · value · clear */}
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="min-w-0">
+                <p className="text-sm font-display font-semibold leading-none">
+                  {selected.size} of {filtered.length} selected
+                </p>
+                <p className="text-[11px] font-mono text-accent mt-1 tabular-nums">
+                  {format(selectedTotal)} total
+                </p>
+              </div>
+              <button
+                onClick={exitSelect}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground hover:text-foreground hover:border-accent/40 transition-colors active:scale-95"
+              >
+                <X className="size-3.5" /> Clear
+              </button>
+            </div>
+
+            {/* Bottom row: primary + secondary CTA */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={addSelectedToCart}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-accent text-accent-foreground px-5 py-3 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 transition-all shadow-[var(--shadow-ember)] active:scale-95"
+              >
+                <ShoppingBag className="size-3.5" /> Add to cart
+              </button>
+              <button
+                onClick={removeSelected}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-5 py-3 text-[11px] uppercase tracking-widest font-bold text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors active:scale-95"
+              >
+                <Trash2 className="size-3.5" /> Remove
+              </button>
+            </div>
           </div>
         </div>
       )}
+
 
       {/* Quick View */}
       <Dialog open={!!quickView} onOpenChange={(o) => !o && setQuickView(null)}>
