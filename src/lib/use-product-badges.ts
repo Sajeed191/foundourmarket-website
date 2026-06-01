@@ -261,6 +261,11 @@ export type BadgeTypeInput = {
   startAt: string | null;
   endAt: string | null;
   autoRule: AutoRule;
+  category: string;
+  subtitle: string;
+  fontSize: number;
+  fontWeight: number;
+  animation: BadgeAnimation;
 };
 
 function inputToRow(input: BadgeTypeInput) {
@@ -283,6 +288,11 @@ function inputToRow(input: BadgeTypeInput) {
     start_at: input.startAt,
     end_at: input.endAt,
     auto_rule: input.autoRule,
+    category: input.category,
+    subtitle: input.subtitle,
+    font_size: input.fontSize,
+    font_weight: input.fontWeight,
+    animation: input.animation,
   };
 }
 
