@@ -51,6 +51,13 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
   const badgeSettings = useBadgeSettings();
   const assigned = useProductBadges(product.slug);
+  // Record a single impression per card for the admin-assigned badges shown.
+  const imprDone = useRef(false);
+  useEffect(() => {
+    if (imprDone.current || assigned.length === 0) return;
+    imprDone.current = true;
+    assigned.slice(0, 3).forEach((b) => b.id && trackBadgeImpression(b.id, product.slug));
+  }, [assigned, product.slug]);
   // Admin-assigned badges win; otherwise fall back to auto-computed badges.
   const badges: DisplayBadge[] = assigned.length
     ? assigned.map((b) => ({
