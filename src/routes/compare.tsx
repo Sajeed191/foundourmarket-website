@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Star, X, Check, Minus, ShoppingBag, Scale } from "lucide-react";
+import { X, Check, Minus, ShoppingBag, Scale } from "lucide-react";
+import { StarRating } from "@/components/site/StarRating";
 import { useCompare } from "@/hooks/use-compare";
 import { useProducts } from "@/lib/use-products";
 import { resolveImage, type Product } from "@/lib/products";
@@ -101,14 +102,13 @@ function ComparePage() {
               <Row label="Rating">
                 {items.map((p) => (
                   <Cell key={p.slug}>
-                    {p.reviews > 0 ? (
-                      <span className="inline-flex items-center gap-1 font-mono">
-                        <Star className="size-3 fill-accent text-accent" /> {p.rating.toFixed(1)}
-                        <span className="text-muted-foreground text-xs">({p.reviews})</span>
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">No reviews</span>
-                    )}
+                    <StarRating
+                      rating={p.rating}
+                      count={p.reviews}
+                      showValue={p.reviews > 0}
+                      starClassName="size-3"
+                      textClassName="text-xs font-mono"
+                    />
                   </Cell>
                 ))}
               </Row>

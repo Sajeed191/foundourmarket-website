@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Star, Plus, BadgeCheck } from "lucide-react";
+import { Heart, Plus, BadgeCheck } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
@@ -7,6 +7,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminControls";
 import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { computeBadges } from "@/lib/badges";
+import { StarRating } from "@/components/site/StarRating";
 
 
 export function ProductCard({ product, compact }: { product: Product; compact?: boolean }) {
@@ -125,10 +126,14 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
         </div>
         <div className={`flex items-center justify-between gap-2 ${compact ? "mt-1" : "mt-2"}`}>
           <div className={`flex items-center gap-1 font-mono text-muted-foreground min-w-0 ${compact ? "text-[9px]" : "text-[10px]"}`}>
-            <Star className={`fill-accent text-accent shrink-0 ${compact ? "size-2.5" : "size-3"}`} />
-            <span className="text-foreground/80">{product.rating}</span>
-            <span className="opacity-50">({product.reviews})</span>
-            <span className="inline-flex items-center gap-0.5 ml-1 text-emerald-400/90" title="Verified seller">
+            <StarRating
+              rating={product.rating}
+              count={product.reviews}
+              showValue={product.reviews > 0}
+              starClassName={compact ? "size-2.5" : "size-3"}
+              textClassName={compact ? "text-[9px]" : "text-[10px]"}
+            />
+            <span className="inline-flex items-center gap-0.5 ml-0.5 text-emerald-400/90 shrink-0" title="Verified seller">
               <BadgeCheck className={`${compact ? "size-2.5" : "size-3"}`} />
             </span>
           </div>
