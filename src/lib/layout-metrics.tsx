@@ -63,10 +63,20 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
   const measure = useCallback(() => {
     if (typeof window === "undefined") return;
 
-    const viewportHeight = Math.round(window.visualViewport?.height ?? document.documentElement.clientHeight);
+    // Use the LAYOUT viewport (clientHeight), not visualViewport.height.
+    // visualViewport.height changes with pinch-zoom / browser scaling, which made
+    // the product layout zoom-dependent and inconsistent across Android devices.
+    const viewportHeight = Math.round(document.documentElement.clientHeight || window.innerHeight);
     const safeBottom = readCssPx("--mobile-safe-bottom");
     const headerHeight = visibleHeight("[data-app-header]");
-    const bottomNavHeight = visibleHeight("[data-app-bottom-nav]");
+    const measuredNav = visibleHeight("[data-app-bottom-nav]");
+    // Fall back to the nav clearance (base chrome 6rem + safe-area inset) when the
+    // nav isn't rendered/measurable yet, so content clearance never collapses to 0
+    // and lets the bottom nav overlap product content. Computed from the rem base
+    // because a calc() custom property can't be read back numerically.
+    const rootFontPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const cssNavClearance = rootFontPx * 6 + safeBottom;
+    const bottomNavHeight = measuredNav > 0 ? measuredNav : cssNavClearance;
     const ctaHeight = ctaRef.current?.getBoundingClientRect().height || expectedCtaHeightRef.current;
     const contentHeight = Math.max(0, viewportHeight - headerHeight - bottomNavHeight - ctaHeight);
 
@@ -129,8 +139,9 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
     schedule();
     window.addEventListener("resize", schedule, { passive: true });
     window.addEventListener("orientationchange", schedule, { passive: true });
-    window.visualViewport?.addEventListener("resize", schedule, { passive: true });
-    window.visualViewport?.addEventListener("scroll", schedule, { passive: true });
+    // NOTE: intentionally NOT listening to window.visualViewport resize/scroll.
+    // Those fire on pinch-zoom and address-bar scaling and would make the layout
+    // zoom-dependent. Layout must stay fixed relative to the layout viewport.
 
     const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
     resizeObserver?.observe(document.body);
@@ -143,8 +154,6 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("orientationchange", schedule);
-      window.visualViewport?.removeEventListener("resize", schedule);
-      window.visualViewport?.removeEventListener("scroll", schedule);
       resizeObserver?.disconnect();
       mutationObserver.disconnect();
     };
