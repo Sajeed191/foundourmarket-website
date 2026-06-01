@@ -104,9 +104,14 @@ type BadgeTypeRow = {
 };
 
 type AssignmentRow = {
+  id?: string;
   product_slug: string;
   sort_order: number;
   badge_type_id: string;
+  notes?: string | null;
+  start_at?: string | null;
+  end_at?: string | null;
+  archived?: boolean | null;
 };
 
 function rowToType(r: BadgeTypeRow): BadgeType {
