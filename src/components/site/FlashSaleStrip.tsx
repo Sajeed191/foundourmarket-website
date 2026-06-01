@@ -38,7 +38,7 @@ function pad(n: number) {
 export function FlashSaleStrip() {
   const [sale, setSale] = useState<FlashSale | null>(null);
   const { products } = useProducts();
-  const { format } = useRegion();
+  useRegion();
   const countdown = useCountdown(sale?.ends_at ?? null);
 
   useEffect(() => {
