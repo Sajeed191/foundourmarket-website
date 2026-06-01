@@ -30,6 +30,7 @@ import { AdminMobileBar } from "@/components/admin/AdminMobileBar";
 import { CompareTray } from "@/components/site/CompareTray";
 import { InstallPrompt } from "@/components/site/InstallPrompt";
 import { registerServiceWorker } from "@/lib/pwa";
+import { preloadCrisp } from "@/lib/crisp";
 import { trackPageView } from "@/lib/analytics";
 import { captureAttribution } from "@/lib/marketing-tracking";
 import { LayoutMetricsProvider } from "@/lib/layout-metrics";
