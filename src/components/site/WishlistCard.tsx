@@ -304,13 +304,9 @@ export function WishlistCard({
         {/* Price + ADD */}
         <div className="mt-auto pt-2.5 border-t border-white/[0.07] flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <p className="font-display font-semibold tabular-nums leading-none text-base sm:text-lg">
-              {format(price)}
-            </p>
+            <Price value={price} className="font-display font-semibold tabular-nums leading-none text-base sm:text-lg block" />
             {originalPrice && discount ? (
-              <p className="font-mono text-muted-foreground/60 line-through tabular-nums text-[10px] mt-1">
-                {format(originalPrice)}
-              </p>
+              <Price value={originalPrice} className="font-mono text-muted-foreground/60 line-through tabular-nums text-[10px] mt-1 block" />
             ) : null}
           </div>
           {!product.inStock ? (
