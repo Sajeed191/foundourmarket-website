@@ -288,10 +288,16 @@ function BadgeManagerInner() {
                   <GripVertical className="size-4 text-muted-foreground/50 cursor-grab shrink-0" />
                   <BadgePreview b={b} />
                 </div>
-                <span className={`text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${stateMeta[state].cls}`}>
-                  {stateMeta[state].label}
-                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border border-white/10 text-muted-foreground bg-white/5">
+                    {b.category}
+                  </span>
+                  <span className={`text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${stateMeta[state].cls}`}>
+                    {stateMeta[state].label}
+                  </span>
+                </div>
               </div>
+
 
               {b.description && <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{b.description}</p>}
 
