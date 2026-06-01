@@ -100,7 +100,7 @@ function CartPage() {
   // ---- Empty cart ----
   if (count === 0 && savedDetailed.length === 0) {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-20 sm:py-28 text-center">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-20 sm:py-28 mobile-page-clearance md:pb-28 text-center">
         <motion.div
           initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
           className="relative size-24 mx-auto mb-8 grid place-items-center rounded-3xl bg-card border border-border overflow-hidden"
@@ -124,7 +124,7 @@ function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 pb-[calc(11rem+env(safe-area-inset-bottom))] lg:pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 mobile-page-clearance lg:pb-16">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex items-end justify-between gap-4 flex-wrap">
