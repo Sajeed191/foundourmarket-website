@@ -8,7 +8,17 @@ import { useWishlist } from "@/lib/wishlist";
 import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminControls";
 import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { computeBadges } from "@/lib/badges";
+import { useProductBadges } from "@/lib/use-product-badges";
 import { StarRating } from "@/components/site/StarRating";
+
+type DisplayBadge = {
+  key: string;
+  label: string;
+  emoji: string;
+  className?: string;
+  color?: string;
+  textColor?: string;
+};
 
 
 export function ProductCard({ product, compact }: { product: Product; compact?: boolean }) {
