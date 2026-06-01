@@ -184,7 +184,7 @@ async function load(force = false): Promise<Snapshot> {
     inflight = (async () => {
       const [{ data: typeRows }, { data: assignRows }] = await Promise.all([
         supabase.from("badge_types").select("*").order("priority", { ascending: false }),
-        supabase.from("product_badges").select("product_slug, sort_order, badge_type_id"),
+        supabase.from("product_badges").select("*"),
       ]);
       const types = (typeRows ?? []).map((r) => rowToType(r as BadgeTypeRow));
       const typeById = new Map(types.map((t) => [t.id, t]));
@@ -193,7 +193,15 @@ async function load(force = false): Promise<Snapshot> {
         const t = typeById.get(a.badge_type_id);
         if (!t) continue;
         const list = map.get(a.product_slug) ?? [];
-        list.push({ ...t, sortOrder: a.sort_order });
+        list.push({
+          ...t,
+          sortOrder: a.sort_order,
+          assignmentId: a.id,
+          assignNotes: a.notes ?? "",
+          assignStartAt: a.start_at ?? null,
+          assignEndAt: a.end_at ?? null,
+          assignArchived: a.archived ?? false,
+        });
         map.set(a.product_slug, list);
       }
       // Sort each product's badges by sortOrder then priority desc.
