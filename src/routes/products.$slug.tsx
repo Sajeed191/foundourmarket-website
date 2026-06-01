@@ -185,25 +185,39 @@ function ProductPage() {
   }, [product?.slug]);
 
   useEffect(() => {
-    const updateDock = () => {
-      const sentinel = document.querySelector<HTMLElement>("[data-product-sticky-threshold]");
-      if (!sentinel) {
-        setMobileDockVisible(false);
-        return;
-      }
-      const headerOffset = layoutMetrics.headerHeight || 96;
-      setMobileDockVisible(sentinel.getBoundingClientRect().top <= headerOffset + 8);
+    // Smart reveal: hide at the very top, reveal once the user scrolls past
+    // the hero area (~200px), and keep it visible while they explore details,
+    // reviews and FAQ. Scrolling up never hides it — only returning to the top.
+    const REVEAL_AT = 200; // px scrolled down from top
+    const HIDE_AT = 80;    // px — treated as "very top of page"
+    let ticking = false;
+
+    const evaluate = () => {
+      ticking = false;
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      setMobileDockVisible((prev) => {
+        if (y <= HIDE_AT) return false;
+        if (y >= REVEAL_AT) return true;
+        return prev; // hysteresis zone — keep current state, no flicker
+      });
     };
-    updateDock();
-    window.addEventListener("scroll", updateDock, { passive: true });
-    window.addEventListener("resize", updateDock, { passive: true });
-    window.visualViewport?.addEventListener("resize", updateDock, { passive: true });
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(evaluate);
+    };
+
+    evaluate();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    window.visualViewport?.addEventListener("resize", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", updateDock);
-      window.removeEventListener("resize", updateDock);
-      window.visualViewport?.removeEventListener("resize", updateDock);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.visualViewport?.removeEventListener("resize", onScroll);
     };
-  }, [layoutMetrics.headerHeight, product?.slug]);
+  }, [product?.slug]);
 
   if (loading) {
     return <ProductPageSkeleton />;
