@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, X, Plus, Check } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
+import { Price } from "@/components/site/Price";
 import { useCart } from "@/lib/cart";
 import type { Product } from "@/lib/products";
 
