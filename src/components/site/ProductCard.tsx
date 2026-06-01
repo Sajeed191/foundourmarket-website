@@ -83,6 +83,10 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
         emoji: b.emoji,
         className: b.className,
       }));
+  // Badge priority: higher-priority badges always surface first within the 2-badge cap.
+  const sortedBadges = [...badges].sort(
+    (a, b) => badgePriority(a.key, a.label) - badgePriority(b.key, b.label),
+  );
   const showOnlyLeft =
     product.stockQuantity > 0 &&
     product.stockQuantity <= (product.lowStockThreshold || 10);
