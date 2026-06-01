@@ -11,6 +11,9 @@ import {
   PackageX,
   Truck,
   Wallet,
+  Layers,
+  Share2,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
