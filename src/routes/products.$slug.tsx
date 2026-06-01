@@ -620,6 +620,7 @@ function ProductPage() {
           </Link>
         </div>
       </div>
+      )}
 
 
     </>
