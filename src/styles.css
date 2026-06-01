@@ -423,8 +423,11 @@
 @utility safe-top    { padding-top: env(safe-area-inset-top); }
 @utility safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 @utility safe-x      { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
-@utility mobile-page-clearance { padding-bottom: var(--page-bottom-clearance); }
-@utility product-page-clearance { padding-bottom: var(--product-page-bottom-clearance); }
+
+@media (max-width: 767px) {
+  .mobile-page-clearance { padding-bottom: var(--page-bottom-clearance) !important; }
+  .product-page-clearance { padding-bottom: var(--product-page-bottom-clearance) !important; }
+}
 
 /* Container with responsive gutters */
 @utility container-page {
