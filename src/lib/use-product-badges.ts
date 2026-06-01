@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export type AutoRule = {
+  metric: "sales" | "age_days" | "stock" | "conversion" | "rating" | "views";
+  op: ">" | "<" | ">=" | "<=";
+  value: number;
+  enabled: boolean;
+} | null;
+
 export type BadgeType = {
   id: string;
   badgeKey: string;
@@ -11,6 +18,18 @@ export type BadgeType = {
   enabled: boolean;
   priority: number;
   isDiscount: boolean;
+  description: string;
+  backgroundColor: string;
+  borderColor: string;
+  glowColor: string;
+  iconColor: string;
+  shadowStrength: number;
+  radius: number;
+  startAt: string | null;
+  endAt: string | null;
+  autoRule: AutoRule;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type RenderBadge = BadgeType & { sortOrder: number };
@@ -25,6 +44,18 @@ type BadgeTypeRow = {
   enabled: boolean;
   priority: number;
   is_discount: boolean;
+  description?: string | null;
+  background_color?: string | null;
+  border_color?: string | null;
+  glow_color?: string | null;
+  icon_color?: string | null;
+  shadow_strength?: number | null;
+  radius?: number | null;
+  start_at?: string | null;
+  end_at?: string | null;
+  auto_rule?: AutoRule;
+  created_at?: string;
+  updated_at?: string;
 };
 
 type AssignmentRow = {
@@ -44,7 +75,34 @@ function rowToType(r: BadgeTypeRow): BadgeType {
     enabled: r.enabled,
     priority: r.priority,
     isDiscount: r.is_discount,
+    description: r.description ?? "",
+    backgroundColor: r.background_color || r.color,
+    borderColor: r.border_color ?? "",
+    glowColor: r.glow_color ?? "",
+    iconColor: r.icon_color ?? "",
+    shadowStrength: r.shadow_strength ?? 0,
+    radius: r.radius ?? 6,
+    startAt: r.start_at ?? null,
+    endAt: r.end_at ?? null,
+    autoRule: (r.auto_rule as AutoRule) ?? null,
+    createdAt: r.created_at ?? "",
+    updatedAt: r.updated_at ?? "",
   };
+}
+
+/** A scheduled badge is live only inside its [startAt, endAt] window. */
+export function isBadgeLive(b: BadgeType, now = Date.now()): boolean {
+  if (!b.enabled) return false;
+  if (b.startAt && new Date(b.startAt).getTime() > now) return false;
+  if (b.endAt && new Date(b.endAt).getTime() < now) return false;
+  return true;
+}
+
+export function badgeScheduleState(b: BadgeType, now = Date.now()): "scheduled" | "expired" | "live" | "disabled" {
+  if (!b.enabled) return "disabled";
+  if (b.startAt && new Date(b.startAt).getTime() > now) return "scheduled";
+  if (b.endAt && new Date(b.endAt).getTime() < now) return "expired";
+  return "live";
 }
 
 // ---- module-level cache + pub/sub so the whole grid shares one fetch ----
@@ -77,7 +135,7 @@ async function load(force = false): Promise<Snapshot> {
       const map = new Map<string, RenderBadge[]>();
       for (const a of (assignRows ?? []) as AssignmentRow[]) {
         const t = typeById.get(a.badge_type_id);
-        if (!t || !t.enabled) continue;
+        if (!t) continue;
         const list = map.get(a.product_slug) ?? [];
         list.push({ ...t, sortOrder: a.sort_order });
         map.set(a.product_slug, list);
@@ -96,7 +154,7 @@ async function load(force = false): Promise<Snapshot> {
   return inflight;
 }
 
-/** Returns assigned badges for a single product slug (storefront cards). */
+/** Returns live, scheduled-aware badges for a single product slug (storefront cards). */
 export function useProductBadges(slug: string): RenderBadge[] {
   const [snap, setSnap] = useState<Snapshot | null>(cache);
   useEffect(() => {
@@ -110,31 +168,142 @@ export function useProductBadges(slug: string): RenderBadge[] {
       subscribers.delete(sub);
     };
   }, []);
-  return snap?.map.get(slug) ?? [];
+  const list = snap?.map.get(slug) ?? [];
+  return list.filter((b) => isBadgeLive(b));
 }
 
 /** Full badge catalog + per-product assignment map (admin tooling). */
 export function useBadgeCatalog() {
   const [snap, setSnap] = useState<Snapshot>(cache ?? { types: [], map: new Map() });
+  const [loading, setLoading] = useState(!cache);
   useEffect(() => {
     bindRealtime();
     let active = true;
     const sub = (s: Snapshot) => active && setSnap(s);
     subscribers.add(sub);
-    load().then((s) => active && setSnap(s));
+    load().then((s) => {
+      if (!active) return;
+      setSnap(s);
+      setLoading(false);
+    });
     return () => {
       active = false;
       subscribers.delete(sub);
     };
   }, []);
-  return snap;
+  return { ...snap, loading };
 }
 
 export async function refreshBadges() {
   await load(true);
 }
 
-// ---- Admin mutations (RLS enforces staff-only) ----
+// ---- Badge type CRUD (RLS enforces staff-only) ----
+export type BadgeTypeInput = {
+  badgeKey: string;
+  label: string;
+  emoji: string;
+  color: string;
+  textColor: string;
+  backgroundColor: string;
+  borderColor: string;
+  glowColor: string;
+  iconColor: string;
+  shadowStrength: number;
+  radius: number;
+  priority: number;
+  description: string;
+  enabled: boolean;
+  isDiscount: boolean;
+  startAt: string | null;
+  endAt: string | null;
+  autoRule: AutoRule;
+};
+
+function inputToRow(input: BadgeTypeInput) {
+  return {
+    badge_key: input.badgeKey,
+    label: input.label,
+    emoji: input.emoji,
+    color: input.color,
+    text_color: input.textColor,
+    background_color: input.backgroundColor,
+    border_color: input.borderColor,
+    glow_color: input.glowColor,
+    icon_color: input.iconColor,
+    shadow_strength: input.shadowStrength,
+    radius: input.radius,
+    priority: input.priority,
+    description: input.description,
+    enabled: input.enabled,
+    is_discount: input.isDiscount,
+    start_at: input.startAt,
+    end_at: input.endAt,
+    auto_rule: input.autoRule,
+  };
+}
+
+export async function createBadgeType(input: BadgeTypeInput) {
+  const { error } = await supabase.from("badge_types").insert(inputToRow(input) as never);
+  if (error) throw new Error(error.message);
+  await load(true);
+}
+
+export async function updateBadgeTypeFull(id: string, input: BadgeTypeInput) {
+  const { error } = await supabase.from("badge_types").update(inputToRow(input) as never).eq("id", id);
+  if (error) throw new Error(error.message);
+  await load(true);
+}
+
+export async function deleteBadgeType(id: string) {
+  const { error } = await supabase.from("badge_types").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  await load(true);
+}
+
+export async function setBadgeEnabled(id: string, enabled: boolean) {
+  const { error } = await supabase.from("badge_types").update({ enabled } as never).eq("id", id);
+  if (error) throw new Error(error.message);
+  await load(true);
+}
+
+export async function reorderBadgeTypes(orderedIds: string[]) {
+  // Highest priority first → assign descending priority numbers.
+  const n = orderedIds.length;
+  await Promise.all(
+    orderedIds.map((id, i) =>
+      supabase.from("badge_types").update({ priority: (n - i) * 5 } as never).eq("id", id),
+    ),
+  );
+  await load(true);
+}
+
+export async function duplicateBadgeType(b: BadgeType) {
+  const base = b.badgeKey.replace(/-copy(-\d+)?$/, "");
+  const input: BadgeTypeInput = {
+    badgeKey: `${base}-copy-${Math.random().toString(36).slice(2, 6)}`,
+    label: `${b.label} (Copy)`,
+    emoji: b.emoji,
+    color: b.color,
+    textColor: b.textColor,
+    backgroundColor: b.backgroundColor,
+    borderColor: b.borderColor,
+    glowColor: b.glowColor,
+    iconColor: b.iconColor,
+    shadowStrength: b.shadowStrength,
+    radius: b.radius,
+    priority: b.priority,
+    description: b.description,
+    enabled: false,
+    isDiscount: b.isDiscount,
+    startAt: b.startAt,
+    endAt: b.endAt,
+    autoRule: b.autoRule,
+  };
+  await createBadgeType(input);
+}
+
+// ---- Admin assignment mutations ----
 export async function assignBadge(slug: string, badgeTypeId: string) {
   const existing = cache?.map.get(slug) ?? [];
   const sortOrder = existing.length;
@@ -172,4 +341,12 @@ export async function updateBadgeType(id: string, patch: Partial<BadgeTypeRow>) 
   const { error } = await supabase.from("badge_types").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
   await load(true);
+}
+
+// ---- Click analytics ----
+export function trackBadgeClick(badgeTypeId: string, slug: string) {
+  if (typeof window === "undefined") return;
+  void supabase
+    .from("badge_events")
+    .insert({ badge_type_id: badgeTypeId, product_slug: slug, event_type: "click" } as never);
 }
