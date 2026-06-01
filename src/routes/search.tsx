@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X, Star } from "lucide-react";
+import { Search, SlidersHorizontal, X, Star, ShieldCheck, RefreshCw, BadgeCheck, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { rowToProduct, discountPercent, type Product } from "@/lib/products";
 import { useCategories } from "@/lib/use-categories";
@@ -253,6 +253,44 @@ function SearchPage() {
             Search
           </button>
         </form>
+
+        {/* Category chips — horizontal scroll, premium pill design */}
+        {categories.length > 0 && (
+          <div className="-mx-4 px-4 sm:mx-0 sm:px-0 mt-5">
+            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <button
+                onClick={() => update({ cat: undefined })}
+                className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest transition-colors ${!search.cat ? "border-accent bg-accent/15 text-accent" : "border-border text-foreground hover:border-accent/60"}`}
+              >
+                All
+              </button>
+              {categories.map((c) => (
+                <button
+                  key={c.slug}
+                  onClick={() => update({ cat: search.cat === c.slug ? undefined : c.slug })}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest transition-colors ${search.cat === c.slug ? "border-accent bg-accent/15 text-accent" : "border-border text-foreground hover:border-accent/60"}`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Trust strip */}
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          {[
+            { icon: ShieldCheck, label: "Secure Payments" },
+            { icon: RefreshCw, label: "Easy Returns" },
+            { icon: BadgeCheck, label: "Verified Products" },
+            { icon: Globe, label: "Worldwide Shipping" },
+          ].map(({ icon: Icon, label }) => (
+            <div key={label} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card/40 px-3 py-2">
+              <Icon className="size-4 text-accent shrink-0" />
+              <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-muted-foreground truncate">{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-border">

@@ -37,6 +37,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
   const saved = has(product.slug);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -183,19 +184,26 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
 
           <button
-            onClick={(e) => { e.preventDefault(); toggle(product.slug); }}
+            onClick={(e) => {
+              e.preventDefault();
+              toggle(product.slug);
+              if (!saved) {
+                setJustSaved(true);
+                window.setTimeout(() => setJustSaved(false), 600);
+              }
+            }}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
             className={`absolute grid place-items-center rounded-full backdrop-blur-xl border shadow-lg shadow-black/30 transition-all duration-300 active:scale-90 ${
               compact
                 ? "top-2 right-2 size-7"
                 : "top-2.5 right-2.5 size-8"
-            } ${
+            } ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""} ${
               saved
                 ? "bg-accent/25 border-accent text-accent scale-110"
                 : "bg-black/40 border-white/20 text-white hover:bg-accent/25 hover:border-accent hover:text-accent hover:scale-110"
             }`}
           >
-            <Heart className={`transition-all ${compact ? "size-2.5" : "size-3"} ${saved ? "fill-accent" : ""}`} />
+            <Heart className={`transition-all duration-300 ${compact ? "size-2.5" : "size-3"} ${saved ? "fill-accent scale-110" : ""}`} />
           </button>
 
           {/* Quick add — slides up on hover (desktop) */}
@@ -238,16 +246,16 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
           )}
         </div>
 
-        {/* Shipping row — free shipping when fee is 0, otherwise the actual charge */}
-        {shippingFee > 0 ? (
-          <p className={`font-mono text-muted-foreground/80 ${compact ? "mt-0.5 text-[8px]" : "mt-1 text-[10px]"}`}>
-            Shipping {format(shippingFee)}
-          </p>
-        ) : (
-          <p className={`font-mono uppercase tracking-wider text-emerald-400/90 ${compact ? "mt-0.5 text-[8px]" : "mt-1 text-[9px]"}`}>
-            Free Shipping
-          </p>
-        )}
+        {/* Shipping row — business rule: only ever advertise FREE shipping on
+            listing cards. Paid shipping fees are hidden here and surface only on
+            the product details page. Fixed height keeps every footer aligned. */}
+        <div className={`flex items-center ${compact ? "mt-0.5 min-h-[12px]" : "mt-1 min-h-[14px]"}`}>
+          {shippingFee <= 0 && (
+            <p className={`font-mono uppercase tracking-wider text-emerald-400/90 ${compact ? "text-[8px]" : "text-[9px]"}`}>
+              Free Shipping
+            </p>
+          )}
+        </div>
         {showOnlyLeft && (
           <p className={`font-mono uppercase tracking-wider text-accent/90 ${compact ? "mt-0.5 text-[8px]" : "mt-1 text-[9px]"}`}>
             Only {product.stockQuantity} left
