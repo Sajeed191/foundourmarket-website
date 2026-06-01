@@ -646,7 +646,7 @@ function Home() {
                   <Zap className="size-3.5 text-accent/60 animate-glow" />
                 </div>
                 <div className="relative text-3xl sm:text-4xl font-display font-semibold tracking-tight text-gradient-ember">
-                  <AnimatedCounter to={s.value} suffix={s.suffix} />
+                  <AnimatedCounter to={s.value} suffix={s.suffix} decimals={Number.isInteger(s.value) ? 0 : 1} />
                 </div>
                 <div className="relative text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-muted-foreground mt-2">{s.label}</div>
               </div>
