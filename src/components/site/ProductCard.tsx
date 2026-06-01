@@ -37,6 +37,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
   const saved = has(product.slug);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
