@@ -63,7 +63,15 @@ export type BadgeType = {
   updatedAt: string;
 };
 
-export type RenderBadge = BadgeType & { sortOrder: number };
+export type RenderBadge = BadgeType & {
+  sortOrder: number;
+  /** Per-assignment fields (override badge-type defaults on a single product). */
+  assignmentId?: string;
+  assignNotes?: string;
+  assignStartAt?: string | null;
+  assignEndAt?: string | null;
+  assignArchived?: boolean;
+};
 
 type BadgeTypeRow = {
   id: string;
@@ -96,9 +104,14 @@ type BadgeTypeRow = {
 };
 
 type AssignmentRow = {
+  id?: string;
   product_slug: string;
   sort_order: number;
   badge_type_id: string;
+  notes?: string | null;
+  start_at?: string | null;
+  end_at?: string | null;
+  archived?: boolean | null;
 };
 
 function rowToType(r: BadgeTypeRow): BadgeType {
@@ -171,7 +184,7 @@ async function load(force = false): Promise<Snapshot> {
     inflight = (async () => {
       const [{ data: typeRows }, { data: assignRows }] = await Promise.all([
         supabase.from("badge_types").select("*").order("priority", { ascending: false }),
-        supabase.from("product_badges").select("product_slug, sort_order, badge_type_id"),
+        supabase.from("product_badges").select("*"),
       ]);
       const types = (typeRows ?? []).map((r) => rowToType(r as BadgeTypeRow));
       const typeById = new Map(types.map((t) => [t.id, t]));
@@ -180,7 +193,15 @@ async function load(force = false): Promise<Snapshot> {
         const t = typeById.get(a.badge_type_id);
         if (!t) continue;
         const list = map.get(a.product_slug) ?? [];
-        list.push({ ...t, sortOrder: a.sort_order });
+        list.push({
+          ...t,
+          sortOrder: a.sort_order,
+          assignmentId: a.id,
+          assignNotes: a.notes ?? "",
+          assignStartAt: a.start_at ?? null,
+          assignEndAt: a.end_at ?? null,
+          assignArchived: a.archived ?? false,
+        });
         map.set(a.product_slug, list);
       }
       // Sort each product's badges by sortOrder then priority desc.
@@ -212,7 +233,13 @@ export function useProductBadges(slug: string): RenderBadge[] {
     };
   }, []);
   const list = snap?.map.get(slug) ?? [];
-  return list.filter((b) => isBadgeLive(b));
+  const now = Date.now();
+  return list.filter((b) => {
+    if (b.assignArchived) return false;
+    if (b.assignStartAt && new Date(b.assignStartAt).getTime() > now) return false;
+    if (b.assignEndAt && new Date(b.assignEndAt).getTime() < now) return false;
+    return isBadgeLive(b, now);
+  });
 }
 
 /** Full badge catalog + per-product assignment map (admin tooling). */
@@ -400,6 +427,110 @@ export async function reorderProductBadges(slug: string, orderedBadgeTypeIds: st
   );
   await load(true);
 }
+
+/** Update per-assignment fields (notes / schedule / archived) for one product badge. */
+export async function updateAssignment(
+  slug: string,
+  badgeTypeId: string,
+  patch: { notes?: string; start_at?: string | null; end_at?: string | null; archived?: boolean },
+) {
+  const { error } = await supabase
+    .from("product_badges")
+    .update(patch as never)
+    .eq("product_slug", slug)
+    .eq("badge_type_id", badgeTypeId);
+  if (error) throw new Error(error.message);
+  await load(true);
+}
+
+type BulkProgress = (done: number, total: number) => void;
+const CHUNK = 200;
+
+/** Assign a badge to many products (skips products that already have it). Chunked + progress. */
+export async function bulkAssign(
+  slugs: string[],
+  badgeTypeId: string,
+  onProgress?: BulkProgress,
+) {
+  const snap = cache ?? (await load());
+  const targets = slugs.filter(
+    (s) => !(snap.map.get(s) ?? []).some((b) => b.id === badgeTypeId),
+  );
+  const rows = targets.map((s) => ({
+    product_slug: s,
+    badge_type_id: badgeTypeId,
+    sort_order: (snap.map.get(s) ?? []).length,
+  }));
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const chunk = rows.slice(i, i + CHUNK);
+    const { error } = await supabase.from("product_badges").insert(chunk as never);
+    if (error) throw new Error(error.message);
+    onProgress?.(Math.min(i + CHUNK, rows.length), rows.length);
+  }
+  await load(true);
+  return targets.length;
+}
+
+/** Remove a badge from many products. Chunked + progress. */
+export async function bulkUnassign(
+  slugs: string[],
+  badgeTypeId: string,
+  onProgress?: BulkProgress,
+) {
+  for (let i = 0; i < slugs.length; i += CHUNK) {
+    const chunk = slugs.slice(i, i + CHUNK);
+    const { error } = await supabase
+      .from("product_badges")
+      .delete()
+      .eq("badge_type_id", badgeTypeId)
+      .in("product_slug", chunk);
+    if (error) throw new Error(error.message);
+    onProgress?.(Math.min(i + CHUNK, slugs.length), slugs.length);
+  }
+  await load(true);
+}
+
+/** Replace one badge with another across many products. */
+export async function bulkReplace(
+  slugs: string[],
+  fromBadgeTypeId: string,
+  toBadgeTypeId: string,
+  onProgress?: BulkProgress,
+) {
+  for (let i = 0; i < slugs.length; i += CHUNK) {
+    const chunk = slugs.slice(i, i + CHUNK);
+    const { error } = await supabase
+      .from("product_badges")
+      .update({ badge_type_id: toBadgeTypeId } as never)
+      .eq("badge_type_id", fromBadgeTypeId)
+      .in("product_slug", chunk);
+    if (error) throw new Error(error.message);
+    onProgress?.(Math.min(i + CHUNK, slugs.length), slugs.length);
+  }
+  await load(true);
+}
+
+/** Bulk schedule / archive an existing badge assignment across many products. */
+export async function bulkUpdateAssignments(
+  slugs: string[],
+  badgeTypeId: string,
+  patch: { start_at?: string | null; end_at?: string | null; archived?: boolean },
+  onProgress?: BulkProgress,
+) {
+  for (let i = 0; i < slugs.length; i += CHUNK) {
+    const chunk = slugs.slice(i, i + CHUNK);
+    const { error } = await supabase
+      .from("product_badges")
+      .update(patch as never)
+      .eq("badge_type_id", badgeTypeId)
+      .in("product_slug", chunk);
+    if (error) throw new Error(error.message);
+    onProgress?.(Math.min(i + CHUNK, slugs.length), slugs.length);
+  }
+  await load(true);
+}
+
+
 
 export async function updateBadgeType(id: string, patch: Partial<BadgeTypeRow>) {
   const { error } = await supabase.from("badge_types").update(patch as never).eq("id", id);

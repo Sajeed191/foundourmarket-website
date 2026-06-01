@@ -61,6 +61,7 @@ import { Route as AdminEmailDeliveryRouteImport } from './routes/admin-email-del
 import { Route as AdminCustomersRouteImport } from './routes/admin-customers'
 import { Route as AdminCustomerIntelligenceRouteImport } from './routes/admin-customer-intelligence'
 import { Route as AdminCmsRouteImport } from './routes/admin-cms'
+import { Route as AdminBadgesBulkRouteImport } from './routes/admin-badges-bulk'
 import { Route as AdminBadgesRouteImport } from './routes/admin-badges'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin-analytics'
 import { Route as AdminAiOperationsRouteImport } from './routes/admin-ai-operations'
@@ -366,6 +367,11 @@ const AdminCmsRoute = AdminCmsRouteImport.update({
   path: '/admin-cms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminBadgesBulkRoute = AdminBadgesBulkRouteImport.update({
+  id: '/admin-badges-bulk',
+  path: '/admin-badges-bulk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminBadgesRoute = AdminBadgesRouteImport.update({
   id: '/admin-badges',
   path: '/admin-badges',
@@ -589,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/admin-ai-operations': typeof AdminAiOperationsRoute
   '/admin-analytics': typeof AdminAnalyticsRoute
   '/admin-badges': typeof AdminBadgesRoute
+  '/admin-badges-bulk': typeof AdminBadgesBulkRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -684,6 +691,7 @@ export interface FileRoutesByTo {
   '/admin-ai-operations': typeof AdminAiOperationsRoute
   '/admin-analytics': typeof AdminAnalyticsRoute
   '/admin-badges': typeof AdminBadgesRoute
+  '/admin-badges-bulk': typeof AdminBadgesBulkRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -780,6 +788,7 @@ export interface FileRoutesById {
   '/admin-ai-operations': typeof AdminAiOperationsRoute
   '/admin-analytics': typeof AdminAnalyticsRoute
   '/admin-badges': typeof AdminBadgesRoute
+  '/admin-badges-bulk': typeof AdminBadgesBulkRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -877,6 +886,7 @@ export interface FileRouteTypes {
     | '/admin-ai-operations'
     | '/admin-analytics'
     | '/admin-badges'
+    | '/admin-badges-bulk'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -972,6 +982,7 @@ export interface FileRouteTypes {
     | '/admin-ai-operations'
     | '/admin-analytics'
     | '/admin-badges'
+    | '/admin-badges-bulk'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -1067,6 +1078,7 @@ export interface FileRouteTypes {
     | '/admin-ai-operations'
     | '/admin-analytics'
     | '/admin-badges'
+    | '/admin-badges-bulk'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -1163,6 +1175,7 @@ export interface RootRouteChildren {
   AdminAiOperationsRoute: typeof AdminAiOperationsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminBadgesRoute: typeof AdminBadgesRoute
+  AdminBadgesBulkRoute: typeof AdminBadgesBulkRoute
   AdminCmsRoute: typeof AdminCmsRoute
   AdminCustomerIntelligenceRoute: typeof AdminCustomerIntelligenceRoute
   AdminCustomersRoute: typeof AdminCustomersRouteWithChildren
@@ -1612,6 +1625,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-badges-bulk': {
+      id: '/admin-badges-bulk'
+      path: '/admin-badges-bulk'
+      fullPath: '/admin-badges-bulk'
+      preLoaderRoute: typeof AdminBadgesBulkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-badges': {
       id: '/admin-badges'
       path: '/admin-badges'
@@ -1953,6 +1973,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAiOperationsRoute: AdminAiOperationsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminBadgesRoute: AdminBadgesRoute,
+  AdminBadgesBulkRoute: AdminBadgesBulkRoute,
   AdminCmsRoute: AdminCmsRoute,
   AdminCustomerIntelligenceRoute: AdminCustomerIntelligenceRoute,
   AdminCustomersRoute: AdminCustomersRouteWithChildren,
