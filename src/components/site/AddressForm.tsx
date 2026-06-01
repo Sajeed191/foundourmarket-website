@@ -448,8 +448,8 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         <Err k="full_name" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
+        <div className="min-w-0">
           <PhoneInput
             value={form.phone ?? ""}
             defaultCountry={regionCountry}
@@ -464,13 +464,15 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           />
           <Err k="phone" />
         </div>
-        <PhoneInput
-          value={form.alternate_phone ?? ""}
-          defaultCountry={regionCountry}
-          autoDetect={false}
-          onChange={(e164) => set("alternate_phone", e164)}
-          placeholder="Alternate"
-        />
+        <div className="min-w-0">
+          <PhoneInput
+            value={form.alternate_phone ?? ""}
+            defaultCountry={regionCountry}
+            autoDetect={false}
+            onChange={(e164) => set("alternate_phone", e164)}
+            placeholder="Alternate"
+          />
+        </div>
       </div>
 
 
