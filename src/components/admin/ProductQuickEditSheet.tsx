@@ -9,6 +9,7 @@ import type { Product, ProductStatus } from "@/lib/products";
 import { resolveImage } from "@/lib/products";
 import { adminUpdateProduct } from "@/lib/admin-products.functions";
 import { invalidateProducts } from "@/lib/use-products";
+import { useBadgeCatalog, assignBadge, unassignBadge } from "@/lib/use-product-badges";
 import { cn } from "@/lib/utils";
 
 const STATUSES: ProductStatus[] = [
@@ -221,6 +222,10 @@ export function ProductQuickEditSheet({
                 <Toggle label="In stock" value={form.inStock} onChange={(v) => set("inStock", v)} />
                 <Toggle label="Featured" value={form.featured} onChange={(v) => set("featured", v)} />
               </div>
+
+              <Field label="Badges">
+                <BadgeAssigner slug={product.slug} />
+              </Field>
             </div>
 
             {/* Footer */}
@@ -307,5 +312,61 @@ function Toggle({
         />
       </span>
     </button>
+  );
+}
+
+/** Multi-select badge assignment for a product (staff only, RLS-enforced). */
+function BadgeAssigner({ slug }: { slug: string }) {
+  const { types, map } = useBadgeCatalog();
+  const assignedIds = new Set((map.get(slug) ?? []).map((b) => b.id));
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function toggleBadge(id: string, active: boolean) {
+    setBusy(id);
+    try {
+      if (active) await unassignBadge(slug, id);
+      else await assignBadge(slug, id);
+    } catch (e) {
+      toast.error("Badge update failed", {
+        description: e instanceof Error ? e.message : "Try again.",
+      });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const enabled = types.filter((t) => t.enabled && !t.isDiscount);
+  if (enabled.length === 0) {
+    return <p className="text-[11px] text-muted-foreground">No badge types available.</p>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {enabled.map((t) => {
+        const active = assignedIds.has(t.id);
+        return (
+          <button
+            key={t.id}
+            type="button"
+            disabled={busy === t.id}
+            onClick={() => toggleBadge(t.id, active)}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium transition-all disabled:opacity-50",
+              active
+                ? "border-transparent shadow-sm"
+                : "border-border bg-card text-muted-foreground hover:text-foreground",
+            )}
+            style={active ? { backgroundColor: t.color, color: t.textColor } : undefined}
+          >
+            {busy === t.id ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              t.emoji && <span aria-hidden>{t.emoji}</span>
+            )}
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }

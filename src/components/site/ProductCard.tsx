@@ -8,7 +8,17 @@ import { useWishlist } from "@/lib/wishlist";
 import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminControls";
 import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { computeBadges } from "@/lib/badges";
+import { useProductBadges } from "@/lib/use-product-badges";
 import { StarRating } from "@/components/site/StarRating";
+
+type DisplayBadge = {
+  key: string;
+  label: string;
+  emoji: string;
+  className?: string;
+  color?: string;
+  textColor?: string;
+};
 
 
 export function ProductCard({ product, compact }: { product: Product; compact?: boolean }) {
@@ -23,7 +33,22 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
   const shippingFee = shippingFeeOf(product);
 
   const badgeSettings = useBadgeSettings();
-  const badges = computeBadges(product, badgeSettings);
+  const assigned = useProductBadges(product.slug);
+  // Admin-assigned badges win; otherwise fall back to auto-computed badges.
+  const badges: DisplayBadge[] = assigned.length
+    ? assigned.map((b) => ({
+        key: b.badgeKey,
+        label: b.label,
+        emoji: b.emoji,
+        color: b.color,
+        textColor: b.textColor,
+      }))
+    : computeBadges(product, badgeSettings).map((b) => ({
+        key: b.key,
+        label: b.label,
+        emoji: b.emoji,
+        className: b.className,
+      }));
   const showOnlyLeft =
     product.stockQuantity > 0 &&
     product.stockQuantity <= (product.lowStockThreshold || 10);
@@ -79,9 +104,10 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             {badges.slice(0, 3).map((b) => (
               <span
                 key={b.key}
-                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className}`}
+                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className ?? ""}`}
+                style={b.color ? { backgroundColor: b.color, color: b.textColor } : undefined}
               >
-                <span aria-hidden>{b.emoji}</span>
+                {b.emoji && <span aria-hidden>{b.emoji}</span>}
                 {b.label}
               </span>
             ))}
