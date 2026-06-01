@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Heart, Plus, Minus, Check } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
