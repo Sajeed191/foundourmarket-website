@@ -659,20 +659,61 @@ function ProductPage() {
 }
 
 
+function ProductLayoutDiagnostics({ phase }: { phase: "loading" | "final" }) {
+  const previous = useRef<Record<string, number> | null>(null);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") return;
+    const selectors = {
+      pageHeight: "body",
+      contentHeight: "[data-product-page]",
+      heroHeight: "[data-product-hero]",
+      imageHeight: "[data-product-image]",
+      infoHeight: "[data-product-info]",
+      ctaHeight: "[data-product-cta]",
+      navHeight: "[data-app-bottom-nav]",
+      reviewsHeight: "[data-product-reviews]",
+      questionsHeight: "[data-product-questions]",
+      relatedHeight: "[data-product-related]",
+    } as const;
+    const read = () =>
+      Object.fromEntries(
+        Object.entries(selectors).map(([key, selector]) => {
+          const el = document.querySelector<HTMLElement>(selector);
+          return [key, Math.round(el?.getBoundingClientRect().height ?? 0)];
+        }),
+      ) as Record<string, number>;
+    const frame = requestAnimationFrame(() => {
+      const current = read();
+      const delta = previous.current
+        ? Object.fromEntries(Object.entries(current).map(([key, value]) => [key, value - (previous.current?.[key] ?? 0)]))
+        : null;
+      console.debug(`[product-layout] ${phase}`, { ...current, delta });
+      previous.current = current;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [phase]);
+
+  return null;
+}
+
+
 function ProductPageSkeleton() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16" aria-busy="true">
+    <>
+    <div data-product-page data-product-phase="loading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16" aria-busy="true">
+      <ProductLayoutDiagnostics phase="loading" />
       <div className="mb-6 h-3 w-44 rounded-full bg-white/[0.05] animate-pulse" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16">
+      <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16">
         <div className="space-y-4">
-          <div className="aspect-square rounded-3xl border border-border bg-white/[0.04] animate-pulse" />
+          <div data-product-image className="aspect-square rounded-3xl border border-border bg-white/[0.04] animate-pulse" />
           <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 sm:gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="aspect-square rounded-xl bg-white/[0.04] animate-pulse" />
             ))}
           </div>
         </div>
-        <div className="space-y-5">
+        <div data-product-info className="space-y-5">
           <div className="h-3 w-32 rounded-full bg-accent/20 animate-pulse" />
           <div className="h-11 w-4/5 rounded-2xl bg-white/[0.06] animate-pulse" />
           <div className="h-4 w-52 rounded-full bg-white/[0.05] animate-pulse" />
@@ -691,6 +732,20 @@ function ProductPageSkeleton() {
         </div>
       </div>
     </div>
+    <div data-product-recommendations className="max-w-7xl mx-auto min-h-0 px-4 sm:min-h-[20rem] sm:px-6 lg:px-8" />
+    <div data-product-reviews className="min-h-[22rem]" />
+    <div data-product-questions className="min-h-[12rem]" />
+    <div data-product-related className="min-h-[24rem]" />
+    <div aria-hidden className="sm:hidden h-[var(--product-page-bottom-clearance)]" />
+    <div data-product-cta className="sm:hidden fixed inset-x-0 z-40 h-[var(--product-dock-height)] px-3" style={{ bottom: "var(--product-dock-bottom)" }}>
+      <div className="flex h-full items-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-2xl">
+        <div className="size-10 shrink-0 rounded-xl bg-white/[0.05] animate-pulse" />
+        <div className="h-8 w-16 shrink-0 rounded-lg bg-white/[0.05] animate-pulse" />
+        <div className="size-10 shrink-0 rounded-xl bg-white/[0.05] animate-pulse" />
+        <div className="h-10 flex-1 rounded-xl bg-accent/20 animate-pulse" />
+      </div>
+    </div>
+    </>
   );
 }
 
