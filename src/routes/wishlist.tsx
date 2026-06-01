@@ -148,28 +148,32 @@ function WishlistPage() {
         return items.filter((p) => !p.inStock);
       case "price-drops":
         return items.filter((p) => (drops[p.slug] ?? 0) > 0);
-      case "recent":
-        return [...items].reverse();
+      case "free-shipping":
+        return items.filter((p) => shippingFeeOf(p) <= 0);
       default:
         return items;
     }
-  }, [items, filter, drops]);
+  }, [items, filter, drops, shippingFeeOf]);
 
   // Smart insights
   const insights = useMemo(() => {
     let dropCount = 0;
-    let lowStock = 0;
+    let outOfStock = 0;
     let freeShip = 0;
     let total = 0;
     for (const p of items) {
       if ((drops[p.slug] ?? 0) > 0) dropCount++;
-      if (p.inStock && p.stockQuantity > 0 && p.stockQuantity <= (p.lowStockThreshold || 10))
-        lowStock++;
+      if (!p.inStock) outOfStock++;
       if (shippingFeeOf(p) <= 0) freeShip++;
       total += priceOf(p);
     }
-    return { dropCount, lowStock, freeShip, total };
+    return { dropCount, outOfStock, freeShip, total, count: items.length };
   }, [items, drops, priceOf, shippingFeeOf]);
+
+  const selectedTotal = useMemo(
+    () => items.filter((p) => selected.has(p.slug)).reduce((s, p) => s + priceOf(p), 0),
+    [items, selected, priceOf],
+  );
 
   const exitSelect = () => {
     setSelectMode(false);
