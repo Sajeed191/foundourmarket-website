@@ -70,6 +70,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-products", label: "Products", icon: Package },
       { to: "/admin-badges", label: "Badge Manager", icon: Gem, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-badges-bulk", label: "Bulk Badges", icon: Gem, roles: ["admin", "super_admin", "manager"] },
+      { to: "/admin-badges-analytics", label: "Badge Analytics", icon: BarChart3, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-media", label: "Media library", icon: Images, roles: ["admin", "super_admin", "manager", "editor"] },
 
       { to: "/admin?tab=categories", label: "Categories", icon: Boxes },
