@@ -180,7 +180,7 @@ function ProductPage() {
   // stable across renders/hydration (no flicker, no SSR mismatch).
   const socialProof = useMemo(() => {
     if (!product) return null;
-    const seed = product.slug.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    const seed = product.slug.split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0);
     return { viewers: 12 + (seed % 40), sold: 5 + (seed % 24) };
   }, [product?.slug]);
 
