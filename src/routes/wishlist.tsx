@@ -76,6 +76,8 @@ function WishlistPage() {
   const [quickView, setQuickView] = useState<Product | null>(null);
   const [variants, setVariants] = useState<Record<string, string>>({});
   const [drops, setDrops] = useState<Record<string, number>>({});
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [collectionOpen, setCollectionOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
