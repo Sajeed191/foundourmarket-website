@@ -11,7 +11,7 @@ import {
   Globe,
   Upload,
   Trash2,
-  Camera,
+  Trash2,
   ShieldCheck,
   Check,
   X,
@@ -477,10 +477,6 @@ function EditProfilePage() {
                 </FloatingField>
               </div>
             </Section>
-
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/70 flex items-center gap-1.5">
-              <Camera className="size-3" /> Uploads support gallery, camera, and albums on mobile.
-            </p>
 
             {/* ── Actions ── */}
             <div className="flex items-center gap-3 pt-2">
