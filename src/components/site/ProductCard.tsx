@@ -29,6 +29,25 @@ type DisplayBadge = {
   animation?: string;
 };
 
+// Admin-facing badge priority. Lower index = higher priority = shown first.
+const BADGE_PRIORITY = [
+  "hot deal",
+  "flash sale",
+  "fast selling",
+  "trending",
+  "best seller",
+  "new",
+  "premium",
+  "recommended",
+];
+function badgePriority(key?: string, label?: string): number {
+  const hay = `${key ?? ""} ${label ?? ""}`.toLowerCase();
+  const idx = BADGE_PRIORITY.findIndex((p) => hay.includes(p));
+  return idx === -1 ? BADGE_PRIORITY.length : idx;
+}
+
+
+
 
 export function ProductCard({ product, compact }: { product: Product; compact?: boolean }) {
   const { format, priceOf, compareOf, shippingFeeOf } = useRegion();
