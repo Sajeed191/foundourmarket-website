@@ -130,26 +130,8 @@ function CartPage() {
             </p>
           </div>
         </div>
-
-        {/* Free shipping progress */}
-        <div className="mt-4 rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4">
-          <div className="flex items-center gap-2 text-sm mb-2">
-            <Truck className="size-4 text-accent shrink-0" />
-            {remaining > 0 ? (
-              <span>You're <span className="text-accent font-semibold">{format(remaining)}</span> away from free shipping</span>
-            ) : (
-              <span className="text-accent font-semibold inline-flex items-center gap-1"><CheckCircle2 className="size-4" /> You've unlocked free shipping!</span>
-            )}
-          </div>
-          <div className="h-2 rounded-full bg-muted/40 overflow-hidden">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-accent/70 to-accent shadow-[0_0_12px_hsl(var(--accent)/0.6)]"
-              initial={false} animate={{ width: `${progress}%` }}
-              transition={{ type: "spring", stiffness: 120, damping: 20 }}
-            />
-          </div>
-        </div>
       </div>
+
 
       {/* Undo remove banner */}
       <AnimatePresence>
