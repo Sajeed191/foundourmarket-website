@@ -56,7 +56,7 @@ function almostEqual(a: number, b: number) {
 
 export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
   const ctaRef = useRef<HTMLElement | null>(null);
-  const [expectedCtaHeight, setExpectedCtaHeightState] = useState(0);
+  const expectedCtaHeightRef = useRef(0);
   const [metrics, setMetrics] = useState<LayoutMetrics>(ZERO_METRICS);
   const [ready, setReady] = useState(false);
 
@@ -67,7 +67,7 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
     const safeBottom = readCssPx("--mobile-safe-bottom");
     const headerHeight = visibleHeight("[data-app-header]");
     const bottomNavHeight = visibleHeight("[data-app-bottom-nav]");
-    const ctaHeight = ctaRef.current?.getBoundingClientRect().height || expectedCtaHeight;
+    const ctaHeight = ctaRef.current?.getBoundingClientRect().height || expectedCtaHeightRef.current;
     const contentHeight = Math.max(0, viewportHeight - headerHeight - bottomNavHeight - ctaHeight);
 
     document.documentElement.style.setProperty("--app-viewport-height", `${viewportHeight}px`);
@@ -90,7 +90,7 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
       return { viewportHeight, safeBottom, headerHeight, bottomNavHeight, ctaHeight, contentHeight };
     });
     setReady(true);
-  }, [expectedCtaHeight]);
+  }, []);
 
   const setCtaElement = useCallback(
     (node: HTMLElement | null) => {
@@ -102,7 +102,7 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
 
   const setExpectedCtaHeight = useCallback(
     (height: number) => {
-      setExpectedCtaHeightState(Math.max(0, height));
+      expectedCtaHeightRef.current = Math.max(0, height);
       requestAnimationFrame(measure);
     },
     [measure],
