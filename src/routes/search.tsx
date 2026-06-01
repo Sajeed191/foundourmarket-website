@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X, Star } from "lucide-react";
+import { Search, SlidersHorizontal, X, Star, ShieldCheck, RefreshCw, BadgeCheck, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { rowToProduct, discountPercent, type Product } from "@/lib/products";
 import { useCategories } from "@/lib/use-categories";
