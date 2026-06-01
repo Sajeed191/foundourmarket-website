@@ -202,6 +202,7 @@ function RootComponent() {
                  </CommandCenterProvider>
                 </AdminModeProvider>
               </CartProvider>
+              </WishlistAlertsProvider>
             </RegionProvider>
           </WishlistProvider>
         </NotificationsProvider>
