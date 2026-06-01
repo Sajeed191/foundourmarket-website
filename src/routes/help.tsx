@@ -66,7 +66,7 @@ const QUICK_ACTIONS = [
 const CONTACT_METHODS = [
   { icon: MessageCircle, title: "Live Chat", desc: "AI + human agents", status: "Online Now", eta: "Instant reply", color: "#22c55e", href: "#assistant" },
   { icon: Phone, title: "WhatsApp", desc: "Chat with support", status: "Active", eta: "≈ 12 min", color: "#25D366", href: "https://wa.me/" },
-  { icon: Mail, title: "Email Support", desc: "support@foundourmarket.com", status: "24/7", eta: "< 4h response", color: "#FF7A00", href: "mailto:support@foundourmarket.com" },
+  { icon: Mail, title: "Email Support", desc: "foundourmarket@gmail.com", status: "24/7", eta: "< 4h response", color: "#FF7A00", href: "mailto:foundourmarket@gmail.com" },
   { icon: Store, title: "Seller Support", desc: "foundourmarket@gmail.com", status: "Verified", eta: "< 24h", color: "#FF9F43", href: "mailto:foundourmarket@gmail.com" },
 ];
 
