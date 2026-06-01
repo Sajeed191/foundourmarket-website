@@ -283,7 +283,7 @@ function SupportContacts() {
                 </button>
               </div>
               <div className="mt-4 space-y-2">
-                {WHATSAPP_NUMBERS.map((num) => (
+                {whatsappNumbers.map((num) => (
                   <div key={num} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-2 pl-4">
                     <span className="flex-1 text-sm font-mono tracking-wide">{num}</span>
                     <button onClick={() => copyNumber(num)} aria-label="Copy number"
