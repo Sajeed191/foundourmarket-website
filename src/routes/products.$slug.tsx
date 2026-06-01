@@ -109,6 +109,12 @@ function ProductPage() {
   const [fbtSlugs, setFbtSlugs] = useState<string[]>([]);
   const [alsoViewed, setAlsoViewed] = useState<string[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  // True once images + variants have resolved from the server.
+  const [dataReady, setDataReady] = useState(false);
+  // True once the main product image has actually decoded/loaded.
+  const [mainImgLoaded, setMainImgLoaded] = useState(false);
+  // True once the user has scrolled past the hero so the dock can appear.
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
 
   useEffect(() => {
     if (product) {
