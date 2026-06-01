@@ -21,7 +21,7 @@ import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
 import { useRegion } from "@/lib/region";
 import { supabase } from "@/integrations/supabase/client";
-import { type Product } from "@/lib/products";
+import { type Product, discountPercent } from "@/lib/products";
 import { WishlistCard } from "@/components/site/WishlistCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { StarRating } from "@/components/site/StarRating";
