@@ -35,9 +35,7 @@ function MiniCard({ product }: { product: Product }) {
         </h4>
       </Link>
       <div className="mt-1.5 flex items-center justify-between gap-1.5">
-        <p className="font-display font-semibold text-xs tabular-nums leading-none">
-          {format(priceOf(product))}
-        </p>
+        <Price value={priceOf(product)} className="font-display font-semibold text-xs tabular-nums leading-none" />
         <button
           onClick={(e) => {
             e.preventDefault();
