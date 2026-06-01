@@ -256,7 +256,7 @@ function ProductPage() {
   // product + variants + images loaded, main image decoded, and currency
   // resolved. Combined with the scroll gate this prevents overlap, layout
   // shift and currency flicker after a refresh.
-  const productPageReady = layoutReady && dataReady && currencyReady && mainImgLoaded;
+  const productPageReady = layoutReady && dataReady && mainImgLoaded;
   const showPurchaseDock = productPageReady && mobileDockVisible;
 
   if (!productPageReady) {
