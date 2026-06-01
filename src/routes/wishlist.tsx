@@ -745,7 +745,7 @@ function InsightCard({
   accent?: boolean;
 }) {
   return (
-    <div className="card-premium p-4 flex flex-col gap-2">
+    <div className="card-premium p-4 flex flex-col gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_0_24px_-8px_var(--accent)]">
       <div
         className={`size-9 grid place-items-center rounded-xl border ${
           accent
@@ -764,6 +764,108 @@ function InsightCard({
     </div>
   );
 }
+
+type WishlistInsights = {
+  dropCount: number;
+  outOfStock: number;
+  lowStock: number;
+  freeShip: number;
+  total: number;
+  savings: number;
+  avgDiscount: number;
+  recent: number;
+  count: number;
+};
+
+function AlertCenter({
+  insights,
+  dismissed,
+  onDismiss,
+  onView,
+}: {
+  insights: WishlistInsights;
+  dismissed: Set<string>;
+  onDismiss: (k: string) => void;
+  onView: (k: FilterKey) => void;
+}) {
+  const alerts: {
+    key: string;
+    filter: FilterKey;
+    icon: React.ReactNode;
+    title: string;
+    desc: string;
+    tone: "accent" | "emerald" | "amber";
+  }[] = [];
+  if (insights.dropCount > 0)
+    alerts.push({
+      key: "drops",
+      filter: "price-drops",
+      icon: <TrendingDown className="size-4" />,
+      title: "Price Drop",
+      desc: `${insights.dropCount} product${insights.dropCount > 1 ? "s" : ""} reduced`,
+      tone: "emerald",
+    });
+  if (insights.lowStock > 0)
+    alerts.push({
+      key: "low",
+      filter: "low-stock",
+      icon: <Box className="size-4" />,
+      title: "Limited Stock",
+      desc: `${insights.lowStock} selling fast`,
+      tone: "amber",
+    });
+  if (insights.outOfStock > 0)
+    alerts.push({
+      key: "oos",
+      filter: "out-of-stock",
+      icon: <PackageX className="size-4" />,
+      title: "Out of Stock",
+      desc: `${insights.outOfStock} unavailable`,
+      tone: "accent",
+    });
+
+  const visible = alerts.filter((a) => !dismissed.has(a.key));
+  if (!visible.length) return null;
+
+  const tones = {
+    accent: "bg-accent/10 border-accent/30 text-accent",
+    emerald: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
+    amber: "bg-amber-500/10 border-amber-500/30 text-amber-300",
+  };
+
+  return (
+    <div className="-mx-4 sm:mx-0 mb-6 overflow-x-auto no-scrollbar">
+      <div className="flex items-stretch gap-2.5 px-4 sm:px-0">
+        {visible.map((a) => (
+          <div
+            key={a.key}
+            className={`shrink-0 flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 backdrop-blur-xl animate-[fade-up_0.4s_ease-out] ${tones[a.tone]}`}
+          >
+            <button onClick={() => onView(a.filter)} className="flex items-center gap-3 text-left">
+              <span className="grid place-items-center size-8 rounded-xl bg-background/40 border border-current/20">
+                {a.icon}
+              </span>
+              <span className="leading-tight">
+                <span className="block text-[12px] font-display font-semibold text-foreground">
+                  {a.title}
+                </span>
+                <span className="block text-[10px] font-mono opacity-80">{a.desc}</span>
+              </span>
+            </button>
+            <button
+              onClick={() => onDismiss(a.key)}
+              aria-label="Dismiss"
+              className="grid place-items-center size-6 rounded-full hover:bg-background/40 text-muted-foreground transition-colors"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 function QuickView({ product, onClose }: { product: Product; onClose: () => void }) {
   const { format, priceOf, compareOf } = useRegion();
