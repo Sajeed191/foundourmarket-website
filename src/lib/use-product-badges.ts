@@ -338,7 +338,7 @@ export async function reorderProductBadges(slug: string, orderedBadgeTypeIds: st
 }
 
 export async function updateBadgeType(id: string, patch: Partial<BadgeTypeRow>) {
-  const { error } = await supabase.from("badge_types").update(patch).eq("id", id);
+  const { error } = await supabase.from("badge_types").update(patch as never).eq("id", id);
   if (error) throw new Error(error.message);
   await load(true);
 }
