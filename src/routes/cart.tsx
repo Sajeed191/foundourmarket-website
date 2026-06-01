@@ -88,12 +88,8 @@ function CartPage() {
     () => detailed.reduce((s, i) => s + shippingFeeOf(i.product) * i.qty, 0),
     [detailed, shippingFeeOf],
   );
-  const tax = subtotalUSD * 0.08;
-  const total = Math.max(0, subtotalUSD + shipping + tax - discount);
+  const total = Math.max(0, subtotalUSD + shipping - discount);
   const totalSavings = savings + discount;
-
-  const remaining = Math.max(0, FREE_SHIP_THRESHOLD - subtotalUSD);
-  const progress = Math.min(100, (subtotalUSD / FREE_SHIP_THRESHOLD) * 100);
 
   // ---- Empty cart ----
   if (count === 0 && savedDetailed.length === 0) {
