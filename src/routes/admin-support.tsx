@@ -245,6 +245,87 @@ function AdminSupportPage() {
   );
 }
 
+// ── Support Settings ──────────────────────────────────────────────────────────
+function SupportSettingsView() {
+  const { settings } = useSupportSettings();
+  const [status, setStatus] = useState<SupportStatusMode>(settings.supportStatus);
+  const [minutes, setMinutes] = useState<number>(settings.responseMinutes);
+  const [numbers, setNumbers] = useState<string>(settings.whatsappNumbers.join("\n"));
+  const [saving, setSaving] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    if (hydrated) return;
+    setStatus(settings.supportStatus);
+    setMinutes(settings.responseMinutes);
+    setNumbers(settings.whatsappNumbers.join("\n"));
+    setHydrated(true);
+  }, [settings, hydrated]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const list = numbers.split("\n").map((n) => n.trim()).filter(Boolean).slice(0, 10);
+      await updateSupportSettings({
+        support_status: status,
+        support_response_minutes: Math.max(1, Math.min(600, Math.round(minutes) || 1)),
+        support_whatsapp_numbers: list,
+      });
+      toast.success("Support settings saved");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const STATUS_OPTS: { key: SupportStatusMode; label: string }[] = [
+    { key: "auto", label: "Auto (time-based)" },
+    { key: "online", label: "All channels online" },
+    { key: "high_volume", label: "High volume" },
+  ];
+
+  return (
+    <div className="max-w-xl space-y-5 rounded-2xl border border-border/60 bg-card/40 p-5">
+      <div>
+        <p className="text-sm font-semibold">Help Center support settings</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Controls the live status banner, response time and WhatsApp numbers shown on the public Help Center.</p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Status banner</label>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_OPTS.map((o) => (
+            <button key={o.key} onClick={() => setStatus(o.key)} type="button"
+              className={cn("rounded-full px-3 py-1.5 text-xs ring-1 transition",
+                status === o.key ? "bg-accent/15 text-accent ring-accent/40" : "bg-white/[0.03] text-muted-foreground ring-border hover:ring-accent/30")}>
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Average response time (minutes)</label>
+        <input type="number" min={1} max={600} value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}
+          className="w-32 bg-white/[0.04] border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent/60" />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">WhatsApp numbers (one per line)</label>
+        <textarea value={numbers} onChange={(e) => setNumbers(e.target.value)} rows={4}
+          placeholder="+91 97458 44213"
+          className="w-full bg-white/[0.04] border border-border rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-accent/60 resize-none" />
+      </div>
+
+      <button onClick={save} disabled={saving}
+        className="bg-accent text-accent-foreground rounded-full px-6 py-2.5 text-xs uppercase tracking-widest font-bold disabled:opacity-50 hover:brightness-110 transition-all inline-flex items-center gap-2">
+        {saving ? <><Loader2 className="size-4 animate-spin" /> Saving…</> : "Save settings"}
+      </button>
+    </div>
+  );
+}
+
 // ── Dashboard ────────────────────────────────────────────────────────────────
 function DashboardView({ kpis, enriched }: { kpis: ReturnType<typeof computeSupportKpis>; enriched: Enriched[] }) {
   const critical = enriched.filter((e) => e.sla.critical).slice(0, 6);
