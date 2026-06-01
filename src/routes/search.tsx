@@ -180,6 +180,16 @@ function SearchPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Reveal a compact sticky search bar once the user scrolls past the hero.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 280);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
 
   const currentFilters: Filters = {
     cat: search.cat,
