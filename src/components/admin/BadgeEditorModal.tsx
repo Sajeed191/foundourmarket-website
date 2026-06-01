@@ -196,20 +196,26 @@ export function BadgeEditorModal({
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Live preview</p>
           <div className="rounded-2xl bg-black/50 p-6 grid place-items-center">
             <span
-              className="inline-flex items-center gap-1 text-[11px] font-bold font-mono px-2 min-h-[24px] leading-none tracking-wider"
+              className={`inline-flex flex-col items-center justify-center gap-0 font-mono px-2.5 py-1 min-h-[24px] leading-none tracking-wider ${badgeAnimationClass(form.animation)}`}
               style={{
                 backgroundColor: preview.bg,
                 color: form.textColor,
                 border: form.borderColor ? `1px solid ${form.borderColor}` : undefined,
                 borderRadius: `${form.radius}px`,
                 boxShadow: preview.shadow,
+                fontSize: `${form.fontSize}px`,
+                fontWeight: form.fontWeight,
               }}
             >
-              {form.emoji && <span style={form.iconColor ? { color: form.iconColor } : undefined}>{form.emoji}</span>}
-              {form.label || "Badge name"}
+              <span className="inline-flex items-center gap-1">
+                {form.emoji && <span style={form.iconColor ? { color: form.iconColor } : undefined}>{form.emoji}</span>}
+                {form.label || "Badge name"}
+              </span>
+              {form.subtitle && <span className="opacity-80" style={{ fontSize: `${Math.max(7, form.fontSize - 3)}px`, fontWeight: 500 }}>{form.subtitle}</span>}
             </span>
           </div>
         </div>
+
 
         <div className="px-5 py-5 space-y-5">
           {/* Basics */}
