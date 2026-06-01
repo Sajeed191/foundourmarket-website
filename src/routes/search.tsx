@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search, SlidersHorizontal, Loader2, X } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { rowToProduct, type Product } from "@/lib/products";
 import { useCategories } from "@/lib/use-categories";
 import { ProductCard } from "@/components/site/ProductCard";
+import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 
 type SearchParams = { q?: string; cat?: string; sort?: string; min?: number; max?: number; stock?: string };
 
@@ -88,8 +89,18 @@ function SearchPage() {
 
   const activeFilterCount = [search.cat, search.stock, search.min, search.max].filter(Boolean).length;
 
+  const activeChips: { label: string; clear: () => void }[] = [];
+  if (search.cat) {
+    const name = categories.find((c) => c.slug === search.cat)?.name ?? search.cat;
+    activeChips.push({ label: name, clear: () => update({ cat: undefined }) });
+  }
+  if (search.stock === "in") activeChips.push({ label: "In stock", clear: () => update({ stock: undefined }) });
+  if (search.min) activeChips.push({ label: `Min $${search.min}`, clear: () => update({ min: undefined }) });
+  if (search.max) activeChips.push({ label: `Max $${search.max}`, clear: () => update({ max: undefined }) });
+
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-20 sm:pb-28">
       <div className="mb-6 sm:mb-8">
         <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Discover</p>
         <h1 className="text-fluid-2xl font-display font-semibold mb-5 sm:mb-6">Search the marketplace</h1>
@@ -110,20 +121,19 @@ function SearchPage() {
 
 
 
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-4 border-b border-border">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
           <button onClick={() => setFiltersOpen((o) => !o)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-[11px] font-mono uppercase tracking-widest hover:bg-white/5">
-            <SlidersHorizontal className="size-3.5" /> Filters
-            {activeFilterCount > 0 && <span className="size-5 rounded-full bg-accent text-accent-foreground grid place-items-center text-[10px]">{activeFilterCount}</span>}
+            <SlidersHorizontal className="size-3.5" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
           </button>
           {activeFilterCount > 0 && (
             <button onClick={() => nav({ search: { q: search.q }, replace: true })}
-              className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">Clear</button>
+              className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">Clear all</button>
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{loading ? "…" : `${results.length} results`}</span>
+          <span className="text-[11px] font-mono tracking-wide text-muted-foreground">{loading ? "Searching…" : `${results.length} Product${results.length === 1 ? "" : "s"} Found`}</span>
           <select value={search.sort ?? "relevance"} onChange={(e) => update({ sort: e.target.value })}
             aria-label="Sort search results"
             className="bg-background border border-border rounded-full px-3 py-2 text-[11px] font-mono uppercase tracking-widest focus:outline-none focus:border-accent">
@@ -131,6 +141,23 @@ function SearchPage() {
           </select>
         </div>
       </div>
+
+      {/* Active filter chips — removable */}
+      {activeChips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          {activeChips.map((chip) => (
+            <button
+              key={chip.label}
+              onClick={chip.clear}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5 text-[11px] font-mono tracking-wide text-foreground hover:border-accent hover:text-accent transition-colors"
+            >
+              {chip.label}
+              <X className="size-3" />
+            </button>
+          ))}
+        </div>
+      )}
+
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-6 lg:gap-8">
         <aside className={`${filtersOpen ? "block" : "hidden"} lg:block space-y-6 lg:space-y-8 bg-card lg:bg-transparent border lg:border-0 border-border rounded-2xl p-4 lg:p-0`}>
@@ -169,15 +196,26 @@ function SearchPage() {
 
         <div>
           {loading ? (
-            <div className="py-24 grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+            <ProductSkeletonGrid count={9} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6" />
+
           ) : results.length === 0 ? (
             <div className="py-16 sm:py-24 px-6 text-center border border-dashed border-border rounded-2xl">
-              <div className="size-14 mx-auto mb-5 grid place-items-center rounded-full border border-border">
-                <X className="size-5 text-muted-foreground" />
+              <div className="size-16 mx-auto mb-5 grid place-items-center rounded-full border border-border bg-card/40">
+                <Search className="size-6 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground">No products match your search.</p>
-              <Link to="/" className="inline-block mt-6 text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1">Browse all</Link>
+              <p className="text-base font-medium">No products match your filters</p>
+              <p className="text-sm text-muted-foreground mt-1.5">Try adjusting or clearing your filters to see more results.</p>
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+                {activeFilterCount > 0 && (
+                  <button onClick={() => nav({ search: { q: search.q }, replace: true })}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground font-mono uppercase tracking-widest text-[11px] px-4 py-2 hover:brightness-110 transition-all">
+                    Clear Filters
+                  </button>
+                )}
+                <Link to="/" className="text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1">Browse all</Link>
+              </div>
             </div>
+
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6">
               {results.map((p) => <ProductCard key={p.slug} product={p} />)}
