@@ -713,7 +713,7 @@ function ProductPageSkeleton() {
             ))}
           </div>
         </div>
-        <div data-product-info className="space-y-5">
+        <div data-product-info className="space-y-5 min-h-[65rem] lg:min-h-0">
           <div className="h-3 w-32 rounded-full bg-accent/20 animate-pulse" />
           <div className="h-11 w-4/5 rounded-2xl bg-white/[0.06] animate-pulse" />
           <div className="h-4 w-52 rounded-full bg-white/[0.05] animate-pulse" />
@@ -724,18 +724,30 @@ function ProductPageSkeleton() {
               <div key={i} className="h-8 rounded-xl bg-white/[0.04] animate-pulse" />
             ))}
           </div>
+          <div className="h-20 rounded-2xl bg-white/[0.04] animate-pulse" />
           <div className="space-y-2">
             <div className="h-4 w-full rounded bg-white/[0.04] animate-pulse" />
             <div className="h-4 w-11/12 rounded bg-white/[0.04] animate-pulse" />
             <div className="h-4 w-3/5 rounded bg-white/[0.04] animate-pulse" />
           </div>
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
+            ))}
+          </div>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="border-t border-border pt-6">
+              <div className="h-5 w-40 rounded bg-white/[0.05] animate-pulse" />
+              <div className="mt-4 h-28 rounded-2xl bg-white/[0.04] animate-pulse" />
+            </div>
+          ))}
         </div>
       </div>
     </div>
     <div data-product-recommendations className="max-w-7xl mx-auto min-h-0 px-4 sm:min-h-[20rem] sm:px-6 lg:px-8" />
-    <div data-product-reviews className="min-h-[22rem]" />
-    <div data-product-questions className="min-h-[12rem]" />
-    <div data-product-related className="min-h-[24rem]" />
+    <div data-product-reviews className="min-h-[27rem]" />
+    <div data-product-questions className="min-h-[38rem]" />
+    <div data-product-related className="min-h-[30rem]" />
     <div aria-hidden className="sm:hidden h-[var(--product-page-bottom-clearance)]" />
     <div data-product-cta className="sm:hidden fixed inset-x-0 z-40 h-[var(--product-dock-height)] px-3" style={{ bottom: "var(--product-dock-bottom)" }}>
       <div className="flex h-full items-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-2xl">
