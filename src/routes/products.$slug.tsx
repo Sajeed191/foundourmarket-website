@@ -568,7 +568,11 @@ function ProductPage() {
           </button>
           <div className="flex flex-col leading-none px-1 shrink-0">
             <span className="text-[8px] font-mono uppercase tracking-widest text-muted-foreground/70">Total</span>
-            <span className="text-base font-display font-semibold tabular-nums text-gradient-ember">{format(effectivePrice * qty)}</span>
+            {currencyReady ? (
+              <span className="text-base font-display font-semibold tabular-nums text-gradient-ember">{format(effectivePrice * qty)}</span>
+            ) : (
+              <span aria-hidden className="mt-0.5 h-4 w-14 rounded bg-white/[0.08] animate-pulse" />
+            )}
           </div>
           <button
             onClick={handleAdd}
