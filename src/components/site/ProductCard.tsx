@@ -79,18 +79,25 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             {badges.slice(0, 3).map((b) => (
               <span
                 key={b.key}
-                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap ${b.className}`}
+                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className}`}
               >
                 <span aria-hidden>{b.emoji}</span>
                 {b.label}
               </span>
             ))}
-            {discount ? (
-              <span className="bg-accent/90 text-accent-foreground text-[10px] font-bold font-mono px-2 py-0.5 rounded-full whitespace-nowrap">
-                SAVE {discount}%
+            {badges.length > 3 && (
+              <span className="inline-flex items-center text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider bg-black/60 text-white/90 backdrop-blur-md">
+                +{badges.length - 3}
               </span>
-            ) : null}
+            )}
           </div>
+
+          {/* Discount badge — kept in its own corner so it never crowds the badge stack */}
+          {discount ? (
+            <span className={`absolute bg-accent/95 text-accent-foreground font-bold font-mono rounded-full whitespace-nowrap shadow-[var(--shadow-ember)] ${compact ? "bottom-2 left-2 text-[9px] px-2 py-0.5" : "bottom-2.5 left-2.5 text-[10px] px-2.5 py-0.5"}`}>
+              SAVE {discount}%
+            </span>
+          ) : null}
 
 
           <button
@@ -126,9 +133,11 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
       <Link to="/products/$slug" params={{ slug: product.slug }} className={`relative flex flex-1 flex-col ${compact ? "" : "px-1"}`}>
         {/* Title — fixed 2-line block keeps every card's footer aligned */}
         <h4 className={`font-medium line-clamp-2 group-hover:text-accent transition-colors ${compact ? "text-[11px] leading-tight min-h-[2.2em]" : "text-sm leading-snug min-h-[2.5em]"}`}>{product.name}</h4>
-        {product.tagline && (
+        {product.tagline ? (
           <p className={`text-muted-foreground truncate ${compact ? "text-[8px] mt-0.5" : "text-[11px] mt-0.5"}`}>{product.tagline}</p>
-        )}
+        ) : product.category ? (
+          <p className={`text-muted-foreground/70 capitalize truncate ${compact ? "text-[8px] mt-0.5" : "text-[11px] mt-0.5"}`}>{product.category.replace(/-/g, " ")}</p>
+        ) : null}
 
         {/* Rating row */}
         <div className={`flex items-center font-mono text-muted-foreground min-w-0 ${compact ? "mt-1 text-[9px]" : "mt-1.5 text-[10px]"}`}>
