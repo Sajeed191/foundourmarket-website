@@ -115,10 +115,10 @@ export function FlashSaleStrip() {
                   params={{ slug: p.slug }}
                   className="block group"
                 >
-                  <div className="relative aspect-square rounded-xl overflow-hidden bg-black/40 ring-1 ring-white/10">
+                  <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10">
                     <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover group-active:scale-105 transition-transform" />
-                    <span className="absolute top-1.5 right-1.5 bg-accent text-accent-foreground text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md">
-                      −{sale.discount_percent}%
+                    <span className="absolute top-1.5 left-1.5 inline-flex items-center rounded-full bg-accent text-black text-[9px] font-bold font-mono px-2 py-0.5 shadow-[var(--shadow-ember)]">
+                      -{sale.discount_percent}%
                     </span>
                   </div>
                   <p className="mt-2 text-[11px] font-medium truncate">{p.name}</p>

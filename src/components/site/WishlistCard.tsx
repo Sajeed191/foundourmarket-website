@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Heart, Plus, Minus, Check, Eye, TrendingDown, Bell, BellRing, X } from "lucide-react";
+import { Heart, ShoppingCart, Check, Eye, TrendingDown, Bell, BellRing } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { Price } from "@/components/site/Price";
@@ -33,7 +33,7 @@ export function WishlistCard({
   onQuickView,
 }: WishlistCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
-  const { add, items, setQty } = useCart();
+  const { add, items } = useCart();
   const { toggle } = useWishlist();
   const { priceAlertsFor, addPriceAlert, removePriceAlert, hasRestock, toggleRestock } =
     useWishlistAlerts();
@@ -91,23 +91,16 @@ export function WishlistCard({
 
   return (
     <div
-      className={`group card-premium overflow-hidden relative flex flex-col h-full p-2.5 sm:p-3 transition-all duration-300 ${
+      className={`group product-card-glass overflow-hidden relative flex flex-col h-full p-2 transition-all duration-300 ${
         selected ? "ring-2 ring-accent shadow-[var(--shadow-ember)]" : ""
       }`}
     >
-      {/* Ember halo on hover */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-px rounded-[inherit] opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-0"
-        style={{ background: "var(--gradient-ember-soft)", filter: "blur(20px)" }}
-      />
-
       {/* Select checkbox */}
       {selectMode && (
         <button
           onClick={onToggleSelect}
           aria-label={selected ? "Deselect" : "Select"}
-          className="absolute top-2.5 left-2.5 z-20 grid place-items-center"
+          className="absolute top-2 left-2 z-20 grid place-items-center"
         >
           <Checkbox checked={selected} className="size-5 bg-black/50 border-white/40" />
         </button>
@@ -119,12 +112,7 @@ export function WishlistCard({
         onClick={cardClick}
         className="block relative"
       >
-        <div className="relative aspect-square rounded-xl overflow-hidden bg-black/40 mb-3">
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-            style={{ background: "var(--gradient-ember-soft)" }}
-          />
+        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/40">
           {!imgLoaded && (
             <div
               aria-hidden
@@ -136,17 +124,24 @@ export function WishlistCard({
             alt={`${product.name} — ${product.tagline || product.category}`}
             loading="lazy"
             width={800}
-            height={800}
+            height={1000}
             onLoad={() => setImgLoaded(true)}
-            className={`relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03] ${
+            className={`relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.06] ${
               imgLoaded ? "opacity-100" : "opacity-0"
             }`}
           />
 
-          {/* Badge stack */}
+          {/* Discount badge — top-left, orange pill, black text */}
+          {discount ? (
+            <span className={`absolute top-2 inline-flex items-center rounded-full bg-accent text-black font-bold font-mono text-[10px] px-2 py-0.5 shadow-[var(--shadow-ember)] ${selectMode ? "left-10" : "left-2"}`}>
+              -{discount}%
+            </span>
+          ) : null}
+
+          {/* Badge stack — below the discount pill */}
           <div
-            className={`absolute flex flex-col items-start top-2.5 gap-1.5 ${
-              selectMode ? "left-10" : "left-2.5"
+            className={`absolute flex flex-col items-start gap-1 ${discount ? "top-9" : "top-2"} ${
+              selectMode ? "left-10" : "left-2"
             }`}
           >
             {badges.slice(0, 2).map((b) => (
@@ -171,13 +166,6 @@ export function WishlistCard({
             ))}
           </div>
 
-          {/* Discount badge */}
-          {discount ? (
-            <span className="absolute bottom-2.5 left-2.5 bg-accent/95 text-accent-foreground font-bold font-mono rounded-full whitespace-nowrap shadow-[var(--shadow-ember)] text-[10px] px-2.5 py-0.5">
-              SAVE {discount}%
-            </span>
-          ) : null}
-
           {/* Out of stock veil */}
           {!product.inStock && (
             <div className="absolute inset-0 grid place-items-center bg-black/55 backdrop-blur-[1px]">
@@ -188,7 +176,7 @@ export function WishlistCard({
           )}
 
           {/* Glassmorphism action buttons */}
-          <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5">
+          <div className="absolute top-2 right-2 flex flex-col gap-1.5">
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -302,59 +290,34 @@ export function WishlistCard({
           </span>
         ) : null}
 
-        {/* Price + ADD */}
-        <div className="mt-auto pt-2.5 border-t border-white/[0.07] flex items-center justify-between gap-2">
+        {/* Price + floating cart icon button */}
+        <div className="mt-auto pt-2 flex items-end justify-between gap-2">
           <div className="min-w-0">
-            <Price value={price} className="font-display font-semibold tabular-nums leading-none text-base sm:text-lg block" />
+            <Price value={price} className="font-display font-bold text-white tabular-nums leading-none block text-base" />
             {originalPrice && discount ? (
-              <Price value={originalPrice} className="font-mono text-muted-foreground/60 line-through tabular-nums text-[10px] mt-1 block" />
+              <Price value={originalPrice} className="font-mono text-muted-foreground/60 line-through tabular-nums block text-[10px] mt-1" />
             ) : null}
           </div>
-          {!product.inStock ? (
-            <span
-              onClick={(e) => e.preventDefault()}
-              className="shrink-0 inline-flex items-center rounded-full bg-muted/40 border border-white/10 text-muted-foreground font-bold font-mono uppercase tracking-wider px-3 py-1.5 text-[10px]"
-            >
-              Sold Out
-            </span>
-          ) : cartQty > 0 ? (
-            <div
-              onClick={(e) => e.preventDefault()}
-              className="shrink-0 inline-flex items-center gap-1 rounded-full bg-accent/15 border border-accent/40 text-accent font-bold font-mono px-2 py-1 text-[11px]"
-            >
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setQty(product.slug, cartQty - 1);
-                }}
-                aria-label="Decrease quantity"
-                className="grid place-items-center rounded-full hover:bg-accent/20 active:scale-90 transition-transform size-5"
-              >
-                <Minus className="size-3" />
-              </button>
-              <span className="tabular-nums min-w-[1.25rem] text-center">{cartQty}</span>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setQty(product.slug, cartQty + 1);
-                }}
-                aria-label="Increase quantity"
-                className="grid place-items-center rounded-full hover:bg-accent/20 active:scale-90 transition-transform size-5"
-              >
-                <Plus className="size-3" />
-              </button>
-            </div>
-          ) : (
+          {product.inStock ? (
             <button
               onClick={handleAdd}
               aria-label={`Add ${product.name} to cart`}
-              className={`shrink-0 inline-flex items-center gap-1 rounded-full bg-accent text-accent-foreground font-bold font-mono uppercase tracking-wider transition-all hover:brightness-110 active:scale-95 shadow-[var(--shadow-ember)] px-3 py-1.5 text-[10px] ${
-                justAdded ? "animate-[save-pulse_0.6s_ease-out]" : ""
-              }`}
+              className={`relative shrink-0 grid place-items-center size-10 rounded-xl bg-gradient-to-br from-accent to-[oklch(0.68_0.18_42)] text-black backdrop-blur-xl border border-white/20 shadow-[var(--shadow-ember)] transition-all duration-300 hover:brightness-110 active:scale-90 ${justAdded ? "animate-cart-pulse" : ""}`}
             >
-              {justAdded ? <Check className="size-3" /> : <Plus className="size-3" />}
-              {justAdded ? "Added" : "Add"}
+              {justAdded ? <Check className="size-4" /> : <ShoppingCart className="size-4" />}
+              {cartQty > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 grid place-items-center min-w-[16px] h-4 px-1 rounded-full bg-black text-white text-[9px] font-bold tabular-nums border border-white/20">
+                  {cartQty}
+                </span>
+              )}
             </button>
+          ) : (
+            <span
+              onClick={(e) => e.preventDefault()}
+              className="shrink-0 inline-flex items-center rounded-full bg-muted/40 border border-white/10 text-muted-foreground font-bold font-mono uppercase tracking-wider px-2 py-1 text-[9px]"
+            >
+              Sold Out
+            </span>
           )}
         </div>
       </Link>
