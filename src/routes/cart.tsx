@@ -117,6 +117,21 @@ function CartPage() {
     );
   }
 
+  // Currency-safe gate: never paint cart prices until the region/currency is
+  // resolved, so Indian shoppers never flash USD (and vice versa).
+  if (!currencyReady) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 pb-8 lg:pb-16">
+        <div className="mb-8 h-9 w-44 animate-pulse rounded-lg bg-white/10" />
+        <div className="grid gap-4">
+          {Array.from({ length: Math.min(count || 3, 4) }).map((_, i) => (
+            <div key={i} className="h-24 animate-pulse rounded-2xl bg-white/[0.06]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 pb-8 lg:pb-16">
       {/* Bottom safe-area clearance for the fixed checkout dock lives on the
