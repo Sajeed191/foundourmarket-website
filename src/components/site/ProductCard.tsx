@@ -79,18 +79,25 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             {badges.slice(0, 3).map((b) => (
               <span
                 key={b.key}
-                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap ${b.className}`}
+                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className}`}
               >
                 <span aria-hidden>{b.emoji}</span>
                 {b.label}
               </span>
             ))}
-            {discount ? (
-              <span className="bg-accent/90 text-accent-foreground text-[10px] font-bold font-mono px-2 py-0.5 rounded-full whitespace-nowrap">
-                SAVE {discount}%
+            {badges.length > 3 && (
+              <span className="inline-flex items-center text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider bg-black/60 text-white/90 backdrop-blur-md">
+                +{badges.length - 3}
               </span>
-            ) : null}
+            )}
           </div>
+
+          {/* Discount badge — kept in its own corner so it never crowds the badge stack */}
+          {discount ? (
+            <span className={`absolute bg-accent/95 text-accent-foreground font-bold font-mono rounded-full whitespace-nowrap shadow-[var(--shadow-ember)] ${compact ? "bottom-2 left-2 text-[9px] px-2 py-0.5" : "bottom-2.5 left-2.5 text-[10px] px-2.5 py-0.5"}`}>
+              SAVE {discount}%
+            </span>
+          ) : null}
 
 
           <button
