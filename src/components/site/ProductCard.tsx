@@ -134,9 +134,9 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
           </div>
           <div className="text-right shrink-0">
             <p className={`font-display font-semibold tabular-nums ${compact ? "text-[11px]" : "text-sm"}`}>{format(price)}</p>
-            {originalPrice && (
+            {originalPrice && discount ? (
               <p className={`font-mono text-muted-foreground/70 line-through tabular-nums ${compact ? "text-[9px]" : "text-[10px]"}`}>{format(originalPrice)}</p>
-            )}
+            ) : null}
           </div>
         </div>
         <div className={`flex items-center justify-between gap-2 ${compact ? "mt-1" : "mt-2"}`}>
