@@ -193,7 +193,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
           {/* Quick add — slides up on hover (desktop) */}
           <button
-            onClick={(e) => { e.preventDefault(); add(product.slug); }}
+            onClick={handleAdd}
             className={`hidden sm:flex absolute items-center justify-center gap-1.5 rounded-xl bg-accent text-accent-foreground font-semibold uppercase tracking-wider opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:brightness-110 shadow-[var(--shadow-ember)] ${
               compact
                 ? "inset-x-2 bottom-2 py-1.5 text-[10px]"
@@ -260,13 +260,37 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
               <p className={`font-mono text-muted-foreground/60 line-through tabular-nums ${compact ? "text-[9px] mt-0.5" : "text-[10px] mt-1"}`}>{format(originalPrice)}</p>
             ) : null}
           </div>
-          <button
-            onClick={(e) => { e.preventDefault(); add(product.slug); }}
-            aria-label={`Add ${product.name} to cart`}
-            className={`shrink-0 inline-flex items-center gap-1 rounded-full bg-accent text-accent-foreground font-bold font-mono uppercase tracking-wider transition-all hover:brightness-110 active:scale-95 shadow-[var(--shadow-ember)] ${compact ? "px-2 py-1 text-[9px]" : "px-3 py-1.5 text-[10px]"}`}
-          >
-            <Plus className={compact ? "size-2.5" : "size-3"} /> Add
-          </button>
+          {cartQty > 0 ? (
+            <div
+              onClick={(e) => e.preventDefault()}
+              className={`shrink-0 inline-flex items-center gap-1 rounded-full bg-accent/15 border border-accent/40 text-accent font-bold font-mono ${compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-[11px]"}`}
+            >
+              <button
+                onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty - 1); }}
+                aria-label={`Decrease ${product.name} quantity`}
+                className="grid place-items-center rounded-full hover:bg-accent/20 active:scale-90 transition-transform size-5"
+              >
+                <Minus className={compact ? "size-2.5" : "size-3"} />
+              </button>
+              <span className="tabular-nums min-w-[1.25rem] text-center">{cartQty}</span>
+              <button
+                onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty + 1); }}
+                aria-label={`Increase ${product.name} quantity`}
+                className="grid place-items-center rounded-full hover:bg-accent/20 active:scale-90 transition-transform size-5"
+              >
+                <Plus className={compact ? "size-2.5" : "size-3"} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleAdd}
+              aria-label={`Add ${product.name} to cart`}
+              className={`shrink-0 inline-flex items-center gap-1 rounded-full bg-accent text-accent-foreground font-bold font-mono uppercase tracking-wider transition-all hover:brightness-110 active:scale-95 shadow-[var(--shadow-ember)] ${justAdded ? "animate-[save-pulse_0.6s_ease-out]" : ""} ${compact ? "px-2 py-1 text-[9px]" : "px-3 py-1.5 text-[10px]"}`}
+            >
+              {justAdded ? <Check className={compact ? "size-2.5" : "size-3"} /> : <Plus className={compact ? "size-2.5" : "size-3"} />}
+              {justAdded ? "Added" : "Add"}
+            </button>
+          )}
         </div>
       </Link>
     </div>
