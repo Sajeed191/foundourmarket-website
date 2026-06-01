@@ -136,6 +136,15 @@ function ensureHideStyle(): HTMLStyleElement {
         opacity: 0 !important;
         pointer-events: none !important;
       }
+      @media (max-width: 767px) {
+        #crisp-chatbox,
+        .crisp-client,
+        [class*="crisp-client"],
+        iframe[src*="crisp.chat"] {
+          bottom: var(--floating-bottom-offset) !important;
+          z-index: var(--z-floating-controls) !important;
+        }
+      }
     `;
     document.head.appendChild(el);
   }
