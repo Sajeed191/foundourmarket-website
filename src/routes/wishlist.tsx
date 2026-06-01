@@ -205,8 +205,43 @@ function WishlistPage() {
   const removeSelected = async () => {
     const list = Array.from(selected);
     for (const slug of list) await toggle(slug);
+    setConfirmRemove(false);
     exitSelect();
   };
+
+  const COLLECTIONS_KEY = "wishlist_collections";
+  const moveToCollection = (name: string) => {
+    const clean = name.trim();
+    if (!clean) return;
+    try {
+      const store: Record<string, string[]> = JSON.parse(
+        localStorage.getItem(COLLECTIONS_KEY) || "{}",
+      );
+      const set = new Set([...(store[clean] || []), ...Array.from(selected)]);
+      store[clean] = Array.from(set);
+      localStorage.setItem(COLLECTIONS_KEY, JSON.stringify(store));
+    } catch {
+      /* ignore */
+    }
+    setCollectionOpen(false);
+    exitSelect();
+  };
+
+  const shareSelected = async () => {
+    const chosen = items.filter((p) => selected.has(p.slug));
+    const text = chosen.map((p) => p.name).join(", ");
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "My FoundOurMarket Wishlist", text, url });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(`${text} — ${url}`);
+      }
+    } catch {
+      /* user cancelled */
+    }
+  };
+
 
   const addAll = () => items.filter((p) => p.inStock).forEach((p) => add(p.slug, 1));
 
