@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/components/admin/AdminShell";
 import { CollapsibleModule } from "@/components/admin/CollapsibleModule";
 import { ProductFaqManager } from "@/components/admin/ProductFaqManager";
+import { ProductBadgeManager } from "@/components/admin/ProductBadgeManager";
+import { assignBadge } from "@/lib/use-product-badges";
 import { useStoreSettings } from "@/lib/use-store-settings";
 
 /** Permissive snake_case row accepted from both /admin and /admin-products. */
