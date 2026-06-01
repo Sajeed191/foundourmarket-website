@@ -109,6 +109,12 @@ function ProductPage() {
   const [fbtSlugs, setFbtSlugs] = useState<string[]>([]);
   const [alsoViewed, setAlsoViewed] = useState<string[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  // True once images + variants have resolved from the server.
+  const [dataReady, setDataReady] = useState(false);
+  // True once the main product image has actually decoded/loaded.
+  const [mainImgLoaded, setMainImgLoaded] = useState(false);
+  // True once the user has scrolled past the hero so the dock can appear.
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -139,15 +145,26 @@ function ProductPage() {
   useEffect(() => {
     if (!slug) return;
     let active = true;
+    setDataReady(false);
+    setMainImgLoaded(false);
     Promise.all([fetchProductImages(slug), fetchProductVariants(slug)]).then(([imgs, vars]) => {
       if (!active) return;
       setImages(imgs);
       setVariants(vars);
       setActiveImg(0);
       setVariantId(vars[0]?.id ?? null);
-    });
+      setDataReady(true);
+    }).catch(() => { if (active) setDataReady(true); });
     return () => { active = false; };
   }, [slug]);
+
+  // Reveal the sticky purchase dock only after the user scrolls past the hero.
+  useEffect(() => {
+    const onScroll = () => setScrolledPastHero(window.scrollY > 220);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const deliveryWindow = useMemo(() => {
     const start = new Date();
@@ -188,6 +205,13 @@ function ProductPage() {
   const isOOS = effectiveStock <= 0;
   const originalPrice = compareOf(product) ?? (product.discount ? effectivePrice * (1 + product.discount / 100) : null);
   const discountPct = discountPercent(effectivePrice, originalPrice);
+
+  // The sticky purchase dock must never mount until the whole page is ready:
+  // product + variants + images loaded, main image decoded, and currency
+  // resolved. Combined with the scroll gate this prevents overlap, layout
+  // shift and currency flicker after a refresh.
+  const productPageReady = dataReady && currencyReady && mainImgLoaded;
+  const showPurchaseDock = productPageReady && scrolledPastHero;
 
   const handleAdd = () => {
     add(product.slug, qty);
@@ -239,6 +263,8 @@ function ProductPage() {
                     src={activeImage?.url || product.image}
                     alt={activeImage?.alt || product.name}
                     onClick={() => setLightboxOpen(true)}
+                    onLoad={() => setMainImgLoaded(true)}
+                    onError={() => setMainImgLoaded(true)}
                     initial={{ opacity: 0, scale: 1.04 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
@@ -556,8 +582,10 @@ function ProductPage() {
       <RelatedProducts product={product} />
       
 
-      {/* Sticky mobile purchase dock */}
-      <div className="sm:hidden fixed inset-x-0 z-40 px-3" style={{ bottom: "var(--product-dock-bottom)" }}>
+      {/* Sticky mobile purchase dock — only mounts once the page is fully
+          initialized and the user has scrolled past the hero. */}
+      {showPurchaseDock && (
+      <div className="sm:hidden fixed inset-x-0 z-40 px-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300" style={{ bottom: "var(--product-dock-bottom)" }}>
         <div className="rounded-2xl p-1.5 flex items-center gap-1.5 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9)]" style={{ background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))", backdropFilter: "blur(32px) saturate(160%)", WebkitBackdropFilter: "blur(32px) saturate(160%)" }}>
           <button
             onClick={() => toggleWishlist(product.slug)}
@@ -592,6 +620,7 @@ function ProductPage() {
           </Link>
         </div>
       </div>
+      )}
 
 
     </>
