@@ -224,7 +224,7 @@ export function ProductQuickEditSheet({
               </div>
 
               <Field label="Badges">
-                <BadgeAssigner slug={product.slug} />
+                <ProductBadgeManager slug={product.slug} />
               </Field>
             </div>
 
