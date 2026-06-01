@@ -23,7 +23,7 @@ type Props = {
 
 /** Minimal recently-viewed card — image, name, price and add button only. */
 function MiniCard({ product }: { product: Product }) {
-  const { format, priceOf } = useRegion();
+  const { priceOf } = useRegion();
   const { add, items } = useCart();
   const [justAdded, setJustAdded] = useState(false);
   const inCart = items.some((i) => i.slug === product.slug);
