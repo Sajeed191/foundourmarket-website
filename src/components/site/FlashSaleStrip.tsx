@@ -123,8 +123,8 @@ export function FlashSaleStrip() {
                   </div>
                   <p className="mt-2 text-[11px] font-medium truncate">{p.name}</p>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-xs font-display font-semibold text-accent tabular-nums">{format(salePrice)}</span>
-                    <span className="text-[10px] font-mono line-through text-muted-foreground tabular-nums">{format(p.price)}</span>
+                    <Price value={salePrice} className="text-xs font-display font-semibold text-accent tabular-nums" />
+                    <Price value={p.price} className="text-[10px] font-mono line-through text-muted-foreground tabular-nums" />
                   </div>
                   {showOnlyLeft && (
                     <p className="text-[9px] font-mono uppercase tracking-wider text-accent/90 mt-0.5">
