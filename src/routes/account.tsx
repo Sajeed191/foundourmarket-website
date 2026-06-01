@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { loadCrisp, openCrispChat } from "@/lib/crisp";
+import { openCrispChat } from "@/lib/crisp";
 import { useEffect, useMemo, useState } from "react";
 import { motion, useMotionValue, useTransform, animate, useScroll, AnimatePresence, useMotionValueEvent } from "framer-motion";
 import {
@@ -361,48 +361,11 @@ function AccountPage() {
           </div>
         </motion.footer>
       </div>
-
-      {/* FLOATING SUPPORT BUTTON */}
-      <FloatingSupportButton />
-
     </div>
   );
 }
 
-function FloatingSupportButton() {
-  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const w = window as any;
-    w.$crisp = w.$crisp || [];
-    w.$crisp.push(["on", "chat:opened", () => setOpen(true)]);
-    w.$crisp.push(["on", "chat:closed", () => setOpen(false)]);
-  }, []);
-
-  const handleOpenChat = () => {
-    loadCrisp().then(() => openCrispChat());
-    setOpen(true);
-  };
-
-  return (
-    <div data-floating-control className="fixed right-4 bottom-[var(--floating-bottom-offset)] z-[var(--z-floating-controls)] sm:bottom-6 sm:right-6">
-      <motion.button
-        onClick={handleOpenChat}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.6, type: "spring", stiffness: 260, damping: 20 }}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        aria-label="Open live chat"
-        className="relative size-14 rounded-full bg-accent text-accent-foreground grid place-items-center shadow-[0_0_30px_var(--color-accent),0_10px_30px_-8px_oklch(0_0_0/0.6)] hover:shadow-[0_0_45px_var(--color-accent)] transition-shadow cursor-pointer"
-      >
-        <MessageCircle className="size-6" strokeWidth={2.4} />
-        {!open && <span className="absolute inset-0 rounded-full bg-accent/40 animate-ping pointer-events-none" />}
-      </motion.button>
-    </div>
-  );
-}
 
 
 

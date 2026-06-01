@@ -29,6 +29,7 @@ import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { AdminMobileBar } from "@/components/admin/AdminMobileBar";
 import { CompareTray } from "@/components/site/CompareTray";
 import { InstallPrompt } from "@/components/site/InstallPrompt";
+import { LiveChat } from "@/components/chat/LiveChat";
 import { registerServiceWorker } from "@/lib/pwa";
 import { preloadCrisp } from "@/lib/crisp";
 import { trackPageView } from "@/lib/analytics";
@@ -203,6 +204,7 @@ function RootComponent() {
                       {!isAuthRoute && <AdminCommandCenter />}
                       <CompareTray />
                       <InstallPrompt />
+                      <LiveChat />
                       <Toaster position="bottom-center" richColors />
                     </div>
                   </LayoutMetricsProvider>
