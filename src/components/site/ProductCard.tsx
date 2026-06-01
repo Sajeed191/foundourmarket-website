@@ -10,6 +10,7 @@ import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { computeBadges } from "@/lib/badges";
 import { useProductBadges, trackBadgeClick, trackBadgeImpression, badgeAnimationClass } from "@/lib/use-product-badges";
 import { StarRating } from "@/components/site/StarRating";
+import { Price } from "@/components/site/Price";
 
 type DisplayBadge = {
   key: string;
