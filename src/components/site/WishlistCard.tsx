@@ -91,23 +91,16 @@ export function WishlistCard({
 
   return (
     <div
-      className={`group card-premium overflow-hidden relative flex flex-col h-full p-2.5 sm:p-3 transition-all duration-300 ${
+      className={`group product-card-glass overflow-hidden relative flex flex-col h-full p-2 transition-all duration-300 ${
         selected ? "ring-2 ring-accent shadow-[var(--shadow-ember)]" : ""
       }`}
     >
-      {/* Ember halo on hover */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-px rounded-[inherit] opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-0"
-        style={{ background: "var(--gradient-ember-soft)", filter: "blur(20px)" }}
-      />
-
       {/* Select checkbox */}
       {selectMode && (
         <button
           onClick={onToggleSelect}
           aria-label={selected ? "Deselect" : "Select"}
-          className="absolute top-2.5 left-2.5 z-20 grid place-items-center"
+          className="absolute top-2 left-2 z-20 grid place-items-center"
         >
           <Checkbox checked={selected} className="size-5 bg-black/50 border-white/40" />
         </button>
@@ -119,12 +112,7 @@ export function WishlistCard({
         onClick={cardClick}
         className="block relative"
       >
-        <div className="relative aspect-square rounded-xl overflow-hidden bg-black/40 mb-3">
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-            style={{ background: "var(--gradient-ember-soft)" }}
-          />
+        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/40">
           {!imgLoaded && (
             <div
               aria-hidden
@@ -136,17 +124,24 @@ export function WishlistCard({
             alt={`${product.name} — ${product.tagline || product.category}`}
             loading="lazy"
             width={800}
-            height={800}
+            height={1000}
             onLoad={() => setImgLoaded(true)}
-            className={`relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03] ${
+            className={`relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.06] ${
               imgLoaded ? "opacity-100" : "opacity-0"
             }`}
           />
 
-          {/* Badge stack */}
+          {/* Discount badge — top-left, orange pill, black text */}
+          {discount ? (
+            <span className={`absolute top-2 inline-flex items-center rounded-full bg-accent text-black font-bold font-mono text-[10px] px-2 py-0.5 shadow-[var(--shadow-ember)] ${selectMode ? "left-10" : "left-2"}`}>
+              -{discount}%
+            </span>
+          ) : null}
+
+          {/* Badge stack — below the discount pill */}
           <div
-            className={`absolute flex flex-col items-start top-2.5 gap-1.5 ${
-              selectMode ? "left-10" : "left-2.5"
+            className={`absolute flex flex-col items-start gap-1 ${discount ? "top-9" : "top-2"} ${
+              selectMode ? "left-10" : "left-2"
             }`}
           >
             {badges.slice(0, 2).map((b) => (
@@ -170,13 +165,6 @@ export function WishlistCard({
               </span>
             ))}
           </div>
-
-          {/* Discount badge */}
-          {discount ? (
-            <span className="absolute bottom-2.5 left-2.5 bg-accent/95 text-accent-foreground font-bold font-mono rounded-full whitespace-nowrap shadow-[var(--shadow-ember)] text-[10px] px-2.5 py-0.5">
-              SAVE {discount}%
-            </span>
-          ) : null}
 
           {/* Out of stock veil */}
           {!product.inStock && (
