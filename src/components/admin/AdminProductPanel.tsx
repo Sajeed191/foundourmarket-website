@@ -529,8 +529,11 @@ export function AdminProductPanel({ product }: { product: Product }) {
                 </CollapsibleModule>
               </div>
 
-              <div className="sticky bottom-0 mt-6 -mx-5 border-t border-white/10 bg-background/95 px-5 py-3">
-                <Button className="w-full" disabled={saving} onClick={saveAll}>
+              <div
+                className="sticky bottom-0 mt-6 -mx-5 border-t border-white/10 bg-background/95 px-5 pt-3 backdrop-blur-2xl"
+                style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom) + var(--app-bottom-nav-height, 0px))" }}
+              >
+                <Button className="mx-auto flex w-full max-w-sm items-center justify-center" disabled={saving} onClick={saveAll}>
                   {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
                   Save all changes
                 </Button>
