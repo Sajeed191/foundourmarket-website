@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Star, X, Check, Minus, ShoppingBag, Scale } from "lucide-react";
+import { X, Check, Minus, ShoppingBag, Scale } from "lucide-react";
+import { StarRating } from "@/components/site/StarRating";
 import { useCompare } from "@/hooks/use-compare";
 import { useProducts } from "@/lib/use-products";
 import { resolveImage, type Product } from "@/lib/products";
