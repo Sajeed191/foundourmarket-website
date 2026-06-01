@@ -33,7 +33,22 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
   const shippingFee = shippingFeeOf(product);
 
   const badgeSettings = useBadgeSettings();
-  const badges = computeBadges(product, badgeSettings);
+  const assigned = useProductBadges(product.slug);
+  // Admin-assigned badges win; otherwise fall back to auto-computed badges.
+  const badges: DisplayBadge[] = assigned.length
+    ? assigned.map((b) => ({
+        key: b.badgeKey,
+        label: b.label,
+        emoji: b.emoji,
+        color: b.color,
+        textColor: b.textColor,
+      }))
+    : computeBadges(product, badgeSettings).map((b) => ({
+        key: b.key,
+        label: b.label,
+        emoji: b.emoji,
+        className: b.className,
+      }));
   const showOnlyLeft =
     product.stockQuantity > 0 &&
     product.stockQuantity <= (product.lowStockThreshold || 10);
