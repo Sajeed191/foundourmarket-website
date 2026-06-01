@@ -129,7 +129,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
                 <span
                   key={b.key}
                   onClick={b.id ? () => trackBadgeClick(b.id!, product.slug) : undefined}
-                  className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 min-h-[18px] leading-none rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className ?? ""}`}
+                  className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 min-h-[18px] leading-none rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className ?? ""} ${badgeAnimationClass(b.animation)}`}
                   style={
                     styled
                       ? {
@@ -148,6 +148,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
                     </span>
                   )}
                   {b.label}
+                  {b.subtitle && <span className="opacity-75 font-medium">· {b.subtitle}</span>}
                 </span>
               );
             })}
