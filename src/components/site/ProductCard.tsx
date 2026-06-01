@@ -104,9 +104,10 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             {badges.slice(0, 3).map((b) => (
               <span
                 key={b.key}
-                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className}`}
+                className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className ?? ""}`}
+                style={b.color ? { backgroundColor: b.color, color: b.textColor } : undefined}
               >
-                <span aria-hidden>{b.emoji}</span>
+                {b.emoji && <span aria-hidden>{b.emoji}</span>}
                 {b.label}
               </span>
             ))}
