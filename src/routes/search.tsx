@@ -1,22 +1,40 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, SlidersHorizontal, X, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { rowToProduct, type Product } from "@/lib/products";
+import { rowToProduct, discountPercent, type Product } from "@/lib/products";
 import { useCategories } from "@/lib/use-categories";
+import { useRegion } from "@/lib/region";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { Slider } from "@/components/ui/slider";
 
-type SearchParams = { q?: string; cat?: string; sort?: string; min?: number; max?: number; stock?: string };
+type SearchParams = {
+  q?: string;
+  cat?: string;
+  sort?: string;
+  min?: number;
+  max?: number;
+  stock?: string;
+  rating?: number;
+  free?: string;
+  disc?: string;
+};
+
+const PRICE_MAX = 1000;
 
 export const Route = createFileRoute("/search")({
   validateSearch: (s: Record<string, unknown>): SearchParams => ({
     q: typeof s.q === "string" ? s.q : undefined,
     cat: typeof s.cat === "string" ? s.cat : undefined,
     sort: typeof s.sort === "string" ? s.sort : undefined,
-    min: typeof s.min === "number" ? s.min : s.min ? Number(s.min) : undefined,
-    max: typeof s.max === "number" ? s.max : s.max ? Number(s.max) : undefined,
+    min: s.min != null && s.min !== "" ? Number(s.min) : undefined,
+    max: s.max != null && s.max !== "" ? Number(s.max) : undefined,
     stock: typeof s.stock === "string" ? s.stock : undefined,
+    rating: s.rating != null && s.rating !== "" ? Number(s.rating) : undefined,
+    free: typeof s.free === "string" ? s.free : undefined,
+    disc: typeof s.disc === "string" ? s.disc : undefined,
   }),
   head: () => ({
     meta: [
@@ -39,15 +57,121 @@ const SORTS = [
   { value: "newest", label: "Newest" },
 ];
 
+const RATINGS = [4, 3, 2];
+
+type Filters = Pick<SearchParams, "cat" | "min" | "max" | "stock" | "rating" | "free" | "disc">;
+
+function FilterPanel({
+  value,
+  onChange,
+}: {
+  value: Filters;
+  onChange: (next: Filters) => void;
+}) {
+  const { categories } = useCategories();
+  const set = (patch: Partial<Filters>) => onChange({ ...value, ...patch });
+  const priceRange: [number, number] = [value.min ?? 0, value.max ?? PRICE_MAX];
+
+  return (
+    <div className="space-y-6">
+      {/* Category chips */}
+      <div>
+        <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Category</h3>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => set({ cat: undefined })}
+            className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${!value.cat ? "border-accent bg-accent/15 text-accent" : "border-border text-foreground hover:border-accent/60"}`}
+          >
+            All
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.slug}
+              onClick={() => set({ cat: c.slug })}
+              className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${value.cat === c.slug ? "border-accent bg-accent/15 text-accent" : "border-border text-foreground hover:border-accent/60"}`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Price range slider */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Price (USD)</h3>
+          <span className="text-[11px] font-mono tabular-nums text-foreground">
+            ${priceRange[0]} – ${priceRange[1]}{priceRange[1] >= PRICE_MAX ? "+" : ""}
+          </span>
+        </div>
+        <Slider
+          min={0}
+          max={PRICE_MAX}
+          step={10}
+          value={priceRange}
+          onValueChange={(v) => set({ min: v[0] > 0 ? v[0] : undefined, max: v[1] < PRICE_MAX ? v[1] : undefined })}
+        />
+      </div>
+
+      {/* Rating filter */}
+      <div>
+        <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Rating</h3>
+        <div className="flex flex-wrap gap-2">
+          {RATINGS.map((r) => (
+            <button
+              key={r}
+              onClick={() => set({ rating: value.rating === r ? undefined : r })}
+              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors ${value.rating === r ? "border-accent bg-accent/15 text-accent" : "border-border text-foreground hover:border-accent/60"}`}
+            >
+              <Star className="size-3 fill-current" /> {r}★ & up
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Toggles */}
+      <div className="space-y-3">
+        <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Options</h3>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={value.stock === "in"} onChange={(e) => set({ stock: e.target.checked ? "in" : undefined })} className="accent-[var(--accent)]" />
+          In stock only
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={value.free === "1"} onChange={(e) => set({ free: e.target.checked ? "1" : undefined })} className="accent-[var(--accent)]" />
+          Free shipping
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={value.disc === "1"} onChange={(e) => set({ disc: e.target.checked ? "1" : undefined })} className="accent-[var(--accent)]" />
+          On sale / discounted
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function SearchPage() {
   const search = Route.useSearch();
   const nav = useNavigate({ from: "/search" });
   const { categories } = useCategories();
+  const { shippingFeeOf, compareOf } = useRegion();
 
   const [query, setQuery] = useState(search.q ?? "");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const currentFilters: Filters = {
+    cat: search.cat,
+    min: search.min,
+    max: search.max,
+    stock: search.stock,
+    rating: search.rating,
+    free: search.free,
+    disc: search.disc,
+  };
+  // Local draft for the mobile drawer (applied on "Apply Filters").
+  const [draft, setDraft] = useState<Filters>(currentFilters);
+  useEffect(() => { if (drawerOpen) setDraft(currentFilters); /* eslint-disable-next-line */ }, [drawerOpen]);
 
   useEffect(() => {
     const q = (search.q ?? "").trim();
@@ -69,25 +193,33 @@ function SearchPage() {
       category_filter: search.cat ?? null,
       min_price: search.min ?? null,
       max_price: search.max ?? null,
-      min_rating: null,
+      min_rating: search.rating ?? null,
       sort_by: search.sort ?? "relevance",
       page_limit: 60,
       page_offset: 0,
     }).then(({ data }: { data: any[] | null }) => {
       if (cancelled) return;
-      let rows = data ?? [];
-      if (search.stock === "in") rows = rows.filter((r: any) => r.in_stock);
-      setResults(rows.map((r: any) => rowToProduct(r)));
+      let rows = (data ?? []).map((r: any) => rowToProduct(r));
+      if (search.stock === "in") rows = rows.filter((p) => p.inStock);
+      if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
+      if (search.disc === "1") rows = rows.filter((p) => discountPercent(p.price, compareOf(p)) != null);
+      setResults(rows);
       setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [search.q, search.cat, search.min, search.max, search.sort, search.stock]);
+  }, [search.q, search.cat, search.min, search.max, search.sort, search.stock, search.rating, search.free, search.disc]);
 
   function update(patch: Partial<SearchParams>) {
     nav({ search: (prev: SearchParams) => ({ ...prev, ...patch }), replace: true });
   }
+  function applyFilters(f: Filters) {
+    nav({ search: (prev: SearchParams) => ({ ...prev, ...f }), replace: true });
+  }
+  function clearAll() {
+    nav({ search: { q: search.q, sort: search.sort }, replace: true });
+  }
 
-  const activeFilterCount = [search.cat, search.stock, search.min, search.max].filter(Boolean).length;
+  const activeFilterCount = [search.cat, search.stock, search.min, search.max, search.rating, search.free, search.disc].filter(Boolean).length;
 
   const activeChips: { label: string; clear: () => void }[] = [];
   if (search.cat) {
@@ -95,12 +227,16 @@ function SearchPage() {
     activeChips.push({ label: name, clear: () => update({ cat: undefined }) });
   }
   if (search.stock === "in") activeChips.push({ label: "In stock", clear: () => update({ stock: undefined }) });
+  if (search.free === "1") activeChips.push({ label: "Free shipping", clear: () => update({ free: undefined }) });
+  if (search.disc === "1") activeChips.push({ label: "On sale", clear: () => update({ disc: undefined }) });
+  if (search.rating) activeChips.push({ label: `${search.rating}★ & up`, clear: () => update({ rating: undefined }) });
   if (search.min) activeChips.push({ label: `Min $${search.min}`, clear: () => update({ min: undefined }) });
   if (search.max) activeChips.push({ label: `Max $${search.max}`, clear: () => update({ max: undefined }) });
 
+  const resultCount = useMemo(() => results.length, [results]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-20 sm:pb-28">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-12 sm:pb-16">
       <div className="mb-6 sm:mb-8">
         <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Discover</p>
         <h1 className="text-fluid-2xl font-display font-semibold mb-5 sm:mb-6">Search the marketplace</h1>
@@ -119,21 +255,48 @@ function SearchPage() {
         </form>
       </div>
 
-
-
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <button onClick={() => setFiltersOpen((o) => !o)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-[11px] font-mono uppercase tracking-widest hover:bg-white/5">
-            <SlidersHorizontal className="size-3.5" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-          </button>
+          {/* Mobile filter drawer trigger */}
+          <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+            <DrawerTrigger asChild>
+              <button className="lg:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-[11px] font-mono uppercase tracking-widest hover:bg-white/5">
+                <SlidersHorizontal className="size-3.5" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+              </button>
+            </DrawerTrigger>
+            <DrawerContent className="max-h-[85vh]">
+              <div className="flex items-center justify-between px-4 pb-3 pt-1">
+                <h2 className="text-sm font-semibold">Filters</h2>
+                <button onClick={() => setDrawerOpen(false)} aria-label="Close filters" className="grid place-items-center size-8 rounded-full hover:bg-white/5">
+                  <X className="size-4" />
+                </button>
+              </div>
+              <div className="overflow-y-auto px-4 pb-4">
+                <FilterPanel value={draft} onChange={setDraft} />
+              </div>
+              <div className="flex items-center gap-3 border-t border-border p-4">
+                <button
+                  onClick={() => { clearAll(); setDrawerOpen(false); }}
+                  className="flex-1 rounded-full border border-border py-3 text-[11px] font-mono uppercase tracking-widest hover:bg-white/5"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => { applyFilters(draft); setDrawerOpen(false); }}
+                  className="flex-1 rounded-full bg-accent text-accent-foreground py-3 text-[11px] font-bold font-mono uppercase tracking-widest hover:brightness-110"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </DrawerContent>
+          </Drawer>
+
           {activeFilterCount > 0 && (
-            <button onClick={() => nav({ search: { q: search.q }, replace: true })}
-              className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">Clear all</button>
+            <button onClick={clearAll} className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">Clear all</button>
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[11px] font-mono tracking-wide text-muted-foreground">{loading ? "Searching…" : `${results.length} Product${results.length === 1 ? "" : "s"} Found`}</span>
+          <span className="text-[11px] font-mono tracking-wide text-muted-foreground">{loading ? "Searching…" : `${resultCount} Product${resultCount === 1 ? "" : "s"} Found`}</span>
           <select value={search.sort ?? "relevance"} onChange={(e) => update({ sort: e.target.value })}
             aria-label="Sort search results"
             className="bg-background border border-border rounded-full px-3 py-2 text-[11px] font-mono uppercase tracking-widest focus:outline-none focus:border-accent">
@@ -144,7 +307,7 @@ function SearchPage() {
 
       {/* Active filter chips — removable */}
       {activeChips.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-8">
+        <div className="flex flex-wrap items-center gap-2 mb-6 sm:mb-8">
           {activeChips.map((chip) => (
             <button
               key={chip.label}
@@ -158,46 +321,15 @@ function SearchPage() {
         </div>
       )}
 
-
       <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-6 lg:gap-8">
-        <aside className={`${filtersOpen ? "block" : "hidden"} lg:block space-y-6 lg:space-y-8 bg-card lg:bg-transparent border lg:border-0 border-border rounded-2xl p-4 lg:p-0`}>
-          <div>
-            <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Category</h3>
-            <div className="grid grid-cols-2 lg:block gap-1.5 lg:space-y-1.5">
-              <button onClick={() => update({ cat: undefined })}
-                className={`text-left text-sm hover:text-accent transition-colors ${!search.cat ? "text-accent" : "text-foreground"}`}>All</button>
-              {categories.map((c) => (
-                <button key={c.slug} onClick={() => update({ cat: c.slug })}
-                  className={`text-left text-sm hover:text-accent transition-colors ${search.cat === c.slug ? "text-accent" : "text-foreground"}`}>{c.name}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Price (USD)</h3>
-            <div className="flex gap-2">
-              <input type="number" inputMode="numeric" placeholder="Min" defaultValue={search.min ?? ""}
-                onBlur={(e) => update({ min: e.target.value ? Number(e.target.value) : undefined })}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent" />
-              <input type="number" inputMode="numeric" placeholder="Max" defaultValue={search.max ?? ""}
-                onBlur={(e) => update({ max: e.target.value ? Number(e.target.value) : undefined })}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">Availability</h3>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={search.stock === "in"}
-                onChange={(e) => update({ stock: e.target.checked ? "in" : undefined })}
-                className="accent-[var(--accent)]" />
-              In stock only
-            </label>
-          </div>
+        {/* Desktop sidebar — applies instantly */}
+        <aside className="hidden lg:block">
+          <FilterPanel value={currentFilters} onChange={applyFilters} />
         </aside>
 
         <div>
           {loading ? (
             <ProductSkeletonGrid count={9} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6" />
-
           ) : results.length === 0 ? (
             <div className="py-16 sm:py-24 px-6 text-center border border-dashed border-border rounded-2xl">
               <div className="size-16 mx-auto mb-5 grid place-items-center rounded-full border border-border bg-card/40">
@@ -207,7 +339,7 @@ function SearchPage() {
               <p className="text-sm text-muted-foreground mt-1.5">Try adjusting or clearing your filters to see more results.</p>
               <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
                 {activeFilterCount > 0 && (
-                  <button onClick={() => nav({ search: { q: search.q }, replace: true })}
+                  <button onClick={clearAll}
                     className="inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground font-mono uppercase tracking-widest text-[11px] px-4 py-2 hover:brightness-110 transition-all">
                     Clear Filters
                   </button>
@@ -215,7 +347,6 @@ function SearchPage() {
                 <Link to="/" className="text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1">Browse all</Link>
               </div>
             </div>
-
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6">
               {results.map((p) => <ProductCard key={p.slug} product={p} />)}
@@ -223,7 +354,6 @@ function SearchPage() {
           )}
         </div>
       </div>
-
     </div>
   );
 }
