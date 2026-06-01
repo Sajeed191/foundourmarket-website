@@ -196,7 +196,8 @@ function SearchPage() {
 
         <div>
           {loading ? (
-            <ProductSkeletonGrid count={9} />
+            <ProductSkeletonGrid count={9} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-6" />
+
           ) : results.length === 0 ? (
             <div className="py-16 sm:py-24 px-6 text-center border border-dashed border-border rounded-2xl">
               <div className="size-16 mx-auto mb-5 grid place-items-center rounded-full border border-border bg-card/40">
