@@ -8,6 +8,31 @@ export type AutoRule = {
   enabled: boolean;
 } | null;
 
+export type BadgeAnimation =
+  | "none" | "pulse" | "bounce" | "shine" | "glow" | "float" | "slide" | "flash";
+
+export const BADGE_ANIMATIONS: BadgeAnimation[] = [
+  "none", "pulse", "bounce", "shine", "glow", "float", "slide", "flash",
+];
+
+export const BADGE_CATEGORIES = [
+  "Sales", "Trending", "Inventory", "Premium", "Seasonal", "Trust", "Marketing", "Custom",
+] as const;
+
+/** Maps a badge animation to its CSS utility class (defined in styles.css). */
+export function badgeAnimationClass(a: BadgeAnimation | string | undefined): string {
+  switch (a) {
+    case "pulse": return "badge-anim-pulse";
+    case "bounce": return "badge-anim-bounce";
+    case "shine": return "badge-anim-shine";
+    case "glow": return "badge-anim-glow";
+    case "float": return "badge-anim-float";
+    case "slide": return "badge-anim-slide";
+    case "flash": return "badge-anim-flash";
+    default: return "";
+  }
+}
+
 export type BadgeType = {
   id: string;
   badgeKey: string;
@@ -28,6 +53,12 @@ export type BadgeType = {
   startAt: string | null;
   endAt: string | null;
   autoRule: AutoRule;
+  category: string;
+  subtitle: string;
+  fontSize: number;
+  fontWeight: number;
+  animation: BadgeAnimation;
+  archived: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -54,6 +85,12 @@ type BadgeTypeRow = {
   start_at?: string | null;
   end_at?: string | null;
   auto_rule?: AutoRule;
+  category?: string | null;
+  subtitle?: string | null;
+  font_size?: number | null;
+  font_weight?: number | null;
+  animation?: string | null;
+  archived?: boolean | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -85,6 +122,12 @@ function rowToType(r: BadgeTypeRow): BadgeType {
     startAt: r.start_at ?? null,
     endAt: r.end_at ?? null,
     autoRule: (r.auto_rule as AutoRule) ?? null,
+    category: r.category ?? "Custom",
+    subtitle: r.subtitle ?? "",
+    fontSize: r.font_size ?? 11,
+    fontWeight: r.font_weight ?? 700,
+    animation: (r.animation as BadgeAnimation) ?? "none",
+    archived: r.archived ?? false,
     createdAt: r.created_at ?? "",
     updatedAt: r.updated_at ?? "",
   };
@@ -218,6 +261,11 @@ export type BadgeTypeInput = {
   startAt: string | null;
   endAt: string | null;
   autoRule: AutoRule;
+  category: string;
+  subtitle: string;
+  fontSize: number;
+  fontWeight: number;
+  animation: BadgeAnimation;
 };
 
 function inputToRow(input: BadgeTypeInput) {
@@ -240,6 +288,11 @@ function inputToRow(input: BadgeTypeInput) {
     start_at: input.startAt,
     end_at: input.endAt,
     auto_rule: input.autoRule,
+    category: input.category,
+    subtitle: input.subtitle,
+    font_size: input.fontSize,
+    font_weight: input.fontWeight,
+    animation: input.animation,
   };
 }
 
@@ -299,8 +352,19 @@ export async function duplicateBadgeType(b: BadgeType) {
     startAt: b.startAt,
     endAt: b.endAt,
     autoRule: b.autoRule,
+    category: b.category,
+    subtitle: b.subtitle,
+    fontSize: b.fontSize,
+    fontWeight: b.fontWeight,
+    animation: b.animation,
   };
   await createBadgeType(input);
+}
+
+export async function setBadgeArchived(id: string, archived: boolean) {
+  const { error } = await supabase.from("badge_types").update({ archived } as never).eq("id", id);
+  if (error) throw new Error(error.message);
+  await load(true);
 }
 
 // ---- Admin assignment mutations ----

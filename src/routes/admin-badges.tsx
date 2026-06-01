@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useInView, animate } from "framer-motion";
 import {
   Plus, Loader2, Tag, Layers, Crown, Clock, CalendarClock, Ban,
   Pencil, Copy, Trash2, GripVertical, Power, MousePointerClick, Package, Sparkles,
+  Archive, ArchiveRestore, BarChart3, Percent,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
@@ -14,11 +15,30 @@ import {
   type BadgeType,
   useBadgeCatalog,
   badgeScheduleState,
+  badgeAnimationClass,
   setBadgeEnabled,
+  setBadgeArchived,
   deleteBadgeType,
   duplicateBadgeType,
   reorderBadgeTypes,
 } from "@/lib/use-product-badges";
+
+/** Animated number that counts up when scrolled into view. */
+function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(0, value, {
+      duration: 0.9,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setDisplay(v),
+    });
+    return () => controls.stop();
+  }, [inView, value]);
+  return <span ref={ref}>{Math.round(display).toLocaleString()}{suffix}</span>;
+}
 
 export const Route = createFileRoute("/admin-badges")({
   head: () => ({
@@ -54,9 +74,10 @@ function badgePreviewStyle(b: BadgeType) {
 
 function BadgePreview({ b }: { b: BadgeType }) {
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-bold font-mono px-2 min-h-[24px] leading-none tracking-wider" style={badgePreviewStyle(b)}>
+    <span className={`inline-flex items-center gap-1 px-2 min-h-[24px] leading-none tracking-wider font-mono ${badgeAnimationClass(b.animation)}`} style={{ ...badgePreviewStyle(b), fontSize: `${b.fontSize}px`, fontWeight: b.fontWeight }}>
       {b.emoji && <span style={b.iconColor ? { color: b.iconColor } : undefined}>{b.emoji}</span>}
       {b.label}
+      {b.subtitle && <span className="opacity-75 font-medium">· {b.subtitle}</span>}
     </span>
   );
 }
@@ -67,6 +88,8 @@ function BadgeManagerInner() {
   const [clicks, setClicks] = useState<Record<string, number>>({});
   const [order, setOrder] = useState<string[]>([]);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>("All");
+  const [showArchived, setShowArchived] = useState(false);
 
   // Usage count per badge type from the assignment map.
   const usage = useMemo(() => {
@@ -95,23 +118,39 @@ function BadgeManagerInner() {
 
   const stats = useMemo(() => {
     const now = Date.now();
-    const active = types.filter((b) => badgeScheduleState(b, now) === "live").length;
+    const live = types.filter((b) => !b.archived);
+    const active = live.filter((b) => badgeScheduleState(b, now) === "live").length;
     const productsUsing = map.size;
     let most: { label: string; n: number } | null = null;
     for (const b of types) {
       const n = usage[b.id] ?? 0;
       if (!most || n > most.n) most = { label: b.label, n };
     }
-    const recent = [...types].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
-    const expired = types.filter((b) => badgeScheduleState(b, now) === "expired").length;
-    const scheduled = types.filter((b) => badgeScheduleState(b, now) === "scheduled").length;
+    let topClicked: { label: string; n: number } | null = null;
+    for (const b of types) {
+      const n = clicks[b.id] ?? 0;
+      if (!topClicked || n > topClicked.n) topClicked = { label: b.label, n };
+    }
+    const totalClicks = Object.values(clicks).reduce((a, b) => a + b, 0);
+    const totalAssignments = Object.values(usage).reduce((a, b) => a + b, 0);
+    const ctr = totalAssignments > 0 ? Math.round((totalClicks / totalAssignments) * 100) : 0;
+    const expired = live.filter((b) => badgeScheduleState(b, now) === "expired").length;
+    const scheduled = live.filter((b) => badgeScheduleState(b, now) === "scheduled").length;
+    const archived = types.filter((b) => b.archived).length;
     return {
       active, productsUsing,
       most: most && most.n > 0 ? most.label : "—",
-      recent: recent?.label ?? "—",
-      expired, scheduled,
+      topClicked: topClicked && topClicked.n > 0 ? topClicked.label : "—",
+      totalClicks, ctr,
+      expired, scheduled, archived,
     };
-  }, [types, map, usage]);
+  }, [types, map, usage, clicks]);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of types) set.add(b.category || "Custom");
+    return ["All", ...[...set].sort()];
+  }, [types]);
 
   async function onDrop(targetId: string) {
     if (!dragId || dragId === targetId) { setDragId(null); return; }
@@ -141,20 +180,34 @@ function BadgeManagerInner() {
     try { await deleteBadgeType(b.id); logActivity("badge_deleted", "badge_types", b.id); toast.success("Badge deleted"); }
     catch { toast.error("Delete failed"); }
   }
+  async function onArchive(b: BadgeType) {
+    try {
+      await setBadgeArchived(b.id, !b.archived);
+      logActivity(b.archived ? "badge_unarchived" : "badge_archived", "badge_types", b.id);
+      toast.success(b.archived ? "Badge restored" : "Badge archived");
+    } catch { toast.error("Archive failed"); }
+  }
 
   if (loading) {
     return <div className="min-h-[40vh] grid place-items-center"><Loader2 className="size-5 animate-spin text-accent" /></div>;
   }
 
-  const ordered = order.map((id) => types.find((t) => t.id === id)).filter(Boolean) as BadgeType[];
+  const ordered = order
+    .map((id) => types.find((t) => t.id === id))
+    .filter(Boolean)
+    .filter((b) => (showArchived ? (b as BadgeType).archived : !(b as BadgeType).archived))
+    .filter((b) => categoryFilter === "All" || (b as BadgeType).category === categoryFilter) as BadgeType[];
 
-  const statCards = [
-    { icon: Sparkles, label: "Active badges", value: String(stats.active) },
-    { icon: Package, label: "Products using badges", value: String(stats.productsUsing) },
+  const statCards: { icon: typeof Sparkles; label: string; value?: string; num?: number; suffix?: string; wide?: boolean }[] = [
+    { icon: Sparkles, label: "Active badges", num: stats.active },
+    { icon: Package, label: "Products using", num: stats.productsUsing },
+    { icon: CalendarClock, label: "Scheduled", num: stats.scheduled },
+    { icon: Ban, label: "Expired", num: stats.expired },
+    { icon: MousePointerClick, label: "Total clicks", num: stats.totalClicks },
+    { icon: Percent, label: "Avg CTR", num: stats.ctr, suffix: "%" },
     { icon: Crown, label: "Most used", value: stats.most, wide: true },
-    { icon: Clock, label: "Recently added", value: stats.recent, wide: true },
-    { icon: CalendarClock, label: "Scheduled", value: String(stats.scheduled) },
-    { icon: Ban, label: "Expired", value: String(stats.expired) },
+    { icon: BarChart3, label: "Most clicked", value: stats.topClicked, wide: true },
+    { icon: Archive, label: "Archived", num: stats.archived },
   ];
 
   return (
@@ -171,7 +224,9 @@ function BadgeManagerInner() {
             >
               <div className="pointer-events-none absolute -top-6 -right-5 size-16 rounded-full opacity-30" style={{ background: "var(--gradient-ember-soft)", filter: "blur(16px)" }} />
               <k.icon className="size-4 text-accent mb-2" />
-              <p className="text-lg font-display tabular-nums leading-none truncate">{k.value}</p>
+              <p className="text-lg font-display tabular-nums leading-none truncate">
+                {k.num != null ? <Counter value={k.num} suffix={k.suffix} /> : k.value}
+              </p>
               <p className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80 mt-2">{k.label}</p>
             </motion.div>
           ))}
@@ -188,6 +243,26 @@ function BadgeManagerInner() {
           <Plus className="size-3.5" /> New badge
         </button>
       </div>
+
+      {/* Category filters + archived toggle */}
+      <div className="flex flex-wrap items-center gap-2">
+        {categories.map((c) => (
+          <button
+            key={c}
+            onClick={() => setCategoryFilter(c)}
+            className={`px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider border transition-colors ${categoryFilter === c ? "bg-accent text-accent-foreground border-accent" : "border-white/10 text-muted-foreground hover:bg-white/5"}`}
+          >
+            {c}
+          </button>
+        ))}
+        <button
+          onClick={() => setShowArchived((v) => !v)}
+          className={`ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider border transition-colors ${showArchived ? "bg-white/10 text-foreground border-white/20" : "border-white/10 text-muted-foreground hover:bg-white/5"}`}
+        >
+          <Archive className="size-3" /> {showArchived ? "Archived" : "Active"}
+        </button>
+      </div>
+
 
       {/* Catalog grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -213,10 +288,16 @@ function BadgeManagerInner() {
                   <GripVertical className="size-4 text-muted-foreground/50 cursor-grab shrink-0" />
                   <BadgePreview b={b} />
                 </div>
-                <span className={`text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${stateMeta[state].cls}`}>
-                  {stateMeta[state].label}
-                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border border-white/10 text-muted-foreground bg-white/5">
+                    {b.category}
+                  </span>
+                  <span className={`text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${stateMeta[state].cls}`}>
+                    {stateMeta[state].label}
+                  </span>
+                </div>
               </div>
+
 
               {b.description && <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{b.description}</p>}
 
@@ -249,6 +330,7 @@ function BadgeManagerInner() {
                 <button onClick={() => setEditing(b)} className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[11px] font-bold border border-border hover:bg-white/5"><Pencil className="size-3" /> Edit</button>
                 <button onClick={() => onToggle(b)} title={b.enabled ? "Disable" : "Enable"} className="size-9 grid place-items-center rounded-lg border border-border hover:bg-white/5"><Power className={`size-3.5 ${b.enabled ? "text-emerald-400" : "text-muted-foreground"}`} /></button>
                 <button onClick={() => onDuplicate(b)} title="Duplicate" className="size-9 grid place-items-center rounded-lg border border-border hover:bg-white/5"><Copy className="size-3.5" /></button>
+                <button onClick={() => onArchive(b)} title={b.archived ? "Restore" : "Archive"} className="size-9 grid place-items-center rounded-lg border border-border hover:bg-white/5">{b.archived ? <ArchiveRestore className="size-3.5 text-emerald-400" /> : <Archive className="size-3.5" />}</button>
                 <button onClick={() => onDelete(b)} title="Delete" className="size-9 grid place-items-center rounded-lg border border-border hover:bg-white/5 text-destructive"><Trash2 className="size-3.5" /></button>
               </div>
             </div>
@@ -257,7 +339,7 @@ function BadgeManagerInner() {
         {ordered.length === 0 && (
           <div className="col-span-full text-center py-16">
             <Tag className="size-8 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-sm text-muted-foreground">No badges yet. Create your first badge.</p>
+            <p className="text-sm text-muted-foreground">{showArchived ? "No archived badges." : "No badges in this view. Create your first badge."}</p>
           </div>
         )}
       </div>

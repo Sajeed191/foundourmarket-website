@@ -8,7 +8,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminControls";
 import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { computeBadges } from "@/lib/badges";
-import { useProductBadges, trackBadgeClick } from "@/lib/use-product-badges";
+import { useProductBadges, trackBadgeClick, badgeAnimationClass } from "@/lib/use-product-badges";
 import { StarRating } from "@/components/site/StarRating";
 
 type DisplayBadge = {
@@ -25,6 +25,8 @@ type DisplayBadge = {
   iconColor?: string;
   shadowStrength?: number;
   radius?: number;
+  subtitle?: string;
+  animation?: string;
 };
 
 
@@ -56,6 +58,8 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
         iconColor: b.iconColor,
         shadowStrength: b.shadowStrength,
         radius: b.radius,
+        subtitle: b.subtitle,
+        animation: b.animation,
       }))
     : computeBadges(product, badgeSettings).map((b) => ({
         key: b.key,
@@ -125,7 +129,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
                 <span
                   key={b.key}
                   onClick={b.id ? () => trackBadgeClick(b.id!, product.slug) : undefined}
-                  className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 min-h-[18px] leading-none rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className ?? ""}`}
+                  className={`inline-flex items-center gap-1 text-[9px] font-bold font-mono px-1.5 min-h-[18px] leading-none rounded-md tracking-wider whitespace-nowrap shadow-sm ${b.className ?? ""} ${badgeAnimationClass(b.animation)}`}
                   style={
                     styled
                       ? {
@@ -144,6 +148,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
                     </span>
                   )}
                   {b.label}
+                  {b.subtitle && <span className="opacity-75 font-medium">· {b.subtitle}</span>}
                 </span>
               );
             })}
