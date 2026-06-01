@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Heart, Truck, Shield, RotateCcw, Minus, Plus, Loader2, Scale,
+  Heart, Truck, Shield, RotateCcw, Minus, Plus, Scale,
   ChevronDown, Share2, Sparkles, Package, Clock, CheckCircle2, Users, ShoppingBag as ShoppingBagIcon, BadgeCheck,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
-import { useAuth } from "@/lib/auth";
 import { useLayoutMetrics } from "@/lib/layout-metrics";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { RelatedProducts } from "@/components/site/RelatedProducts";
@@ -94,10 +93,14 @@ export const Route = createFileRoute("/products/$slug")({
   component: ProductPage,
 });
 
+let lastProductLayoutSnapshot: Record<string, number> | null = null;
+
 function ProductPage() {
   const { slug } = Route.useParams();
-  const { product, loading } = useProduct(slug);
-  const { loading: authLoading } = useAuth();
+  const { product: loadedProduct } = Route.useLoaderData();
+  const { product: liveProduct, loading: liveLoading } = useProduct(slug);
+  const product = liveProduct ?? loadedProduct;
+  const loading = !product && liveLoading;
   const layoutMetrics = useLayoutMetrics();
   const { format, priceOf, compareOf, shippingFeeOf, currencyReady } = useRegion();
   const { isProductAdmin: isAdmin } = useIsProductAdmin();
@@ -115,10 +118,7 @@ function ProductPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   // True once images + variants have resolved from the server.
   const [dataReady, setDataReady] = useState(false);
-  // True once the main product image has actually decoded/loaded.
-  const [mainImgLoaded, setMainImgLoaded] = useState(false);
-  // True once the user has scrolled past the hero so the dock can appear.
-  const [scrolledPastHero, setScrolledPastHero] = useState(false);
+  const [mobileDockVisible, setMobileDockVisible] = useState(false);
 
   useEffect(() => {
     layoutMetrics.setExpectedCtaHeight(64);
@@ -154,8 +154,8 @@ function ProductPage() {
   useEffect(() => {
     if (!slug) return;
     let active = true;
+    const fallback = window.setTimeout(() => { if (active) setDataReady(true); }, 1200);
     setDataReady(false);
-    setMainImgLoaded(false);
     Promise.all([fetchProductImages(slug), fetchProductVariants(slug)]).then(([imgs, vars]) => {
       if (!active) return;
       setImages(imgs);
@@ -164,37 +164,8 @@ function ProductPage() {
       setVariantId(vars[0]?.id ?? null);
       setDataReady(true);
     }).catch(() => { if (active) setDataReady(true); });
-    return () => { active = false; };
-  }, [slug]);
-
-  useEffect(() => {
-    if (!product?.image) return;
-    let active = true;
-    const fallback = window.setTimeout(() => {
-      if (active) setMainImgLoaded(true);
-    }, 1200);
-    setMainImgLoaded(false);
-    const img = new Image();
-    const done = () => {
-      if (active) setMainImgLoaded(true);
-    };
-    img.onload = done;
-    img.onerror = done;
-    img.src = product.image;
-    if (img.complete) {
-      if (img.decode) void img.decode().catch(() => {}).finally(done);
-      else done();
-    }
     return () => { active = false; window.clearTimeout(fallback); };
-  }, [product?.slug, product?.image]);
-
-  // Reveal the sticky purchase dock only after the user scrolls past the hero.
-  useEffect(() => {
-    const onScroll = () => setScrolledPastHero(window.scrollY > 220);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [slug]);
 
   const deliveryWindow = useMemo(() => {
     const start = new Date();
@@ -205,7 +176,26 @@ function ProductPage() {
     return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
   }, []);
 
-  const layoutReady = !authLoading && layoutMetrics.ready && layoutMetrics.viewportHeight > 0;
+  useEffect(() => {
+    const updateDock = () => {
+      const sentinel = document.querySelector<HTMLElement>("[data-product-sticky-threshold]");
+      if (!sentinel) {
+        setMobileDockVisible(false);
+        return;
+      }
+      const headerOffset = layoutMetrics.headerHeight || 96;
+      setMobileDockVisible(sentinel.getBoundingClientRect().top <= headerOffset + 8);
+    };
+    updateDock();
+    window.addEventListener("scroll", updateDock, { passive: true });
+    window.addEventListener("resize", updateDock, { passive: true });
+    window.visualViewport?.addEventListener("resize", updateDock, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", updateDock);
+      window.removeEventListener("resize", updateDock);
+      window.visualViewport?.removeEventListener("resize", updateDock);
+    };
+  }, [layoutMetrics.headerHeight, product?.slug]);
 
   if (loading) {
     return <ProductPageSkeleton />;
@@ -242,12 +232,7 @@ function ProductPage() {
   // product + variants + images loaded, main image decoded, and currency
   // resolved. Combined with the scroll gate this prevents overlap, layout
   // shift and currency flicker after a refresh.
-  const productPageReady = layoutReady && dataReady && currencyReady && mainImgLoaded;
-  const showPurchaseDock = productPageReady && scrolledPastHero;
-
-  if (!productPageReady) {
-    return <ProductPageSkeleton />;
-  }
+  const showPurchaseDock = dataReady && mobileDockVisible;
 
   const handleAdd = () => {
     add(product.slug, qty);
@@ -270,7 +255,7 @@ function ProductPage() {
         <div className="absolute -top-32 -left-24 size-[36rem] rounded-full opacity-50 animate-orb" style={{ background: "var(--gradient-ember-soft)", filter: "blur(110px)" }} />
         <div className="absolute top-1/3 -right-32 size-[34rem] rounded-full opacity-40 animate-orb" style={{ background: "var(--gradient-violet)", filter: "blur(120px)", animationDelay: "-8s" }} />
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16">
+      <div data-product-page data-product-phase="final" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16">
         {/* Breadcrumb */}
         <nav className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6 sm:mb-8 truncate">
           <Link to="/" className="hover:text-foreground">Shop</Link>
@@ -280,7 +265,7 @@ function ProductPage() {
           <span className="text-foreground">{product.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16">
+        <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16">
           {/* Gallery */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -292,15 +277,13 @@ function ProductPage() {
               {/* Cinematic ambient backlight */}
               <div aria-hidden className="absolute -inset-10 -z-10 rounded-[3rem] opacity-70 animate-pulse" style={{ background: "var(--gradient-ember-soft)", filter: "blur(80px)" }} />
               <div aria-hidden className="absolute left-1/2 top-1/2 -z-10 size-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.5), transparent 70%)", filter: "blur(50px)" }} />
-              <div className="relative aspect-square card-premium rounded-3xl overflow-hidden group shadow-[0_40px_80px_-30px_oklch(0_0_0/0.7)]">
+              <div data-product-image className="relative aspect-square card-premium rounded-3xl overflow-hidden group shadow-[0_40px_80px_-30px_oklch(0_0_0/0.7)]">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeImage?.id}
                     src={activeImage?.url || product.image}
                     alt={activeImage?.alt || product.name}
                     onClick={() => setLightboxOpen(true)}
-                    onLoad={() => setMainImgLoaded(true)}
-                    onError={() => setMainImgLoaded(true)}
                     initial={{ opacity: 0, scale: 1.04 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
@@ -392,6 +375,7 @@ function ProductPage() {
 
           {/* Info */}
           <motion.div
+            data-product-info
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
@@ -537,6 +521,8 @@ function ProductPage() {
               Buy Now
             </Link>
 
+            <div data-product-sticky-threshold aria-hidden className="h-px w-full" />
+
             {/* Trust grid */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-6 sm:pt-8 border-t border-border">
               {[
@@ -591,7 +577,8 @@ function ProductPage() {
       </div>
 
       {/* Recommendations */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ProductLayoutDiagnostics phase="final" />
+      <div data-product-recommendations className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-0 sm:min-h-[20rem]">
         {fbtSlugs.length > 0 && (
           <RecommendationStrip
             title="Frequently bought together"
@@ -609,20 +596,22 @@ function ProductPage() {
         )}
       </div>
 
-      <div id="reviews">
+      <div id="reviews" data-product-reviews className="min-h-[22rem]">
         <ProductReviews productSlug={product.slug} onAggregateChange={invalidateProducts} />
       </div>
-      <div id="questions">
+      <div id="questions" data-product-questions className="min-h-[12rem]">
         <ProductQA productSlug={product.slug} />
       </div>
-      <RelatedProducts product={product} />
+      <div data-product-related className="min-h-[24rem]">
+        <RelatedProducts product={product} />
+      </div>
       <div aria-hidden className="sm:hidden h-[var(--product-page-bottom-clearance)]" />
       
 
       {/* Sticky mobile purchase dock — only mounts once the page is fully
           initialized and the user has scrolled past the hero. */}
       {showPurchaseDock && (
-      <div ref={layoutMetrics.setCtaElement} data-app-cta className="sm:hidden fixed inset-x-0 z-40 h-[var(--product-dock-height)] px-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300" style={{ bottom: "var(--product-dock-bottom)" }}>
+      <div ref={layoutMetrics.setCtaElement} data-app-cta data-product-cta className="sm:hidden fixed inset-x-0 z-40 h-[var(--product-dock-height)] px-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300" style={{ bottom: "var(--product-dock-bottom)" }}>
         <div className="flex h-full items-center gap-1.5 rounded-2xl border border-white/10 p-1.5 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9)]" style={{ background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))", backdropFilter: "blur(32px) saturate(160%)", WebkitBackdropFilter: "blur(32px) saturate(160%)" }}>
           <button
             onClick={() => toggleWishlist(product.slug)}
@@ -665,20 +654,59 @@ function ProductPage() {
 }
 
 
+function ProductLayoutDiagnostics({ phase }: { phase: "loading" | "final" }) {
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") return;
+    const selectors = {
+      pageHeight: "body",
+      contentHeight: "[data-product-page]",
+      heroHeight: "[data-product-hero]",
+      imageHeight: "[data-product-image]",
+      infoHeight: "[data-product-info]",
+      ctaHeight: "[data-product-cta]",
+      navHeight: "[data-app-bottom-nav]",
+      reviewsHeight: "[data-product-reviews]",
+      questionsHeight: "[data-product-questions]",
+      relatedHeight: "[data-product-related]",
+    } as const;
+    const read = () =>
+      Object.fromEntries(
+        Object.entries(selectors).map(([key, selector]) => {
+          const el = document.querySelector<HTMLElement>(selector);
+          return [key, Math.round(el?.getBoundingClientRect().height ?? 0)];
+        }),
+      ) as Record<string, number>;
+    const frame = requestAnimationFrame(() => {
+      const current = read();
+      const delta = lastProductLayoutSnapshot
+        ? Object.fromEntries(Object.entries(current).map(([key, value]) => [key, value - (lastProductLayoutSnapshot?.[key] ?? 0)]))
+        : null;
+      console.debug(`[product-layout] ${phase}`, { ...current, delta });
+      lastProductLayoutSnapshot = current;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [phase]);
+
+  return null;
+}
+
+
 function ProductPageSkeleton() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16" aria-busy="true">
+    <>
+    <div data-product-page data-product-phase="loading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16" aria-busy="true">
+      <ProductLayoutDiagnostics phase="loading" />
       <div className="mb-6 h-3 w-44 rounded-full bg-white/[0.05] animate-pulse" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16">
+      <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16">
         <div className="space-y-4">
-          <div className="aspect-square rounded-3xl border border-border bg-white/[0.04] animate-pulse" />
+          <div data-product-image className="aspect-square rounded-3xl border border-border bg-white/[0.04] animate-pulse" />
           <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 sm:gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="aspect-square rounded-xl bg-white/[0.04] animate-pulse" />
             ))}
           </div>
         </div>
-        <div className="space-y-5">
+        <div data-product-info className="space-y-5 min-h-[65rem] lg:min-h-0">
           <div className="h-3 w-32 rounded-full bg-accent/20 animate-pulse" />
           <div className="h-11 w-4/5 rounded-2xl bg-white/[0.06] animate-pulse" />
           <div className="h-4 w-52 rounded-full bg-white/[0.05] animate-pulse" />
@@ -689,14 +717,40 @@ function ProductPageSkeleton() {
               <div key={i} className="h-8 rounded-xl bg-white/[0.04] animate-pulse" />
             ))}
           </div>
+          <div className="h-20 rounded-2xl bg-white/[0.04] animate-pulse" />
           <div className="space-y-2">
             <div className="h-4 w-full rounded bg-white/[0.04] animate-pulse" />
             <div className="h-4 w-11/12 rounded bg-white/[0.04] animate-pulse" />
             <div className="h-4 w-3/5 rounded bg-white/[0.04] animate-pulse" />
           </div>
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
+            ))}
+          </div>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="border-t border-border pt-6">
+              <div className="h-5 w-40 rounded bg-white/[0.05] animate-pulse" />
+              <div className="mt-4 h-28 rounded-2xl bg-white/[0.04] animate-pulse" />
+            </div>
+          ))}
         </div>
       </div>
     </div>
+    <div data-product-recommendations className="max-w-7xl mx-auto min-h-0 px-4 sm:min-h-[20rem] sm:px-6 lg:px-8" />
+    <div data-product-reviews className="min-h-[27rem]" />
+    <div data-product-questions className="min-h-[38rem]" />
+    <div data-product-related className="min-h-[30rem]" />
+    <div aria-hidden className="sm:hidden h-[var(--product-page-bottom-clearance)]" />
+    <div data-product-cta className="sm:hidden fixed inset-x-0 z-40 h-[var(--product-dock-height)] px-3" style={{ bottom: "var(--product-dock-bottom)" }}>
+      <div className="flex h-full items-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-2xl">
+        <div className="size-10 shrink-0 rounded-xl bg-white/[0.05] animate-pulse" />
+        <div className="h-8 w-16 shrink-0 rounded-lg bg-white/[0.05] animate-pulse" />
+        <div className="size-10 shrink-0 rounded-xl bg-white/[0.05] animate-pulse" />
+        <div className="h-10 flex-1 rounded-xl bg-accent/20 animate-pulse" />
+      </div>
+    </div>
+    </>
   );
 }
 
