@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
+import { useLayoutMetrics } from "@/lib/layout-metrics";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { RelatedProducts } from "@/components/site/RelatedProducts";
 
@@ -95,6 +97,8 @@ export const Route = createFileRoute("/products/$slug")({
 function ProductPage() {
   const { slug } = Route.useParams();
   const { product, loading } = useProduct(slug);
+  const { loading: authLoading } = useAuth();
+  const layoutMetrics = useLayoutMetrics();
   const { format, priceOf, compareOf, shippingFeeOf, currencyReady } = useRegion();
   const { isProductAdmin: isAdmin } = useIsProductAdmin();
   const { add } = useCart();
@@ -115,6 +119,11 @@ function ProductPage() {
   const [mainImgLoaded, setMainImgLoaded] = useState(false);
   // True once the user has scrolled past the hero so the dock can appear.
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
+
+  useEffect(() => {
+    layoutMetrics.setExpectedCtaHeight(64);
+    return () => layoutMetrics.setExpectedCtaHeight(0);
+  }, [layoutMetrics.setExpectedCtaHeight]);
 
   useEffect(() => {
     if (product) {
@@ -157,6 +166,23 @@ function ProductPage() {
     }).catch(() => { if (active) setDataReady(true); });
     return () => { active = false; };
   }, [slug]);
+
+  useEffect(() => {
+    if (!product?.image) return;
+    let active = true;
+    setMainImgLoaded(false);
+    const img = new Image();
+    const done = () => {
+      if (active) setMainImgLoaded(true);
+    };
+    img.onload = done;
+    img.onerror = done;
+    img.src = product.image;
+    if (img.complete) {
+      img.decode?.().catch(() => {}).finally(done);
+    }
+    return () => { active = false; };
+  }, [product?.slug, product?.image]);
 
   // Reveal the sticky purchase dock only after the user scrolls past the hero.
   useEffect(() => {
