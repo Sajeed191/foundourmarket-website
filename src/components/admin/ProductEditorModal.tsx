@@ -97,6 +97,8 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Pending badge assignments for a not-yet-saved product (flushed after insert).
+  const [pendingBadges, setPendingBadges] = useState<string[]>([]);
 
   const [form, setForm] = useState({
     slug: row?.slug ?? "", name: row?.name ?? "", tagline: row?.tagline ?? "",
