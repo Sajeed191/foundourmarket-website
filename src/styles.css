@@ -536,3 +536,34 @@
   border-radius: 1rem;
   animation: deepLinkFlash 1.8s ease-in-out;
 }
+
+/* ===== Product badge animations (Design Studio) ===== */
+@keyframes badgePulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@keyframes badgeBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes badgeGlowPulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+@keyframes badgeFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes badgeSlide { 0% { transform: translateX(-6px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+@keyframes badgeFlash { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes badgeShine {
+  0% { background-position: -120% 0; }
+  100% { background-position: 220% 0; }
+}
+.badge-anim-pulse { animation: badgePulse 1.8s ease-in-out infinite; }
+.badge-anim-bounce { animation: badgeBounce 1.4s ease-in-out infinite; }
+.badge-anim-glow { animation: badgeGlowPulse 2s ease-in-out infinite; }
+.badge-anim-float { animation: badgeFloat 3s ease-in-out infinite; }
+.badge-anim-slide { animation: badgeSlide 0.5s var(--ease-out-expo) both; }
+.badge-anim-flash { animation: badgeFlash 1.2s ease-in-out infinite; }
+.badge-anim-shine { position: relative; overflow: hidden; }
+.badge-anim-shine::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: badgeShine 2.2s linear infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge-anim-pulse, .badge-anim-bounce, .badge-anim-glow,
+  .badge-anim-float, .badge-anim-slide, .badge-anim-flash { animation: none; }
+  .badge-anim-shine::after { animation: none; }
+}
