@@ -46,14 +46,23 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
             style={{ background: "var(--gradient-ember-soft)" }}
           />
+          {/* Skeleton placeholder — prevents layout shift while the image loads */}
+          {!imgLoaded && (
+            <div
+              aria-hidden
+              className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"
+            />
+          )}
           <img
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
             loading="lazy"
             width={800}
             height={800}
-            className="relative w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+            onLoad={() => setImgLoaded(true)}
+            className={`relative w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110 motion-safe:transition-opacity ${imgLoaded ? "opacity-100" : "opacity-0"}`}
           />
+
 
           {/* Shine sweep */}
           <div
