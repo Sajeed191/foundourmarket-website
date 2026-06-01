@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Heart, Plus, Minus, Check, Eye, TrendingDown, Bell, BellRing, X } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
+import { Price } from "@/components/site/Price";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useWishlistAlerts } from "@/lib/wishlist-alerts";
