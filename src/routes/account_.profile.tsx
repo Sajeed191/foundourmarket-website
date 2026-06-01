@@ -11,7 +11,7 @@ import {
   Globe,
   Upload,
   Trash2,
-  Camera,
+  Trash2,
   ShieldCheck,
   Check,
   X,
