@@ -70,10 +70,12 @@ export function LayoutMetricsProvider({ children }: { children: ReactNode }) {
     const safeBottom = readCssPx("--mobile-safe-bottom");
     const headerHeight = visibleHeight("[data-app-header]");
     const measuredNav = visibleHeight("[data-app-bottom-nav]");
-    // Fall back to the CSS clearance token (base chrome + safe-area inset) when the
+    // Fall back to the nav clearance (base chrome 6rem + safe-area inset) when the
     // nav isn't rendered/measurable yet, so content clearance never collapses to 0
-    // and lets the bottom nav overlap product content.
-    const cssNavClearance = readCssPx("--mobile-nav-clearance");
+    // and lets the bottom nav overlap product content. Computed from the rem base
+    // because a calc() custom property can't be read back numerically.
+    const rootFontPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const cssNavClearance = rootFontPx * 6 + safeBottom;
     const bottomNavHeight = measuredNav > 0 ? measuredNav : cssNavClearance;
     const ctaHeight = ctaRef.current?.getBoundingClientRect().height || expectedCtaHeightRef.current;
     const contentHeight = Math.max(0, viewportHeight - headerHeight - bottomNavHeight - ctaHeight);
