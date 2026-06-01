@@ -52,11 +52,31 @@ export const Route = createFileRoute("/search")({
 
 const SORTS = [
   { value: "relevance", label: "Relevance" },
+  { value: "trending", label: "Trending" },
+  { value: "best_selling", label: "Best Selling" },
+  { value: "rating", label: "Highest Rated" },
+  { value: "newest", label: "Newest" },
   { value: "price_asc", label: "Price: Low → High" },
   { value: "price_desc", label: "Price: High → Low" },
-  { value: "rating", label: "Top Rated" },
-  { value: "newest", label: "Newest" },
+  { value: "discount", label: "Biggest Discount" },
 ];
+
+// Sorts handled natively by the search_products RPC. Others are applied
+// client-side after fetching with a "relevance" base ordering.
+const RPC_SORTS = new Set(["relevance", "price_asc", "price_desc", "rating", "newest"]);
+
+function applyClientSort(rows: Product[], sort: string | undefined, discountOf: (p: Product) => number): Product[] {
+  switch (sort) {
+    case "trending":
+      return [...rows].sort((a, b) => b.viewsCount - a.viewsCount);
+    case "best_selling":
+      return [...rows].sort((a, b) => b.soldCount - a.soldCount);
+    case "discount":
+      return [...rows].sort((a, b) => discountOf(b) - discountOf(a));
+    default:
+      return rows;
+  }
+}
 
 const RATINGS = [4, 3, 2];
 
@@ -160,6 +180,16 @@ function SearchPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Reveal a compact sticky search bar once the user scrolls past the hero.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 280);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
 
   const currentFilters: Filters = {
     cat: search.cat,
@@ -189,13 +219,14 @@ function SearchPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const sort = search.sort ?? "relevance";
     (supabase.rpc as any)("search_products", {
       q: search.q ?? null,
       category_filter: search.cat ?? null,
       min_price: search.min ?? null,
       max_price: search.max ?? null,
       min_rating: search.rating ?? null,
-      sort_by: search.sort ?? "relevance",
+      sort_by: RPC_SORTS.has(sort) ? sort : "relevance",
       page_limit: 60,
       page_offset: 0,
     }).then(({ data }: { data: any[] | null }) => {
@@ -204,11 +235,13 @@ function SearchPage() {
       if (search.stock === "in") rows = rows.filter((p) => p.inStock);
       if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
       if (search.disc === "1") rows = rows.filter((p) => discountPercent(p.price, compareOf(p)) != null);
+      rows = applyClientSort(rows, sort, (p) => discountPercent(p.price, compareOf(p)) ?? 0);
       setResults(rows);
       setLoading(false);
     });
     return () => { cancelled = true; };
   }, [search.q, search.cat, search.min, search.max, search.sort, search.stock, search.rating, search.free, search.disc]);
+
 
   function update(patch: Partial<SearchParams>) {
     nav({ search: (prev: SearchParams) => ({ ...prev, ...patch }), replace: true });
@@ -238,6 +271,31 @@ function SearchPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-12 sm:pb-16">
+      {/* Sticky mini search — appears on scroll for quick searching without scrolling back up */}
+      <div
+        className={`fixed inset-x-0 top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl transition-all duration-300 ${
+          scrolled ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <form
+          onSubmit={(e) => { e.preventDefault(); update({ q: query }); }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-2"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search products…"
+              className="w-full bg-card border border-border rounded-full pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+            />
+          </div>
+          <button type="submit" className="shrink-0 bg-accent text-accent-foreground font-bold px-4 py-2.5 rounded-full text-[10px] uppercase tracking-widest hover:brightness-110 transition-all">
+            Search
+          </button>
+        </form>
+      </div>
+
       <div className="mb-6 sm:mb-8">
         <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Discover</p>
         <h1 className="text-fluid-2xl font-display font-semibold mb-5 sm:mb-6">Search the marketplace</h1>
@@ -381,20 +439,23 @@ function SearchPage() {
         </div>
       </div>
 
-      {/* Trust strip — moved below the products so listings appear higher on screen */}
-      <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        {[
-          { icon: ShieldCheck, label: "Secure Payments" },
-          { icon: RefreshCw, label: "Easy Returns" },
-          { icon: BadgeCheck, label: "Verified Products" },
-          { icon: Globe, label: "Worldwide Shipping" },
-        ].map(({ icon: Icon, label }) => (
-          <div key={label} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card/40 px-3 py-2">
-            <Icon className="size-4 text-accent shrink-0" />
-            <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-muted-foreground truncate">{label}</span>
-          </div>
-        ))}
+      {/* Trust bar — compact premium chips in a single scrollable row */}
+      <div className="mt-10 -mx-4 sm:mx-0 px-4 sm:px-0">
+        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {[
+            { icon: ShieldCheck, label: "Secure Payments" },
+            { icon: RefreshCw, label: "Easy Returns" },
+            { icon: BadgeCheck, label: "Verified Products" },
+            { icon: Globe, label: "Worldwide Shipping" },
+          ].map(({ icon: Icon, label }) => (
+            <div key={label} className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border bg-card/40 px-3 py-1.5">
+              <Icon className="size-3.5 text-accent shrink-0" />
+              <span className="text-[10px] sm:text-[11px] font-mono tracking-wide text-muted-foreground whitespace-nowrap">{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
+
 
       {/* Recently viewed — real per-user history, hides itself when empty */}
       <div className="-mx-4 sm:-mx-6">

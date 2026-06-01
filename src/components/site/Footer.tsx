@@ -1,6 +1,27 @@
+import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useRegion } from "@/lib/region";
-import { Instagram, Twitter, Facebook, Youtube } from "lucide-react";
+import { Instagram, Twitter, Facebook, Youtube, ChevronDown } from "lucide-react";
+
+/** Footer column that collapses into an accordion on mobile, always open on desktop. */
+function FooterSection({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="space-y-2.5 border-b border-border/50 md:border-0 pb-2.5 md:pb-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between md:pointer-events-none"
+      >
+        <h5 className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">{title}</h5>
+        <ChevronDown className={`size-4 text-muted-foreground transition-transform md:hidden ${open ? "rotate-180" : ""}`} />
+      </button>
+      <div className={`${open ? "block" : "hidden"} md:block`}>{children}</div>
+    </div>
+  );
+}
+
 
 export function Footer() {
   const { market } = useRegion();
@@ -58,24 +79,23 @@ export function Footer() {
             ))}
           </div>
         </div>
-        <div className="space-y-2.5">
-          <h5 className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">Shop</h5>
+        <FooterSection title="Shop">
           <ul className="text-xs space-y-2 text-muted-foreground">
             <li><Link to="/category/$slug" params={{ slug: "electronics" }} className="hover:text-foreground transition-colors">Electronics</Link></li>
             <li><Link to="/category/$slug" params={{ slug: "fashion" }} className="hover:text-foreground transition-colors">Fashion</Link></li>
             <li><Link to="/category/$slug" params={{ slug: "home" }} className="hover:text-foreground transition-colors">Home</Link></li>
             <li><Link to="/category/$slug" params={{ slug: "fitness" }} className="hover:text-foreground transition-colors">Fitness</Link></li>
           </ul>
-        </div>
-        <div className="space-y-2.5">
-          <h5 className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">Support</h5>
+        </FooterSection>
+        <FooterSection title="Support">
           <ul className="text-xs space-y-2 text-muted-foreground">
             <li><Link to="/track" className="hover:text-foreground transition-colors">Track Order</Link></li>
             <li><Link to="/pages/$slug" params={{ slug: "shipping" }} className="hover:text-foreground transition-colors">Shipping Policy</Link></li>
             <li><Link to="/returns" className="hover:text-foreground transition-colors">Returns</Link></li>
             <li><Link to="/pages/$slug" params={{ slug: "about" }} className="hover:text-foreground transition-colors">About</Link></li>
           </ul>
-        </div>
+        </FooterSection>
+
         <div className="space-y-2.5">
           <h5 className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">Region</h5>
           <div className="w-full bg-transparent border border-border rounded-xl px-3 py-2 text-xs uppercase font-mono">
