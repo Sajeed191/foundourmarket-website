@@ -7,7 +7,7 @@ import {
   Package, Search, Plus, Minus, Loader2, Download, Radio, Star, StarOff,
   Eye, EyeOff, Copy, ExternalLink, Link2, Trash2, Pencil, Boxes,
   TrendingUp, AlertTriangle, CheckCircle2, X, SlidersHorizontal, BarChart3,
-  Layers, IndianRupee, Flame, Upload, ShoppingCart,
+  Layers, IndianRupee, Flame, Upload, ShoppingCart, Tag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
