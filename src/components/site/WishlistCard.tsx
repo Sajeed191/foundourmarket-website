@@ -34,8 +34,12 @@ export function WishlistCard({
   const { format, priceOf, compareOf, shippingFeeOf } = useRegion();
   const { add, items, setQty } = useCart();
   const { toggle } = useWishlist();
+  const { priceAlertsFor, addPriceAlert, removePriceAlert, hasRestock, toggleRestock } =
+    useWishlistAlerts();
   const [imgLoaded, setImgLoaded] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [showTracker, setShowTracker] = useState(false);
+  const [customTarget, setCustomTarget] = useState("");
   const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
 
   const price = priceOf(product);
