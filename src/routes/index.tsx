@@ -629,10 +629,10 @@ function Home() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-12">
           {[
-            { icon: Globe2, value: 180, suffix: "+", label: "Countries served" },
-            { icon: Users, value: 48230, suffix: "", label: "Active shoppers" },
-            { icon: Package, value: 2412, suffix: "", label: "Products available" },
-            { icon: ShoppingBag, value: 17, suffix: "/min", label: "Orders right now" },
+            { icon: Users, value: 50000, suffix: "+", label: "Happy customers" },
+            { icon: Package, value: 10000, suffix: "+", label: "Products available" },
+            { icon: Globe2, value: 120, suffix: "+", label: "Countries served" },
+            { icon: Star, value: 4.8, suffix: "★", label: "Average rating" },
           ].map((s, i) => (
             <Reveal key={s.label} delay={i}>
               <div className="group relative glass-strong glass-reflect rounded-2xl p-5 sm:p-7 h-full overflow-hidden">
