@@ -271,6 +271,31 @@ function SearchPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-12 sm:pb-16">
+      {/* Sticky mini search — appears on scroll for quick searching without scrolling back up */}
+      <div
+        className={`fixed inset-x-0 top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl transition-all duration-300 ${
+          scrolled ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <form
+          onSubmit={(e) => { e.preventDefault(); update({ q: query }); }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-2"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search products…"
+              className="w-full bg-card border border-border rounded-full pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+            />
+          </div>
+          <button type="submit" className="shrink-0 bg-accent text-accent-foreground font-bold px-4 py-2.5 rounded-full text-[10px] uppercase tracking-widest hover:brightness-110 transition-all">
+            Search
+          </button>
+        </form>
+      </div>
+
       <div className="mb-6 sm:mb-8">
         <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Discover</p>
         <h1 className="text-fluid-2xl font-display font-semibold mb-5 sm:mb-6">Search the marketplace</h1>
