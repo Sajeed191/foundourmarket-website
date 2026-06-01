@@ -129,14 +129,10 @@ function Atmosphere() {
 
 // ------- Status Banner -------
 function StatusBanner() {
-  // Simulated live status — green during normal hours, amber on high volume.
-  const highVolume = useMemo(() => {
-    const h = new Date().getHours();
-    return h >= 18 && h <= 22; // evening peak
-  }, []);
-  const online = !highVolume;
+  const { settings } = useSupportSettings();
+  const { online, minutes } = resolveSupportStatus(settings);
   const color = online ? "#22c55e" : "#f59e0b";
-  const eta = online ? "8 minutes" : "up to 1 hour";
+  const eta = online ? `${minutes} minutes` : "up to 1 hour";
 
   return (
     <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
