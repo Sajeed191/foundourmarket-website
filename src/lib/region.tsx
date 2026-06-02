@@ -140,6 +140,10 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   const fetchMine = useServerFn(getMyRegion);
   const lockFn = useServerFn(lockMarketRegion);
 
+  // Stable auth identity — depend on the id, not the user object (which gets a
+  // new reference on every token refresh and would needlessly re-run detection).
+  const userId = user?.id ?? null;
+
   // For guests / pre-selection we keep a suggested region so prices render.
   // Lazily seed from any previously-stored choice so returning shoppers paint
   // their correct currency on the very first frame instead of flashing USD.
@@ -160,6 +164,17 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   const [softConfirm, setSoftConfirm] = useState(false);
   const [vpnSuspected, setVpnSuspected] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Latest detected country, readable inside the effect without making it a
+  // dependency (otherwise the effect would re-run each time it's set).
+  const countryRef = useRef<string | null>(null);
+  useEffect(() => {
+    countryRef.current = countryCode;
+  }, [countryCode]);
+
+  // Tracks the previously-resolved auth identity to detect login/logout edges.
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+
 
   useEffect(() => {
     setMounted(true);
