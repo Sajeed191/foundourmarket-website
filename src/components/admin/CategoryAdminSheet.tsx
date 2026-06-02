@@ -632,6 +632,16 @@ export function CategoryAdminSheet({
                 onPick={() => pickImage("image")}
                 onClear={() => setEditing({ ...editing, image: null })}
               />
+              <button
+                type="button"
+                onClick={regenerateAi}
+                disabled={aiBusy}
+                className="-mt-2 flex w-full items-center justify-center gap-2 rounded-full border border-accent/30 bg-accent/[0.06] px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-accent disabled:opacity-50"
+              >
+                {aiBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                {editing.image ? "Regenerate AI image" : "Generate AI image"}
+              </button>
+
               <div className="grid grid-cols-2 gap-3">
                 <ImageField
                   label="Banner"
