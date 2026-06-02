@@ -108,6 +108,7 @@ export function computeBadges(product: Product, s: BadgeSettings, cap?: number):
   // Admin-controlled promotional labels — always honored when flagged.
   if (product.flashDeal) active.add("flash_deal");
   if (product.staffPick) active.add("staff_pick");
+  if (product.editorsChoice) active.add("editors_choice");
   if (product.giftIdea) active.add("gift_idea");
 
   // Manual flags OR computed thresholds.
@@ -132,18 +133,21 @@ export function computeBadges(product: Product, s: BadgeSettings, cap?: number):
     active.add("new");
   }
 
-  // Auto-derived: Fast Selling (sales velocity) — never manually controlled.
-  if (s.fastSellingEnabled && age > 0 && Number.isFinite(age)) {
+  // Fast Selling — manual flag OR computed sales velocity.
+  if (product.fastSelling) {
+    active.add("fast_selling");
+  } else if (s.fastSellingEnabled && age > 0 && Number.isFinite(age)) {
     const perDay = (product.soldCount ?? 0) / Math.max(1, age);
     if (perDay >= s.fastSellingPerDayMin) active.add("fast_selling");
   }
 
-  // Auto-derived: Premium — high rating + proven demand or premium pricing.
+  // Premium — manual flag OR high rating + proven demand or premium pricing.
   const ratingStrong = (product.rating ?? 0) >= 4.7 && (product.reviews ?? 0) >= 25;
   const pricePremium = (product.priceInr ?? product.price ?? 0) >= 9999;
-  if (ratingStrong || pricePremium) {
+  if (product.premium || ratingStrong || pricePremium) {
     active.add("premium");
   }
+
 
   // Computed-only: limited stock.
   if (s.limitedStockEnabled && product.stockQuantity > 0 && product.stockQuantity <= s.limitedStockMax) {
