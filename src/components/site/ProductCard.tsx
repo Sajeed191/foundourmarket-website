@@ -126,7 +126,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             alt={`${product.name} — ${product.tagline || product.category}`}
             loading="lazy"
             width={800}
-            height={1000}
+            height={600}
             onLoad={() => setImgLoaded(true)}
             className={`relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.06] ${imgLoaded ? "opacity-100" : "opacity-0"}`}
           />
