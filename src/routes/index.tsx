@@ -363,7 +363,7 @@ function Home() {
 
   const homeCategories = isProductAdmin
     ? categories.filter((c) => !c.parent_id)
-    : categories.slice(0, 8);
+    : categories.slice(0, 5);
 
   return (
     <>
