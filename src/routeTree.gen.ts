@@ -39,6 +39,7 @@ import { Route as AdminReturnsRouteImport } from './routes/admin-returns'
 import { Route as AdminReportsRouteImport } from './routes/admin-reports'
 import { Route as AdminRegionRouteImport } from './routes/admin-region'
 import { Route as AdminProductsRouteImport } from './routes/admin-products'
+import { Route as AdminPerformanceRouteImport } from './routes/admin-performance'
 import { Route as AdminPaymentsRouteImport } from './routes/admin-payments'
 import { Route as AdminOrdersOpsRouteImport } from './routes/admin-orders-ops'
 import { Route as AdminOrdersRouteImport } from './routes/admin-orders'
@@ -259,6 +260,11 @@ const AdminRegionRoute = AdminRegionRouteImport.update({
 const AdminProductsRoute = AdminProductsRouteImport.update({
   id: '/admin-products',
   path: '/admin-products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPerformanceRoute = AdminPerformanceRouteImport.update({
+  id: '/admin-performance',
+  path: '/admin-performance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
@@ -663,6 +669,7 @@ export interface FileRoutesByFullPath {
   '/admin-orders': typeof AdminOrdersRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-performance': typeof AdminPerformanceRoute
   '/admin-products': typeof AdminProductsRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
@@ -766,6 +773,7 @@ export interface FileRoutesByTo {
   '/admin-orders': typeof AdminOrdersRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-performance': typeof AdminPerformanceRoute
   '/admin-products': typeof AdminProductsRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
@@ -870,6 +878,7 @@ export interface FileRoutesById {
   '/admin-orders': typeof AdminOrdersRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-performance': typeof AdminPerformanceRoute
   '/admin-products': typeof AdminProductsRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
@@ -975,6 +984,7 @@ export interface FileRouteTypes {
     | '/admin-orders'
     | '/admin-orders-ops'
     | '/admin-payments'
+    | '/admin-performance'
     | '/admin-products'
     | '/admin-region'
     | '/admin-reports'
@@ -1078,6 +1088,7 @@ export interface FileRouteTypes {
     | '/admin-orders'
     | '/admin-orders-ops'
     | '/admin-payments'
+    | '/admin-performance'
     | '/admin-products'
     | '/admin-region'
     | '/admin-reports'
@@ -1181,6 +1192,7 @@ export interface FileRouteTypes {
     | '/admin-orders'
     | '/admin-orders-ops'
     | '/admin-payments'
+    | '/admin-performance'
     | '/admin-products'
     | '/admin-region'
     | '/admin-reports'
@@ -1285,6 +1297,7 @@ export interface RootRouteChildren {
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminOrdersOpsRoute: typeof AdminOrdersOpsRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminPerformanceRoute: typeof AdminPerformanceRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminRegionRoute: typeof AdminRegionRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -1560,6 +1573,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-products'
       fullPath: '/admin-products'
       preLoaderRoute: typeof AdminProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-performance': {
+      id: '/admin-performance'
+      path: '/admin-performance'
+      fullPath: '/admin-performance'
+      preLoaderRoute: typeof AdminPerformanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-payments': {
@@ -2139,6 +2159,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminOrdersRoute: AdminOrdersRoute,
   AdminOrdersOpsRoute: AdminOrdersOpsRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminPerformanceRoute: AdminPerformanceRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminRegionRoute: AdminRegionRoute,
   AdminReportsRoute: AdminReportsRoute,
