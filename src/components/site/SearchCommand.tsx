@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, X, TrendingUp, Clock, Tag, ArrowRight, Loader2, CornerDownLeft, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, X, TrendingUp, Clock, Tag, ArrowRight, Loader2, CornerDownLeft, ArrowUp, ArrowDown, Flame, Sparkles, Store } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { useCategories } from "@/lib/use-categories";
 import { Price } from "@/components/site/Price";
 
 const TRENDING = ["Wireless headphones", "Leather jacket", "Ceramic mug", "Smart watch", "Linen shirt"];
 const RECENT_KEY = "fom-recent-searches";
+const PRODUCT_PAGE = 6; // initial product results; lazy-load more on demand (keeps initial list small)
 
 function readRecent(): string[] {
   if (typeof window === "undefined") return [];
@@ -25,6 +26,7 @@ function pushRecent(q: string) {
 
 type Item =
   | { kind: "category"; slug: string; name: string }
+  | { kind: "brand"; name: string }
   | { kind: "product"; slug: string; name: string; category: string; image: string; price: number }
   | { kind: "search"; q: string };
 
@@ -32,46 +34,83 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
   const nav = useNavigate();
   const { products, loading } = useProducts();
   const { categories } = useCategories();
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
   const [active, setActive] = useState(0);
+  const [limit, setLimit] = useState(PRODUCT_PAGE);
 
   useEffect(() => {
     if (open) {
       setRecent(readRecent());
       setQ("");
       setActive(0);
+      setLimit(PRODUCT_PAGE);
       requestAnimationFrame(() => inputRef.current?.focus());
       document.body.style.overflow = "hidden";
     }
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  const term = q.trim().toLowerCase();
+  // Defer filtering so typing stays responsive even over the full catalog.
+  const deferredQ = useDeferredValue(q);
+  const term = deferredQ.trim().toLowerCase();
+
+  // Popular products (empty state) — top sellers, then most viewed.
+  const popular = useMemo(
+    () =>
+      [...products]
+        .sort((a, b) => (b.soldCount ?? 0) - (a.soldCount ?? 0) || (b.viewsCount ?? 0) - (a.viewsCount ?? 0))
+        .slice(0, 6),
+    [products],
+  );
+
+  // Derive brand-like groups from recurring leading words in product names.
+  const brandsAll = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of products) {
+      const first = p.name.trim().split(/\s+/)[0];
+      if (!first || first.length < 3 || /^\d/.test(first)) continue;
+      counts.set(first, (counts.get(first) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .filter(([, n]) => n >= 2)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name]) => name);
+  }, [products]);
 
   const productMatches = useMemo(() => {
     if (!term) return [];
     return products
       .filter((p) => `${p.name} ${p.tagline ?? ""} ${p.category} ${p.description ?? ""}`.toLowerCase().includes(term))
-      .slice(0, 6);
+      .slice(0, 18);
   }, [products, term]);
   const catMatches = useMemo(() => {
     if (!term) return [];
     return categories.filter((c) => c.name.toLowerCase().includes(term) || c.slug.toLowerCase().includes(term)).slice(0, 4);
   }, [categories, term]);
+  const brandMatches = useMemo(() => {
+    if (!term) return [];
+    return brandsAll.filter((b) => b.toLowerCase().includes(term)).slice(0, 3);
+  }, [brandsAll, term]);
+
+  // Reset paging when the query changes.
+  useEffect(() => { setLimit(PRODUCT_PAGE); }, [term]);
+
+  const shownProducts = productMatches.slice(0, limit);
 
   const items: Item[] = useMemo(() => {
     if (!term) return [];
     const list: Item[] = [
       ...catMatches.map((c): Item => ({ kind: "category", slug: c.slug, name: c.name })),
-      ...productMatches.map((p): Item => ({ kind: "product", slug: p.slug, name: p.name, category: p.category, image: p.image, price: p.price })),
+      ...brandMatches.map((b): Item => ({ kind: "brand", name: b })),
+      ...shownProducts.map((p): Item => ({ kind: "product", slug: p.slug, name: p.name, category: p.category, image: p.image, price: p.price })),
     ];
     if (list.length > 0) list.push({ kind: "search", q });
     return list;
-  }, [catMatches, productMatches, term, q]);
+  }, [catMatches, brandMatches, shownProducts, term, q]);
 
   // Reset active index when results change
   useEffect(() => { setActive(0); }, [items.length]);
@@ -87,6 +126,8 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
       pushRecent(item.name);
       nav({ to: "/category/$slug", params: { slug: item.slug } });
       onClose();
+    } else if (item.kind === "brand") {
+      go(item.name);
     } else if (item.kind === "product") {
       pushRecent(q);
       nav({ to: "/products/$slug", params: { slug: item.slug } });
@@ -131,14 +172,17 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
   if (!open) return null;
 
   const catStart = 0;
-  const prodStart = catMatches.length;
+  const brandStart = catMatches.length;
+  const prodStart = catMatches.length + brandMatches.length;
+  const hasMore = productMatches.length > shownProducts.length;
+  const stale = q.trim() !== term; // deferred filter is catching up
 
   return (
     <div className="fixed inset-0 z-[80]">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      <div className="absolute left-1/2 top-[8vh] -translate-x-1/2 w-[94%] sm:w-[90%] max-w-2xl bg-background border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in flex flex-col max-h-[84vh]">
-        <form onSubmit={(e) => { e.preventDefault(); if (items[active]) activate(items[active]); else if (term) go(q); }} className="relative border-b border-border">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <div className="absolute left-1/2 top-[8vh] -translate-x-1/2 w-[94%] sm:w-[90%] max-w-2xl glass-strong border border-accent/20 rounded-2xl shadow-2xl overflow-hidden animate-fade-in flex flex-col max-h-[84vh]">
+        <form onSubmit={(e) => { e.preventDefault(); if (items[active]) activate(items[active]); else if (q.trim()) go(q); }} className="relative border-b border-border">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-accent" />
           <input
             ref={inputRef}
             value={q}
@@ -178,6 +222,16 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
                   ))}
                 </div>
               </div>
+              {brandsAll.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3 inline-flex items-center gap-2"><Store className="size-3" /> Brands</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {brandsAll.slice(0, 8).map((b) => (
+                      <button key={b} onClick={() => go(b)} className="px-3 py-1.5 rounded-full border border-border text-xs hover:border-accent/50 hover:text-accent transition-colors">{b}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div>
                 <h4 className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3 inline-flex items-center gap-2"><Tag className="size-3" /> Categories</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -194,6 +248,29 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
                   ))}
                 </div>
               </div>
+              {popular.length > 0 && (
+                <div>
+                  <h4 className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3 inline-flex items-center gap-2"><Flame className="size-3" /> Popular right now</h4>
+                  <div className="space-y-1">
+                    {popular.map((p) => (
+                      <Link
+                        key={p.slug}
+                        to="/products/$slug"
+                        params={{ slug: p.slug }}
+                        onClick={onClose}
+                        className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/5 transition-colors"
+                      >
+                        <img src={p.image} alt="" loading="lazy" className="size-11 rounded-lg object-cover border border-border" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{p.name}</p>
+                          <p className="text-[11px] font-mono text-muted-foreground truncate">{p.category}</p>
+                        </div>
+                        <Price value={p.price} className="font-mono text-sm text-accent" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : loading ? (
             <div className="py-16 grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
@@ -205,7 +282,7 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
               </button>
             </div>
           ) : (
-            <div className="p-3 space-y-2">
+            <div className={`p-3 space-y-2 transition-opacity ${stale ? "opacity-60" : "opacity-100"}`}>
               {catMatches.length > 0 && (
                 <div>
                   <p className="px-3 py-2 text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Categories</p>
@@ -233,10 +310,35 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
                   })}
                 </div>
               )}
-              {productMatches.length > 0 && (
+              {brandMatches.length > 0 && (
+                <div>
+                  <p className="px-3 py-2 text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Brands</p>
+                  {brandMatches.map((b, i) => {
+                    const idx = brandStart + i;
+                    const isActive = idx === active;
+                    return (
+                      <button
+                        key={b}
+                        onClick={() => go(b)}
+                        onMouseEnter={() => setActive(idx)}
+                        id={`search-item-${idx}`}
+                        data-idx={idx}
+                        role="option"
+                        aria-selected={isActive}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left ${isActive ? "bg-accent/10" : "hover:bg-white/5"}`}
+                      >
+                        <span className="size-9 rounded-lg bg-accent/10 text-accent grid place-items-center"><Store className="size-4" /></span>
+                        <span className="flex-1 text-sm">{b}</span>
+                        <ArrowRight className={`size-3.5 ${isActive ? "text-accent" : "text-muted-foreground"}`} />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {shownProducts.length > 0 && (
                 <div>
                   <p className="px-3 py-2 text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">Products</p>
-                  {productMatches.map((p, i) => {
+                  {shownProducts.map((p, i) => {
                     const idx = prodStart + i;
                     const isActive = idx === active;
                     return (
@@ -252,7 +354,7 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
                         aria-selected={isActive}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${isActive ? "bg-accent/10" : "hover:bg-white/5"}`}
                       >
-                        <img src={p.image} alt="" className="size-12 rounded-lg object-cover border border-border" />
+                        <img src={p.image} alt="" loading="lazy" className="size-12 rounded-lg object-cover border border-border" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{p.name}</p>
                           <p className="text-[11px] font-mono text-muted-foreground truncate">{p.category}</p>
@@ -261,6 +363,14 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
                       </Link>
                     );
                   })}
+                  {hasMore && (
+                    <button
+                      onClick={() => setLimit((l) => l + PRODUCT_PAGE)}
+                      className="w-full mt-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent hover:bg-white/5 transition-colors"
+                    >
+                      Load more <ArrowDown className="size-3" />
+                    </button>
+                  )}
                   {(() => {
                     const idx = items.length - 1;
                     const isActive = idx === active;
