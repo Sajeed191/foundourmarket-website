@@ -103,13 +103,13 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
         params={{ slug: product.slug }}
         className="relative flex flex-1 flex-col gap-2 px-3 pt-3 pb-3"
       >
-        {/* Name — up to 2 lines */}
-        <h4 className="text-[13px] font-semibold text-white leading-snug line-clamp-2 min-h-[2.4em] group-hover:text-accent transition-colors">
+        {/* Name — clamped to exactly 2 lines, height always reserved */}
+        <h4 className="text-[13px] font-semibold text-white leading-snug line-clamp-2 h-[2.4em] group-hover:text-accent transition-colors">
           {product.name}
         </h4>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1 min-h-[14px]">
+        {/* Rating — height always reserved to prevent layout shift */}
+        <div className="flex items-center gap-1 h-[14px]">
           {product.reviews > 0 ? (
             <>
               <Star className="size-3 fill-accent text-accent" />
@@ -123,9 +123,10 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
           )}
         </div>
 
-        {/* Price — strongest element after image — and integrated Add button */}
-        <div className="mt-auto pt-1 flex items-end justify-between gap-2">
-          <div className="min-w-0">
+        {/* Bottom action row — pushed to bottom, price + Add aligned on one baseline */}
+        <div className="mt-auto pt-1 flex items-center justify-between gap-2">
+          {/* Price block — fixed reserved height; old price line always present */}
+          <div className="min-w-0 flex flex-col justify-center h-[34px]">
             <Price
               value={price}
               className="font-display font-extrabold text-white tabular-nums leading-none block text-[20px]"
@@ -133,16 +134,18 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
             {originalPrice && discount ? (
               <Price
                 value={originalPrice}
-                className="mt-1 font-mono text-muted-foreground/55 line-through tabular-nums block text-[10px]"
+                className="mt-1 font-mono text-muted-foreground/55 line-through tabular-nums block text-[10px] leading-none"
               />
-            ) : null}
+            ) : (
+              <span aria-hidden className="mt-1 block text-[10px] leading-none invisible">.</span>
+            )}
           </div>
 
           {product.inStock ? (
             <button
               onClick={handleAdd}
               aria-label={`Add ${product.name} to cart`}
-              className={`relative shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 h-9 text-[12px] font-semibold border transition-all duration-300 active:scale-95 ${
+              className={`relative shrink-0 inline-flex items-center justify-center gap-1.5 rounded-full w-[78px] h-9 text-[12px] font-semibold border transition-all duration-300 active:scale-95 ${
                 justAdded
                   ? "bg-emerald-500/90 border-emerald-400 text-black"
                   : "bg-accent/15 border-accent/40 text-accent hover:bg-accent hover:text-black hover:border-accent"
@@ -166,7 +169,7 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
           ) : (
             <span
               onClick={(e) => e.preventDefault()}
-              className="shrink-0 inline-flex items-center rounded-full bg-muted/40 border border-white/10 text-muted-foreground font-bold font-mono uppercase tracking-wider px-2.5 py-1.5 text-[9px]"
+              className="shrink-0 inline-flex items-center justify-center rounded-full w-[78px] h-9 bg-muted/40 border border-white/10 text-muted-foreground font-bold font-mono uppercase tracking-wider text-[9px]"
             >
               Sold Out
             </span>
