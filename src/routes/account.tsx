@@ -242,16 +242,18 @@ function AccountPage() {
 
               {/* Action buttons — aligned right */}
               <div className="flex items-center gap-2 shrink-0 self-center">
-                <Link
-                  to="/account/notifications"
-                  aria-label="Notifications"
-                  className="relative size-10 sm:size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
-                >
-                  <Bell className="size-4" />
-                  {unread > 0 && (
-                    <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />
-                  )}
-                </Link>
+                {isAdmin && (
+                  <Link
+                    to="/account/notifications"
+                    aria-label="Notifications"
+                    className="relative size-10 sm:size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
+                  >
+                    <Bell className="size-4" />
+                    {unread > 0 && (
+                      <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />
+                    )}
+                  </Link>
+                )}
                 <Link
                   to="/account/profile"
                   aria-label="Settings"
