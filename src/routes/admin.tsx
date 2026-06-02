@@ -59,6 +59,14 @@ type Subscriber = {
 };
 
 const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
+
+// Quick status actions with their associated lifecycle timestamp column.
+const QUICK_STATUSES: { value: string; label: string; field: "paid_at" | "fulfilled_at" | "cancelled_at" | null }[] = [
+  { value: "pending", label: "Pending", field: null },
+  { value: "paid", label: "Paid", field: "paid_at" },
+  { value: "fulfilled", label: "Fulfilled", field: "fulfilled_at" },
+  { value: "cancelled", label: "Cancelled", field: "cancelled_at" },
+];
 type Tab = "overview" | "orders" | "customers" | "products" | "categories" | "promos" | "subscribers";
 
 function AdminPage() {
