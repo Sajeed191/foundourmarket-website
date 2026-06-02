@@ -144,8 +144,34 @@ export function CategoryAdminSheet({
   const [progress, setProgress] = useState(0);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | CategoryStatus>("all");
+  const [aiBusy, setAiBusy] = useState(false);
+  const genImage = useServerFn(generateCategoryImage);
   const fileSlot = useRef<ImageSlot>("image");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  async function regenerateAi() {
+    if (!editing?.name?.trim()) {
+      toast.error("Enter a category name first");
+      return;
+    }
+    setAiBusy(true);
+    try {
+      const slug = editing.slug?.trim() || slugify(editing.name);
+      const { url } = await genImage({
+        data: {
+          name: editing.name.trim(),
+          slug,
+          description: editing.description?.trim() || undefined,
+        },
+      });
+      setEditing((prev) => (prev ? { ...prev, image: url } : prev));
+      toast.success("AI image generated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "AI generation failed");
+    } finally {
+      setAiBusy(false);
+    }
+  }
 
   const dirty = useMemo(
     () => (editing ? JSON.stringify(editing) !== original : false),
