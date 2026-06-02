@@ -106,12 +106,12 @@ function CinematicDivider() {
   );
 }
 
-/* Mobile-only full-width "View All" pill shown under product carousels */
-function MobileViewAll({ to, label = "View All" }: { to: string; label?: string }) {
+/* Full-width premium "View All" button shown directly below each product section */
+function ViewAllButton({ to, label = "View All" }: { to: string; label?: string }) {
   return (
     <Link
       to={to}
-      className="sm:hidden mt-3 flex items-center justify-center gap-2 rounded-full glass border border-accent/25 py-3 text-[11px] font-mono uppercase tracking-widest text-accent active:scale-[0.98] transition-transform"
+      className="mt-4 flex items-center justify-center gap-2 w-full rounded-2xl glass-strong border border-accent/30 py-3.5 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-accent hover:bg-accent/10 active:scale-[0.99] transition-all"
     >
       {label} <ArrowRight className="size-3.5" />
     </Link>
