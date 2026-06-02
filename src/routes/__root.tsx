@@ -241,6 +241,12 @@ function RootComponent() {
   }, [pathname]);
 
   const isAuthRoute = pathname.startsWith("/auth");
+  // Admin routes own their full chrome via <AdminShell> (sidebar + top bar with
+  // its own NotificationBell). Rendering the public site Nav / Footer / bottom
+  // nav on top of that caused a duplicate notification bell whose dropdown
+  // floated over admin controls. Suppress public chrome on admin routes.
+  const isAdminRoute = pathname.startsWith("/admin");
+  const hideSiteChrome = isAuthRoute || isAdminRoute;
 
   return (
     <QueryClientProvider client={queryClient}>
