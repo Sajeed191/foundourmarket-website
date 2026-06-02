@@ -181,6 +181,73 @@ function ProductSection({
 
 
 
+/* Conversion-focused tabbed product hub: collapses Trending / New Arrivals /
+   Best Sellers / Featured into one compact section — only the active rail
+   renders, cutting homepage height ~30-40% while keeping fast tab switching. */
+type ProductTab = {
+  key: string;
+  eyebrow: string;
+  title: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  products: import("@/lib/products").Product[];
+  active: boolean;
+};
+
+function TabbedProductHub({ tabs, isAdmin }: { tabs: ProductTab[]; isAdmin: boolean }) {
+  const visible = tabs.filter((t) => t.products.length > 0 && (t.active || isAdmin));
+  const [activeKey, setActiveKey] = useState(visible[0]?.key);
+  if (visible.length === 0) return null;
+  const current = visible.find((t) => t.key === activeKey) ?? visible[0];
+
+  return (
+    <SectionTracker sectionKey={current.key} className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto scroll-mt-24 block">
+      {/* Tab bar — horizontally scrollable pill switcher */}
+      <Reveal className="mb-4 sm:mb-6 flex items-center justify-between gap-3">
+        <div className="-mx-1 flex gap-2 overflow-x-auto scrollbar-none px-1 py-1">
+          {visible.map((t) => {
+            const Icon = t.icon;
+            const isActive = t.key === current.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setActiveKey(t.key)}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-[11px] font-mono uppercase tracking-widest transition-all active:scale-95 ${
+                  isActive
+                    ? "border-accent/60 bg-accent/15 text-accent shadow-[var(--shadow-ember)]"
+                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground hover:border-white/20"
+                }`}
+              >
+                {Icon && <Icon className="size-3.5" />}
+                {t.title}
+                {!t.active && isAdmin && <span className="text-[8px] text-amber-400">(hidden)</span>}
+              </button>
+            );
+          })}
+        </div>
+        <Link to="/search" className="hidden sm:inline-block shrink-0 text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-foreground hover:border-foreground transition-colors">
+          See All
+        </Link>
+      </Reveal>
+
+      {isAdmin && (
+        <div className="mb-3">
+          <SectionHeader eyebrow={current.eyebrow} title={current.title} icon={current.icon} sectionKey={current.key} editable active={current.active} />
+        </div>
+      )}
+
+      <LazyMount minHeight={260}>
+        <ProductRail key={current.key} products={current.products} />
+        <MobileViewAll to="/search" />
+        <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
+          {current.products.slice(0, 4).map((p, i) => (
+            <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
+          ))}
+        </div>
+      </LazyMount>
+    </SectionTracker>
+  );
+}
+
 function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All", sectionKey, editable, active = true }: { eyebrow: string; title: string; icon?: React.ComponentType<{ className?: string }>; href?: string; hrefLabel?: string; sectionKey?: string; editable?: boolean; active?: boolean }) {
   const [editing, setEditing] = useState(false);
   const [draftEyebrow, setDraftEyebrow] = useState(eyebrow);
