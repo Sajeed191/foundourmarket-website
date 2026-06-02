@@ -197,7 +197,7 @@ function ProductCardImpl({ product, compact }: { product: Product; compact?: boo
         </h4>
 
         {/* Rating row — ⭐ 4.8 (984) */}
-        <div className="flex items-center gap-1 mt-1 min-h-[15px]">
+        <div className="flex items-center gap-1 mt-0.5 min-h-[14px]">
           {product.reviews > 0 ? (
             <>
               <Star className="size-3 fill-accent text-accent" />
