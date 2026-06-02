@@ -22,6 +22,7 @@ import { ProductCard } from "@/components/site/ProductCard";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { AnnouncementBar } from "@/components/site/AnnouncementBar";
+import { TrustBadgesStrip } from "@/components/site/TrustBadgesStrip";
 
 import { NewsletterForm } from "@/components/site/NewsletterForm";
 
@@ -459,6 +460,9 @@ function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* Trust strip — compact, between hero and categories */}
+      <TrustBadgesStrip />
 
       {/* 3 · Main Categories — icon-led marketplace grid */}
       <section id="categories" className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto scroll-mt-24">
