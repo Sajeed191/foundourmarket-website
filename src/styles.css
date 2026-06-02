@@ -709,7 +709,7 @@
 }
 
 /* Floating support orb hide/show on scroll direction */
-.orb-hidden { transform: translateY(160%); opacity: 0; pointer-events: none; }
+.orb-hidden { animation: none !important; transform: translateY(160%); opacity: 0; pointer-events: none; }
 
 /* ===== Mobile performance overrides =====
    Drop expensive backdrop-filters and heavy multi-layer shadows on phones —
