@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAllCategories } from "@/lib/use-categories";
@@ -13,15 +13,37 @@ function titleize(slug: string) {
 export const Route = createFileRoute("/category/$slug")({
   head: ({ params }) => {
     const name = titleize(params.slug);
+    const title = `${name} — FoundOurMarket™`;
+    const description = `Shop ${name} curated from the global marketplace on FoundOurMarket™.`;
+    const url = `https://foundourmarket.com/category/${params.slug}`;
     return {
       meta: [
-        { title: `${name} — FoundOurMarket™` },
-        { name: "description", content: `Shop ${name} curated from the global marketplace.` },
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Shop", item: "https://foundourmarket.com/" },
+              { "@type": "ListItem", position: 2, name, item: url },
+            ],
+          }),
+        },
       ],
     };
   },
   component: CategoryPage,
 });
+
 
 function CategoryPage() {
   const { slug } = Route.useParams();
