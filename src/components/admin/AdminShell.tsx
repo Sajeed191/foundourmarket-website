@@ -18,6 +18,7 @@ type Role = "admin" | "super_admin" | "manager" | "support" | "fulfillment" | "w
 
 type NavItem = {
   to: string;
+  search?: Record<string, string>;
   label: string;
   icon: typeof LayoutDashboard;
   roles?: Role[];
@@ -73,7 +74,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-badges-analytics", label: "Badge Analytics", icon: BarChart3, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-media", label: "Media library", icon: Images, roles: ["admin", "super_admin", "manager", "editor"] },
 
-      { to: "/admin?tab=categories", label: "Categories", icon: Boxes },
+      { to: "/admin", search: { tab: "categories" }, label: "Categories", icon: Boxes },
     ],
   },
   {
@@ -84,7 +85,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-acquisition-intelligence", label: "Acquisition Intelligence", icon: Target, roles: ["admin", "super_admin", "manager", "editor"] },
       { to: "/admin-seo-intelligence", label: "SEO Intelligence", icon: Search, roles: ["admin", "super_admin", "manager", "editor"] },
       { to: "/admin-search", label: "Search trends", icon: Search, roles: ["admin", "super_admin", "manager"] },
-      { to: "/admin?tab=subscribers", label: "Subscribers", icon: ShoppingBag },
+      { to: "/admin", search: { tab: "subscribers" }, label: "Subscribers", icon: ShoppingBag },
     ],
   },
   {
