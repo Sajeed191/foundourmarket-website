@@ -385,9 +385,10 @@ function Home() {
 
   const { items: testimonials } = useTestimonials();
 
+  const categoryLimit = useCategoryLimit();
   const homeCategories = isProductAdmin
     ? categories.filter((c) => !c.parent_id)
-    : categories.slice(0, 5);
+    : categories.slice(0, categoryLimit);
 
   return (
     <>
