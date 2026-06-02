@@ -136,6 +136,9 @@ function ProductPage() {
   const { product: liveProduct, loading: liveLoading } = useProduct(slug);
   const product = liveProduct ?? loadedProduct;
   const loading = !product && liveLoading;
+  const { categories: allCats } = useAllCategories();
+  const breadcrumbCat = product ? allCats.find((c) => c.slug === product.category) ?? null : null;
+  const breadcrumbParent = breadcrumbCat?.parent_id ? allCats.find((c) => c.id === breadcrumbCat.parent_id) ?? null : null;
   const layoutMetrics = useLayoutMetrics();
   const { format, priceOf, compareOf, shippingFeeOf, currencyReady } = useRegion();
   const { isProductAdmin: isAdmin } = useIsProductAdmin();
