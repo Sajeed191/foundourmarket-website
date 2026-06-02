@@ -632,106 +632,47 @@ function Home() {
 
       <CinematicDivider />
 
-      {/* 4 · Trending Products [product section 1/3] */}
+      {/* 5 · Trending Products */}
       {productsLoading ? (
-        <section className="px-4 sm:px-6 py-6 sm:py-10 max-w-7xl mx-auto">
+        <section className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
           <ProductSkeletonGrid count={4} />
         </section>
-      ) : trending.length > 0 && (sections.trending.active || isProductAdmin) && (
-        <SectionTracker sectionKey="trending" className="px-4 sm:px-6 py-6 sm:py-10 max-w-7xl mx-auto scroll-mt-24 block">
-          <SectionHeader eyebrow={sections.trending.eyebrow} title={sections.trending.title} icon={Flame} href="/search" hrefLabel="See All" sectionKey="trending" editable={isProductAdmin} active={sections.trending.active} />
-          <ProductRail products={trending} />
-          <MobileViewAll to="/search" />
-          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
-            {trending.slice(0, 4).map((p, i) => (
-              <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
-            ))}
-          </div>
-        </SectionTracker>
+      ) : (
+        <ProductSection sectionKey="trending" eyebrow={sections.trending.eyebrow} title={sections.trending.title} icon={Flame} products={trending} active={sections.trending.active} isAdmin={isProductAdmin} />
       )}
 
-      <CinematicDivider />
-
-      {/* 5 · Why Shop With Us */}
-      <section className="px-4 sm:px-6 py-6 sm:py-10 max-w-7xl mx-auto">
-        <Reveal className="text-center mb-5 sm:mb-8">
-          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Why FoundOurMarket</p>
-          <h2 className="text-fluid-2xl font-display tracking-tight">Built for the modern buyer</h2>
-        </Reveal>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-          {[
-            { icon: Shield, title: "Secure by default", desc: "Encrypted checkout with trusted global gateways." },
-            { icon: Globe2, title: "Truly worldwide", desc: "Fast, tracked delivery from global hubs." },
-            { icon: Award, title: "Verified sellers", desc: "Every supplier hand-vetted before listing." },
-            { icon: Sparkles, title: "Premium only", desc: "No filler, no fakes — a curated catalog." },
-          ].map((f, i) => (
-            <Reveal key={f.title} delay={i}>
-              <div className="group relative h-full glass glass-reflect rounded-2xl p-5 sm:p-6 overflow-hidden hover:-translate-y-1 hover:border-accent/40 transition-all">
-                <div aria-hidden className="absolute -top-12 -right-12 size-32 rounded-full opacity-0 group-hover:opacity-60 blur-2xl transition-opacity" style={{ background: "var(--gradient-ember-soft)" }} />
-                <div className="relative size-10 rounded-xl bg-accent/10 text-accent ring-1 ring-accent/20 grid place-items-center mb-4 group-hover:shadow-[0_0_22px_-6px_var(--color-accent)] transition-all">
-                  <f.icon className="size-5" />
-                </div>
-                <h4 className="relative text-sm sm:text-base font-medium mb-2">{f.title}</h4>
-                <p className="relative text-xs sm:text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <CinematicDivider />
-
-      {/* 6 · Recommended Products [product section 2/3] — personalized when signals exist */}
-      {recommended.length > 0 && (sections.recommended.active || isProductAdmin) && (
-        <SectionTracker sectionKey="recommended" className="px-4 sm:px-6 py-6 sm:py-10 max-w-7xl mx-auto scroll-mt-24 block">
-          <SectionHeader eyebrow={sections.recommended.eyebrow} title={sections.recommended.title} icon={Award} href="/search" hrefLabel="See All" sectionKey="recommended" editable={isProductAdmin} active={sections.recommended.active} />
-          {personalizedSlugs.length > 0 ? (
-            <RecommendationStrip title="Picked for you" slugs={personalizedSlugs} icon={<Award className="size-3" />} />
-          ) : (
-            <>
-              <ProductRail products={recommended} />
-              <MobileViewAll to="/search" />
-              <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
-                {recommended.slice(0, 4).map((p, i) => (
-                  <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
-                ))}
-              </div>
-            </>
-          )}
-        </SectionTracker>
+      {/* 6 · New Arrivals */}
+      {!productsLoading && (
+        <ProductSection sectionKey="new_arrivals" eyebrow={sections.new_arrivals.eyebrow} title={sections.new_arrivals.title} icon={Sparkles} products={newArrivals} active={sections.new_arrivals.active} isAdmin={isProductAdmin} />
       )}
 
-      {/* Recently viewed — personal browsing history */}
+      {/* 7 · Best Sellers */}
+      {!productsLoading && (
+        <ProductSection sectionKey="best_sellers" eyebrow={sections.best_sellers.eyebrow} title={sections.best_sellers.title} icon={Award} products={bestSellers} active={sections.best_sellers.active} isAdmin={isProductAdmin} />
+      )}
+
+      {/* 8 · Featured Products */}
+      {!productsLoading && (
+        <ProductSection sectionKey="featured" eyebrow={sections.featured.eyebrow} title={sections.featured.title} icon={Star} products={featured} active={sections.featured.active} isAdmin={isProductAdmin} />
+      )}
+
+      {/* Recently viewed — personal browsing history (only when history exists) */}
       {recentlyViewedSlugs.length > 0 && (
-        <section className="px-4 sm:px-6 max-w-7xl mx-auto">
+        <section className="px-4 sm:px-6 py-2 max-w-7xl mx-auto">
           <RecommendationStrip title="Recently viewed" slugs={recentlyViewedSlugs} icon={<Package className="size-3" />} />
         </section>
       )}
 
-
-      {/* Mid-page campaign banner */}
-      <section className="px-4 sm:px-6 py-2">
-        <PromoBannerCarousel types={["promo"]} maxItems={2} aspectClassName="aspect-[16/6] sm:aspect-[21/7]" />
+      {/* 9 · Featured Collections */}
+      <section className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
+        <LazyMount minHeight={220}>
+          <PromoBannerCarousel types={["hero"]} maxItems={3} eyebrow="Featured Collections" />
+        </LazyMount>
       </section>
-
-      {/* 7 · New Arrivals [product section 3/3] */}
-      {newArrivals.length > 0 && (sections.new_arrivals.active || isProductAdmin) && (
-        <SectionTracker sectionKey="new_arrivals" className="px-4 sm:px-6 py-6 sm:py-10 max-w-7xl mx-auto scroll-mt-24 block">
-          <SectionHeader eyebrow={sections.new_arrivals.eyebrow} title={sections.new_arrivals.title} icon={Sparkles} href="/search" sectionKey="new_arrivals" editable={isProductAdmin} active={sections.new_arrivals.active} />
-          <ProductRail products={newArrivals} />
-          <MobileViewAll to="/search" />
-          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
-            {newArrivals.slice(0, 4).map((p, i) => (
-              <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
-            ))}
-          </div>
-
-        </SectionTracker>
-      )}
 
       <CinematicDivider />
 
-      {/* 8 · Social Proof — live engine + verified reviews */}
+      {/* 10 · Social Proof — live engine + verified reviews */}
       <section className="px-4 sm:px-6 py-6 sm:py-10 max-w-7xl mx-auto">
         <Reveal className="text-center mb-6 sm:mb-12">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3 inline-flex items-center gap-2">
