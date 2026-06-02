@@ -14,7 +14,7 @@ function PreviewPage() {
   return (
     <ReadOnlySection slug={slug} sectionKey="preview" title="Preview" icon={<Eye className="size-4" />} cols={COLS}>
       {(r) => {
-        const sell = r.price_inr ?? Number(r.price) || 0;
+        const sell = r.price_inr ?? (Number(r.price) || 0);
         const compare = r.compare_price_inr as number | null;
         const pctOff = compare != null && compare > sell && sell > 0 ? Math.round(((compare - sell) / compare) * 100) : (r.discount ? Number(r.discount) : 0);
         const cardWidth = device === "mobile" ? "w-44" : "w-64";
