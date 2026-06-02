@@ -115,21 +115,12 @@ function ProductCardImpl({ product, compact }: { product: Product; compact?: boo
       {/* IMAGE — compact marketplace ratio */}
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative">
         <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-black/40">
-          {!imgLoaded && (
-            <div
-              aria-hidden
-              className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"
-            />
-          )}
-          <img
+          <ProductImage
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
-            loading="lazy"
-            width={800}
-            height={600}
-            onLoad={() => setImgLoaded(true)}
-            className={`relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.06] ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+            className="relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.06]"
           />
+
 
           {/* Discount badge — top-left, bold orange pill for strong visibility */}
           {discount ? (
