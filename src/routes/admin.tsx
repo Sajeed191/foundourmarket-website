@@ -18,8 +18,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { LayoutDashboard } from "lucide-react";
 
 
+const VALID_TABS = ["overview", "orders", "customers", "products", "categories", "promos", "subscribers"] as const;
+
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — FoundOurMarket™" }] }),
+  validateSearch: (search: Record<string, unknown>): { tab?: Tab } => {
+    const t = search.tab;
+    return typeof t === "string" && (VALID_TABS as readonly string[]).includes(t)
+      ? { tab: t as Tab }
+      : {};
+  },
   component: AdminPage,
 });
 
