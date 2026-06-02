@@ -566,6 +566,7 @@ function Home() {
         <SectionTracker sectionKey="trending" className="px-4 sm:px-6 py-6 sm:py-10 max-w-7xl mx-auto scroll-mt-24 block">
           <SectionHeader eyebrow={sections.trending.eyebrow} title={sections.trending.title} icon={Flame} href="/search" hrefLabel="See All" sectionKey="trending" editable={isProductAdmin} active={sections.trending.active} />
           <ProductRail products={trending} />
+          <MobileViewAll to="/search" />
           <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
             {trending.slice(0, 4).map((p, i) => (
               <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
