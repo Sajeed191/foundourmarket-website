@@ -38,7 +38,7 @@ export function Footer() {
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms &amp; Conditions</Link>
             <Link to="/returns" className="hover:text-foreground transition-colors">Refund Policy</Link>
-            <Link to="/help" className="hover:text-foreground transition-colors">Contact Us</Link>
+            <Link to="/contact" className="hover:text-foreground transition-colors">Contact Us</Link>
           </nav>
         </div>
       </footer>
