@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useCategories } from "@/lib/use-categories";
+import { useAllCategories } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { ProductCard } from "@/components/site/ProductCard";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 
 function titleize(slug: string) {
   return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -25,42 +25,84 @@ export const Route = createFileRoute("/category/$slug")({
 
 function CategoryPage() {
   const { slug } = Route.useParams();
-  const { categories } = useCategories();
+  const { categories, subsByParent } = useAllCategories();
   const cat = categories.find((c) => c.slug === slug);
   const { products, loading } = useProducts();
-  const items = products.filter((p) => p.category === slug);
+
+  // If this is a main category, gather its subcategories. Products shown are
+  // those mapped to this category OR any of its subcategories (zero loss).
+  const subs = cat ? subsByParent(cat.id) : [];
+  const childSlugs = useMemo(() => subs.map((s) => s.slug), [subs]);
+  const items = useMemo(
+    () => products.filter((p) => p.category === slug || childSlugs.includes(p.category)),
+    [products, slug, childSlugs],
+  );
 
   useEffect(() => {
     if (cat?.id) void supabase.rpc("track_category_event", { _id: cat.id, _event: "view" });
   }, [cat?.id]);
 
-
-
+  const parent = cat?.parent_id ? categories.find((c) => c.id === cat.parent_id) : null;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16 mobile-page-clearance md:pb-16">
-      <nav className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 mobile-page-clearance md:pb-16">
+      <nav className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-5">
         <Link to="/" className="hover:text-foreground">Shop</Link>
         <span className="mx-2">/</span>
+        {parent && (
+          <>
+            <Link to="/category/$slug" params={{ slug: parent.slug }} className="hover:text-foreground">{parent.name}</Link>
+            <span className="mx-2">/</span>
+          </>
+        )}
         <span className="text-foreground">{cat?.name ?? slug}</span>
       </nav>
-      <header className="mb-12">
-        <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Category</p>
-        <h1 className="text-4xl md:text-6xl font-display font-semibold tracking-tight capitalize">{cat?.name ?? slug}</h1>
-        <p className="text-muted-foreground mt-3">{items.length} product{items.length === 1 ? "" : "s"}</p>
+
+      {/* Banner */}
+      <header className="relative mb-8 overflow-hidden rounded-3xl product-card-glass p-6 sm:p-10">
+        <div aria-hidden className="absolute -right-16 -top-16 size-64 rounded-full blur-3xl opacity-40" style={{ background: "var(--gradient-ember)" }} />
+        {cat?.banner_image && (
+          <img src={cat.banner_image} alt="" loading="lazy" className="absolute inset-0 size-full object-cover opacity-25" />
+        )}
+        <div className="relative">
+          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">Category</p>
+          <h1 className="text-3xl sm:text-5xl font-display font-semibold tracking-tight capitalize">{cat?.name ?? slug}</h1>
+          <p className="text-muted-foreground mt-2 text-sm">{items.length} product{items.length === 1 ? "" : "s"}</p>
+        </div>
       </header>
 
+      {/* Subcategories first */}
+      {subs.length > 0 && (
+        <div className="mb-8">
+          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Shop by subcategory</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
+            {subs.map((s) => (
+              <Link
+                key={s.slug}
+                to="/category/$slug"
+                params={{ slug: s.slug }}
+                className="group product-card-glass flex items-center justify-between gap-2 px-3.5 py-3 hover:-translate-y-0.5 transition-transform"
+              >
+                <span className="text-sm font-semibold tracking-tight truncate group-hover:text-accent transition-colors">{s.name}</span>
+                <ArrowRight className="size-4 shrink-0 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Products */}
       {loading ? (
         <div className="py-24 grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
       ) : items.length === 0 ? (
-        <div className="py-24 text-center border border-dashed border-border rounded-2xl">
+        <div className="py-20 text-center border border-dashed border-border rounded-2xl">
           <p className="text-muted-foreground">No products in this category yet. Check back soon.</p>
           <Link to="/" className="inline-block mt-6 text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1">
             Browse all
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {items.map((p) => (<ProductCard key={p.slug} product={p} />))}
         </div>
       )}

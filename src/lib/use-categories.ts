@@ -23,10 +23,11 @@ export type Category = {
   region: CategoryRegion;
   views: number;
   clicks: number;
+  parent_id: string | null;
 };
 
 export const CATEGORY_COLUMNS =
-  "id,slug,name,description,image,sort_order,status,featured,trending,homepage_visible,icon,banner_image,mobile_image,seo_title,seo_description,region,views,clicks";
+  "id,slug,name,description,image,sort_order,status,featured,trending,homepage_visible,icon,banner_image,mobile_image,seo_title,seo_description,region,views,clicks,parent_id";
 
 let cache: Category[] | null = null;
 let inflight: Promise<Category[]> | null = null;
@@ -40,6 +41,7 @@ function bindRealtime() {
     .channel("categories-live")
     .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => {
       invalidateCategories();
+      if (allCache !== null) loadAllPublished(true);
       if (adminCache !== null) loadAdminCategories(true);
     })
     .subscribe();
@@ -95,7 +97,55 @@ export function useCategories() {
   return { categories, loading };
 }
 
-/* ----------------------------- Admin overlay ----------------------------- */
+/* ------------------ All published categories (incl. subs) ------------------ */
+// Used by category/categories pages that need subcategories (which are not
+// homepage_visible and therefore excluded from the storefront loader above).
+
+let allCache: Category[] | null = null;
+let allInflight: Promise<Category[]> | null = null;
+const allSubscribers = new Set<(c: Category[]) => void>();
+
+async function loadAllPublished(force = false): Promise<Category[]> {
+  if (allCache && !force) return allCache;
+  if (!allInflight) {
+    allInflight = (async () => {
+      const { data } = await supabase
+        .from("categories")
+        .select(CATEGORY_COLUMNS)
+        .eq("status", "published")
+        .order("sort_order", { ascending: true });
+      const list = (data as Category[] | null) ?? [];
+      allCache = list;
+      allInflight = null;
+      allSubscribers.forEach((s) => s(list));
+      return list;
+    })();
+  }
+  return allInflight;
+}
+
+/** Every published category (main + subcategories). */
+export function useAllCategories() {
+  const [categories, setCategories] = useState<Category[]>(allCache ?? []);
+  const [loading, setLoading] = useState(!allCache);
+  useEffect(() => {
+    let active = true;
+    bindRealtime();
+    const sub = (c: Category[]) => { if (active) setCategories(c); };
+    allSubscribers.add(sub);
+    loadAllPublished().then((c) => {
+      if (active) { setCategories(c); setLoading(false); }
+    });
+    return () => { active = false; allSubscribers.delete(sub); };
+  }, []);
+  // Helpers derived once per render.
+  const mains = categories.filter((c) => !c.parent_id);
+  const subsByParent = (parentId: string) =>
+    categories.filter((c) => c.parent_id === parentId);
+  return { categories, mains, subsByParent, loading };
+}
+
+
 
 let adminCache: Category[] | null = null;
 const adminSubscribers = new Set<(c: Category[]) => void>();
