@@ -60,6 +60,31 @@ export type Product = {
   reservedQuantity: number;
   scheduledPublishAt: string | null;
   scheduledExpiryAt: string | null;
+  // Merchandising flags
+  trending: boolean;
+  bestseller: boolean;
+  newArrival: boolean;
+  hotDeal: boolean;
+  flashDeal: boolean;
+  staffPick: boolean;
+  recommended: boolean;
+  homepageHero: boolean;
+  giftIdea: boolean;
+  // Store placement
+  homepageSection: string | null;
+  isCategoryBanner: boolean;
+  hideFromSearch: boolean;
+  hideFromRecommendations: boolean;
+  homepagePosition: number | null;
+  categoryPosition: number | null;
+  featuredUntil: string | null;
+  // Related merchandising
+  relatedProducts: string[];
+  crossSellProducts: string[];
+  upsellProducts: string[];
+  // Analytics
+  ordersCount: number;
+  revenue: number;
 };
 
 export type ProductStatus =
