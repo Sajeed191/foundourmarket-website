@@ -127,7 +127,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "Organization",
           name: "FoundOurMarket",
           url: "https://foundourmarket.com/",
-          logo: "https://foundourmarket.com/logo.jpeg",
+          logo: "https://foundourmarket.com/logo.webp",
         }),
       },
       {
