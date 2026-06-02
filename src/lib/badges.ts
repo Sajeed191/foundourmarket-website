@@ -74,6 +74,7 @@ const BADGE_STYLES: Record<BadgeKey, Omit<Badge, "key">> = {
 const PRIORITY: BadgeKey[] = [
   "flash_deal",
   "staff_pick",
+  "editors_choice",
   "gift_idea",
   "trending",
   "bestseller",
