@@ -928,10 +928,15 @@ function HelpPage() {
           ))}
         </div>
 
+        {/* FOOTER HELP LINKS */}
+        <FooterHelpLinks />
+
         <p className="text-center text-[10px] font-mono uppercase tracking-[0.3em] text-white/30">
           FoundOurMarket™ · Premium support, 24/7
         </p>
       </div>
+
+      <StickyHelpButton onClick={() => { loadCrisp().then(() => openCrispChat()).catch(() => toast.error("Live chat is loading — try again in a moment")); }} />
     </div>
   );
 }
