@@ -309,7 +309,11 @@ export function RegionProvider({ children }: { children: ReactNode }) {
             }
           }
 
-          const result = await runDetection().catch(() => null);
+          // The user's saved profile country is the authoritative signal for a
+          // registered account; feed it into detection so an Indian profile
+          // resolves to INR even when the edge IP says otherwise.
+          const profileCountry = mine.countryCode ?? null;
+          const result = await runDetection(profileCountry).catch(() => null);
           if (cancelled) return;
 
           if (result && result.tier === "auto") {
