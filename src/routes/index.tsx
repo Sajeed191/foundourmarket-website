@@ -473,9 +473,10 @@ function Home() {
             </button>
           )}
         </div>
-        <div className="grid grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-4">
           {homeCategories.map((cat, i) => {
             const Icon = iconForCategory(cat.slug, cat.name);
+            const hasImage = !!(cat.image || cat.mobile_image);
             return (
               <Reveal key={cat.slug} delay={i} className="h-full">
                 <div className="relative h-full">
@@ -483,11 +484,12 @@ function Home() {
                     to="/category/$slug"
                     params={{ slug: cat.slug }}
                     onClick={() => { void supabase.rpc("track_category_event", { _id: cat.id, _event: "click" }); }}
-                    className={`group product-card-glass relative flex aspect-square flex-col overflow-hidden p-0 text-center hover:-translate-y-1 ${isProductAdmin && !cat.homepage_visible ? "opacity-50" : ""}`}
+                    className={`group product-card-glass relative flex h-full flex-col items-center gap-2 p-2 sm:p-3 text-center hover:-translate-y-1 ${isProductAdmin && !cat.homepage_visible ? "opacity-50" : ""}`}
                   >
-                    {/* Dominant 1:1 category image with icon fallback */}
-                    <div className="absolute inset-0">
-                      {cat.image || cat.mobile_image ? (
+                    {/* Image above name — 1:1, inside a premium rounded capsule.
+                        Falls back to an icon inside a soft glass capsule. */}
+                    <div className="relative w-full aspect-square overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-[inset_0_1px_0_oklch(1_0_0/0.06)]">
+                      {hasImage ? (
                         <img
                           src={cat.mobile_image || cat.image || ""}
                           alt={cat.name}
@@ -495,15 +497,16 @@ function Home() {
                           className="size-full object-cover [transition:transform_700ms_cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
                         />
                       ) : (
-                        <div className="size-full grid place-items-center bg-accent/10">
-                          <Icon className="size-7 sm:size-9 text-accent" />
+                        <div className="size-full grid place-items-center">
+                          <span className="grid size-11 sm:size-14 place-items-center rounded-full bg-accent/12 text-accent ring-1 ring-accent/25 shadow-[0_0_24px_-8px_oklch(0.74_0.19_49/0.55)] transition-colors group-hover:bg-accent/20">
+                            <Icon className="size-5 sm:size-6" />
+                          </span>
                         </div>
                       )}
-                      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                     </div>
-                    <div className="relative z-10 mt-auto p-2 text-left">
+                    <div className="mt-auto w-full">
                       <h3 className="text-[11px] sm:text-sm font-semibold tracking-tight leading-tight line-clamp-1 text-white group-hover:text-accent transition-colors">{cat.name}</h3>
-                      <span className="text-[8px] sm:text-[10px] text-white/70 font-mono uppercase tracking-widest">
+                      <span className="block text-[8px] sm:text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-0.5">
                         {categoryCounts[cat.slug] ?? 0} items
                       </span>
                     </div>
@@ -528,15 +531,19 @@ function Home() {
             <Reveal delay={homeCategories.length} className="h-full">
               <Link
                 to="/categories"
-                className="group product-card-glass relative flex aspect-square flex-col items-center justify-center gap-2 p-2 text-center hover:-translate-y-1"
+                className="group relative flex h-full flex-col items-center gap-2 p-2 sm:p-3 text-center rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/15 via-accent/5 to-transparent shadow-[0_0_30px_-12px_oklch(0.74_0.19_49/0.6)] hover:-translate-y-1 hover:border-accent/60 transition-all"
               >
-                <div className="size-9 sm:size-12 grid place-items-center rounded-xl bg-accent/15 text-accent ring-1 ring-accent/30 transition-colors group-hover:bg-accent/20">
-                  <LayoutGrid className="size-4 sm:size-5" />
+                <div className="relative w-full aspect-square grid place-items-center rounded-2xl bg-accent/10 ring-1 ring-accent/30">
+                  <span className="grid size-11 sm:size-14 place-items-center rounded-full bg-accent text-accent-foreground shadow-[0_0_30px_-6px_oklch(0.74_0.19_49/0.8)] transition-transform group-hover:scale-105">
+                    <ArrowRight className="size-5 sm:size-6" />
+                  </span>
                 </div>
-                <h3 className="text-[11px] sm:text-sm font-semibold tracking-tight leading-tight">View All</h3>
-                <span className="text-[8px] sm:text-[10px] text-muted-foreground font-mono uppercase tracking-widest inline-flex items-center gap-1">
-                  Explore <ArrowRight className="size-3" />
-                </span>
+                <div className="mt-auto w-full">
+                  <h3 className="text-[11px] sm:text-sm font-semibold tracking-tight leading-tight text-accent">Explore All Categories</h3>
+                  <span className="block text-[8px] sm:text-[10px] text-accent/70 font-mono uppercase tracking-widest mt-0.5">
+                    Browse everything
+                  </span>
+                </div>
               </Link>
             </Reveal>
           )}
