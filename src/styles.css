@@ -113,6 +113,8 @@
   --shadow-card: 0 8px 32px -12px oklch(0 0 0 / 0.6);
   --shadow-float: 0 30px 80px -30px oklch(0 0 0 / 0.7), 0 8px 24px -12px oklch(0 0 0 / 0.5);
   --shadow-glow: 0 0 0 1px oklch(0.74 0.19 49 / 0.3), 0 12px 40px -8px oklch(0.74 0.19 49 / 0.4);
+  /* Single optimized shadow used across cards/categories/footer/nav on mobile */
+  --shadow-soft: 0 6px 20px -10px oklch(0 0 0 / 0.55);
 }
 
 @keyframes fade-up {
