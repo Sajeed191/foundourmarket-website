@@ -13,6 +13,10 @@ import { loadCrisp, openCrispChat } from "@/lib/crisp";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSupportSettings, resolveSupportStatus } from "@/lib/use-support-settings";
+import {
+  TrustHeaderCards, ContactDetailStrip, TicketStatusOverview, OrderHelpCenter,
+  KnowledgeBase, StripeTrustSection, DisputePrevention, FooterHelpLinks, StickyHelpButton,
+} from "@/components/site/HelpEnhancements";
 
 export const Route = createFileRoute("/help")({
   head: () => ({
@@ -692,6 +696,9 @@ function HelpPage() {
         {/* STATUS BANNER */}
         <StatusBanner />
 
+        {/* TRUST HEADER MINI CARDS */}
+        <TrustHeaderCards />
+
         {/* HERO */}
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="text-center">
@@ -715,6 +722,17 @@ function HelpPage() {
           <SectionHeader eyebrow="Contact us" title="Premium support, your way" />
           <div className="mt-4">
             <SupportContacts />
+          </div>
+          <div className="mt-3">
+            <ContactDetailStrip />
+          </div>
+        </div>
+
+        {/* ORDER HELP CENTER */}
+        <div>
+          <SectionHeader eyebrow="Order help" title="Manage your order" />
+          <div className="mt-4">
+            <OrderHelpCenter />
           </div>
         </div>
 
@@ -746,6 +764,12 @@ function HelpPage() {
         <TrackMyOrder />
 
         {/* SUPPORT TICKETS */}
+        <div>
+          <SectionHeader eyebrow="Ticket center" title="Your support tickets" />
+          <div className="mt-4">
+            <TicketStatusOverview />
+          </div>
+        </div>
         <CreateTicket />
 
         {/* AI ASSISTANT */}
@@ -861,6 +885,20 @@ function HelpPage() {
           )}
         </div>
 
+        {/* KNOWLEDGE BASE */}
+        <div>
+          <SectionHeader eyebrow="Knowledge base" title="Browse help topics" />
+          <div className="mt-4">
+            <KnowledgeBase />
+          </div>
+        </div>
+
+        {/* STRIPE TRUST SECTION */}
+        <StripeTrustSection />
+
+        {/* DISPUTE PREVENTION */}
+        <DisputePrevention onResolve={() => { loadCrisp().then(() => openCrispChat()).catch(() => toast.error("Live chat is loading — try again in a moment")); }} />
+
         {/* PERSONALIZED */}
         {user && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -890,10 +928,15 @@ function HelpPage() {
           ))}
         </div>
 
+        {/* FOOTER HELP LINKS */}
+        <FooterHelpLinks />
+
         <p className="text-center text-[10px] font-mono uppercase tracking-[0.3em] text-white/30">
           FoundOurMarket™ · Premium support, 24/7
         </p>
       </div>
+
+      <StickyHelpButton onClick={() => { loadCrisp().then(() => openCrispChat()).catch(() => toast.error("Live chat is loading — try again in a moment")); }} />
     </div>
   );
 }
