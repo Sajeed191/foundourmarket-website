@@ -7,7 +7,7 @@ import {
   Eye, EyeOff, Copy, ExternalLink, Link2, Trash2, Pencil, Boxes,
   TrendingUp, AlertTriangle, CheckCircle2, X, SlidersHorizontal, BarChart3,
   Layers, IndianRupee, Flame, Upload, ShoppingCart, Tag, Image as ImageIcon,
-  FileText, Sparkles, Wrench, ShieldCheck, Crown, BadgeCheck, HeartPulse,
+  FileText, Sparkles, Wrench, ShieldCheck, Crown, HeartPulse,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
