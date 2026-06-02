@@ -723,6 +723,17 @@ function HelpPage() {
           <div className="mt-4">
             <SupportContacts />
           </div>
+          <div className="mt-3">
+            <ContactDetailStrip />
+          </div>
+        </div>
+
+        {/* ORDER HELP CENTER */}
+        <div>
+          <SectionHeader eyebrow="Order help" title="Manage your order" />
+          <div className="mt-4">
+            <OrderHelpCenter />
+          </div>
         </div>
 
         {/* QUICK ACTIONS */}
