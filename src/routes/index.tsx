@@ -321,6 +321,29 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
   );
 }
 
+/**
+ * Responsive category count — renders only the cards each breakpoint needs
+ * (mobile 6, tablet 7, desktop 9) instead of hiding cards with CSS.
+ * SSR-safe: reads the real width on mount and updates on resize.
+ */
+function useCategoryLimit() {
+  const get = () => {
+    if (typeof window === "undefined") return 9;
+    const w = window.innerWidth;
+    if (w >= 1024) return 9;
+    if (w >= 768) return 7;
+    return 6;
+  };
+  const [limit, setLimit] = useState(get);
+  useEffect(() => {
+    const onResize = () => setLimit(get());
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return limit;
+}
+
 function Home() {
   const { products, loading: productsLoading } = useProducts();
   const { categories: publicCategories } = useCategories();
