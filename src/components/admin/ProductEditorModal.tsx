@@ -39,7 +39,7 @@ export type ProductEditorRow = {
   new_arrival?: boolean;
 };
 
-type Category = { slug: string; name: string };
+type Category = { slug: string; name: string; id?: string; parent_id?: string | null };
 
 const inr = (v: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
@@ -99,6 +99,21 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const fileRef = useRef<HTMLInputElement>(null);
   // Pending badge assignments for a not-yet-saved product (flushed after insert).
   const [pendingBadges, setPendingBadges] = useState<string[]>([]);
+
+  // ---- Main category / subcategory hierarchy ----
+  const initialCat = categories.find((c) => c.slug === (row?.category ?? ""));
+  const initialMain = initialCat?.parent_id
+    ? categories.find((c) => c.id === initialCat.parent_id)?.slug ?? ""
+    : initialCat?.slug ?? "";
+  const initialSub = initialCat?.parent_id ? initialCat.slug : "";
+  const [mainCat, setMainCat] = useState(
+    initialMain || categories.find((c) => !c.parent_id)?.slug || "",
+  );
+  const [subCat, setSubCat] = useState(initialSub);
+  const mains = categories.filter((c) => !c.parent_id);
+  const mainObj = categories.find((c) => c.slug === mainCat);
+  const subs = mainObj ? categories.filter((c) => c.parent_id === mainObj.id) : [];
+  const effectiveCategory = subCat || mainCat;
 
   const [form, setForm] = useState({
     slug: row?.slug ?? "", name: row?.name ?? "", tagline: row?.tagline ?? "",
@@ -194,10 +209,12 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (validation.length) { setError(validation[0]); return; }
+    if (!mainCat) { setError("Select a main category."); return; }
+    if (subs.length > 0 && !subCat) { setError("This category has subcategories — selecting a subcategory is required."); return; }
     setSaving(true); setError(null);
     const payload = {
       slug: form.slug.trim() || slugify(form.name), name: form.name.trim(),
-      tagline: form.tagline.trim() || null, category: form.category,
+      tagline: form.tagline.trim() || null, category: effectiveCategory,
       price: Number(form.price) || 0, cost: Number(form.cost) || 0,
       discount: form.discount ? Number(form.discount) : null,
       image: form.image.trim() || null, description: form.description.trim() || null,
@@ -279,11 +296,22 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
             </div>
             <EField label="Tagline" value={form.tagline} onChange={(v) => set({ tagline: v })} className="col-span-2" />
             <div>
-              <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Category</label>
-              <select value={form.category} onChange={(e) => set({ category: e.target.value })} className="filter-select">
-                {categories.map((c) => <option key={c.slug} value={c.slug} className="bg-background">{c.name}</option>)}
+              <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Main Category</label>
+              <select value={mainCat} onChange={(e) => { setMainCat(e.target.value); setSubCat(""); }} className="filter-select">
+                {mains.map((c) => <option key={c.slug} value={c.slug} className="bg-background">{c.name}</option>)}
               </select>
             </div>
+            {subs.length > 0 && (
+              <div>
+                <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+                  Subcategory <span className="text-accent">*</span>
+                </label>
+                <select value={subCat} onChange={(e) => setSubCat(e.target.value)} className="filter-select">
+                  <option value="" className="bg-background">Select subcategory…</option>
+                  {subs.map((c) => <option key={c.slug} value={c.slug} className="bg-background">{c.name}</option>)}
+                </select>
+              </div>
+            )}
             <EField label="SKU" value={form.sku} onChange={(v) => set({ sku: v })} />
             <EField label="Brand" value={form.brand} onChange={(v) => set({ brand: v })} />
             <EField label="Product Type" value={form.product_type} onChange={(v) => set({ product_type: v })} />

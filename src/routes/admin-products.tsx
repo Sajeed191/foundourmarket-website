@@ -48,7 +48,7 @@ type Product = {
   deleted_at?: string | null;
 };
 
-type Category = { slug: string; name: string };
+type Category = { slug: string; name: string; id?: string; parent_id?: string | null };
 type Stat = { units: number; revenue: number; orders: number };
 
 const inr = (v: number) =>
@@ -117,7 +117,7 @@ function ProductsInner() {
   }, []);
 
   const loadCategories = useCallback(async () => {
-    const { data } = await supabase.from("categories").select("slug,name").order("sort_order");
+    const { data } = await supabase.from("categories").select("slug,name,id,parent_id").order("sort_order");
     setCategories((data as Category[]) ?? []);
   }, []);
 
