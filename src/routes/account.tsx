@@ -343,6 +343,15 @@ function AccountPage() {
 
 
 
+        {/* 9 — LEGAL & POLICIES */}
+        <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }}>
+          <SectionHeader title="Legal & Policies" eyebrow="Trust & transparency" />
+          <PolicyCrossLinks
+            title="Policies"
+            keys={["privacy", "terms", "refund", "return", "shipping", "buyerProtection"]}
+          />
+        </motion.section>
+
         {/* 10 — FOOTER ACTIONS */}
         <motion.footer {...fadeUp} className="pt-2">
           <div className="relative overflow-hidden rounded-3xl glass-strong p-5 sm:p-7">
