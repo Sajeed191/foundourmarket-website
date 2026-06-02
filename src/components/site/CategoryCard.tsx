@@ -77,9 +77,8 @@ export function CategoryCard({
 
   return (
     <Link
-      // @ts-expect-error — caller passes a valid registered route + params
-      to={to}
-      params={params}
+      to={to as never}
+      params={params as never}
       onClick={() => void supabase.rpc("track_category_event", { _id: category.id, _event: "click" })}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-colors hover:border-accent/40"
     >
