@@ -133,7 +133,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" },
+      // Preload + non-render-blocking load of the font CSS. font-display:swap keeps
+      // text visible immediately; the print->all swap drops it off the critical path.
+      { rel: "preload", as: "style", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" },
+      ({ rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap", media: "print", onLoad: "this.media='all'" } as any),
       { rel: "preconnect", href: "https://client.crisp.chat", crossOrigin: "anonymous" },
       { rel: "dns-prefetch", href: "https://client.crisp.chat" },
       { rel: "manifest", href: "/manifest.webmanifest" },
