@@ -313,14 +313,33 @@ function ProductPage() {
         <div className="absolute top-1/3 -right-32 size-[34rem] rounded-full opacity-40 animate-orb" style={{ background: "var(--gradient-violet)", filter: "blur(120px)", animationDelay: "-8s" }} />
       </div>
       <div data-product-page data-product-phase="final" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16">
-        {/* Breadcrumb */}
-        <nav className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6 sm:mb-8 truncate">
+        {/* Breadcrumb: Home → Main → Sub → Product */}
+        <nav aria-label="Breadcrumb" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6 sm:mb-8 truncate">
           <Link to="/" className="hover:text-foreground">Shop</Link>
-          <span className="mx-2">/</span>
-          <Link to="/category/$slug" params={{ slug: product.category }} className="hover:text-foreground">{product.category}</Link>
+          {breadcrumbCat && breadcrumbParent && (
+            <>
+              <span className="mx-2">/</span>
+              <Link to="/category/$slug" params={{ slug: breadcrumbParent.slug }} className="hover:text-foreground">{breadcrumbParent.name}</Link>
+              <span className="mx-2">/</span>
+              <Link to="/category/$main/$sub" params={{ main: breadcrumbParent.slug, sub: breadcrumbCat.slug }} className="hover:text-foreground">{breadcrumbCat.name}</Link>
+            </>
+          )}
+          {breadcrumbCat && !breadcrumbParent && (
+            <>
+              <span className="mx-2">/</span>
+              <Link to="/category/$slug" params={{ slug: breadcrumbCat.slug }} className="hover:text-foreground">{breadcrumbCat.name}</Link>
+            </>
+          )}
+          {!breadcrumbCat && (
+            <>
+              <span className="mx-2">/</span>
+              <Link to="/category/$slug" params={{ slug: product.category }} className="hover:text-foreground capitalize">{product.category}</Link>
+            </>
+          )}
           <span className="mx-2">/</span>
           <span className="text-foreground">{product.name}</span>
         </nav>
+
 
         <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16">
           {/* Gallery */}
