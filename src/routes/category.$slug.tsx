@@ -107,8 +107,8 @@ function CategoryPage() {
             {subs.map((s) => (
               <Link
                 key={s.slug}
-                to="/category/$slug"
-                params={{ slug: s.slug }}
+                to="/category/$main/$sub"
+                params={{ main: slug, sub: s.slug }}
                 className="group product-card-glass relative flex aspect-square flex-col overflow-hidden p-0 hover:-translate-y-0.5 transition-transform"
               >
                 <div className="absolute inset-0">
