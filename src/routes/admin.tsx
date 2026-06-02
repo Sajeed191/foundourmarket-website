@@ -153,8 +153,8 @@ function AdminPage() {
   async function updateStatus(id: string, status: string) {
     setUpdating(id);
     const field = QUICK_STATUSES.find((s) => s.value === status)?.field ?? null;
-    const patch: Record<string, unknown> = { status };
     const now = new Date().toISOString();
+    const patch: { status: string; paid_at?: string; fulfilled_at?: string; cancelled_at?: string } = { status };
     if (field) patch[field] = now;
     const { error } = await supabase.from("orders").update(patch).eq("id", id);
     if (!error) setOrders((prev) => prev?.map((o) => o.id === id ? { ...o, status, ...(field ? { [field]: now } : {}) } : o) ?? null);
