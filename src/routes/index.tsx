@@ -24,7 +24,7 @@ import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { AnnouncementBar } from "@/components/site/AnnouncementBar";
 
 import { NewsletterForm } from "@/components/site/NewsletterForm";
-import { ProductRail } from "@/components/site/ProductRail";
+
 import { TestimonialsCarousel } from "@/components/site/TestimonialsCarousel";
 import { useTestimonials } from "@/lib/use-testimonials";
 import { SectionTracker } from "@/components/site/SectionTracker";
