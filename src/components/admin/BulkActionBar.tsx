@@ -27,7 +27,7 @@ type Props = {
 };
 
 type FormKind =
-  | null | "move_category" | "set_collection" | "set_homepage_section"
+  | null | "move_category" | "set_collection" | "set_homepage_section" | "priority"
   | "stock" | "pricing" | "tags" | "badges" | "region" | "shipping" | "schedule" | "export";
 
 export function BulkActionBar({ ids, rows, categories, mode = "normal", onDone, onClear }: Props) {
