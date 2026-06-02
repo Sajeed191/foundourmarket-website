@@ -14,12 +14,12 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign In — FoundOurMarket™" },
+      { name: "robots", content: "noindex, nofollow" },
       { name: "description", content: "Sign in or create your FoundOurMarket account to track orders, save wishlists, and enjoy a faster, personalized checkout." },
       { property: "og:title", content: "Sign In — FoundOurMarket™" },
       { property: "og:description", content: "Access your FoundOurMarket account to track orders and check out faster." },
       { property: "og:url", content: "https://foundourmarket.com/auth" },
     ],
-    links: [{ rel: "canonical", href: "https://foundourmarket.com/auth" }],
   }),
   component: AuthPage,
 });
