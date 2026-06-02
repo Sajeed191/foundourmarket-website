@@ -13,6 +13,7 @@ import { Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { ProductCard } from "@/components/site/ProductCard";
+import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { FlashSaleStrip } from "@/components/site/FlashSaleStrip";
 import { AnnouncementBar } from "@/components/site/AnnouncementBar";
