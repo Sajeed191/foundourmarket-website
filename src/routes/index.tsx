@@ -509,7 +509,7 @@ function Home() {
                     )}
                   </div>
                 )}
-                <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-end z-10">
+                <div className="absolute inset-0 p-3 sm:p-5 flex flex-col justify-end z-10">
                   <p className="font-mono text-[10px] text-accent mb-1">{String(i + 1).padStart(2, "0")}</p>
                   <h3 className="text-base sm:text-lg font-medium">{cat.name}</h3>
                   <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest">{categoryCounts[cat.slug] ?? 0} items</p>
