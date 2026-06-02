@@ -133,6 +133,7 @@ export function BulkActionBar({ ids, rows, categories, mode = "normal", onDone, 
                     <Row icon={IndianRupee} label="Pricing" chevron onClick={() => setForm("pricing")} />
                     <Row icon={Tag} label="Tags" chevron onClick={() => setForm("tags")} />
                     <Row icon={Star} label="Badges" chevron onClick={() => setForm("badges")} />
+                    <Row icon={TrendingUp} label="Priority score" chevron onClick={() => setForm("priority")} />
 
                     <SectionLabel>Distribution</SectionLabel>
                     <Row icon={Globe} label="Region eligibility" chevron onClick={() => setForm("region")} />
