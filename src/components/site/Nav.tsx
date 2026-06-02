@@ -406,8 +406,8 @@ export function Nav() {
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <p className="px-1 mb-2 text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground/70">{label}</p>
+    <div className="py-4 first:pt-1">
+      <p className="px-1 mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-foreground/90">{label}</p>
       <div className="space-y-1">{children}</div>
     </div>
   );
