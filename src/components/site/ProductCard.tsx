@@ -199,41 +199,36 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
       </Link>
 
       {/* INFO */}
-      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative flex flex-1 flex-col px-0.5 pt-2">
+      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative flex flex-1 flex-col px-1 pt-1.5">
         {/* Name */}
-        <h4 className="text-[13px] font-bold text-white leading-tight line-clamp-2 min-h-[2.2em] group-hover:text-accent transition-colors">
+        <h4 className="text-[12px] font-bold text-white leading-tight line-clamp-2 min-h-[2.1em] group-hover:text-accent transition-colors">
           {product.name}
         </h4>
 
-        {/* Subtitle / category */}
-        {subtitle ? (
-          <p className="text-[10px] text-muted-foreground/80 capitalize truncate mt-0.5">{subtitle}</p>
-        ) : null}
-
         {/* Rating row — ⭐ 4.8 (984) */}
-        <div className="flex items-center gap-1 mt-1 min-h-[16px]">
+        <div className="flex items-center gap-1 mt-0.5 min-h-[14px]">
           {product.reviews > 0 ? (
             <>
-              <Star className="size-3 fill-accent text-accent" />
-              <span className="text-[11px] font-semibold text-white tabular-nums">{product.rating.toFixed(1)}</span>
-              <span className="text-[10px] font-mono text-muted-foreground/70">({product.reviews.toLocaleString()})</span>
+              <Star className="size-2.5 fill-accent text-accent" />
+              <span className="text-[10px] font-semibold text-white tabular-nums">{product.rating.toFixed(1)}</span>
+              <span className="text-[9px] font-mono text-muted-foreground/70">({product.reviews.toLocaleString()})</span>
             </>
           ) : (
             <span className="text-[9px] font-mono uppercase tracking-wider text-emerald-400/90">New Product</span>
           )}
+          {showOnlyLeft && (
+            <span className="font-mono uppercase tracking-wider text-accent/90 text-[8px] ml-auto">
+              {product.stockQuantity} left
+            </span>
+          )}
+          {shippingFee <= 0 && !showOnlyLeft && (
+            <span className="font-mono uppercase tracking-wider text-emerald-400/90 text-[8px] ml-auto">Free Ship</span>
+          )}
         </div>
 
-        {showOnlyLeft && (
-          <p className="font-mono uppercase tracking-wider text-accent/90 text-[8px] mt-0.5">
-            Only {product.stockQuantity} left
-          </p>
-        )}
-        {shippingFee <= 0 && (
-          <p className="font-mono uppercase tracking-wider text-emerald-400/90 text-[8px] mt-0.5">Free Shipping</p>
-        )}
-
         {/* Price row + floating cart button */}
-        <div className="mt-auto pt-2 flex items-end justify-between gap-2">
+        <div className="mt-auto pt-1.5 flex items-end justify-between gap-2">
+
           <div className="min-w-0">
             <Price value={price} className="font-display font-bold text-white tabular-nums leading-none block text-base" />
             {originalPrice && discount ? (
