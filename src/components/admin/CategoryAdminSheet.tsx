@@ -138,10 +138,12 @@ export function CategoryAdminSheet({
   onClose,
   onChanged,
   productCounts = {},
+  variant = "sheet",
 }: {
   onClose: () => void;
   onChanged: () => void;
   productCounts?: Record<string, number>;
+  variant?: "sheet" | "embedded";
 }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,6 +161,7 @@ export function CategoryAdminSheet({
   const genImage = useServerFn(generateCategoryImage);
   const fileSlot = useRef<ImageSlot>("image");
   const fileRef = useRef<HTMLInputElement>(null);
+  const embedded = variant === "embedded";
 
   async function regenerateAi() {
     if (!editing?.name?.trim()) {
