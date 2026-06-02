@@ -241,11 +241,10 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
       ) : (
         <ul className="space-y-4">
           {items.map((q) => {
-            const canDelete = isAdmin || user?.id === q.user_id;
+            const canDelete = isAdmin || q.is_mine;
             const canAnswer = isAdmin && !q.answer;
-            const canEditQuestion = user?.id === q.user_id;
-            const prof = profiles[q.user_id];
-            const name = prof?.full_name || "Anonymous";
+            const canEditQuestion = q.is_mine;
+            const name = q.author_name || "Anonymous";
             return (
               <li key={q.id} className="bg-card border border-border rounded-2xl p-5">
                 <div className="flex items-start gap-3">
