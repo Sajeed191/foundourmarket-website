@@ -61,8 +61,18 @@ function EmailHealthPage() {
     queryFn: () => fetchHealth({ data: { range } }),
   }) as any;
 
+  const fetchQueue = useServerFn(getEmailQueueStatus);
+  const { data: queue } = useQuery({
+    queryKey: ["email-queue-status"],
+    queryFn: () => fetchQueue({} as any),
+    refetchInterval: 15000,
+  }) as any;
+
   const totals = data?.totals;
   const series = data?.series ?? [];
+  const queueSize = queue?.totals
+    ? Number(queue.totals.queued ?? 0) + Number(queue.totals.in_flight ?? 0)
+    : null;
 
   return (
     <AdminShell
