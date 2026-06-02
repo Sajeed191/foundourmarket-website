@@ -382,18 +382,16 @@ function ProductsInner() {
       {/* Live KPI strip — horizontally scrollable */}
       <div className="-mx-1 overflow-x-auto no-scrollbar">
         <div className="flex gap-3 px-1 min-w-max">
-          {kpiCards.map((k, i) => (
-            <motion.div
+          {kpiCards.map((k) => (
+            <div
               key={k.label}
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
               className={`relative overflow-hidden glass border border-white/10 rounded-2xl p-3.5 ${k.wide ? "min-w-[180px]" : "min-w-[120px]"}`}
             >
               <div className="pointer-events-none absolute -top-6 -right-5 size-16 rounded-full opacity-30" style={{ background: "var(--gradient-ember-soft)", filter: "blur(16px)" }} />
               <k.icon className="size-4 text-accent mb-2" />
               <p className="text-lg font-display tabular-nums leading-none truncate">{k.value}</p>
               <p className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground mt-1.5">{k.label}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
