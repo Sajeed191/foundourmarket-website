@@ -321,6 +321,29 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
   );
 }
 
+/**
+ * Responsive category count — renders only the cards each breakpoint needs
+ * (mobile 6, tablet 7, desktop 9) instead of hiding cards with CSS.
+ * SSR-safe: reads the real width on mount and updates on resize.
+ */
+function useCategoryLimit() {
+  const get = () => {
+    if (typeof window === "undefined") return 9;
+    const w = window.innerWidth;
+    if (w >= 1024) return 9;
+    if (w >= 768) return 7;
+    return 6;
+  };
+  const [limit, setLimit] = useState(get);
+  useEffect(() => {
+    const onResize = () => setLimit(get());
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return limit;
+}
+
 function Home() {
   const { products, loading: productsLoading } = useProducts();
   const { categories: publicCategories } = useCategories();
@@ -362,9 +385,10 @@ function Home() {
 
   const { items: testimonials } = useTestimonials();
 
+  const categoryLimit = useCategoryLimit();
   const homeCategories = isProductAdmin
     ? categories.filter((c) => !c.parent_id)
-    : categories.slice(0, 5);
+    : categories.slice(0, categoryLimit);
 
   return (
     <>
@@ -559,9 +583,10 @@ function Home() {
                 to="/categories"
                 className="group relative flex h-full flex-col items-center gap-2.5 sm:gap-3 p-2.5 sm:p-4 text-center rounded-2xl border border-accent/50 bg-gradient-to-br from-accent/20 via-accent/10 to-transparent shadow-[0_0_40px_-12px_oklch(0.74_0.19_49/0.7)] hover:-translate-y-1 hover:border-accent/70 hover:shadow-[0_0_50px_-10px_oklch(0.74_0.19_49/0.85)] active:scale-[0.97] transition-all duration-300"
               >
-                <div className="relative w-full aspect-square grid place-items-center rounded-2xl bg-accent/15 ring-1 ring-accent/40">
-                  <span className="grid size-14 sm:size-16 place-items-center rounded-full bg-accent text-accent-foreground shadow-[0_0_36px_-4px_oklch(0.74_0.19_49/0.9)] transition-transform duration-300 group-hover:scale-110">
-                    <ArrowRight className="size-6 sm:size-7" />
+                <div className="relative w-full aspect-square grid place-items-center overflow-hidden rounded-2xl bg-accent/15 ring-1 ring-accent/40">
+                  <span aria-hidden className="pointer-events-none absolute inset-0 opacity-60 blur-2xl bg-[radial-gradient(circle_at_center,oklch(0.74_0.19_49/0.6),transparent_70%)] transition-opacity duration-300 group-hover:opacity-100" />
+                  <span className="relative grid size-14 sm:size-16 place-items-center rounded-full bg-accent text-accent-foreground shadow-[0_0_36px_-4px_oklch(0.74_0.19_49/0.9)] transition-transform duration-300 group-hover:scale-110">
+                    <ArrowRight className="size-6 sm:size-7 transition-transform duration-300 group-hover:translate-x-1" />
                   </span>
                 </div>
                 <div className="mt-auto w-full pb-0.5">
