@@ -47,12 +47,11 @@ function badgePriority(key?: string, label?: string): number {
   return idx === -1 ? BADGE_PRIORITY.length : idx;
 }
 
-export function ProductCard({ product, compact }: { product: Product; compact?: boolean }) {
+function ProductCardImpl({ product, compact }: { product: Product; compact?: boolean }) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const { add, items } = useCart();
   const { has, toggle } = useWishlist();
   const saved = has(product.slug);
-  const [imgLoaded, setImgLoaded] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
