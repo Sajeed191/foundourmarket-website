@@ -16,6 +16,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { useNotifications } from "@/lib/notifications";
 import { useSupportUnread } from "@/lib/use-support-unread";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
+import { useIsAdmin } from "@/lib/use-admin";
 
 import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
