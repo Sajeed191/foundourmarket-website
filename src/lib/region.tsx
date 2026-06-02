@@ -140,6 +140,10 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   const fetchMine = useServerFn(getMyRegion);
   const lockFn = useServerFn(lockMarketRegion);
 
+  // Stable auth identity — depend on the id, not the user object (which gets a
+  // new reference on every token refresh and would needlessly re-run detection).
+  const userId = user?.id ?? null;
+
   // For guests / pre-selection we keep a suggested region so prices render.
   // Lazily seed from any previously-stored choice so returning shoppers paint
   // their correct currency on the very first frame instead of flashing USD.
@@ -161,6 +165,17 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   const [vpnSuspected, setVpnSuspected] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Latest detected country, readable inside the effect without making it a
+  // dependency (otherwise the effect would re-run each time it's set).
+  const countryRef = useRef<string | null>(null);
+  useEffect(() => {
+    countryRef.current = countryCode;
+  }, [countryCode]);
+
+  // Tracks the previously-resolved auth identity to detect login/logout edges.
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -176,6 +191,27 @@ export function RegionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return;
     let cancelled = false;
+
+    // Login/logout edge handling: when a signed-in user logs out, purge the
+    // previous account's locked region so the guest (or next account) never
+    // inherits the wrong currency. Runs synchronously before re-resolution.
+    const prevUserId = prevUserIdRef.current;
+    if (prevUserId && !userId && typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(LS_KEY);
+        localStorage.removeItem(GUEST_CHOICE_KEY);
+        document.cookie = `${REGION_COOKIE}=; path=/; max-age=0; samesite=lax`;
+      } catch {
+        /* ignore */
+      }
+      hadCachedChoice.current = false;
+      setLocked(false);
+      setAutoDetected(false);
+      setSoftConfirm(false);
+      setNeedsSelection(false);
+    }
+    prevUserIdRef.current = userId;
+
 
     /** Multi-signal engine: edge geo-IP blended with browser + stored signals. */
     async function runDetection() {
@@ -200,7 +236,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
           vpnSuspected: result.vpnSuspected,
           conflicting: result.conflicting,
           reasons: result.reasons,
-          loggedIn: !!user,
+          loggedIn: !!userId,
         },
       });
       return result;
@@ -210,7 +246,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     (async () => {
       setLoading(true);
       try {
-        if (user) {
+        if (userId) {
           // Staff/admin accounts are exempt from the region lock entirely.
           if (isAdmin) {
             setLocked(false);
@@ -249,7 +285,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
           if (guestChoice === "india" || guestChoice === "international") {
             try {
               const res = await lockFn({
-                data: { region: guestChoice, countryCode },
+                data: { region: guestChoice, countryCode: countryRef.current },
               });
               if (cancelled) return;
               setMarket(res.region);
@@ -366,15 +402,15 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading, isAdmin, fetchMine, detect, lockFn, countryCode]);
+  }, [userId, authLoading, isAdmin, fetchMine, detect, lockFn]);
 
   const lockMarket = useCallback(
     async (region: MarketRegion) => {
       void track("region_locked", {
         metadata: { region, source: "manual", confidence },
       });
-      if (user) {
-        const res = await lockFn({ data: { region, countryCode } });
+      if (userId) {
+        const res = await lockFn({ data: { region, countryCode: countryRef.current } });
         setMarket(res.region);
         setLocked(true);
         setNeedsSelection(false);
@@ -391,7 +427,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
       persistRegion(region);
       if (typeof window !== "undefined") localStorage.setItem(GUEST_CHOICE_KEY, region);
     },
-    [user, lockFn, countryCode, confidence],
+    [userId, lockFn, confidence],
   );
 
   // Accept the detected region from the lightweight (70–89) confirmation.
