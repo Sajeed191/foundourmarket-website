@@ -764,6 +764,12 @@ function HelpPage() {
         <TrackMyOrder />
 
         {/* SUPPORT TICKETS */}
+        <div>
+          <SectionHeader eyebrow="Ticket center" title="Your support tickets" />
+          <div className="mt-4">
+            <TicketStatusOverview />
+          </div>
+        </div>
         <CreateTicket />
 
         {/* AI ASSISTANT */}
