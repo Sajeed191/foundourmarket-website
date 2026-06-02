@@ -145,10 +145,10 @@ function iconForCategory(slug: string, name: string): LucideIcon {
   return Package;
 }
 
-/* Single product rail section (lazy-mounted). `prominent` gives Trending extra
-   visual weight; other rails use the compact card layout. */
+/* Single product section (lazy-mounted). Shows exactly 4 products in a 2×2
+   mobile grid (no carousel) with a full-width premium "View All" button. */
 function ProductSection({
-  sectionKey, eyebrow, title, icon, products, isAdmin, active, prominent = false, minHeight = 260,
+  sectionKey, eyebrow, title, icon, products, isAdmin, active, viewAllTo, prominent = false, minHeight = 260,
 }: {
   sectionKey: string;
   eyebrow: string;
@@ -157,10 +157,12 @@ function ProductSection({
   products: import("@/lib/products").Product[];
   isAdmin: boolean;
   active: boolean;
+  viewAllTo: string;
   prominent?: boolean;
   minHeight?: number;
 }) {
   if (products.length === 0 || (!active && !isAdmin)) return null;
+  const preview = products.slice(0, 4);
   return (
     <SectionTracker
       sectionKey={sectionKey}
@@ -170,24 +172,24 @@ function ProductSection({
         eyebrow={eyebrow}
         title={title}
         icon={icon}
-        href="/search"
+        href={viewAllTo}
         sectionKey={sectionKey}
         editable={isAdmin}
         active={active}
         prominent={prominent}
       />
       <LazyMount minHeight={minHeight}>
-        <ProductRail products={products} compact={!prominent} />
-        <MobileViewAll to="/search" />
-        <div className={`hidden sm:grid grid-cols-2 ${prominent ? "lg:grid-cols-4 gap-4 sm:gap-6" : "lg:grid-cols-5 gap-3 sm:gap-4"}`}>
-          {products.slice(0, prominent ? 4 : 5).map((p, i) => (
-            <Reveal key={p.slug} delay={i}><ProductCard product={p} compact={!prominent} /></Reveal>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {preview.map((p, i) => (
+            <Reveal key={p.slug} delay={i}><ProductCard product={p} compact /></Reveal>
           ))}
         </div>
+        <ViewAllButton to={viewAllTo} />
       </LazyMount>
     </SectionTracker>
   );
 }
+
 
 function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All", sectionKey, editable, active = true, prominent = false }: { eyebrow: string; title: string; icon?: React.ComponentType<{ className?: string }>; href?: string; hrefLabel?: string; sectionKey?: string; editable?: boolean; active?: boolean; prominent?: boolean }) {
   const [editing, setEditing] = useState(false);
