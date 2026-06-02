@@ -65,7 +65,9 @@ function AdminPage() {
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [products, setProducts] = useState<ProductRow[] | null>(null);
   const [categories, setCategories] = useState<Category[] | null>(null);
-  const [tab, setTab] = useState<Tab>("overview");
+  const { tab: tabParam } = Route.useSearch();
+  const [tab, setTab] = useState<Tab>(tabParam ?? "overview");
+  useEffect(() => { if (tabParam) setTab(tabParam); }, [tabParam]);
   const [updating, setUpdating] = useState<string | null>(null);
   const [editing, setEditing] = useState<ProductRow | "new" | null>(null);
   const [editingCat, setEditingCat] = useState<Category | "new" | null>(null);
