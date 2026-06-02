@@ -48,6 +48,7 @@ import { Route as AdminMarketingMetricsRouteImport } from './routes/admin-market
 import { Route as AdminMarketingGrowthRouteImport } from './routes/admin-marketing-growth'
 import { Route as AdminMarketingAutomationRouteImport } from './routes/admin-marketing-automation'
 import { Route as AdminMarketingRouteImport } from './routes/admin-marketing'
+import { Route as AdminLowStockRouteImport } from './routes/admin-low-stock'
 import { Route as AdminLiveRouteImport } from './routes/admin-live'
 import { Route as AdminInventoryIntelligenceRouteImport } from './routes/admin-inventory-intelligence'
 import { Route as AdminInventoryRouteImport } from './routes/admin-inventory'
@@ -304,6 +305,11 @@ const AdminMarketingAutomationRoute =
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
   id: '/admin-marketing',
   path: '/admin-marketing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLowStockRoute = AdminLowStockRouteImport.update({
+  id: '/admin-low-stock',
+  path: '/admin-low-stock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLiveRoute = AdminLiveRouteImport.update({
@@ -647,6 +653,7 @@ export interface FileRoutesByFullPath {
   '/admin-inventory': typeof AdminInventoryRoute
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
+  '/admin-low-stock': typeof AdminLowStockRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-marketing-growth': typeof AdminMarketingGrowthRoute
@@ -749,6 +756,7 @@ export interface FileRoutesByTo {
   '/admin-inventory': typeof AdminInventoryRoute
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
+  '/admin-low-stock': typeof AdminLowStockRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-marketing-growth': typeof AdminMarketingGrowthRoute
@@ -852,6 +860,7 @@ export interface FileRoutesById {
   '/admin-inventory': typeof AdminInventoryRoute
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
+  '/admin-low-stock': typeof AdminLowStockRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-marketing-growth': typeof AdminMarketingGrowthRoute
@@ -956,6 +965,7 @@ export interface FileRouteTypes {
     | '/admin-inventory'
     | '/admin-inventory-intelligence'
     | '/admin-live'
+    | '/admin-low-stock'
     | '/admin-marketing'
     | '/admin-marketing-automation'
     | '/admin-marketing-growth'
@@ -1058,6 +1068,7 @@ export interface FileRouteTypes {
     | '/admin-inventory'
     | '/admin-inventory-intelligence'
     | '/admin-live'
+    | '/admin-low-stock'
     | '/admin-marketing'
     | '/admin-marketing-automation'
     | '/admin-marketing-growth'
@@ -1160,6 +1171,7 @@ export interface FileRouteTypes {
     | '/admin-inventory'
     | '/admin-inventory-intelligence'
     | '/admin-live'
+    | '/admin-low-stock'
     | '/admin-marketing'
     | '/admin-marketing-automation'
     | '/admin-marketing-growth'
@@ -1263,6 +1275,7 @@ export interface RootRouteChildren {
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminInventoryIntelligenceRoute: typeof AdminInventoryIntelligenceRoute
   AdminLiveRoute: typeof AdminLiveRoute
+  AdminLowStockRoute: typeof AdminLowStockRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminMarketingAutomationRoute: typeof AdminMarketingAutomationRoute
   AdminMarketingGrowthRoute: typeof AdminMarketingGrowthRoute
@@ -1610,6 +1623,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-marketing'
       fullPath: '/admin-marketing'
       preLoaderRoute: typeof AdminMarketingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-low-stock': {
+      id: '/admin-low-stock'
+      path: '/admin-low-stock'
+      fullPath: '/admin-low-stock'
+      preLoaderRoute: typeof AdminLowStockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-live': {
@@ -2109,6 +2129,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminInventoryRoute: AdminInventoryRoute,
   AdminInventoryIntelligenceRoute: AdminInventoryIntelligenceRoute,
   AdminLiveRoute: AdminLiveRoute,
+  AdminLowStockRoute: AdminLowStockRoute,
   AdminMarketingRoute: AdminMarketingRoute,
   AdminMarketingAutomationRoute: AdminMarketingAutomationRoute,
   AdminMarketingGrowthRoute: AdminMarketingGrowthRoute,
