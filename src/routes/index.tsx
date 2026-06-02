@@ -483,16 +483,32 @@ function Home() {
                     to="/category/$slug"
                     params={{ slug: cat.slug }}
                     onClick={() => { void supabase.rpc("track_category_event", { _id: cat.id, _event: "click" }); }}
-                    className={`group product-card-glass relative flex aspect-square flex-col items-center justify-center gap-2 p-2 text-center hover:-translate-y-1 ${isProductAdmin && !cat.homepage_visible ? "opacity-50" : ""}`}
+                    className={`group product-card-glass relative flex aspect-square flex-col overflow-hidden p-0 text-center hover:-translate-y-1 ${isProductAdmin && !cat.homepage_visible ? "opacity-50" : ""}`}
                   >
-                    <div className="size-9 sm:size-12 grid place-items-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/20 transition-colors group-hover:bg-accent/15">
-                      <Icon className="size-4 sm:size-5" />
+                    {/* Dominant 1:1 category image with icon fallback */}
+                    <div className="absolute inset-0">
+                      {cat.image || cat.mobile_image ? (
+                        <img
+                          src={cat.mobile_image || cat.image || ""}
+                          alt={cat.name}
+                          loading="lazy"
+                          className="size-full object-cover [transition:transform_700ms_cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="size-full grid place-items-center bg-accent/10">
+                          <Icon className="size-7 sm:size-9 text-accent" />
+                        </div>
+                      )}
+                      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                     </div>
-                    <h3 className="text-[11px] sm:text-sm font-semibold tracking-tight leading-tight line-clamp-1 group-hover:text-accent transition-colors">{cat.name}</h3>
-                    <span className="text-[8px] sm:text-[10px] text-muted-foreground font-mono uppercase tracking-widest">
-                      {categoryCounts[cat.slug] ?? 0} items
-                    </span>
+                    <div className="relative z-10 mt-auto p-2 text-left">
+                      <h3 className="text-[11px] sm:text-sm font-semibold tracking-tight leading-tight line-clamp-1 text-white group-hover:text-accent transition-colors">{cat.name}</h3>
+                      <span className="text-[8px] sm:text-[10px] text-white/70 font-mono uppercase tracking-widest">
+                        {categoryCounts[cat.slug] ?? 0} items
+                      </span>
+                    </div>
                   </Link>
+
                   {isProductAdmin && (
                     <div className="absolute left-2 top-2 z-20">
                       <InlineActiveToggle
