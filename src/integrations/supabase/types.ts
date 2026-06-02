@@ -1014,6 +1014,7 @@ export type Database = {
           image: string | null
           mobile_image: string | null
           name: string
+          parent_id: string | null
           region: string
           seo_description: string | null
           seo_title: string | null
@@ -1039,6 +1040,7 @@ export type Database = {
           image?: string | null
           mobile_image?: string | null
           name: string
+          parent_id?: string | null
           region?: string
           seo_description?: string | null
           seo_title?: string | null
@@ -1064,6 +1066,7 @@ export type Database = {
           image?: string | null
           mobile_image?: string | null
           name?: string
+          parent_id?: string | null
           region?: string
           seo_description?: string | null
           seo_title?: string | null
@@ -1076,7 +1079,15 @@ export type Database = {
           updated_at?: string
           views?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cms_pages: {
         Row: {
