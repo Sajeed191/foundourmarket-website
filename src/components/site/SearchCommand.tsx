@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, X, TrendingUp, Clock, Tag, ArrowRight, Loader2, CornerDownLeft, ArrowUp, ArrowDown, Flame, Sparkles, Store } from "lucide-react";
+import { Search, X, TrendingUp, Clock, Tag, ArrowRight, Loader2, CornerDownLeft, ArrowUp, ArrowDown, Flame, Store } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { useCategories } from "@/lib/use-categories";
 import { Price } from "@/components/site/Price";
