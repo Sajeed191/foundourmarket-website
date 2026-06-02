@@ -6,7 +6,7 @@ import {
   LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
-  Search, Zap, Gift, Tag, Headphones, Flame, Truck, Lock, BadgeCheck, Globe, Crown,
+  Search, Zap, Gift, Tag, Flame, Truck, Lock, BadgeCheck, Globe, Crown,
   CheckCircle2, Box, Home, X, Plus, Minus, CreditCard, UserCog,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,8 +14,9 @@ import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { useWishlist } from "@/lib/wishlist";
 import { useNotifications } from "@/lib/notifications";
-import { useSupportUnread } from "@/lib/use-support-unread";
+
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
+import { useIsAdmin } from "@/lib/use-admin";
 
 import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
@@ -68,7 +69,7 @@ function AccountPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const { slugs: wishSlugs } = useWishlist();
   const { unread } = useNotifications();
-  const { count: supportUnread } = useSupportUnread();
+  const { isAdmin } = useIsAdmin();
   const { products } = useProducts();
   const cart = useCart();
 
@@ -241,16 +242,18 @@ function AccountPage() {
 
               {/* Action buttons — aligned right */}
               <div className="flex items-center gap-2 shrink-0 self-center">
-                <Link
-                  to="/account/notifications"
-                  aria-label="Notifications"
-                  className="relative size-10 sm:size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
-                >
-                  <Bell className="size-4" />
-                  {unread > 0 && (
-                    <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />
-                  )}
-                </Link>
+                {isAdmin && (
+                  <Link
+                    to="/account/notifications"
+                    aria-label="Notifications"
+                    className="relative size-10 sm:size-11 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
+                  >
+                    <Bell className="size-4" />
+                    {unread > 0 && (
+                      <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />
+                    )}
+                  </Link>
+                )}
                 <Link
                   to="/account/profile"
                   aria-label="Settings"
@@ -299,26 +302,25 @@ function AccountPage() {
             <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Requests & status" />
             <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
             <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
-            <ActionCard to="/account/support" icon={Headphones} title="Support" subtitle="Tickets & chat" badge={supportUnread || undefined} />
           </div>
         </motion.section>
 
 
         {/* DESKTOP GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
-            {/* ORDER TRACKING TIMELINE */}
-            {stats.latestActive && <OrderTimeline order={stats.latestActive} format={format} />}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          {(stats.latestActive || recentlyViewed.length > 0) && (
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
+              {/* ORDER TRACKING TIMELINE */}
+              {stats.latestActive && <OrderTimeline order={stats.latestActive} format={format} />}
 
-            {/* RECENTLY VIEWED */}
-            {recentlyViewed.length > 0 && (
-              <SectionBlock title="Recently viewed" icon={Eye}>
-                <ProductScroller items={recentlyViewed} />
-              </SectionBlock>
-            )}
-
-
-          </div>
+              {/* RECENTLY VIEWED */}
+              {recentlyViewed.length > 0 && (
+                <SectionBlock title="Recently viewed" icon={Eye}>
+                  <ProductScroller items={recentlyViewed} />
+                </SectionBlock>
+              )}
+            </div>
+          )}
 
 
           {/* SIDEBAR */}
