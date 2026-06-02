@@ -236,7 +236,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
           vpnSuspected: result.vpnSuspected,
           conflicting: result.conflicting,
           reasons: result.reasons,
-          loggedIn: !!user,
+          loggedIn: !!userId,
         },
       });
       return result;
