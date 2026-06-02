@@ -15,6 +15,7 @@ import { FinancialMarketingCard } from "@/components/admin/FinancialMarketingCar
 import { ExecutiveSummaryPanel } from "@/components/admin/ExecutiveSummaryPanel";
 import { ExecutiveQuickCard } from "@/components/admin/ExecutiveQuickCard";
 import { SegmentedTabs } from "@/components/admin/SegmentedTabs";
+import { AdminCustomersTab } from "@/components/admin/AdminCustomersTab";
 import { AnimatePresence, motion } from "framer-motion";
 import { LayoutDashboard } from "lucide-react";
 
