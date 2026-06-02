@@ -13,6 +13,7 @@ import { trackOrder } from "@/lib/track-order.functions";
 import { useRegion } from "@/lib/region";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { ReturnCenterSections } from "@/components/site/ReturnCenterSections";
+import { PolicyCrossLinks } from "@/components/site/PolicyLinks";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 
 export const Route = createFileRoute("/returns")({
@@ -362,6 +363,16 @@ function ReturnsPage() {
 
         {/* World-class return center sections */}
         <ReturnCenterSections />
+
+        {/* Interconnected policy network */}
+        <div className="mt-12">
+          <PolicyCrossLinks
+            title="Related policies"
+            keys={["refund", "shipping", "buyerProtection", "terms", "privacy", "contact"]}
+            variant="dark"
+          />
+        </div>
+
 
         {/* Recommendations */}
         {recentSlugs.length > 0 && (

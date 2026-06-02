@@ -87,6 +87,7 @@ export function DocPage({
   badges,
   sections,
   ctas,
+  related,
 }: {
   eyebrow?: string;
   title: ReactNode;
@@ -95,6 +96,7 @@ export function DocPage({
   badges?: { icon: ComponentType<LucideProps>; label: string }[];
   sections: DocSection[];
   ctas?: DocCta[];
+  related?: ReactNode;
 }) {
   const progress = useScrollProgress();
   const active = useActiveSection(sections.map((s) => s.id));
@@ -205,6 +207,9 @@ export function DocPage({
                 </Reveal>
               ))}
             </div>
+
+            {/* Cross-links to related policy pages */}
+            {related && <div className="mt-14 sm:mt-16">{related}</div>}
 
             {/* CTA */}
             {ctas && ctas.length > 0 && (

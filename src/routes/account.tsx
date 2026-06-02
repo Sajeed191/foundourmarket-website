@@ -23,6 +23,7 @@ import { useCart } from "@/lib/cart";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { Product } from "@/lib/products";
+import { PolicyCrossLinks } from "@/components/site/PolicyLinks";
 const logoSrc = "/logo.webp";
 
 export const Route = createFileRoute("/account")({
@@ -341,6 +342,15 @@ function AccountPage() {
         </div>
 
 
+
+        {/* 9 — LEGAL & POLICIES */}
+        <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }}>
+          <SectionHeader title="Legal & Policies" eyebrow="Trust & transparency" />
+          <PolicyCrossLinks
+            title="Policies"
+            keys={["privacy", "terms", "refund", "return", "shipping", "buyerProtection"]}
+          />
+        </motion.section>
 
         {/* 10 — FOOTER ACTIONS */}
         <motion.footer {...fadeUp} className="pt-2">

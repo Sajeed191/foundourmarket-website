@@ -4,6 +4,7 @@ import {
   ShieldCheck, Globe, Fingerprint,
 } from "lucide-react";
 import { DocPage, CheckList, FeatureCards, type DocSection } from "@/components/site/DocPage";
+import { PolicyCrossLinks } from "@/components/site/PolicyLinks";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -139,6 +140,7 @@ function PrivacyPage() {
         { icon: Globe, label: "Privacy Focused" },
       ]}
       sections={sections}
+      related={<PolicyCrossLinks keys={["terms", "refund", "shipping", "contact", "about"]} />}
       ctas={[{ to: "/", label: "Back to Shopping", primary: true }]}
     />
   );

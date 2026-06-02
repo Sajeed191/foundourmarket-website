@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PolicyCrossLinks } from "@/components/site/PolicyLinks";
 import { motion } from "framer-motion";
 import {
   Truck,
@@ -315,6 +316,14 @@ function ShippingReturnsPage() {
             </Link>
           </div>
         </motion.div>
+
+        <div className="mt-12">
+          <PolicyCrossLinks
+            title="Related policies"
+            keys={["refund", "return", "contact"]}
+            variant="dark"
+          />
+        </div>
       </div>
     </div>
   );

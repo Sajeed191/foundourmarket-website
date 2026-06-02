@@ -22,10 +22,12 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DealsRouteImport } from './routes/deals'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as BuyerProtectionRouteImport } from './routes/buyer-protection'
 import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -195,6 +197,11 @@ const DealsRoute = DealsRouteImport.update({
   path: '/deals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
@@ -213,6 +220,11 @@ const CategoriesRoute = CategoriesRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuyerProtectionRoute = BuyerProtectionRouteImport.update({
+  id: '/buyer-protection',
+  path: '/buyer-protection',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuilderRoute = BuilderRouteImport.update({
@@ -802,10 +814,12 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/builder': typeof BuilderRoute
+  '/buyer-protection': typeof BuyerProtectionRoute
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
+  '/contact': typeof ContactRoute
   '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -924,10 +938,12 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/builder': typeof BuilderRoute
+  '/buyer-protection': typeof BuyerProtectionRoute
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
+  '/contact': typeof ContactRoute
   '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -1046,10 +1062,12 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
   '/builder': typeof BuilderRoute
+  '/buyer-protection': typeof BuyerProtectionRoute
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/compare': typeof CompareRoute
+  '/contact': typeof ContactRoute
   '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -1170,10 +1188,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/builder'
+    | '/buyer-protection'
     | '/cart'
     | '/categories'
     | '/checkout'
     | '/compare'
+    | '/contact'
     | '/deals'
     | '/help'
     | '/privacy'
@@ -1292,10 +1312,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/builder'
+    | '/buyer-protection'
     | '/cart'
     | '/categories'
     | '/checkout'
     | '/compare'
+    | '/contact'
     | '/deals'
     | '/help'
     | '/privacy'
@@ -1413,10 +1435,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/builder'
+    | '/buyer-protection'
     | '/cart'
     | '/categories'
     | '/checkout'
     | '/compare'
+    | '/contact'
     | '/deals'
     | '/help'
     | '/privacy'
@@ -1536,10 +1560,12 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   BlogRoute: typeof BlogRouteWithChildren
   BuilderRoute: typeof BuilderRoute
+  BuyerProtectionRoute: typeof BuyerProtectionRoute
   CartRoute: typeof CartRoute
   CategoriesRoute: typeof CategoriesRoute
   CheckoutRoute: typeof CheckoutRoute
   CompareRoute: typeof CompareRoute
+  ContactRoute: typeof ContactRoute
   DealsRoute: typeof DealsRoute
   HelpRoute: typeof HelpRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -1682,6 +1708,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DealsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compare': {
       id: '/compare'
       path: '/compare'
@@ -1708,6 +1741,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buyer-protection': {
+      id: '/buyer-protection'
+      path: '/buyer-protection'
+      fullPath: '/buyer-protection'
+      preLoaderRoute: typeof BuyerProtectionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/builder': {
@@ -2561,10 +2601,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   BlogRoute: BlogRouteWithChildren,
   BuilderRoute: BuilderRoute,
+  BuyerProtectionRoute: BuyerProtectionRoute,
   CartRoute: CartRoute,
   CategoriesRoute: CategoriesRoute,
   CheckoutRoute: CheckoutRoute,
   CompareRoute: CompareRoute,
+  ContactRoute: ContactRoute,
   DealsRoute: DealsRoute,
   HelpRoute: HelpRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
@@ -2616,3 +2658,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

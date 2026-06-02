@@ -5,6 +5,7 @@ import {
   Rocket, History, ShieldHalf, CreditCard, PackageSearch, Wallet,
 } from "lucide-react";
 import { DocPage, StatGrid, FeatureCards, CheckList, Timeline, type DocSection } from "@/components/site/DocPage";
+import { PolicyCrossLinks } from "@/components/site/PolicyLinks";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -138,6 +139,7 @@ function AboutPage() {
         },
         ...sections,
       ]}
+      related={<PolicyCrossLinks keys={["contact", "help", "privacy", "terms"]} />}
       ctas={[
         { to: "/", label: "Start Shopping", primary: true },
         { to: "/search", label: "Explore Marketplace" },

@@ -4,6 +4,7 @@ import {
   Copyright, Ban, UserX, Scale, Gavel, Mail, ShieldCheck, IndianRupee, DollarSign,
 } from "lucide-react";
 import { DocPage, CheckList, type DocSection } from "@/components/site/DocPage";
+import { PolicyCrossLinks } from "@/components/site/PolicyLinks";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -140,6 +141,7 @@ function TermsPage() {
         { icon: Scale, label: "Customer Protected" },
       ]}
       sections={sections}
+      related={<PolicyCrossLinks keys={["privacy", "refund", "shipping", "contact", "help"]} />}
       ctas={[{ to: "/", label: "Back to Shopping", primary: true }]}
     />
   );
