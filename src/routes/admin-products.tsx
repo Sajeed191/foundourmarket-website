@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ExecutiveSummaryPanel } from "@/components/admin/ExecutiveSummaryPanel";
 import { FinancialInsightsPanel } from "@/components/admin/FinancialInsightsPanel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -160,6 +160,7 @@ function ProductsInner() {
   const [view, setView] = useState<"active" | "recycle">("active");
   const [tag, setTag] = useState<TagFilter>("all");
   const [editing, setEditing] = useState<Product | "new" | null>(null);
+  const navigate = useNavigate();
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -603,7 +604,7 @@ function ProductsInner() {
             selected={selected.has(p.id)}
             busy={busy === p.id}
             onSelect={() => toggleSelect(p.id)}
-            onEdit={() => setEditing(p)}
+            onEdit={() => navigate({ to: "/admin-product/$slug", params: { slug: p.slug } })}
             onDuplicate={() => duplicate(p)}
             onDelete={() => remove(p)}
             onToggleActive={() => toggleActive(p)}
