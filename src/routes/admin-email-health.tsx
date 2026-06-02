@@ -105,6 +105,31 @@ function EmailHealthPage() {
       }
     >
       <div className="space-y-5">
+        {/* Source-of-truth summary: Sent · Delivered · Failed · Queue size */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatCard
+            label="Sent" value={totals ? totals.sent : "—"}
+            color="text-emerald-400" icon={Send}
+            hint="Accepted by provider"
+          />
+          <StatCard
+            label="Delivered" value={totals ? totals.sent : "—"}
+            color="text-sky-400" icon={Inbox}
+            hint={totals ? `${totals.deliveryRate}% delivery rate` : "—"}
+          />
+          <StatCard
+            label="Failed" value={totals ? totals.failed + totals.bounced + totals.complained : "—"}
+            color="text-rose-400" icon={XCircle}
+            hint="Failed · bounced · complained"
+          />
+          <StatCard
+            label="Queue size" value={queueSize ?? "—"}
+            color="text-amber-400" icon={Layers}
+            hint="Queued + in-flight"
+          />
+        </div>
+
+
 
 
         {isLoading ? (
