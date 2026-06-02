@@ -189,6 +189,11 @@ export const adminUpdateProduct = createServerFn({ method: "POST" })
       seoTitle: "seo_title",
       seoDescription: "seo_description",
       metaKeywords: "meta_keywords",
+      premium: "premium",
+      fastSelling: "fast_selling",
+      editorsChoice: "editors_choice",
+      priorityScore: "priority_score",
+      collections: "collections",
     };
     for (const [key, col] of Object.entries(map)) {
       if (key in data && (data as any)[key] !== undefined) {
