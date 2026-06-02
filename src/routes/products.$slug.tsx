@@ -509,9 +509,14 @@ function ProductPage() {
                   )}
                 </div>
                 {originalPrice && originalPrice > effectivePrice && (
-                  <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-widest text-accent">
-                    <Sparkles className="size-3.5" /> Save {format(originalPrice - effectivePrice)}
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <p className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-widest text-accent">
+                      <Sparkles className="size-3.5" /> Save {format(originalPrice - effectivePrice)}
+                    </p>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 border border-destructive/30 text-destructive px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-widest">
+                      🔥 Limited Offer
+                    </span>
+                  </div>
                 )}
               </motion.div>
             ) : (
