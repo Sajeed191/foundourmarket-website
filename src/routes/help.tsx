@@ -262,12 +262,12 @@ function SupportContacts() {
         {waOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setWaOpen(false)}
-            className="fixed inset-0 z-50 grid place-items-end sm:place-items-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+            className="fixed inset-0 z-[90] grid place-items-end sm:place-items-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
             <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
               transition={{ type: "spring", damping: 26, stiffness: 280 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-white/10 bg-[#0a0f24]/95 backdrop-blur-xl p-5 shadow-2xl"
-              style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}>
+              style={{ paddingBottom: "calc(var(--mobile-nav-clearance) + 1.25rem)" }}>
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-2xl grid place-items-center bg-[#25D366]/10 border border-[#25D366]/20">
                   <Phone className="size-5 text-[#25D366]" />
