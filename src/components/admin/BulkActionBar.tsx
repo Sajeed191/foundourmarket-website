@@ -218,6 +218,21 @@ function FormPane({ kind, categories, onRun, onExport }: {
     );
   }
 
+  if (kind === "priority") {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm font-medium">Set priority score</p>
+        <Input type="number" min={1} max={100} value={val} onChange={(e) => setVal(e.target.value)} placeholder="1 – 100" />
+        <p className="text-xs text-muted-foreground">
+          Higher priority products appear before lower priority products within the same section.
+        </p>
+        <Button size="sm" className="w-full" onClick={() => onRun("set_priority", { value: Number(val) || 0 })}>
+          Apply to selected
+        </Button>
+      </div>
+    );
+  }
+
   if (kind === "set_collection") {
     return (
       <div className="space-y-4">
