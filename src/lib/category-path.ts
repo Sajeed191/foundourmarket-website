@@ -31,5 +31,4 @@ export function categoryHref(cat: Category, all: Category[]): string {
 export function titleizeSlug(slug: string) {
   return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
-</content>
-</invoke>
+
