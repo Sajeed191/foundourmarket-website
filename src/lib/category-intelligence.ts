@@ -119,13 +119,12 @@ export function computeCategoryIntelligence(
   }
 
   function statsFor(slugs: string[]) {
-    let orderCount = 0, units = 0, revenue = 0, views = 0;
-    let top: { slug: string; name: string; revenue: number } | null = null;
+    let orderCount = 0, units = 0, revenue = 0;
     for (const ps of slugs) {
       const agg = bySlug.get(ps);
       if (agg) { orderCount += agg.orders; units += agg.units; revenue += agg.revenue; }
     }
-    return { orderCount, units, revenue, views, top };
+    return { orderCount, units, revenue };
   }
 
   const subsByParent = new Map<string, CatRow[]>();
