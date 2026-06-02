@@ -100,6 +100,21 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   // Pending badge assignments for a not-yet-saved product (flushed after insert).
   const [pendingBadges, setPendingBadges] = useState<string[]>([]);
 
+  // ---- Main category / subcategory hierarchy ----
+  const initialCat = categories.find((c) => c.slug === (row?.category ?? ""));
+  const initialMain = initialCat?.parent_id
+    ? categories.find((c) => c.id === initialCat.parent_id)?.slug ?? ""
+    : initialCat?.slug ?? "";
+  const initialSub = initialCat?.parent_id ? initialCat.slug : "";
+  const [mainCat, setMainCat] = useState(
+    initialMain || categories.find((c) => !c.parent_id)?.slug || "",
+  );
+  const [subCat, setSubCat] = useState(initialSub);
+  const mains = categories.filter((c) => !c.parent_id);
+  const mainObj = categories.find((c) => c.slug === mainCat);
+  const subs = mainObj ? categories.filter((c) => c.parent_id === mainObj.id) : [];
+  const effectiveCategory = subCat || mainCat;
+
   const [form, setForm] = useState({
     slug: row?.slug ?? "", name: row?.name ?? "", tagline: row?.tagline ?? "",
     category: row?.category ?? categories[0]?.slug ?? "",
