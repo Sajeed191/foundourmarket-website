@@ -76,6 +76,7 @@ function AdminPage() {
   const [promos, setPromos] = useState<PromoRow[] | null>(null);
   const [editingPromo, setEditingPromo] = useState<PromoRow | "new" | null>(null);
   const [subscribers, setSubscribers] = useState<Subscriber[] | null>(null);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
