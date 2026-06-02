@@ -728,6 +728,7 @@ function ProductCard({
 }) {
   const h = health(p);
   const hm = healthMeta[h];
+  const hs = productHealth(p);
   const conv = p.views_count > 0 ? ((stat.units / p.views_count) * 100) : 0;
   const [stockInput, setStockInput] = useState(String(p.stock_quantity));
   useEffect(() => { setStockInput(String(p.stock_quantity)); }, [p.stock_quantity]);
