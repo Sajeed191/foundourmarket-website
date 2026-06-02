@@ -12,21 +12,20 @@ const pendingKey = (slug: string) => `pq_pending_${slug}`;
 type Question = {
   id: string;
   product_slug: string;
-  user_id: string;
   question: string;
   answer: string | null;
   answered_at: string | null;
   created_at: string;
+  is_mine: boolean;
+  author_name: string | null;
+  author_avatar: string | null;
 };
-
-type ProfileMap = Record<string, { full_name: string | null; avatar_url: string | null }>;
 
 export function ProductQA({ productSlug }: { productSlug: string }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [items, setItems] = useState<Question[]>([]);
-  const [profiles, setProfiles] = useState<ProfileMap>({});
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -42,11 +41,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("product_questions")
-      .select("*")
-      .eq("product_slug", productSlug)
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabase.rpc("get_product_questions", { _slug: productSlug });
     if (error) {
       console.error("[ProductQA] failed to load questions", {
         productSlug,
@@ -56,13 +51,6 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
     }
     const list = (data ?? []) as Question[];
     setItems(list);
-    const ids = Array.from(new Set(list.map((q) => q.user_id)));
-    if (ids.length) {
-      const { data: profs } = await supabase.rpc("get_public_profiles", { _ids: ids });
-      const map: ProfileMap = {};
-      (profs ?? []).forEach((p: any) => { map[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url }; });
-      setProfiles(map);
-    }
     setLoading(false);
   }
 
@@ -253,16 +241,15 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
       ) : (
         <ul className="space-y-4">
           {items.map((q) => {
-            const canDelete = isAdmin || user?.id === q.user_id;
+            const canDelete = isAdmin || q.is_mine;
             const canAnswer = isAdmin && !q.answer;
-            const canEditQuestion = user?.id === q.user_id;
-            const prof = profiles[q.user_id];
-            const name = prof?.full_name || "Anonymous";
+            const canEditQuestion = q.is_mine;
+            const name = q.author_name || "Anonymous";
             return (
               <li key={q.id} className="bg-card border border-border rounded-2xl p-5">
                 <div className="flex items-start gap-3">
                   <div className="size-8 shrink-0 rounded-full bg-muted overflow-hidden grid place-items-center font-mono text-xs font-bold ring-1 ring-white/10">
-                    {prof?.avatar_url ? <img src={prof.avatar_url} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
+                    {q.author_avatar ? <img src={q.author_avatar} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-display truncate">{name}</p>

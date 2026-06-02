@@ -5354,6 +5354,20 @@ export type Database = {
           product_slug: string
         }[]
       }
+      get_product_questions: {
+        Args: { _slug: string }
+        Returns: {
+          answer: string
+          answered_at: string
+          author_avatar: string
+          author_name: string
+          created_at: string
+          id: string
+          is_mine: boolean
+          product_slug: string
+          question: string
+        }[]
+      }
       get_public_profiles: {
         Args: { _ids: string[] }
         Returns: {
