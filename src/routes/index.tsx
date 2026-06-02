@@ -502,7 +502,7 @@ function Home() {
       </section>
 
       {/* 3 · Trust Bar — horizontal scroll premium glass cards */}
-      <section className="py-4 sm:py-7 max-w-7xl mx-auto">
+      <section className="cv-auto py-4 sm:py-7 max-w-7xl mx-auto">
         <div className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar px-4 sm:px-6 snap-x snap-mandatory sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible">
           {[
             { icon: Lock, title: "Secure Checkout", desc: "Bank-grade encryption." },
