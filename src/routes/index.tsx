@@ -723,8 +723,8 @@ function Home() {
                 ))}
               </div>
             </>
-          );
-        })()}
+          </LazyMount>
+        )}
 
       </section>
 
