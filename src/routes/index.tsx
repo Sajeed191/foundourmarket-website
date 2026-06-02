@@ -21,9 +21,6 @@ import { NewsletterForm } from "@/components/site/NewsletterForm";
 import { PromoBannerCarousel } from "@/components/site/PromoBannerCarousel";
 import { ProductRail } from "@/components/site/ProductRail";
 import { TestimonialsCarousel } from "@/components/site/TestimonialsCarousel";
-import { RecommendationStrip } from "@/components/site/RecommendationStrip";
-import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
-import { fetchPersonalizedSlugs } from "@/lib/personalization";
 import { useTestimonials } from "@/lib/use-testimonials";
 import { SectionTracker } from "@/components/site/SectionTracker";
 
@@ -362,21 +359,8 @@ function Home() {
   }, [products]);
 
 
-  // Personalized "For You" engine — region-aware via signals stored per user/session.
-  const { slugs: recentSlugs } = useRecentlyViewed();
-  const [personalizedSlugs, setPersonalizedSlugs] = useState<string[]>([]);
-  useEffect(() => {
-    let active = true;
-    fetchPersonalizedSlugs(8).then((s) => { if (active) setPersonalizedSlugs(s); });
-    return () => { active = false; };
-  }, []);
-  // Recently viewed excludes nothing; personalized excludes already-seen items.
-  const recentlyViewedSlugs = useMemo(
-    () => recentSlugs.filter((s) => products.some((p) => p.slug === s)).slice(0, 8),
-    [recentSlugs, products]
-  );
-
   const { items: testimonials } = useTestimonials();
+
 
 
 
@@ -656,12 +640,7 @@ function Home() {
         <ProductSection sectionKey="featured" eyebrow={sections.featured.eyebrow} title={sections.featured.title} icon={Star} products={featured} active={sections.featured.active} isAdmin={isProductAdmin} />
       )}
 
-      {/* Recently viewed — personal browsing history (only when history exists) */}
-      {recentlyViewedSlugs.length > 0 && (
-        <section className="px-4 sm:px-6 py-2 max-w-7xl mx-auto">
-          <RecommendationStrip title="Recently viewed" slugs={recentlyViewedSlugs} icon={<Package className="size-3" />} />
-        </section>
-      )}
+
 
       {/* 9 · Featured Collections */}
       <section className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
