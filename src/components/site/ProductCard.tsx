@@ -48,34 +48,28 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
     >
       <ProductCardAdminControls product={product} />
 
-      {/* IMAGE — ~68% of card height */}
+      {/* IMAGE — the hero (~70% of card attention) */}
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative">
-        <div className="relative aspect-[4/5] overflow-hidden bg-black/40">
+        <div className="relative aspect-square overflow-hidden bg-black/40">
           <ProductImage
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
             className="relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.06]"
           />
 
-          {/* Top-left — max 2 badges (discount counts toward the cap) */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
-            {discount ? (
-              <span className="inline-flex items-center rounded-lg bg-accent text-black font-bold font-mono text-[10px] leading-none px-1.5 py-1 ring-1 ring-black/10">
-                -{discount}%
-              </span>
-            ) : null}
-            {labels.slice(0, discount ? MAX_BADGES - 1 : MAX_BADGES).map((b) => (
+          {/* Top-left — single premium badge */}
+          {labels[0] ? (
+            <div className="absolute top-2.5 left-2.5">
               <span
-                key={b.key}
-                className={`inline-flex items-center gap-0.5 rounded-lg font-bold font-mono uppercase tracking-wide text-[9px] leading-none px-1.5 py-1 ring-1 ring-black/10 ${b.className}`}
+                className={`inline-flex items-center gap-1 rounded-full font-semibold uppercase tracking-wide text-[9px] leading-none px-2 py-1 shadow-sm shadow-black/30 backdrop-blur-sm ${labels[0].className}`}
               >
-                <span aria-hidden>{b.emoji}</span>
-                {b.label}
+                <span aria-hidden>{labels[0].emoji}</span>
+                {labels[0].label}
               </span>
-            ))}
-          </div>
+            </div>
+          ) : null}
 
-          {/* Wishlist — top-right glass button */}
+          {/* Wishlist — top-right frosted glass button */}
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -98,6 +92,7 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
           </button>
         </div>
       </Link>
+
 
       {/* INFO */}
       <Link
