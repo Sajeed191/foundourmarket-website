@@ -87,6 +87,17 @@ export function ProductCardAdminControls({ product }: { product: Product }) {
       },
     },
     {
+      label: product.featured ? "Unfeature" : "Feature",
+      icon: Star,
+      onClick: (e: React.MouseEvent) => {
+        stop(e);
+        run(
+          () => update({ data: { slug: product.slug, featured: !product.featured } }),
+          product.featured ? "Removed from featured" : "Marked as featured",
+        );
+      },
+    },
+    {
       label: product.inStock ? "Hide product" : "Publish product",
       icon: product.inStock ? EyeOff : Eye,
       onClick: (e: React.MouseEvent) => {
