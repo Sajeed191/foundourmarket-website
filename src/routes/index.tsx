@@ -13,6 +13,7 @@ import { Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { ProductCard } from "@/components/site/ProductCard";
+import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { FlashSaleStrip } from "@/components/site/FlashSaleStrip";
 import { AnnouncementBar } from "@/components/site/AnnouncementBar";
@@ -114,32 +115,7 @@ function MobileViewAll({ to, label = "View All" }: { to: string; label?: string 
   );
 }
 
-/* Defers mounting heavy children until the section nears the viewport.
-   Keeps a min-height placeholder to avoid layout shift / fast-scroll jank. */
-function LazyMount({ children, minHeight = 280, className }: { children: React.ReactNode; minHeight?: number; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || show) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setShow(true);
-          io.disconnect();
-        }
-      },
-      { rootMargin: "400px 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [show]);
-  return (
-    <div ref={ref} className={className} style={show ? undefined : { minHeight }}>
-      {show ? children : null}
-    </div>
-  );
-}
+/* LazyMount is shared across the homepage and product page. */
 
 
 
