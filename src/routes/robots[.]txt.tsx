@@ -8,13 +8,14 @@ export const Route = createFileRoute("/robots.txt")({
         const body = [
           "User-agent: *",
           "Allow: /",
+          // Internal / gated surfaces — never index (prevents Google "Deceptive Pages" flags on thin login walls)
           "Disallow: /admin",
-          "Disallow: /admin-cms",
-          "Disallow: /admin-returns",
-          "Disallow: /admin-shipments",
+          "Disallow: /builder",
           "Disallow: /account",
           "Disallow: /checkout",
           "Disallow: /cart",
+          "Disallow: /auth",
+          "Disallow: /reset-password",
           "",
           `Sitemap: ${origin}/sitemap.xml`,
           "",
