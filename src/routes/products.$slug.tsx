@@ -747,6 +747,12 @@ function ProductPage() {
           <RelatedProducts product={product} />
         </div>
       </LazyMount>
+      <LazyMount minHeight={260}>
+        <ProductHighlights highlights={product.highlights} />
+      </LazyMount>
+      <LazyMount minHeight={260}>
+        <TrustGuarantee />
+      </LazyMount>
       <div aria-hidden className="sm:hidden h-[var(--product-page-bottom-clearance)]" />
       
 
