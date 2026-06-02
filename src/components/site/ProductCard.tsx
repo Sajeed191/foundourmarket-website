@@ -97,14 +97,14 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
         </div>
       </Link>
 
-      {/* INFO — generous spacing, clear hierarchy */}
+      {/* INFO — refined hierarchy, balanced spacing */}
       <Link
         to="/products/$slug"
         params={{ slug: product.slug }}
-        className="relative flex flex-1 flex-col gap-2 px-3 pt-3 pb-3"
+        className="relative flex flex-1 flex-col gap-1.5 px-3 pt-2.5 pb-3"
       >
         {/* Name — clamped to exactly 2 lines, height always reserved */}
-        <h4 className="text-[13px] font-semibold text-white leading-snug line-clamp-2 h-[2.4em] group-hover:text-accent transition-colors">
+        <h4 className="text-[13px] font-medium text-white/95 leading-[1.3] line-clamp-2 h-[2.6em] tracking-[-0.01em] group-hover:text-accent transition-colors">
           {product.name}
         </h4>
 
@@ -113,7 +113,7 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
           {product.reviews > 0 ? (
             <>
               <Star className="size-3 fill-accent text-accent" />
-              <span className="text-[11px] font-bold text-white tabular-nums">{product.rating.toFixed(1)}</span>
+              <span className="text-[11px] font-semibold text-white tabular-nums">{product.rating.toFixed(1)}</span>
               <span className="text-[10px] font-mono text-muted-foreground/70">
                 ({product.reviews.toLocaleString()})
               </span>
@@ -124,12 +124,12 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
         </div>
 
         {/* Bottom action row — pushed to bottom, price + Add aligned on one baseline */}
-        <div className="mt-auto pt-1 flex items-center justify-between gap-2">
+        <div className="mt-auto pt-1.5 flex items-center justify-between gap-2">
           {/* Price block — fixed reserved height; old price line always present */}
           <div className="min-w-0 flex flex-col justify-center h-[34px]">
             <Price
               value={price}
-              className="font-display font-extrabold text-white tabular-nums leading-none block text-[20px]"
+              className="font-display font-bold text-white tabular-nums leading-none block text-[19px] tracking-[-0.02em]"
             />
             {originalPrice && discount ? (
               <Price
@@ -145,10 +145,10 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
             <button
               onClick={handleAdd}
               aria-label={`Add ${product.name} to cart`}
-              className={`relative shrink-0 inline-flex items-center justify-center gap-1.5 rounded-full w-[78px] h-9 text-[12px] font-semibold border transition-all duration-300 active:scale-95 ${
+              className={`relative shrink-0 inline-flex items-center justify-center gap-1 rounded-full w-[82px] h-9 text-[12px] font-semibold tracking-[-0.01em] transition-colors duration-200 active:scale-95 ${
                 justAdded
-                  ? "bg-emerald-500/90 border-emerald-400 text-black"
-                  : "bg-accent/15 border-accent/40 text-accent hover:bg-accent hover:text-black hover:border-accent"
+                  ? "bg-emerald-500 text-black"
+                  : "bg-accent text-black hover:bg-[oklch(0.78_0.18_55)]"
               }`}
             >
               {justAdded ? (
@@ -157,7 +157,7 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
                 </>
               ) : (
                 <>
-                  <Plus className="size-4" /> Add
+                  <Plus className="size-4" strokeWidth={2.5} /> Add
                 </>
               )}
               {cartQty > 0 && !justAdded && (
@@ -169,13 +169,14 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
           ) : (
             <span
               onClick={(e) => e.preventDefault()}
-              className="shrink-0 inline-flex items-center justify-center rounded-full w-[78px] h-9 bg-muted/40 border border-white/10 text-muted-foreground font-bold font-mono uppercase tracking-wider text-[9px]"
+              className="shrink-0 inline-flex items-center justify-center rounded-full w-[82px] h-9 bg-muted/40 border border-white/10 text-muted-foreground font-bold font-mono uppercase tracking-wider text-[9px]"
             >
               Sold Out
             </span>
           )}
         </div>
       </Link>
+
     </div>
   );
 }
