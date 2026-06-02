@@ -472,7 +472,7 @@ function Home() {
           {/* Floating live stats */}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.8 }}
-            className="mt-8 sm:mt-12 grid grid-cols-3 gap-2.5 sm:gap-4 max-w-3xl mx-auto"
+            className="mt-6 sm:mt-9 grid grid-cols-3 gap-2.5 sm:gap-4 max-w-3xl mx-auto"
           >
             {[
               { value: "180+", label: "Countries", hint: "Worldwide reach" },
