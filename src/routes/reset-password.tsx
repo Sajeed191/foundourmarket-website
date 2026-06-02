@@ -5,7 +5,7 @@ import { Lock, Loader2, ShieldCheck, Check, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: "Reset Password — FoundOurMarket™" }] }),
+  head: () => ({ meta: [{ title: "Reset Password — FoundOurMarket™" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: ResetPasswordPage,
 });
 
