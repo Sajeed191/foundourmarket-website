@@ -114,7 +114,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
 
       {/* IMAGE — compact marketplace ratio */}
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative">
-        <div className="relative aspect-square rounded-xl overflow-hidden bg-black/40">
+        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-black/40">
           {!imgLoaded && (
             <div
               aria-hidden
@@ -126,7 +126,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
             alt={`${product.name} — ${product.tagline || product.category}`}
             loading="lazy"
             width={800}
-            height={1000}
+            height={600}
             onLoad={() => setImgLoaded(true)}
             className={`relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.06] ${imgLoaded ? "opacity-100" : "opacity-0"}`}
           />
@@ -226,13 +226,19 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
           )}
         </div>
 
-        {/* Price row + floating cart button */}
+        {/* Price hierarchy + compact add-to-cart */}
         <div className="mt-auto pt-2 flex items-end justify-between gap-2">
-
-          <div className="min-w-0 flex items-baseline gap-1.5 flex-wrap">
-            <Price value={price} className="font-display font-extrabold text-white tabular-nums leading-none block text-[17px]" />
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <Price value={price} className="font-display font-extrabold text-white tabular-nums leading-none block text-[18px]" />
+              {originalPrice && discount ? (
+                <Price value={originalPrice} className="font-mono text-muted-foreground/55 line-through tabular-nums block text-[10px]" />
+              ) : null}
+            </div>
             {originalPrice && discount ? (
-              <Price value={originalPrice} className="font-mono text-muted-foreground/55 line-through tabular-nums block text-[10px]" />
+              <span className="mt-0.5 inline-flex items-center gap-0.5 text-[9px] font-bold font-mono uppercase tracking-wide text-emerald-400">
+                Save <Price value={originalPrice - price} className="tabular-nums" />
+              </span>
             ) : null}
           </div>
 
