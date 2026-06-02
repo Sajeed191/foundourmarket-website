@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, Check, CheckCheck, Settings, Trash2, ShoppingBag, X } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { useNotifications, categoryOf, type NotificationCategory, type Notification } from "@/lib/notifications";
 import { CAT_META, CATEGORY_ORDER, timeAgo } from "@/lib/notification-meta";
 
@@ -13,6 +13,13 @@ export function NotificationBell() {
   const [pulse, setPulse] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const prevUnread = useRef(unread);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Auto-close the panel whenever the route changes so it never lingers as a
+  // floating layer over admin (or any) content while navigating.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {

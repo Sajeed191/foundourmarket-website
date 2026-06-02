@@ -182,7 +182,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  * out of the entry bundle and off the critical hydration path, cutting TBT and
  * speeding up LCP on the homepage / product / search routes.
  */
-function DeferredShell({ isAuthRoute }: { isAuthRoute: boolean }) {
+function DeferredShell({ isAuthRoute }: { isAuthRoute: boolean; isAdminRoute?: boolean }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const ric =
@@ -241,6 +241,12 @@ function RootComponent() {
   }, [pathname]);
 
   const isAuthRoute = pathname.startsWith("/auth");
+  // Admin routes own their full chrome via <AdminShell> (sidebar + top bar with
+  // its own NotificationBell). Rendering the public site Nav / Footer / bottom
+  // nav on top of that caused a duplicate notification bell whose dropdown
+  // floated over admin controls. Suppress public chrome on admin routes.
+  const isAdminRoute = pathname.startsWith("/admin");
+  const hideSiteChrome = isAuthRoute || isAdminRoute;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -254,13 +260,13 @@ function RootComponent() {
                  <CommandCenterProvider>
                   <LayoutMetricsProvider>
                     <div data-app-shell className="min-h-dvh flex flex-col">
-                      {!isAuthRoute && <Nav />}
-                      <main data-app-content className={isAuthRoute ? "flex-1" : "flex-1 mobile-page-clearance md:pb-0"}>
+                      {!hideSiteChrome && <Nav />}
+                      <main data-app-content className={hideSiteChrome ? "flex-1" : "flex-1 mobile-page-clearance md:pb-0"}>
                         <Outlet />
                       </main>
-                      {!isAuthRoute && <Footer />}
-                      {!isAuthRoute && <MobileBottomNav />}
-                      <DeferredShell isAuthRoute={isAuthRoute} />
+                      {!hideSiteChrome && <Footer />}
+                      {!hideSiteChrome && <MobileBottomNav />}
+                      <DeferredShell isAuthRoute={isAuthRoute} isAdminRoute={isAdminRoute} />
                       <Toaster position="bottom-center" richColors />
                     </div>
                   </LayoutMetricsProvider>
