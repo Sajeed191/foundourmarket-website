@@ -615,6 +615,7 @@ function Home() {
           ) : (
             <>
               <ProductRail products={recommended} />
+              <MobileViewAll to="/search" />
               <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
                 {recommended.slice(0, 4).map((p, i) => (
                   <Reveal key={p.slug} delay={i}><ProductCard product={p} /></Reveal>
