@@ -33,6 +33,46 @@ function Pill({ region }: { region: string | null }) {
   );
 }
 
+/** Human-readable label for how the region was locked + which signals drove it. */
+const METHOD_LABELS: Record<string, string> = {
+  self: "Self / auto-detected",
+  admin: "Admin override",
+  support_approval: "Support approval",
+};
+const SOURCE_LABELS: Record<string, string> = {
+  "geo-ip+signals": "Geo-IP + device signals",
+  signals: "Device signals only",
+};
+const TIER_LABELS: Record<string, string> = {
+  auto: "Auto-applied",
+  confirm: "One-tap confirmed",
+  pick: "Manual picker",
+};
+
+function ConfidenceBadge({ value }: { value: number | null }) {
+  if (value == null) {
+    return (
+      <span className="rounded-md border border-border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground/60">
+        No data
+      </span>
+    );
+  }
+  const tone =
+    value >= 90
+      ? "border-accent/30 bg-accent/10 text-accent"
+      : value >= 70
+        ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
+        : "border-destructive/30 bg-destructive/10 text-destructive";
+  return (
+    <span
+      className={`rounded-md border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider ${tone}`}
+      title="Blended detection confidence across IP, timezone, locale, currency & history"
+    >
+      {Math.round(value)}% confidence
+    </span>
+  );
+}
+
 function AdminRegionPage() {
   const listCustomers = useServerFn(adminListCustomerRegions);
   const listRequests = useServerFn(adminListRegionRequests);
@@ -194,27 +234,58 @@ function AdminRegionPage() {
               {customers.map((c) => (
                 <div
                   key={c.id}
-                  className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-background/60 p-3.5"
+                  className="rounded-2xl border border-border bg-background/60 p-3.5"
                 >
-                  <span className="font-medium">{c.full_name ?? "—"}</span>
-                  <Pill region={c.market_region} />
-                  {c.country_code && (
-                    <span className="text-[10px] font-mono uppercase text-muted-foreground/70">
-                      {c.country_code}
-                    </span>
-                  )}
-                  <div className="ml-auto flex gap-1.5">
-                    {(["india", "international"] as const).map((rg) => (
-                      <button
-                        key={rg}
-                        disabled={busy === c.id || c.market_region === rg}
-                        onClick={() => override(c.id, rg)}
-                        className="rounded-lg border border-border px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider hover:border-accent/40 disabled:opacity-40"
-                      >
-                        {rg === "india" ? "Set 🇮🇳" : "Set 🌍"}
-                      </button>
-                    ))}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{c.full_name ?? "—"}</span>
+                    <Pill region={c.market_region} />
+                    {c.currency && (
+                      <span className="rounded-md border border-border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                        {c.currency}
+                      </span>
+                    )}
+                    {(c.detectedCountry || c.country_code) && (
+                      <span className="text-[10px] font-mono uppercase text-muted-foreground/70">
+                        {c.detectedCountry || c.country_code}
+                      </span>
+                    )}
+                    <ConfidenceBadge value={c.confidence ?? null} />
+                    <div className="ml-auto flex gap-1.5">
+                      {(["india", "international"] as const).map((rg) => (
+                        <button
+                          key={rg}
+                          disabled={busy === c.id || c.market_region === rg}
+                          onClick={() => override(c.id, rg)}
+                          className="rounded-lg border border-border px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider hover:border-accent/40 disabled:opacity-40"
+                        >
+                          {rg === "india" ? "Set 🇮🇳" : "Set 🌍"}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                    <span>
+                      <span className="text-muted-foreground/60">Method: </span>
+                      {c.assignmentMethod ? METHOD_LABELS[c.assignmentMethod] ?? c.assignmentMethod : "—"}
+                    </span>
+                    <span>
+                      <span className="text-muted-foreground/60">Signals: </span>
+                      {c.detectionSource ? SOURCE_LABELS[c.detectionSource] ?? c.detectionSource : "—"}
+                    </span>
+                    {c.detectionTier && (
+                      <span>
+                        <span className="text-muted-foreground/60">UX tier: </span>
+                        {TIER_LABELS[c.detectionTier] ?? c.detectionTier}
+                      </span>
+                    )}
+                  </div>
+
+                  {c.detectionReasons && c.detectionReasons.length > 0 && (
+                    <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/70">
+                      {c.detectionReasons.join(" · ")}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
