@@ -31,25 +31,54 @@ const DESC: Record<string, string> = {
 function OverviewPage() {
   const { slug } = Route.useParams();
   return (
-    <ReadOnlySection slug={slug} sectionKey="" title="Product Overview" icon={<FileText className="size-4" />} cols={[]}>
-      {() => (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {PRODUCT_SECTIONS.map((s) => {
-            const Icon = ICONS[s.key] ?? FileText;
-            return (
-              <Link key={s.key} to={s.to} params={{ slug }}
-                className="group card-premium rounded-2xl p-4 hover:border-accent/40 transition-colors">
-                <div className="flex items-start justify-between">
-                  <span className="size-9 grid place-items-center rounded-xl bg-accent/10 text-accent"><Icon className="size-4" /></span>
-                  <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent transition-colors" />
-                </div>
-                <p className="mt-3 text-sm font-medium">{s.label}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{DESC[s.key]}</p>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+    <ReadOnlySection slug={slug} sectionKey="" title="Product Overview" icon={<FileText className="size-4" />} cols={STAT_COLS}>
+      {(r) => {
+        const views = Number(r.views_count ?? 0);
+        const orders = Number(r.orders_count ?? 0);
+        const revenue = Number(r.revenue ?? 0);
+        const conv = views > 0 ? (orders / views) * 100 : 0;
+        return (
+          <div className="space-y-4">
+            {/* Quick stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <QuickStat icon={<Eye className="size-4" />} label="Views" value={views.toLocaleString()} />
+              <QuickStat icon={<ShoppingCart className="size-4" />} label="Orders" value={orders.toLocaleString()} />
+              <QuickStat icon={<IndianRupee className="size-4" />} label="Revenue" value={inr(revenue)} />
+              <QuickStat icon={<TrendingUp className="size-4" />} label="Conversion" value={`${conv.toFixed(1)}%`} />
+            </div>
+
+            {/* Management cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {PRODUCT_SECTIONS.map((s) => {
+                const Icon = ICONS[s.key] ?? FileText;
+                return (
+                  <Link key={s.key} to={s.to} params={{ slug }}
+                    className="group card-premium rounded-2xl p-4 hover:border-accent/40 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <span className="size-9 grid place-items-center rounded-xl bg-accent/10 text-accent"><Icon className="size-4" /></span>
+                      <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent transition-colors" />
+                    </div>
+                    <p className="mt-3 text-sm font-medium">{s.label}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{DESC[s.key]}</p>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }}
     </ReadOnlySection>
+  );
+}
+
+function QuickStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="card-premium rounded-2xl p-4">
+      <div className="flex items-center gap-2 text-muted-foreground mb-2">
+        <span className="text-accent">{icon}</span>
+        <span className="text-[9px] font-mono uppercase tracking-[0.25em]">{label}</span>
+      </div>
+      <p className="text-xl font-display font-semibold tabular-nums">{value}</p>
+    </div>
   );
 }
