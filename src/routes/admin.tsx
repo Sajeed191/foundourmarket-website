@@ -36,6 +36,7 @@ export const Route = createFileRoute("/admin")({
 type Order = {
   id: string; user_id: string; status: string; total: number; currency: string;
   contact_email: string | null; created_at: string;
+  paid_at: string | null; fulfilled_at: string | null; cancelled_at: string | null;
   order_items: { name: string; quantity: number; product_slug?: string; unit_price?: number; line_total?: number }[];
 };
 
@@ -58,6 +59,14 @@ type Subscriber = {
 };
 
 const STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
+
+// Quick status actions with their associated lifecycle timestamp column.
+const QUICK_STATUSES: { value: string; label: string; field: "paid_at" | "fulfilled_at" | "cancelled_at" | null }[] = [
+  { value: "pending", label: "Pending", field: null },
+  { value: "paid", label: "Paid", field: "paid_at" },
+  { value: "fulfilled", label: "Fulfilled", field: "fulfilled_at" },
+  { value: "cancelled", label: "Cancelled", field: "cancelled_at" },
+];
 type Tab = "overview" | "orders" | "customers" | "products" | "categories" | "promos" | "subscribers";
 
 function AdminPage() {
@@ -91,7 +100,7 @@ function AdminPage() {
   useEffect(() => {
     if (!isAdmin) return;
     supabase.from("orders")
-      .select("id,user_id,status,total,currency,contact_email,created_at,order_items(name,quantity,product_slug,unit_price,line_total)")
+      .select("id,user_id,status,total,currency,contact_email,created_at,paid_at,fulfilled_at,cancelled_at,order_items(name,quantity,product_slug,unit_price,line_total)")
       .order("created_at", { ascending: false }).limit(500)
       .then(({ data }) => setOrders((data as Order[]) ?? []));
     loadProducts();
@@ -143,8 +152,12 @@ function AdminPage() {
 
   async function updateStatus(id: string, status: string) {
     setUpdating(id);
-    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
-    if (!error) setOrders((prev) => prev?.map((o) => o.id === id ? { ...o, status } : o) ?? null);
+    const field = QUICK_STATUSES.find((s) => s.value === status)?.field ?? null;
+    const now = new Date().toISOString();
+    const patch: { status: string; paid_at?: string; fulfilled_at?: string; cancelled_at?: string } = { status };
+    if (field) patch[field] = now;
+    const { error } = await supabase.from("orders").update(patch).eq("id", id);
+    if (!error) setOrders((prev) => prev?.map((o) => o.id === id ? { ...o, status, ...(field ? { [field]: now } : {}) } : o) ?? null);
     setUpdating(null);
   }
 
@@ -383,11 +396,21 @@ function AdminPage() {
                       <td className="px-5 py-3 text-xs truncate max-w-[180px]">{o.contact_email ?? "—"}</td>
                       <td className="px-5 py-3 text-xs text-muted-foreground">{units} unit{units === 1 ? "" : "s"} · {o.order_items.length} item{o.order_items.length === 1 ? "" : "s"}</td>
                       <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-2">
-                          <select value={o.status} onChange={(e) => updateStatus(o.id, e.target.value)} disabled={updating === o.id}
-                            className="bg-background border border-border rounded-md px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent">
-                            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                          </select>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {QUICK_STATUSES.map((s) => {
+                            const active = o.status === s.value;
+                            return (
+                              <button
+                                key={s.value}
+                                type="button"
+                                disabled={updating === o.id || active}
+                                onClick={() => updateStatus(o.id, s.value)}
+                                className={`rounded-md px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors disabled:opacity-60 ${active ? "bg-accent text-accent-foreground border border-accent" : "border border-border text-muted-foreground hover:border-accent hover:text-accent"}`}
+                              >
+                                {s.label}
+                              </button>
+                            );
+                          })}
                           {updating === o.id ? <Loader2 className="size-3 animate-spin text-muted-foreground" /> : null}
                         </div>
                       </td>
@@ -433,6 +456,9 @@ function AdminPage() {
                               <div className="flex justify-between gap-3"><span className="text-muted-foreground">User ID</span><span className="font-mono truncate max-w-[150px]">{o.user_id}</span></div>
                               <div className="flex justify-between gap-3"><span className="text-muted-foreground">Status</span><span className="uppercase">{o.status}</span></div>
                               <div className="flex justify-between gap-3"><span className="text-muted-foreground">Placed</span><span>{new Date(o.created_at).toLocaleString()}</span></div>
+                              {o.paid_at && <div className="flex justify-between gap-3"><span className="text-muted-foreground">Paid</span><span>{new Date(o.paid_at).toLocaleString()}</span></div>}
+                              {o.fulfilled_at && <div className="flex justify-between gap-3"><span className="text-muted-foreground">Fulfilled</span><span>{new Date(o.fulfilled_at).toLocaleString()}</span></div>}
+                              {o.cancelled_at && <div className="flex justify-between gap-3"><span className="text-muted-foreground">Cancelled</span><span>{new Date(o.cancelled_at).toLocaleString()}</span></div>}
                               <div className="flex justify-between gap-3 border-t border-white/10 pt-1.5 mt-1.5"><span className="text-muted-foreground">Total</span><span className="font-mono text-accent">{fmt(Number(o.total))}</span></div>
                             </div>
                           </div>
