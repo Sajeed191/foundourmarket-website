@@ -106,7 +106,7 @@ export function ProductCard({ product, compact }: { product: Product; compact?: 
     product.stockQuantity > 0 &&
     product.stockQuantity <= (product.lowStockThreshold || 10);
 
-  const subtitle = product.tagline || (product.category ? product.category.replace(/-/g, " ") : "");
+
 
   return (
     <div className="group product-card-glass overflow-hidden relative flex flex-col h-full p-1.5">
