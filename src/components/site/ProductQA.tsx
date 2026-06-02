@@ -4,7 +4,7 @@ import { MessageCircleQuestion, Loader2, Send, Trash2, CheckCircle2, Pencil } fr
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import brandLogo from "@/assets/logo.jpeg";
+const brandLogo = "/logo.webp";
 
 const draftKey = (slug: string) => `pq_draft_${slug}`;
 const pendingKey = (slug: string) => `pq_pending_${slug}`;

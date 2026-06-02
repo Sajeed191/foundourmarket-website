@@ -22,7 +22,7 @@ import { useCart } from "@/lib/cart";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { Product } from "@/lib/products";
-import logoSrc from "@/assets/logo.jpeg";
+const logoSrc = "/logo.webp";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "Account — FoundOurMarket™" }] }),
