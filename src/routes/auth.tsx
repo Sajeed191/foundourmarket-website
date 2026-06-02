@@ -5,6 +5,7 @@ import { Mail, Lock, User as UserIcon, Loader2, ShieldCheck, Sparkles, Truck, He
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
@@ -47,10 +48,11 @@ function AuthPage() {
 
   // Resolve the post-login destination (search param wins, else stored path, else account).
   const resolveDest = (): string => {
-    if (redirect && redirect.startsWith("/")) return redirect;
+    const fromParam = safeInternalPath(redirect);
+    if (fromParam) return fromParam;
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("post_auth_redirect");
-      if (stored && stored.startsWith("/")) {
+      const stored = safeInternalPath(localStorage.getItem("post_auth_redirect"));
+      if (stored) {
         localStorage.removeItem("post_auth_redirect");
         return stored;
       }
@@ -90,6 +92,22 @@ function AuthPage() {
       setBusy(false);
     }
   };
+
+  const onForgot = async () => {
+    setError(null);
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setError("Enter your account email above, then tap “Forgot password?”.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    setError(error ? error.message : "Reset link sent — check your inbox.");
+  };
+
+
 
   const onGoogle = async () => {
     setGoogleBusy(true);
@@ -248,6 +266,12 @@ function AuthPage() {
               <input required type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password"
                 className="w-full bg-white/[0.04] border border-white/10 text-white placeholder:text-white/40 rounded-full pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#FF7A00]" />
             </div>
+            {!isSignup && (
+              <button type="button" onClick={onForgot} disabled={busy}
+                className="block w-full text-right text-xs text-white/55 hover:text-white/80 transition-colors -mt-1">
+                Forgot password?
+              </button>
+            )}
             <motion.button
               whileTap={{ scale: 0.975 }}
               disabled={busy}

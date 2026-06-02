@@ -20,8 +20,12 @@ import { StarRating } from "@/components/site/StarRating";
 
 type ProfileMap = Record<string, { full_name: string | null; avatar_url: string | null }>;
 
+// Full column set incl. moderation/sentiment/fraud internals — admin moderation only.
 const REVIEW_COLS =
   "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, report_count, is_flagged, admin_reply, admin_reply_at, admin_reply_by, sentiment, sentiment_score, sentiment_summary, fake_score, fake_reasons, created_at";
+// Safe public columns — granted to anonymous visitors (no internal scoring exposed).
+const REVIEW_COLS_PUBLIC =
+  "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, admin_reply, admin_reply_at, created_at";
 
 export function ProductReviews({ productSlug, onAggregateChange }: { productSlug: string; onAggregateChange?: () => void }) {
   const { user } = useAuth();
@@ -56,10 +60,10 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("product_reviews")
-      .select(REVIEW_COLS)
+      .select((isAdmin ? REVIEW_COLS : REVIEW_COLS_PUBLIC) as string)
       .eq("product_slug", productSlug)
       .order("created_at", { ascending: false });
-    const list = ((data ?? []) as Review[]).map((r) => ({ ...r, media: (r.media ?? []) as ReviewMedia[] }));
+    const list = ((data ?? []) as unknown as Review[]).map((r) => ({ ...r, media: (r.media ?? []) as ReviewMedia[] }));
     // customers only see published; staff see everything
     const visible = list.filter((r) => r.status === "published");
     setReviews(isAdmin ? list : visible);

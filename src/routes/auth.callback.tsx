@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({ meta: [{ title: "Signing you in… — FoundOurMarket™" }] }),
@@ -15,8 +16,8 @@ function AuthCallback() {
 
   const dest = (): string => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("post_auth_redirect");
-      if (stored && stored.startsWith("/")) {
+      const stored = safeInternalPath(localStorage.getItem("post_auth_redirect"));
+      if (stored) {
         localStorage.removeItem("post_auth_redirect");
         return stored;
       }

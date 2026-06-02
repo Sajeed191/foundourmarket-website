@@ -17,6 +17,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ReturnRouteImport } from './routes/return'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as CompareRouteImport } from './routes/compare'
@@ -164,6 +165,11 @@ const ReturnsRoute = ReturnsRouteImport.update({
 const ReturnRoute = ReturnRouteImport.update({
   id: '/return',
   path: '/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -783,6 +789,7 @@ export interface FileRoutesByFullPath {
   '/compare': typeof CompareRoute
   '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -901,6 +908,7 @@ export interface FileRoutesByTo {
   '/compare': typeof CompareRoute
   '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -1019,6 +1027,7 @@ export interface FileRoutesById {
   '/compare': typeof CompareRoute
   '/deals': typeof DealsRoute
   '/help': typeof HelpRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -1139,6 +1148,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/deals'
     | '/help'
+    | '/reset-password'
     | '/return'
     | '/returns'
     | '/robots.txt'
@@ -1257,6 +1267,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/deals'
     | '/help'
+    | '/reset-password'
     | '/return'
     | '/returns'
     | '/robots.txt'
@@ -1374,6 +1385,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/deals'
     | '/help'
+    | '/reset-password'
     | '/return'
     | '/returns'
     | '/robots.txt'
@@ -1493,6 +1505,7 @@ export interface RootRouteChildren {
   CompareRoute: typeof CompareRoute
   DealsRoute: typeof DealsRoute
   HelpRoute: typeof HelpRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ReturnRoute: typeof ReturnRoute
   ReturnsRoute: typeof ReturnsRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
@@ -1593,6 +1606,13 @@ declare module '@tanstack/react-router' {
       path: '/return'
       fullPath: '/return'
       preLoaderRoute: typeof ReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -2486,6 +2506,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompareRoute: CompareRoute,
   DealsRoute: DealsRoute,
   HelpRoute: HelpRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   ReturnRoute: ReturnRoute,
   ReturnsRoute: ReturnsRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
@@ -2532,13 +2553,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
