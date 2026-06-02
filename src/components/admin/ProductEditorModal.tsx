@@ -102,6 +102,9 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const fileRef = useRef<HTMLInputElement>(null);
   // Pending badge assignments for a not-yet-saved product (flushed after insert).
   const [pendingBadges, setPendingBadges] = useState<string[]>([]);
+  const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
+
+
 
   // ---- Main category / subcategory hierarchy ----
   const initialCat = categories.find((c) => c.slug === (row?.category ?? ""));
