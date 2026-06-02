@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   FileText, IndianRupee, Boxes, Truck, RotateCcw, Search, Sparkles, BarChart3, Eye, ChevronRight,
   TrendingUp, ShoppingCart, Heart, CheckCircle2, AlertCircle, Loader2, Activity,
-  Globe as _Globe, Copy, Archive, Trash2, Send, EyeOff, ExternalLink, ShieldCheck, Lightbulb,
+  Copy, Archive, Trash2, Send, EyeOff, ExternalLink, ShieldCheck, Lightbulb,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
