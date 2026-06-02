@@ -15,8 +15,8 @@ function AuthCallback() {
 
   const dest = (): string => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("post_auth_redirect");
-      if (stored && stored.startsWith("/")) {
+      const stored = safeInternalPath(localStorage.getItem("post_auth_redirect"));
+      if (stored) {
         localStorage.removeItem("post_auth_redirect");
         return stored;
       }
