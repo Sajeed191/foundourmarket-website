@@ -82,6 +82,14 @@ export type Product = {
   relatedProducts: string[];
   crossSellProducts: string[];
   upsellProducts: string[];
+  // Manual merchandising labels
+  premium: boolean;
+  fastSelling: boolean;
+  editorsChoice: boolean;
+  // Sorting priority within a storefront section (1–100)
+  priorityScore: number | null;
+  // Named collections a product belongs to
+  collections: string[];
   // Analytics
   ordersCount: number;
   revenue: number;
