@@ -401,9 +401,41 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         onSubmit={save} onClick={(e) => e.stopPropagation()}
         className="w-full max-w-2xl glass-strong border border-white/10 rounded-t-3xl sm:rounded-3xl p-4 sm:p-5 max-h-[94vh] overflow-y-auto space-y-3"
       >
-        <div className="flex justify-between items-center sticky top-0 z-10 -mx-4 sm:-mx-5 px-4 sm:px-5 py-2 bg-background/80 backdrop-blur">
-          <h2 className="text-lg font-display">{row?.id ? "Edit product" : "New product"}</h2>
-          <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
+        <div className="sticky top-0 z-20 -mx-4 sm:-mx-5 px-4 sm:px-5 pt-2 pb-2 bg-background/90 backdrop-blur space-y-2">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-display">{row?.id ? "Edit product" : "New product"}</h2>
+            <button type="button" onClick={onClose} className="size-8 grid place-items-center rounded-full hover:bg-white/5"><X className="size-4" /></button>
+          </div>
+          <div className="flex gap-1 overflow-x-auto -mx-1 px-1">
+            {([
+              ["basic", "Basic Information"],
+              ["merch", "Merchandising"],
+              ["seo", "SEO"],
+              ["related", "Related"],
+              ["analytics", "Analytics"],
+              ["preview", "Preview"],
+            ] as const).map(([id, label]) => (
+              <button key={id} type="button" onClick={() => setTab(id)}
+                className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${tab === id ? "bg-accent/15 text-accent border border-accent/40" : "text-muted-foreground border border-transparent hover:bg-white/5"}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Product Health (Phase 3) */}
+        <div className={`rounded-2xl border p-3 flex items-center gap-4 ${health.tone}`}>
+          <div className="flex flex-col items-center justify-center shrink-0 pr-3 border-r border-white/10">
+            <span className="text-2xl font-display font-semibold tabular-nums leading-none">{health.score}%</span>
+            <span className="mt-1 text-[9px] font-mono uppercase tracking-[0.2em]">{health.status}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {health.checks.map((c) => (
+              <span key={c.label} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] ${c.ok ? "border-emerald-400/40 text-emerald-300" : "border-white/10 text-muted-foreground"}`}>
+                <span className={`size-1.5 rounded-full ${c.ok ? "bg-emerald-400" : "bg-muted-foreground/40"}`} />{c.label}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Image */}
