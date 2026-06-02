@@ -24,7 +24,7 @@ export function MobileBottomNav() {
     { to: "/search", label: "Search", icon: Search, match: (p) => p === "/search" || p.startsWith("/category") },
     { to: "/wishlist", label: "Saved", icon: Heart, match: (p) => p === "/wishlist", badge: slugs.size },
     { to: "/cart", label: "Cart", icon: ShoppingBag, match: (p) => p === "/cart", badge: count },
-    { to: user ? "/account" : "/auth", label: user ? "Me" : "Sign in", icon: User, match: (p) => p === "/account" || p === "/auth" },
+    { to: user ? "/account" : "/auth", label: "Account", icon: User, match: (p) => p === "/account" || p === "/auth" },
   ];
 
   return (
