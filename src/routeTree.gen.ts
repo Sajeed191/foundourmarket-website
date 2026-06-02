@@ -106,6 +106,15 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as CategoryMainSubRouteImport } from './routes/category.$main.$sub'
 import { Route as ApiPublicRazorpayWebhookRouteImport } from './routes/api/public/razorpay-webhook'
 import { Route as ApiPublicExpireOrdersRouteImport } from './routes/api/public/expire-orders'
+import { Route as AdminProductSlugShippingRouteImport } from './routes/admin-product.$slug.shipping'
+import { Route as AdminProductSlugSeoRouteImport } from './routes/admin-product.$slug.seo'
+import { Route as AdminProductSlugReturnsRouteImport } from './routes/admin-product.$slug.returns'
+import { Route as AdminProductSlugPricingRouteImport } from './routes/admin-product.$slug.pricing'
+import { Route as AdminProductSlugPreviewRouteImport } from './routes/admin-product.$slug.preview'
+import { Route as AdminProductSlugMerchandisingRouteImport } from './routes/admin-product.$slug.merchandising'
+import { Route as AdminProductSlugInventoryRouteImport } from './routes/admin-product.$slug.inventory'
+import { Route as AdminProductSlugDetailsRouteImport } from './routes/admin-product.$slug.details'
+import { Route as AdminProductSlugAnalyticsRouteImport } from './routes/admin-product.$slug.analytics'
 import { Route as AccountPaymentMethodsAddRouteImport } from './routes/account_.payment-methods.add'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -607,6 +616,55 @@ const ApiPublicExpireOrdersRoute = ApiPublicExpireOrdersRouteImport.update({
   path: '/api/public/expire-orders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminProductSlugShippingRoute =
+  AdminProductSlugShippingRouteImport.update({
+    id: '/shipping',
+    path: '/shipping',
+    getParentRoute: () => AdminProductSlugRoute,
+  } as any)
+const AdminProductSlugSeoRoute = AdminProductSlugSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => AdminProductSlugRoute,
+} as any)
+const AdminProductSlugReturnsRoute = AdminProductSlugReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => AdminProductSlugRoute,
+} as any)
+const AdminProductSlugPricingRoute = AdminProductSlugPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => AdminProductSlugRoute,
+} as any)
+const AdminProductSlugPreviewRoute = AdminProductSlugPreviewRouteImport.update({
+  id: '/preview',
+  path: '/preview',
+  getParentRoute: () => AdminProductSlugRoute,
+} as any)
+const AdminProductSlugMerchandisingRoute =
+  AdminProductSlugMerchandisingRouteImport.update({
+    id: '/merchandising',
+    path: '/merchandising',
+    getParentRoute: () => AdminProductSlugRoute,
+  } as any)
+const AdminProductSlugInventoryRoute =
+  AdminProductSlugInventoryRouteImport.update({
+    id: '/inventory',
+    path: '/inventory',
+    getParentRoute: () => AdminProductSlugRoute,
+  } as any)
+const AdminProductSlugDetailsRoute = AdminProductSlugDetailsRouteImport.update({
+  id: '/details',
+  path: '/details',
+  getParentRoute: () => AdminProductSlugRoute,
+} as any)
+const AdminProductSlugAnalyticsRoute =
+  AdminProductSlugAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AdminProductSlugRoute,
+  } as any)
 const AccountPaymentMethodsAddRoute =
   AccountPaymentMethodsAddRouteImport.update({
     id: '/account_/payment-methods/add',
@@ -752,6 +810,15 @@ export interface FileRoutesByFullPath {
   '/products/new-arrivals': typeof ProductsNewArrivalsRoute
   '/products/trending': typeof ProductsTrendingRoute
   '/account/payment-methods/add': typeof AccountPaymentMethodsAddRoute
+  '/admin-product/$slug/analytics': typeof AdminProductSlugAnalyticsRoute
+  '/admin-product/$slug/details': typeof AdminProductSlugDetailsRoute
+  '/admin-product/$slug/inventory': typeof AdminProductSlugInventoryRoute
+  '/admin-product/$slug/merchandising': typeof AdminProductSlugMerchandisingRoute
+  '/admin-product/$slug/preview': typeof AdminProductSlugPreviewRoute
+  '/admin-product/$slug/pricing': typeof AdminProductSlugPricingRoute
+  '/admin-product/$slug/returns': typeof AdminProductSlugReturnsRoute
+  '/admin-product/$slug/seo': typeof AdminProductSlugSeoRoute
+  '/admin-product/$slug/shipping': typeof AdminProductSlugShippingRoute
   '/api/public/expire-orders': typeof ApiPublicExpireOrdersRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/category/$main/$sub': typeof CategoryMainSubRoute
@@ -859,6 +926,15 @@ export interface FileRoutesByTo {
   '/products/new-arrivals': typeof ProductsNewArrivalsRoute
   '/products/trending': typeof ProductsTrendingRoute
   '/account/payment-methods/add': typeof AccountPaymentMethodsAddRoute
+  '/admin-product/$slug/analytics': typeof AdminProductSlugAnalyticsRoute
+  '/admin-product/$slug/details': typeof AdminProductSlugDetailsRoute
+  '/admin-product/$slug/inventory': typeof AdminProductSlugInventoryRoute
+  '/admin-product/$slug/merchandising': typeof AdminProductSlugMerchandisingRoute
+  '/admin-product/$slug/preview': typeof AdminProductSlugPreviewRoute
+  '/admin-product/$slug/pricing': typeof AdminProductSlugPricingRoute
+  '/admin-product/$slug/returns': typeof AdminProductSlugReturnsRoute
+  '/admin-product/$slug/seo': typeof AdminProductSlugSeoRoute
+  '/admin-product/$slug/shipping': typeof AdminProductSlugShippingRoute
   '/api/public/expire-orders': typeof ApiPublicExpireOrdersRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/category/$main/$sub': typeof CategoryMainSubRoute
@@ -968,6 +1044,15 @@ export interface FileRoutesById {
   '/products/new-arrivals': typeof ProductsNewArrivalsRoute
   '/products/trending': typeof ProductsTrendingRoute
   '/account_/payment-methods/add': typeof AccountPaymentMethodsAddRoute
+  '/admin-product/$slug/analytics': typeof AdminProductSlugAnalyticsRoute
+  '/admin-product/$slug/details': typeof AdminProductSlugDetailsRoute
+  '/admin-product/$slug/inventory': typeof AdminProductSlugInventoryRoute
+  '/admin-product/$slug/merchandising': typeof AdminProductSlugMerchandisingRoute
+  '/admin-product/$slug/preview': typeof AdminProductSlugPreviewRoute
+  '/admin-product/$slug/pricing': typeof AdminProductSlugPricingRoute
+  '/admin-product/$slug/returns': typeof AdminProductSlugReturnsRoute
+  '/admin-product/$slug/seo': typeof AdminProductSlugSeoRoute
+  '/admin-product/$slug/shipping': typeof AdminProductSlugShippingRoute
   '/api/public/expire-orders': typeof ApiPublicExpireOrdersRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/category/$main/$sub': typeof CategoryMainSubRoute
@@ -1078,6 +1163,15 @@ export interface FileRouteTypes {
     | '/products/new-arrivals'
     | '/products/trending'
     | '/account/payment-methods/add'
+    | '/admin-product/$slug/analytics'
+    | '/admin-product/$slug/details'
+    | '/admin-product/$slug/inventory'
+    | '/admin-product/$slug/merchandising'
+    | '/admin-product/$slug/preview'
+    | '/admin-product/$slug/pricing'
+    | '/admin-product/$slug/returns'
+    | '/admin-product/$slug/seo'
+    | '/admin-product/$slug/shipping'
     | '/api/public/expire-orders'
     | '/api/public/razorpay-webhook'
     | '/category/$main/$sub'
@@ -1185,6 +1279,15 @@ export interface FileRouteTypes {
     | '/products/new-arrivals'
     | '/products/trending'
     | '/account/payment-methods/add'
+    | '/admin-product/$slug/analytics'
+    | '/admin-product/$slug/details'
+    | '/admin-product/$slug/inventory'
+    | '/admin-product/$slug/merchandising'
+    | '/admin-product/$slug/preview'
+    | '/admin-product/$slug/pricing'
+    | '/admin-product/$slug/returns'
+    | '/admin-product/$slug/seo'
+    | '/admin-product/$slug/shipping'
     | '/api/public/expire-orders'
     | '/api/public/razorpay-webhook'
     | '/category/$main/$sub'
@@ -1293,6 +1396,15 @@ export interface FileRouteTypes {
     | '/products/new-arrivals'
     | '/products/trending'
     | '/account_/payment-methods/add'
+    | '/admin-product/$slug/analytics'
+    | '/admin-product/$slug/details'
+    | '/admin-product/$slug/inventory'
+    | '/admin-product/$slug/merchandising'
+    | '/admin-product/$slug/preview'
+    | '/admin-product/$slug/pricing'
+    | '/admin-product/$slug/returns'
+    | '/admin-product/$slug/seo'
+    | '/admin-product/$slug/shipping'
     | '/api/public/expire-orders'
     | '/api/public/razorpay-webhook'
     | '/category/$main/$sub'
@@ -2093,6 +2205,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicExpireOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-product/$slug/shipping': {
+      id: '/admin-product/$slug/shipping'
+      path: '/shipping'
+      fullPath: '/admin-product/$slug/shipping'
+      preLoaderRoute: typeof AdminProductSlugShippingRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
+    '/admin-product/$slug/seo': {
+      id: '/admin-product/$slug/seo'
+      path: '/seo'
+      fullPath: '/admin-product/$slug/seo'
+      preLoaderRoute: typeof AdminProductSlugSeoRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
+    '/admin-product/$slug/returns': {
+      id: '/admin-product/$slug/returns'
+      path: '/returns'
+      fullPath: '/admin-product/$slug/returns'
+      preLoaderRoute: typeof AdminProductSlugReturnsRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
+    '/admin-product/$slug/pricing': {
+      id: '/admin-product/$slug/pricing'
+      path: '/pricing'
+      fullPath: '/admin-product/$slug/pricing'
+      preLoaderRoute: typeof AdminProductSlugPricingRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
+    '/admin-product/$slug/preview': {
+      id: '/admin-product/$slug/preview'
+      path: '/preview'
+      fullPath: '/admin-product/$slug/preview'
+      preLoaderRoute: typeof AdminProductSlugPreviewRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
+    '/admin-product/$slug/merchandising': {
+      id: '/admin-product/$slug/merchandising'
+      path: '/merchandising'
+      fullPath: '/admin-product/$slug/merchandising'
+      preLoaderRoute: typeof AdminProductSlugMerchandisingRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
+    '/admin-product/$slug/inventory': {
+      id: '/admin-product/$slug/inventory'
+      path: '/inventory'
+      fullPath: '/admin-product/$slug/inventory'
+      preLoaderRoute: typeof AdminProductSlugInventoryRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
+    '/admin-product/$slug/details': {
+      id: '/admin-product/$slug/details'
+      path: '/details'
+      fullPath: '/admin-product/$slug/details'
+      preLoaderRoute: typeof AdminProductSlugDetailsRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
+    '/admin-product/$slug/analytics': {
+      id: '/admin-product/$slug/analytics'
+      path: '/analytics'
+      fullPath: '/admin-product/$slug/analytics'
+      preLoaderRoute: typeof AdminProductSlugAnalyticsRouteImport
+      parentRoute: typeof AdminProductSlugRoute
+    }
     '/account_/payment-methods/add': {
       id: '/account_/payment-methods/add'
       path: '/account/payment-methods/add'
@@ -2202,10 +2377,28 @@ const HelpRouteChildren: HelpRouteChildren = {
 const HelpRouteWithChildren = HelpRoute._addFileChildren(HelpRouteChildren)
 
 interface AdminProductSlugRouteChildren {
+  AdminProductSlugAnalyticsRoute: typeof AdminProductSlugAnalyticsRoute
+  AdminProductSlugDetailsRoute: typeof AdminProductSlugDetailsRoute
+  AdminProductSlugInventoryRoute: typeof AdminProductSlugInventoryRoute
+  AdminProductSlugMerchandisingRoute: typeof AdminProductSlugMerchandisingRoute
+  AdminProductSlugPreviewRoute: typeof AdminProductSlugPreviewRoute
+  AdminProductSlugPricingRoute: typeof AdminProductSlugPricingRoute
+  AdminProductSlugReturnsRoute: typeof AdminProductSlugReturnsRoute
+  AdminProductSlugSeoRoute: typeof AdminProductSlugSeoRoute
+  AdminProductSlugShippingRoute: typeof AdminProductSlugShippingRoute
   AdminProductSlugIndexRoute: typeof AdminProductSlugIndexRoute
 }
 
 const AdminProductSlugRouteChildren: AdminProductSlugRouteChildren = {
+  AdminProductSlugAnalyticsRoute: AdminProductSlugAnalyticsRoute,
+  AdminProductSlugDetailsRoute: AdminProductSlugDetailsRoute,
+  AdminProductSlugInventoryRoute: AdminProductSlugInventoryRoute,
+  AdminProductSlugMerchandisingRoute: AdminProductSlugMerchandisingRoute,
+  AdminProductSlugPreviewRoute: AdminProductSlugPreviewRoute,
+  AdminProductSlugPricingRoute: AdminProductSlugPricingRoute,
+  AdminProductSlugReturnsRoute: AdminProductSlugReturnsRoute,
+  AdminProductSlugSeoRoute: AdminProductSlugSeoRoute,
+  AdminProductSlugShippingRoute: AdminProductSlugShippingRoute,
   AdminProductSlugIndexRoute: AdminProductSlugIndexRoute,
 }
 
@@ -2318,3 +2511,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
