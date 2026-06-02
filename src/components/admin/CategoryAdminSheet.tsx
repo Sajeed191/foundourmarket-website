@@ -775,8 +775,17 @@ export function CategoryAdminSheet({
                 />
               </div>
 
-              <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
-                {(["all", "published", "draft", "hidden", "archived"] as const).map((f) => (
+              <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1">
+                {(
+                  [
+                    ["all", "All"],
+                    ["main", "Main"],
+                    ["sub", "Subcategories"],
+                    ["visible", "Visible"],
+                    ["hidden", "Hidden"],
+                    ["empty", "Empty"],
+                  ] as const
+                ).map(([f, label]) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
@@ -787,102 +796,98 @@ export function CategoryAdminSheet({
                         : "border-white/10 text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    {f}
+                    {label}
                   </button>
                 ))}
               </div>
+
+              {selected.size > 0 && (
+                <div className="mb-3 flex items-center gap-1.5 rounded-xl border border-accent/30 bg-accent/[0.06] p-2">
+                  <span className="ml-1 text-[10px] font-mono uppercase tracking-widest text-accent">
+                    {selected.size} selected
+                  </span>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <QuickBtn onClick={() => bulkVisibility(true)} title="Show">
+                      <Eye className="size-3.5" />
+                    </QuickBtn>
+                    <QuickBtn onClick={() => bulkVisibility(false)} title="Hide">
+                      <EyeOff className="size-3.5" />
+                    </QuickBtn>
+                    <QuickBtn onClick={bulkDelete} title="Delete" danger>
+                      <Trash2 className="size-3.5" />
+                    </QuickBtn>
+                    <button
+                      onClick={() => setSelected(new Set())}
+                      className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {loading ? (
                 <div className="grid place-items-center py-16">
                   <Loader2 className="size-5 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <ul className="space-y-2">
-                  {visible.map((r, i) => (
-                    <li
-                      key={r.id}
-                      className="rounded-xl border border-white/10 bg-white/[0.02] p-2.5"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="flex shrink-0 flex-col">
-                          <button
-                            onClick={() => reorder(r, "up")}
-                            disabled={i === 0}
-                            className="grid size-5 place-items-center rounded text-muted-foreground/60 hover:text-accent disabled:opacity-20"
-                            aria-label="Move up"
-                          >
-                            <ArrowUp className="size-3.5" />
-                          </button>
-                          <button
-                            onClick={() => reorder(r, "down")}
-                            disabled={i === visible.length - 1}
-                            className="grid size-5 place-items-center rounded text-muted-foreground/60 hover:text-accent disabled:opacity-20"
-                            aria-label="Move down"
-                          >
-                            <ArrowDown className="size-3.5" />
-                          </button>
-                        </div>
-                        <div className="size-11 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
-                          {r.image ? (
-                            <img src={r.image} alt="" className="size-full object-cover" />
-                          ) : (
-                            <div className="grid size-full place-items-center text-muted-foreground/40">
-                              <Tag className="size-4" />
-                            </div>
-                          )}
-                        </div>
-                        <button onClick={() => open(r)} className="min-w-0 flex-1 text-left">
-                          <div className="flex items-center gap-1.5">
-                            <p className="truncate text-sm">{r.name}</p>
-                            {r.featured && <Star className="size-3 shrink-0 text-accent" />}
-                            {r.trending && <Flame className="size-3 shrink-0 text-orange-400" />}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={cn(
-                                "rounded border px-1.5 py-px text-[8px] font-mono uppercase tracking-wider",
-                                STATUS_META[r.status].cls,
-                              )}
+                <div className="space-y-2.5">
+                  {groups.out.map(({ main, subs, totalSubs }, mi) => {
+                    const isCollapsed = collapsed.has(main.id);
+                    return (
+                      <div key={main.id} className="space-y-1.5">
+                        <div className="flex items-stretch gap-1">
+                          {totalSubs > 0 ? (
+                            <button
+                              onClick={() => toggleCollapse(main.id)}
+                              className="grid w-6 shrink-0 place-items-center rounded-lg border border-white/10 text-muted-foreground hover:text-accent"
+                              aria-label={isCollapsed ? "Expand" : "Collapse"}
                             >
-                              {STATUS_META[r.status].label}
-                            </span>
-                            <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
-                              {productCounts[r.slug] ?? 0} items
-                            </span>
-                          </div>
-                        </button>
-                      </div>
-                      <div className="mt-2 flex items-center gap-1.5 border-t border-white/5 pt-2">
-                        <QuickBtn
-                          onClick={() =>
-                            quickStatus(r, r.status === "published" ? "hidden" : "published")
-                          }
-                          title={r.status === "published" ? "Unpublish" : "Publish"}
-                        >
-                          {r.status === "published" ? (
-                            <EyeOff className="size-3.5" />
+                              {isCollapsed ? (
+                                <ChevronRight className="size-4" />
+                              ) : (
+                                <ChevronDown className="size-4" />
+                              )}
+                            </button>
                           ) : (
-                            <Eye className="size-3.5" />
+                            <div className="w-6 shrink-0" />
                           )}
-                        </QuickBtn>
-                        <QuickBtn onClick={() => duplicate(r)} title="Duplicate">
-                          <Copy className="size-3.5" />
-                        </QuickBtn>
-                        <span className="ml-auto flex items-center gap-2 text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
-                          <BarChart3 className="size-3" /> {r.views}v · {r.clicks}c
-                        </span>
-                        <QuickBtn onClick={() => del(r.id)} title="Delete" danger>
-                          <Trash2 className="size-3.5" />
-                        </QuickBtn>
+                          <div className="min-w-0 flex-1">
+                            {renderCard(main, false, mi, groups.out.length)}
+                          </div>
+                        </div>
+                        {!isCollapsed &&
+                          subs.map((s, si) => (
+                            <div key={s.id} className="flex items-stretch gap-1">
+                              <div className="flex w-6 shrink-0 justify-center">
+                                <span className="w-px bg-white/10" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                {renderCard(s, true, si, subs.length)}
+                              </div>
+                            </div>
+                          ))}
                       </div>
-                    </li>
-                  ))}
-                  {visible.length === 0 && (
-                    <li className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">
-                      No categories match.
-                    </li>
+                    );
+                  })}
+
+                  {groups.orphans.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="px-1 text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
+                        Ungrouped
+                      </p>
+                      {groups.orphans.map((s, si) => (
+                        <div key={s.id}>{renderCard(s, true, si, groups.orphans.length)}</div>
+                      ))}
+                    </div>
                   )}
-                </ul>
+
+                  {groups.out.length === 0 && groups.orphans.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">
+                      No categories match.
+                    </div>
+                  )}
+                </div>
               )}
             </>
           )}
