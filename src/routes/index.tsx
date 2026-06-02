@@ -682,7 +682,7 @@ function Home() {
         </Reveal>
 
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-5 sm:mb-8">
           {[
             { icon: Users, value: 50000, suffix: "+", label: "Happy customers" },
             { icon: Package, value: 10000, suffix: "+", label: "Products available" },
