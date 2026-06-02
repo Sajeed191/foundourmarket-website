@@ -427,8 +427,7 @@ function Home() {
                 onBlur={() => setSearchFocused(false)}
                 placeholder={rotatingPlaceholder}
                 aria-label="Search products"
-                className="w-full min-h-[56px] bg-transparent rounded-full pl-13 sm:pl-15 pr-28 sm:pr-36 py-4 text-base sm:text-lg focus:outline-none placeholder:text-muted-foreground/60"
-                style={{ paddingLeft: "3.25rem" }}
+                className="w-full min-h-[56px] bg-transparent rounded-full pl-12 sm:pl-14 pr-28 sm:pr-36 py-4 text-base sm:text-lg focus:outline-none placeholder:text-muted-foreground/60"
               />
               <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-semibold px-5 sm:px-7 py-3 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-[var(--shadow-ember)]">
                 Search
