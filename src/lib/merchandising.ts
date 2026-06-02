@@ -76,19 +76,15 @@ export async function persistOrder(ids: string[]): Promise<void> {
 }
 
 export async function setFlag(id: string, flag: string, value: boolean): Promise<void> {
-  const { error } = await supabase
-    .from("products")
-    .update({ [flag]: value, updated_at: new Date().toISOString() })
-    .eq("id", id);
+  const payload = { [flag]: value, updated_at: new Date().toISOString() } as never;
+  const { error } = await supabase.from("products").update(payload).eq("id", id);
   if (error) throw error;
 }
 
 export async function setFlagBulk(ids: string[], flag: string, value: boolean): Promise<void> {
   if (!ids.length) return;
-  const { error } = await supabase
-    .from("products")
-    .update({ [flag]: value, updated_at: new Date().toISOString() })
-    .in("id", ids);
+  const payload = { [flag]: value, updated_at: new Date().toISOString() } as never;
+  const { error } = await supabase.from("products").update(payload).in("id", ids);
   if (error) throw error;
 }
 
