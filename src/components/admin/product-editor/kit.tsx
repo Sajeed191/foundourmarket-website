@@ -169,7 +169,7 @@ function ProductHeaderStrip({ h, active }: { h: ProductHeaderInfo; active?: stri
       {active && (
         <div className="flex gap-1 overflow-x-auto mt-3 -mx-1 px-1">
           {SECTIONS.map((s) => (
-            <Link key={s.key} to={`/admin-product/$slug/${s.key}` as string} params={{ slug: h.slug }}
+            <Link key={s.key} to={s.to} params={{ slug: h.slug }}
               className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                 active === s.key ? "bg-accent/15 text-accent border border-accent/40" : "text-muted-foreground border border-transparent hover:bg-white/5"
               }`}>
