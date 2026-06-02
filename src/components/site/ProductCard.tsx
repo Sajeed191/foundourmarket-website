@@ -55,13 +55,13 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
             className="relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.05]"
           />
 
-          {/* Essential badge — Discount OR New, top-left only */}
+          {/* Essential badge — Discount OR New, top-left only. Clean & compact. */}
           {discount ? (
-            <span className="absolute top-2.5 left-2.5 inline-flex items-center rounded-full bg-gradient-to-br from-accent to-[oklch(0.66_0.19_38)] text-black font-extrabold font-mono text-[11px] px-2.5 py-1 shadow-[var(--shadow-ember)] ring-1 ring-black/10">
+            <span className="absolute top-2 left-2 inline-flex items-center rounded-md bg-accent text-black font-bold font-mono text-[10px] leading-none px-1.5 py-1 ring-1 ring-black/10">
               -{discount}%
             </span>
           ) : showNew ? (
-            <span className="absolute top-2.5 left-2.5 inline-flex items-center rounded-full bg-white/90 text-black font-bold font-mono uppercase tracking-wider text-[10px] px-2.5 py-1 shadow-sm ring-1 ring-black/5">
+            <span className="absolute top-2 left-2 inline-flex items-center rounded-md bg-white/90 text-black font-bold font-mono uppercase tracking-wide text-[9px] leading-none px-1.5 py-1 ring-1 ring-black/5">
               New
             </span>
           ) : null}
