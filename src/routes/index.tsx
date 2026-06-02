@@ -505,16 +505,13 @@ function Home() {
         </div>
       </section>
 
-      {/* 2 · Featured Collection Banner */}
-      <section className="px-4 sm:px-6 pt-2 sm:pt-4">
-        <PromoBannerCarousel types={["hero"]} maxItems={3} eyebrow="Featured Collection" />
+      {/* Flash sale strip — high-intent conversion driver under the hero */}
+      <section className="px-4 sm:px-6 pt-2">
         <FlashSaleStrip />
       </section>
 
-      <CinematicDivider />
-
       {/* 3 · Trust Bar — horizontal scroll premium glass cards */}
-      <section className="py-6 sm:py-10 max-w-7xl mx-auto">
+      <section className="py-4 sm:py-7 max-w-7xl mx-auto">
         <div className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar px-4 sm:px-6 snap-x snap-mandatory sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible">
           {[
             { icon: Lock, title: "Secure Checkout", desc: "Bank-grade encryption." },
