@@ -160,6 +160,7 @@ function ProductsInner() {
   const [view, setView] = useState<"active" | "recycle">("active");
   const [tag, setTag] = useState<TagFilter>("all");
   const [editing, setEditing] = useState<Product | "new" | null>(null);
+  const navigate = useNavigate();
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
