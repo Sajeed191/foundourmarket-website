@@ -464,8 +464,8 @@ function Home() {
       {/* Trust strip — compact, between hero and categories */}
       <TrustBadgesStrip />
 
-      {/* 3 · Main Categories — icon-led marketplace grid */}
-      <section id="categories" className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto scroll-mt-24">
+      {/* 3 · Main Categories — premium 2-column marketplace grid */}
+      <section id="categories" className="px-4 sm:px-6 py-5 sm:py-8 max-w-7xl mx-auto scroll-mt-24">
         <div className="relative">
           <SectionHeader eyebrow="Browse" title="Main Categories" href="/categories" />
           {isProductAdmin && (
@@ -477,7 +477,7 @@ function Home() {
             </button>
           )}
         </div>
-        <div className="grid grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
           {homeCategories.map((cat, i) => {
             const Icon = iconForCategory(cat.slug, cat.name);
             const hasImage = !!(cat.image || cat.mobile_image);
@@ -488,11 +488,11 @@ function Home() {
                     to="/category/$slug"
                     params={{ slug: cat.slug }}
                     onClick={() => { void supabase.rpc("track_category_event", { _id: cat.id, _event: "click" }); }}
-                    className={`group product-card-glass relative flex h-full flex-col items-center gap-2 p-2 sm:p-3 text-center hover:-translate-y-1 ${isProductAdmin && !cat.homepage_visible ? "opacity-50" : ""}`}
+                    className={`group relative flex h-full flex-col items-center gap-2.5 sm:gap-3 p-2.5 sm:p-4 text-center rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm shadow-[0_2px_12px_-4px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_8px_32px_-8px_oklch(0.74_0.19_49/0.45)] active:scale-[0.97] ${isProductAdmin && !cat.homepage_visible ? "opacity-50" : ""}`}
                   >
-                    {/* Image above name — 1:1, inside a premium rounded capsule.
+                    {/* Image above name — 1:1, premium rounded capsule.
                         Falls back to an icon inside a soft glass capsule. */}
-                    <div className="relative w-full aspect-square overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-[inset_0_1px_0_oklch(1_0_0/0.06)]">
+                    <div className="relative w-full aspect-square overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
                       {hasImage ? (
                         <img
                           src={cat.mobile_image || cat.image || ""}
@@ -502,15 +502,15 @@ function Home() {
                         />
                       ) : (
                         <div className="size-full grid place-items-center">
-                          <span className="grid size-11 sm:size-14 place-items-center rounded-full bg-accent/12 text-accent ring-1 ring-accent/25 shadow-[0_0_24px_-8px_oklch(0.74_0.19_49/0.55)] transition-colors group-hover:bg-accent/20">
-                            <Icon className="size-5 sm:size-6" />
+                          <span className="grid size-14 sm:size-16 place-items-center rounded-full bg-accent/12 text-accent ring-1 ring-accent/25 shadow-[0_0_28px_-6px_oklch(0.74_0.19_49/0.6)] transition-colors group-hover:bg-accent/20">
+                            <Icon className="size-6 sm:size-7" />
                           </span>
                         </div>
                       )}
                     </div>
-                    <div className="mt-auto w-full">
-                      <h3 className="text-[11px] sm:text-sm font-semibold tracking-tight leading-tight line-clamp-1 text-white group-hover:text-accent transition-colors">{cat.name}</h3>
-                      <span className="block text-[8px] sm:text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-0.5">
+                    <div className="mt-auto w-full pb-0.5">
+                      <h3 className="text-[13px] sm:text-[15px] font-semibold tracking-tight leading-snug line-clamp-1 text-white group-hover:text-accent transition-colors">{cat.name}</h3>
+                      <span className="block text-[9px] sm:text-[11px] text-muted-foreground font-mono uppercase tracking-widest mt-1">
                         {categoryCounts[cat.slug] ?? 0} items
                       </span>
                     </div>
@@ -535,17 +535,17 @@ function Home() {
             <Reveal delay={homeCategories.length} className="h-full">
               <Link
                 to="/categories"
-                className="group relative flex h-full flex-col items-center gap-2 p-2 sm:p-3 text-center rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/15 via-accent/5 to-transparent shadow-[0_0_30px_-12px_oklch(0.74_0.19_49/0.6)] hover:-translate-y-1 hover:border-accent/60 transition-all"
+                className="group relative flex h-full flex-col items-center gap-2.5 sm:gap-3 p-2.5 sm:p-4 text-center rounded-2xl border border-accent/50 bg-gradient-to-br from-accent/20 via-accent/10 to-transparent shadow-[0_0_40px_-12px_oklch(0.74_0.19_49/0.7)] hover:-translate-y-1 hover:border-accent/70 hover:shadow-[0_0_50px_-10px_oklch(0.74_0.19_49/0.85)] active:scale-[0.97] transition-all duration-300"
               >
-                <div className="relative w-full aspect-square grid place-items-center rounded-2xl bg-accent/10 ring-1 ring-accent/30">
-                  <span className="grid size-11 sm:size-14 place-items-center rounded-full bg-accent text-accent-foreground shadow-[0_0_30px_-6px_oklch(0.74_0.19_49/0.8)] transition-transform group-hover:scale-105">
-                    <ArrowRight className="size-5 sm:size-6" />
+                <div className="relative w-full aspect-square grid place-items-center rounded-2xl bg-accent/15 ring-1 ring-accent/40">
+                  <span className="grid size-14 sm:size-16 place-items-center rounded-full bg-accent text-accent-foreground shadow-[0_0_36px_-4px_oklch(0.74_0.19_49/0.9)] transition-transform duration-300 group-hover:scale-110">
+                    <ArrowRight className="size-6 sm:size-7" />
                   </span>
                 </div>
-                <div className="mt-auto w-full">
-                  <h3 className="text-[11px] sm:text-sm font-semibold tracking-tight leading-tight text-accent">Explore All Categories</h3>
-                  <span className="block text-[8px] sm:text-[10px] text-accent/70 font-mono uppercase tracking-widest mt-0.5">
-                    Browse everything
+                <div className="mt-auto w-full pb-0.5">
+                  <h3 className="text-[13px] sm:text-[15px] font-semibold tracking-tight leading-snug text-accent group-hover:text-accent transition-colors">Explore All Categories</h3>
+                  <span className="block text-[9px] sm:text-[11px] text-accent/70 font-mono uppercase tracking-widest mt-1">
+                    Browse Entire Marketplace
                   </span>
                 </div>
               </Link>
