@@ -748,7 +748,7 @@ function ProductPage() {
         </div>
       </LazyMount>
       <LazyMount minHeight={260}>
-        <ProductHighlights highlights={product.highlights} />
+        <ProductHighlights />
       </LazyMount>
       <LazyMount minHeight={260}>
         <TrustGuarantee />
