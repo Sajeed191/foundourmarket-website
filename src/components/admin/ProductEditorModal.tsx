@@ -92,6 +92,58 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
   );
 }
 
+const COLLECTION_SUGGESTIONS = [
+  "Electronics Collection", "Gaming Collection", "Summer Collection",
+  "Gift Collection", "Fitness Collection", "Home & Living Collection",
+  "Office Collection", "Travel Collection",
+];
+
+function CollectionsField({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const [query, setQuery] = useState("");
+  const add = (c: string) => {
+    const v = c.trim();
+    if (!v || value.includes(v)) return;
+    onChange([...value, v]);
+    setQuery("");
+  };
+  const remove = (c: string) => onChange(value.filter((x) => x !== c));
+  const matches = COLLECTION_SUGGESTIONS.filter(
+    (c) => !value.includes(c) && c.toLowerCase().includes(query.toLowerCase()),
+  );
+  return (
+    <div>
+      <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Collections</label>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {value.map((c) => (
+            <span key={c} className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[11px] text-accent">
+              {c}
+              <button type="button" onClick={() => remove(c)} className="hover:text-foreground"><X className="size-3" /></button>
+            </span>
+          ))}
+        </div>
+      )}
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(query); } }}
+        placeholder="Search or add a collection, press Enter…"
+        className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40"
+      />
+      {query && matches.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {matches.map((c) => (
+            <button key={c} type="button" onClick={() => add(c)}
+              className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-accent/40 hover:text-accent">
+              + {c}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved }: {
   row: ProductEditorRow | null; categories: Category[]; nextSort?: number; onClose: () => void; onSaved: () => void;
 }) {
