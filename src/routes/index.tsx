@@ -547,6 +547,7 @@ function Home() {
             products={trending}
             isAdmin={isProductAdmin}
             active={sections.trending.active}
+            viewAllTo="/products/trending"
             prominent
             minHeight={320}
           />
@@ -558,6 +559,7 @@ function Home() {
             products={newArrivals}
             isAdmin={isProductAdmin}
             active={sections.new_arrivals.active}
+            viewAllTo="/products/new-arrivals"
           />
           <ProductSection
             sectionKey="best_sellers"
@@ -567,6 +569,7 @@ function Home() {
             products={bestSellers}
             isAdmin={isProductAdmin}
             active={sections.best_sellers.active}
+            viewAllTo="/products/best-sellers"
           />
         </>
       )}
