@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, Users, BarChart3, Megaphone, Zap, Target,
   FileText, Truck, RotateCcw, Pencil, Activity, Wallet, Globe, Search,
   Boxes, Loader2, ShieldAlert, Menu, X, Sparkles, TrendingUp, ShoppingCart,
-  Cpu, ChevronRight, Mail, ShieldBan, Inbox, PackageCheck, MailCheck, LifeBuoy, Database, Images, Bell, Gem, Crown, Store, UserCog,
+  Cpu, ChevronRight, Mail, ShieldBan, Inbox, PackageCheck, MailCheck, LifeBuoy, Database, Images, Bell, Gem, Crown, Store, UserCog, AlertTriangle, Trophy, ShieldCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -47,6 +47,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-shipments", label: "Shipments", icon: Truck, roles: ["admin", "super_admin", "manager", "fulfillment", "warehouse_staff"] },
       { to: "/admin-returns", label: "Returns", icon: RotateCcw, roles: ["admin", "super_admin", "manager", "support"] },
       { to: "/admin-inventory", label: "Inventory", icon: Boxes, roles: ["admin", "super_admin", "manager", "warehouse_staff"] },
+      { to: "/admin-low-stock", label: "Low Stock Center", icon: AlertTriangle, roles: ["admin", "super_admin", "manager", "warehouse_staff"] },
       { to: "/admin-inventory-intelligence", label: "Inventory Intelligence", icon: Cpu, roles: ["admin", "super_admin", "manager", "warehouse_staff"] },
     ],
   },
@@ -69,6 +70,8 @@ const NAV: { group: string; items: NavItem[] }[] = [
     group: "Catalog",
     items: [
       { to: "/admin-products", label: "Products", icon: Package },
+      { to: "/admin-performance", label: "Performance", icon: Trophy, roles: ["admin", "super_admin", "manager"] },
+      { to: "/admin-quality", label: "Quality Scanner", icon: ShieldCheck, roles: ["admin", "super_admin", "manager", "editor"] },
       { to: "/admin-badges", label: "Badge Manager", icon: Gem, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-badges-bulk", label: "Bulk Badges", icon: Gem, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-badges-analytics", label: "Badge Analytics", icon: BarChart3, roles: ["admin", "super_admin", "manager"] },

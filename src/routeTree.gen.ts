@@ -38,7 +38,9 @@ import { Route as AdminSearchRouteImport } from './routes/admin-search'
 import { Route as AdminReturnsRouteImport } from './routes/admin-returns'
 import { Route as AdminReportsRouteImport } from './routes/admin-reports'
 import { Route as AdminRegionRouteImport } from './routes/admin-region'
+import { Route as AdminQualityRouteImport } from './routes/admin-quality'
 import { Route as AdminProductsRouteImport } from './routes/admin-products'
+import { Route as AdminPerformanceRouteImport } from './routes/admin-performance'
 import { Route as AdminPaymentsRouteImport } from './routes/admin-payments'
 import { Route as AdminOrdersOpsRouteImport } from './routes/admin-orders-ops'
 import { Route as AdminOrdersRouteImport } from './routes/admin-orders'
@@ -48,6 +50,7 @@ import { Route as AdminMarketingMetricsRouteImport } from './routes/admin-market
 import { Route as AdminMarketingGrowthRouteImport } from './routes/admin-marketing-growth'
 import { Route as AdminMarketingAutomationRouteImport } from './routes/admin-marketing-automation'
 import { Route as AdminMarketingRouteImport } from './routes/admin-marketing'
+import { Route as AdminLowStockRouteImport } from './routes/admin-low-stock'
 import { Route as AdminLiveRouteImport } from './routes/admin-live'
 import { Route as AdminInventoryIntelligenceRouteImport } from './routes/admin-inventory-intelligence'
 import { Route as AdminInventoryRouteImport } from './routes/admin-inventory'
@@ -255,9 +258,19 @@ const AdminRegionRoute = AdminRegionRouteImport.update({
   path: '/admin-region',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminQualityRoute = AdminQualityRouteImport.update({
+  id: '/admin-quality',
+  path: '/admin-quality',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
   id: '/admin-products',
   path: '/admin-products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPerformanceRoute = AdminPerformanceRouteImport.update({
+  id: '/admin-performance',
+  path: '/admin-performance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
@@ -304,6 +317,11 @@ const AdminMarketingAutomationRoute =
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
   id: '/admin-marketing',
   path: '/admin-marketing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLowStockRoute = AdminLowStockRouteImport.update({
+  id: '/admin-low-stock',
+  path: '/admin-low-stock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLiveRoute = AdminLiveRouteImport.update({
@@ -647,6 +665,7 @@ export interface FileRoutesByFullPath {
   '/admin-inventory': typeof AdminInventoryRoute
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
+  '/admin-low-stock': typeof AdminLowStockRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-marketing-growth': typeof AdminMarketingGrowthRoute
@@ -656,7 +675,9 @@ export interface FileRoutesByFullPath {
   '/admin-orders': typeof AdminOrdersRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-performance': typeof AdminPerformanceRoute
   '/admin-products': typeof AdminProductsRoute
+  '/admin-quality': typeof AdminQualityRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
@@ -749,6 +770,7 @@ export interface FileRoutesByTo {
   '/admin-inventory': typeof AdminInventoryRoute
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
+  '/admin-low-stock': typeof AdminLowStockRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-marketing-growth': typeof AdminMarketingGrowthRoute
@@ -758,7 +780,9 @@ export interface FileRoutesByTo {
   '/admin-orders': typeof AdminOrdersRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-performance': typeof AdminPerformanceRoute
   '/admin-products': typeof AdminProductsRoute
+  '/admin-quality': typeof AdminQualityRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
@@ -852,6 +876,7 @@ export interface FileRoutesById {
   '/admin-inventory': typeof AdminInventoryRoute
   '/admin-inventory-intelligence': typeof AdminInventoryIntelligenceRoute
   '/admin-live': typeof AdminLiveRoute
+  '/admin-low-stock': typeof AdminLowStockRoute
   '/admin-marketing': typeof AdminMarketingRoute
   '/admin-marketing-automation': typeof AdminMarketingAutomationRoute
   '/admin-marketing-growth': typeof AdminMarketingGrowthRoute
@@ -861,7 +886,9 @@ export interface FileRoutesById {
   '/admin-orders': typeof AdminOrdersRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
+  '/admin-performance': typeof AdminPerformanceRoute
   '/admin-products': typeof AdminProductsRoute
+  '/admin-quality': typeof AdminQualityRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
@@ -956,6 +983,7 @@ export interface FileRouteTypes {
     | '/admin-inventory'
     | '/admin-inventory-intelligence'
     | '/admin-live'
+    | '/admin-low-stock'
     | '/admin-marketing'
     | '/admin-marketing-automation'
     | '/admin-marketing-growth'
@@ -965,7 +993,9 @@ export interface FileRouteTypes {
     | '/admin-orders'
     | '/admin-orders-ops'
     | '/admin-payments'
+    | '/admin-performance'
     | '/admin-products'
+    | '/admin-quality'
     | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
@@ -1058,6 +1088,7 @@ export interface FileRouteTypes {
     | '/admin-inventory'
     | '/admin-inventory-intelligence'
     | '/admin-live'
+    | '/admin-low-stock'
     | '/admin-marketing'
     | '/admin-marketing-automation'
     | '/admin-marketing-growth'
@@ -1067,7 +1098,9 @@ export interface FileRouteTypes {
     | '/admin-orders'
     | '/admin-orders-ops'
     | '/admin-payments'
+    | '/admin-performance'
     | '/admin-products'
+    | '/admin-quality'
     | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
@@ -1160,6 +1193,7 @@ export interface FileRouteTypes {
     | '/admin-inventory'
     | '/admin-inventory-intelligence'
     | '/admin-live'
+    | '/admin-low-stock'
     | '/admin-marketing'
     | '/admin-marketing-automation'
     | '/admin-marketing-growth'
@@ -1169,7 +1203,9 @@ export interface FileRouteTypes {
     | '/admin-orders'
     | '/admin-orders-ops'
     | '/admin-payments'
+    | '/admin-performance'
     | '/admin-products'
+    | '/admin-quality'
     | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
@@ -1263,6 +1299,7 @@ export interface RootRouteChildren {
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminInventoryIntelligenceRoute: typeof AdminInventoryIntelligenceRoute
   AdminLiveRoute: typeof AdminLiveRoute
+  AdminLowStockRoute: typeof AdminLowStockRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminMarketingAutomationRoute: typeof AdminMarketingAutomationRoute
   AdminMarketingGrowthRoute: typeof AdminMarketingGrowthRoute
@@ -1272,7 +1309,9 @@ export interface RootRouteChildren {
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminOrdersOpsRoute: typeof AdminOrdersOpsRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminPerformanceRoute: typeof AdminPerformanceRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminQualityRoute: typeof AdminQualityRoute
   AdminRegionRoute: typeof AdminRegionRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminReturnsRoute: typeof AdminReturnsRoute
@@ -1542,11 +1581,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRegionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-quality': {
+      id: '/admin-quality'
+      path: '/admin-quality'
+      fullPath: '/admin-quality'
+      preLoaderRoute: typeof AdminQualityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-products': {
       id: '/admin-products'
       path: '/admin-products'
       fullPath: '/admin-products'
       preLoaderRoute: typeof AdminProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-performance': {
+      id: '/admin-performance'
+      path: '/admin-performance'
+      fullPath: '/admin-performance'
+      preLoaderRoute: typeof AdminPerformanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-payments': {
@@ -1610,6 +1663,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-marketing'
       fullPath: '/admin-marketing'
       preLoaderRoute: typeof AdminMarketingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-low-stock': {
+      id: '/admin-low-stock'
+      path: '/admin-low-stock'
+      fullPath: '/admin-low-stock'
+      preLoaderRoute: typeof AdminLowStockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-live': {
@@ -2109,6 +2169,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminInventoryRoute: AdminInventoryRoute,
   AdminInventoryIntelligenceRoute: AdminInventoryIntelligenceRoute,
   AdminLiveRoute: AdminLiveRoute,
+  AdminLowStockRoute: AdminLowStockRoute,
   AdminMarketingRoute: AdminMarketingRoute,
   AdminMarketingAutomationRoute: AdminMarketingAutomationRoute,
   AdminMarketingGrowthRoute: AdminMarketingGrowthRoute,
@@ -2118,7 +2179,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminOrdersRoute: AdminOrdersRoute,
   AdminOrdersOpsRoute: AdminOrdersOpsRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminPerformanceRoute: AdminPerformanceRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminQualityRoute: AdminQualityRoute,
   AdminRegionRoute: AdminRegionRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminReturnsRoute: AdminReturnsRoute,
@@ -2185,3 +2248,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
