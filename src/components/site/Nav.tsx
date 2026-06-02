@@ -77,7 +77,12 @@ export function Nav() {
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (open) document.body.setAttribute("data-menu-open", "");
+    else document.body.removeAttribute("data-menu-open");
+    return () => {
+      document.body.style.overflow = "";
+      document.body.removeAttribute("data-menu-open");
+    };
   }, [open]);
 
   useEffect(() => {
