@@ -364,27 +364,84 @@ function AdminPage() {
         <div className="overflow-x-auto card-premium rounded-2xl">
           <table className="w-full text-sm min-w-[800px]">
             <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground border-b border-border">
-              <tr><th className="text-left px-5 py-3">Order</th><th className="text-left px-5 py-3">Customer</th><th className="text-left px-5 py-3">Items</th><th className="text-left px-5 py-3">Status</th><th className="text-right px-5 py-3">Total</th><th className="text-right px-5 py-3">Date</th></tr>
+              <tr><th className="w-8 px-3 py-3" /><th className="text-left px-5 py-3">Order</th><th className="text-left px-5 py-3">Customer</th><th className="text-left px-5 py-3">Items</th><th className="text-left px-5 py-3">Status</th><th className="text-right px-5 py-3">Total</th><th className="text-right px-5 py-3">Date</th></tr>
             </thead>
             <tbody>
-              {list.map((o) => (
-                <tr key={o.id} className="border-b border-border/40 last:border-0 hover:bg-accent/5">
-                  <td className="px-5 py-3 font-mono text-[11px]">#{o.id.slice(0, 8)}</td>
-                  <td className="px-5 py-3 text-xs truncate max-w-[180px]">{o.contact_email ?? "—"}</td>
-                  <td className="px-5 py-3 text-xs text-muted-foreground">{o.order_items.reduce((s, i) => s + i.quantity, 0)} units</td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <select value={o.status} onChange={(e) => updateStatus(o.id, e.target.value)} disabled={updating === o.id}
-                        className="bg-background border border-border rounded-md px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent">
-                        {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                      {updating === o.id ? <Loader2 className="size-3 animate-spin text-muted-foreground" /> : null}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-right font-mono text-accent">${Number(o.total).toFixed(2)}</td>
-                  <td className="px-5 py-3 text-right text-[11px] font-mono text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
+              {list.map((o) => {
+                const open = expandedOrder === o.id;
+                const units = o.order_items.reduce((s, i) => s + i.quantity, 0);
+                const cur = o.currency || "USD";
+                const fmt = (v: number) => { try { return new Intl.NumberFormat("en-US", { style: "currency", currency: cur, maximumFractionDigits: 2 }).format(v); } catch { return `${cur} ${v.toFixed(2)}`; } };
+                return (
+                  <Fragment key={o.id}>
+                    <tr
+                      onClick={() => setExpandedOrder(open ? null : o.id)}
+                      className="border-b border-border/40 hover:bg-accent/5 cursor-pointer"
+                    >
+                      <td className="px-3 py-3 text-muted-foreground">{open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}</td>
+                      <td className="px-5 py-3 font-mono text-[11px]">#{o.id.slice(0, 8)}</td>
+                      <td className="px-5 py-3 text-xs truncate max-w-[180px]">{o.contact_email ?? "—"}</td>
+                      <td className="px-5 py-3 text-xs text-muted-foreground">{units} unit{units === 1 ? "" : "s"} · {o.order_items.length} item{o.order_items.length === 1 ? "" : "s"}</td>
+                      <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2">
+                          <select value={o.status} onChange={(e) => updateStatus(o.id, e.target.value)} disabled={updating === o.id}
+                            className="bg-background border border-border rounded-md px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent">
+                            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                          {updating === o.id ? <Loader2 className="size-3 animate-spin text-muted-foreground" /> : null}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-right font-mono text-accent">{fmt(Number(o.total))}</td>
+                      <td className="px-5 py-3 text-right text-[11px] font-mono text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
+                    </tr>
+                    {open && (
+                      <tr className="border-b border-border/40 bg-white/[0.02]">
+                        <td colSpan={7} className="px-5 py-4">
+                          <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+                            <div>
+                              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Ordered items</p>
+                              <div className="rounded-xl border border-white/10 overflow-hidden">
+                                <table className="w-full text-xs">
+                                  <thead className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground bg-white/[0.02]">
+                                    <tr>
+                                      <th className="text-left px-3 py-2">Product</th>
+                                      <th className="text-right px-3 py-2">Qty</th>
+                                      <th className="text-right px-3 py-2">Unit</th>
+                                      <th className="text-right px-3 py-2">Line total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {o.order_items.map((i, idx) => (
+                                      <tr key={idx} className="border-t border-white/5">
+                                        <td className="px-3 py-2">
+                                          <span className="font-medium">{i.name}</span>
+                                          {i.product_slug && <span className="block text-[10px] text-muted-foreground font-mono">{i.product_slug}</span>}
+                                        </td>
+                                        <td className="px-3 py-2 text-right font-mono tabular-nums">{i.quantity}</td>
+                                        <td className="px-3 py-2 text-right font-mono">{i.unit_price != null ? fmt(Number(i.unit_price)) : "—"}</td>
+                                        <td className="px-3 py-2 text-right font-mono text-accent">{i.line_total != null ? fmt(Number(i.line_total)) : (i.unit_price != null ? fmt(Number(i.unit_price) * i.quantity) : "—")}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5 text-xs">
+                              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">Order details</p>
+                              <div className="flex justify-between gap-3"><span className="text-muted-foreground">Order ID</span><span className="font-mono">{o.id}</span></div>
+                              <div className="flex justify-between gap-3"><span className="text-muted-foreground">Customer</span><span className="truncate">{o.contact_email ?? "—"}</span></div>
+                              <div className="flex justify-between gap-3"><span className="text-muted-foreground">User ID</span><span className="font-mono truncate max-w-[150px]">{o.user_id}</span></div>
+                              <div className="flex justify-between gap-3"><span className="text-muted-foreground">Status</span><span className="uppercase">{o.status}</span></div>
+                              <div className="flex justify-between gap-3"><span className="text-muted-foreground">Placed</span><span>{new Date(o.created_at).toLocaleString()}</span></div>
+                              <div className="flex justify-between gap-3 border-t border-white/10 pt-1.5 mt-1.5"><span className="text-muted-foreground">Total</span><span className="font-mono text-accent">{fmt(Number(o.total))}</span></div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
