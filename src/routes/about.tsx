@@ -139,6 +139,7 @@ function AboutPage() {
         },
         ...sections,
       ]}
+      related={<PolicyCrossLinks keys={["contact", "help", "privacy", "terms"]} />}
       ctas={[
         { to: "/", label: "Start Shopping", primary: true },
         { to: "/search", label: "Explore Marketplace" },
