@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({ meta: [{ title: "Signing you in… — FoundOurMarket™" }] }),
