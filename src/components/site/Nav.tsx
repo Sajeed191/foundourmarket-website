@@ -95,15 +95,31 @@ export function Nav() {
     : "FoundOurMarket™";
   const initial = (displayName?.[0] ?? "F").toUpperCase();
 
-  const { scrollY } = useScroll();
   const lastY = useRef(0);
   const [hidden, setHidden] = useState(false);
-  useMotionValueEvent(scrollY, "change", (y) => {
-    const prev = lastY.current;
-    if (y > prev && y > 80) setHidden(true);
-    else if (y < prev - 4) setHidden(false);
-    lastY.current = y;
-  });
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      const prev = lastY.current;
+      if (y > prev && y > 80) setHidden(true);
+      else if (y < prev - 4) setHidden(false);
+      lastY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Drive the drawer enter/exit transition without framer-motion.
+  useEffect(() => {
+    if (open) {
+      setDrawerMounted(true);
+      const raf = requestAnimationFrame(() => setDrawerVisible(true));
+      return () => cancelAnimationFrame(raf);
+    }
+    setDrawerVisible(false);
+    const t = setTimeout(() => setDrawerMounted(false), 320);
+    return () => clearTimeout(t);
+  }, [open]);
 
   return (
     <>
