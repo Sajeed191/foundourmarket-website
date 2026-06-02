@@ -504,6 +504,59 @@ function ProductsInner() {
         </button>
       </div>
 
+      {/* Quick filter chips */}
+      <div className="-mx-1 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 px-1 min-w-max">
+          {TAG_CHIPS.map((c) => {
+            const on = tag === c.key;
+            return (
+              <button key={c.key} onClick={() => setTag(c.key)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest transition-colors ${on ? "border-accent/50 text-accent bg-accent/10" : "border-white/10 text-muted-foreground hover:bg-white/5"}`}>
+                <c.icon className="size-3" /> {c.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Catalog Health Center */}
+      <div className="glass border border-white/10 rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <HeartPulse className="size-4 text-accent" />
+            <h3 className="text-sm font-display">Catalog Health Center</h3>
+          </div>
+          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-mono ${scoreColor(catalogHealth.avgScore)}`}>
+            <ShieldCheck className="size-3" /> {catalogHealth.avgScore}/100
+          </span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+          {catalogHealth.issues.map((iss) => (
+            <button key={iss.key} onClick={() => setTag(iss.key)}
+              className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-colors ${iss.count > 0 ? "border-white/10 hover:border-accent/40 hover:bg-white/5" : "border-white/5 opacity-60"}`}>
+              <span className={`grid place-items-center size-8 rounded-lg shrink-0 ${iss.count > 0 ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400"}`}>
+                <iss.icon className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-display tabular-nums leading-none">{iss.count}</p>
+                <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mt-1 truncate">{iss.label}</p>
+              </div>
+              {iss.count > 0 && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-widest text-accent shrink-0">
+                  <Wrench className="size-3" /> Fix
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        {catalogHealth.duplicates > 0 && (
+          <p className="mt-3 text-[10px] font-mono text-amber-400 flex items-center gap-1.5">
+            <AlertTriangle className="size-3" /> {catalogHealth.duplicates} possible duplicate products (same name)
+          </p>
+        )}
+      </div>
+
+
       {/* Filter drawer */}
       {showFilters && (
         <div className="overflow-hidden">
