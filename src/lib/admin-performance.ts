@@ -102,15 +102,16 @@ export function detectQualityIssues(products: (ProductRow & Record<string, unkno
   return products
     .map((p) => {
       const issues: QualityIssue[] = [];
-      const hasImage = !!p.image || (Array.isArray((p as { images?: unknown[] }).images) && ((p as { images?: unknown[] }).images?.length ?? 0) > 0);
+      const hasImage = !!p.image;
       if (!hasImage) issues.push("no_image");
-      const seo = (p as { meta_title?: string; meta_description?: string; seo_keywords?: unknown }).meta_title || (p as { meta_description?: string }).meta_description;
+      const seo = (p as { seo_title?: string; seo_description?: string }).seo_title || (p as { seo_description?: string }).seo_description;
       if (!seo) issues.push("no_seo");
       if (!p.category) issues.push("no_category");
       if (!p.price || Number(p.price) <= 0) issues.push("no_price");
       if (p.stock_quantity == null) issues.push("no_inventory");
-      const active = (p as { active?: boolean; is_active?: boolean; published?: boolean }).active ?? (p as { is_active?: boolean }).is_active ?? (p as { published?: boolean }).published;
-      if (active === false) issues.push("hidden");
+      const status = (p as { status?: string }).status;
+      const visible = (p as { india_visible?: boolean; international_visible?: boolean }).india_visible || (p as { international_visible?: boolean }).international_visible;
+      if ((status && status !== "active" && status !== "published") || visible === false) issues.push("hidden");
       if (!p.name || (!hasImage && (!p.price || Number(p.price) <= 0))) issues.push("broken");
       return { product: p, issues };
     })
