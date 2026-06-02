@@ -32,7 +32,7 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
   const discount = discountPercent(price, originalPrice);
   const shippingFee = shippingFeeOf(product);
   const freeShipping = shippingFee <= 0;
-  const showNew = !discount && isNewProduct(product);
+  const labels = computeBadges(product, DEFAULT_BADGE_SETTINGS, MAX_CARD_BADGES);
 
   return (
     <div className="group product-card-glass overflow-hidden relative flex flex-col h-full">
@@ -47,16 +47,23 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
             className="relative w-full h-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.05]"
           />
 
-          {/* Essential badge — Discount OR New, top-left only. Clean & compact. */}
-          {discount ? (
-            <span className="absolute top-2 left-2 inline-flex items-center rounded-md bg-accent text-black font-bold font-mono text-[10px] leading-none px-1.5 py-1 ring-1 ring-black/10">
-              -{discount}%
-            </span>
-          ) : showNew ? (
-            <span className="absolute top-2 left-2 inline-flex items-center rounded-md bg-white/90 text-black font-bold font-mono uppercase tracking-wide text-[9px] leading-none px-1.5 py-1 ring-1 ring-black/5">
-              New
-            </span>
-          ) : null}
+          {/* Top-left stack — discount first, then automatic merchandising labels (max 3 total). */}
+          <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
+            {discount ? (
+              <span className="inline-flex items-center rounded-md bg-accent text-black font-bold font-mono text-[10px] leading-none px-1.5 py-1 ring-1 ring-black/10">
+                -{discount}%
+              </span>
+            ) : null}
+            {labels.slice(0, discount ? MAX_CARD_BADGES - 1 : MAX_CARD_BADGES).map((b) => (
+              <span
+                key={b.key}
+                className={`inline-flex items-center gap-0.5 rounded-md font-bold font-mono uppercase tracking-wide text-[9px] leading-none px-1.5 py-1 ring-1 ring-black/10 ${b.className}`}
+              >
+                <span aria-hidden>{b.emoji}</span>
+                {b.label}
+              </span>
+            ))}
+          </div>
 
           {/* Free Shipping — the one other allowed badge, bottom-left */}
           {freeShipping && (
