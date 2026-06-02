@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
 import {
   ShoppingBag, Search, User, Heart, Menu, X, LayoutDashboard,
   Smartphone, Shirt, Home as HomeIcon, Store, Package, Truck, Clock,
