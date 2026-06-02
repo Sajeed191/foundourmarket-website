@@ -378,7 +378,7 @@ function Home() {
       <AnnouncementBar />
 
       {/* 1 · Cinematic Hero */}
-      <section className="relative pt-8 sm:pt-14 md:pt-20 pb-8 sm:pb-12 md:pb-16 px-4 sm:px-6 overflow-hidden">
+      <section className="relative pt-5 sm:pt-10 md:pt-14 pb-5 sm:pb-9 md:pb-11 px-4 sm:px-6 overflow-hidden">
         {/* Layered ambient mesh + orbs */}
         <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
           <div className="orb animate-orb" style={{ width: 520, height: 520, top: "8%", left: "55%", background: "var(--gradient-ember)" }} />
@@ -472,7 +472,7 @@ function Home() {
           {/* Floating live stats */}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55, duration: 0.8 }}
-            className="mt-8 sm:mt-12 grid grid-cols-3 gap-2.5 sm:gap-4 max-w-3xl mx-auto"
+            className="mt-6 sm:mt-9 grid grid-cols-3 gap-2.5 sm:gap-4 max-w-3xl mx-auto"
           >
             {[
               { value: "180+", label: "Countries", hint: "Worldwide reach" },
@@ -502,7 +502,7 @@ function Home() {
       </section>
 
       {/* 3 · Trust Bar — horizontal scroll premium glass cards */}
-      <section className="py-4 sm:py-7 max-w-7xl mx-auto">
+      <section className="cv-auto py-4 sm:py-7 max-w-7xl mx-auto">
         <div className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar px-4 sm:px-6 snap-x snap-mandatory sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible">
           {[
             { icon: Lock, title: "Secure Checkout", desc: "Bank-grade encryption." },
@@ -539,8 +539,8 @@ function Home() {
             </button>
           )}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          {(isProductAdmin ? categories.filter((c) => !c.parent_id) : categories.slice(0, 6)).map((cat, i) => (
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+          {(isProductAdmin ? categories.filter((c) => !c.parent_id) : categories.slice(0, 8)).map((cat, i) => (
             <Reveal key={cat.slug} delay={i} className="h-full">
               <div className="relative h-full">
               <Link
@@ -574,9 +574,9 @@ function Home() {
                     )}
                   </div>
                 )}
-                <div className="absolute inset-0 p-3 sm:p-5 flex flex-col justify-end z-10">
-                  <h3 className="text-base sm:text-lg font-semibold tracking-tight group-hover:text-accent transition-colors">{cat.name}</h3>
-                  <span className="mt-1.5 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-muted-foreground font-mono uppercase tracking-widest backdrop-blur-md ring-1 ring-white/10">
+                <div className="absolute inset-0 p-2 sm:p-3 flex flex-col justify-end z-10">
+                  <h3 className="text-[12px] sm:text-sm font-semibold tracking-tight leading-tight line-clamp-1 group-hover:text-accent transition-colors">{cat.name}</h3>
+                  <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-white/10 px-1.5 py-0.5 text-[8px] sm:text-[10px] text-muted-foreground font-mono uppercase tracking-widest ring-1 ring-white/10">
                     {categoryCounts[cat.slug] ?? 0} items
                   </span>
                 </div>
@@ -644,7 +644,7 @@ function Home() {
 
 
       {/* 9 · Featured Collections */}
-      <section className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
+      <section className="cv-auto px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
         <LazyMount minHeight={220}>
           <PromoBannerCarousel types={["hero"]} maxItems={3} eyebrow="Featured Collections" />
         </LazyMount>
@@ -653,7 +653,7 @@ function Home() {
       <CinematicDivider />
 
       {/* 10 · Social Proof — live engine + verified reviews */}
-      <section className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
+      <section className="cv-auto px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
         <Reveal className="text-center mb-5 sm:mb-8">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3 inline-flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-accent animate-glow" /> Live Marketplace
@@ -687,8 +687,8 @@ function Home() {
           ))}
         </div>
 
-        {testimonials.length > 0 && (() => {
-          return (
+        {testimonials.length > 0 && (
+          <LazyMount minHeight={260}>
             <>
               {/* Mobile: compact swipeable carousel with dots + autorotate */}
               <TestimonialsCarousel items={testimonials} />
@@ -723,8 +723,8 @@ function Home() {
                 ))}
               </div>
             </>
-          );
-        })()}
+          </LazyMount>
+        )}
 
       </section>
 

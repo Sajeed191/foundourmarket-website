@@ -114,7 +114,7 @@ function ProductCardImpl({ product, compact }: { product: Product; compact?: boo
 
       {/* IMAGE — compact marketplace ratio */}
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block relative">
-        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-black/40">
+        <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-black/40">
           <ProductImage
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
@@ -190,14 +190,14 @@ function ProductCardImpl({ product, compact }: { product: Product; compact?: boo
       </Link>
 
       {/* INFO */}
-      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative flex flex-1 flex-col px-1 pt-1.5">
+      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative flex flex-1 flex-col px-1 pt-1">
         {/* Name */}
-        <h4 className="text-[12px] font-bold text-white leading-tight line-clamp-2 min-h-[2.1em] group-hover:text-accent transition-colors">
+        <h4 className="text-[12px] font-bold text-white leading-tight line-clamp-1 group-hover:text-accent transition-colors">
           {product.name}
         </h4>
 
         {/* Rating row — ⭐ 4.8 (984) */}
-        <div className="flex items-center gap-1 mt-1 min-h-[15px]">
+        <div className="flex items-center gap-1 mt-0.5 min-h-[14px]">
           {product.reviews > 0 ? (
             <>
               <Star className="size-3 fill-accent text-accent" />
@@ -218,7 +218,7 @@ function ProductCardImpl({ product, compact }: { product: Product; compact?: boo
         </div>
 
         {/* Price hierarchy + compact add-to-cart */}
-        <div className="mt-auto pt-2 flex items-end justify-between gap-2">
+        <div className="mt-auto pt-1 flex items-end justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-baseline gap-1.5 flex-wrap">
               <Price value={price} className="font-display font-extrabold text-white tabular-nums leading-none block text-[18px]" />
