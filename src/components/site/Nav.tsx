@@ -41,6 +41,9 @@ export function Nav() {
   const { user } = useAuth();
   const { slugs: wishSlugs } = useWishlist();
   const [open, setOpen] = useState(false);
+  // Keep the drawer mounted during its exit transition.
+  const [drawerMounted, setDrawerMounted] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
