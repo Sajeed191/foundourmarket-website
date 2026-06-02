@@ -12,6 +12,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { trackOrder } from "@/lib/track-order.functions";
 import { useRegion } from "@/lib/region";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
+import { ReturnCenterSections } from "@/components/site/ReturnCenterSections";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 
 export const Route = createFileRoute("/returns")({
@@ -358,6 +359,9 @@ function ReturnsPage() {
             </Link>
           ))}
         </div>
+
+        {/* World-class return center sections */}
+        <ReturnCenterSections />
 
         {/* Recommendations */}
         {recentSlugs.length > 0 && (
