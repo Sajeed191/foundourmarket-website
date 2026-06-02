@@ -885,6 +885,20 @@ function HelpPage() {
           )}
         </div>
 
+        {/* KNOWLEDGE BASE */}
+        <div>
+          <SectionHeader eyebrow="Knowledge base" title="Browse help topics" />
+          <div className="mt-4">
+            <KnowledgeBase />
+          </div>
+        </div>
+
+        {/* STRIPE TRUST SECTION */}
+        <StripeTrustSection />
+
+        {/* DISPUTE PREVENTION */}
+        <DisputePrevention onResolve={() => { loadCrisp().then(() => openCrispChat()).catch(() => toast.error("Live chat is loading — try again in a moment")); }} />
+
         {/* PERSONALIZED */}
         {user && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
