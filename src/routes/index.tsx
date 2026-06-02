@@ -475,7 +475,7 @@ function Home() {
           )}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          {(isProductAdmin ? categories : categories.slice(0, 6)).map((cat, i) => (
+          {(isProductAdmin ? categories.filter((c) => !c.parent_id) : categories.slice(0, 6)).map((cat, i) => (
             <Reveal key={cat.slug} delay={i} className="h-full">
               <div className="relative h-full">
               <Link
