@@ -143,7 +143,7 @@ function AuthPage() {
               style={{ background: "radial-gradient(circle, rgba(255,122,0,0.45) 0%, transparent 65%)", filter: "blur(22px)" }}
             />
             <div className="relative size-[76px] rounded-[20px] overflow-hidden ring-1 ring-white/15 shadow-[0_24px_70px_-14px_rgba(255,122,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)] bg-white/[0.04] grid place-items-center">
-              <img src="/logo.jpeg" alt="FoundOurMarket" className="w-full h-full object-cover" />
+              <img src="/logo.webp" alt="FoundOurMarket" className="w-full h-full object-cover" />
             </div>
             <motion.div
               initial={{ scale: 0, rotate: -20 }}

@@ -85,7 +85,7 @@ function AuthCallback() {
       >
         <div className="relative mx-auto mb-6 size-20">
           <div className="size-20 rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-12px_rgba(255,122,0,0.4)] bg-white/[0.04] grid place-items-center">
-            <img src="/logo.jpeg" alt="FoundOurMarket" className="w-full h-full object-cover" />
+            <img src="/logo.webp" alt="FoundOurMarket" className="w-full h-full object-cover" />
           </div>
           {status === "loading" && (
             <motion.span
