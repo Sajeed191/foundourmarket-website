@@ -1,6 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, Search, Heart, ShoppingBag, User } from "lucide-react";
-import { motion } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
