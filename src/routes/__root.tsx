@@ -171,6 +171,44 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+/**
+ * Mounts non-critical, client-only overlays (admin tooling, live chat, compare
+ * tray, install prompt) after first paint + an idle tick. This keeps their code
+ * out of the entry bundle and off the critical hydration path, cutting TBT and
+ * speeding up LCP on the homepage / product / search routes.
+ */
+function DeferredShell({ isAuthRoute }: { isAuthRoute: boolean }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const ric =
+      (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number })
+        .requestIdleCallback;
+    if (ric) {
+      const id = ric(() => setReady(true), { timeout: 3000 });
+      return () => {
+        const cancel = (window as unknown as { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
+        cancel?.(id);
+      };
+    }
+    const t = setTimeout(() => setReady(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (!ready) return null;
+
+  return (
+    <Suspense fallback={null}>
+      {!isAuthRoute && <AdminMobileBar />}
+      {!isAuthRoute && <AdminFloatingToolbar />}
+      {!isAuthRoute && <AdminOverlayIndicator />}
+      {!isAuthRoute && <AdminCommandCenter />}
+      <CompareTray />
+      <InstallPrompt />
+      <LiveChat />
+    </Suspense>
+  );
+}
+
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
