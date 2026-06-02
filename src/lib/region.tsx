@@ -246,7 +246,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     (async () => {
       setLoading(true);
       try {
-        if (user) {
+        if (userId) {
           // Staff/admin accounts are exempt from the region lock entirely.
           if (isAdmin) {
             setLocked(false);
