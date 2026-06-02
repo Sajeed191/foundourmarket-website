@@ -265,6 +265,11 @@ export function rowToProduct(r: Row): Product {
     upsellProducts: r.upsell_products ?? [],
     ordersCount: r.orders_count ?? 0,
     revenue: Number(r.revenue ?? 0),
+    premium: r.premium ?? false,
+    fastSelling: r.fast_selling ?? false,
+    editorsChoice: r.editors_choice ?? false,
+    priorityScore: r.priority_score ?? null,
+    collections: r.collections ?? [],
   };
 }
 
