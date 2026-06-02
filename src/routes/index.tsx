@@ -378,7 +378,7 @@ function Home() {
       <AnnouncementBar />
 
       {/* 1 · Cinematic Hero */}
-      <section className="relative pt-8 sm:pt-14 md:pt-20 pb-8 sm:pb-12 md:pb-16 px-4 sm:px-6 overflow-hidden">
+      <section className="relative pt-5 sm:pt-10 md:pt-14 pb-5 sm:pb-9 md:pb-11 px-4 sm:px-6 overflow-hidden">
         {/* Layered ambient mesh + orbs */}
         <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
           <div className="orb animate-orb" style={{ width: 520, height: 520, top: "8%", left: "55%", background: "var(--gradient-ember)" }} />
