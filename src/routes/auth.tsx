@@ -93,6 +93,22 @@ function AuthPage() {
     }
   };
 
+  const onForgot = async () => {
+    setError(null);
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setError("Enter your account email above, then tap “Forgot password?”.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    setError(error ? error.message : "Reset link sent — check your inbox.");
+  };
+
+
+
   const onGoogle = async () => {
     setGoogleBusy(true);
     setError(null);
