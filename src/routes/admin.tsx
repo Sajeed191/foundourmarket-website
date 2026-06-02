@@ -152,8 +152,12 @@ function AdminPage() {
 
   async function updateStatus(id: string, status: string) {
     setUpdating(id);
-    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
-    if (!error) setOrders((prev) => prev?.map((o) => o.id === id ? { ...o, status } : o) ?? null);
+    const field = QUICK_STATUSES.find((s) => s.value === status)?.field ?? null;
+    const patch: Record<string, unknown> = { status };
+    const now = new Date().toISOString();
+    if (field) patch[field] = now;
+    const { error } = await supabase.from("orders").update(patch).eq("id", id);
+    if (!error) setOrders((prev) => prev?.map((o) => o.id === id ? { ...o, status, ...(field ? { [field]: now } : {}) } : o) ?? null);
     setUpdating(null);
   }
 
