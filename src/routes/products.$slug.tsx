@@ -541,6 +541,13 @@ function ProductPage() {
               </div>
             )}
 
+            {/* Live activity badges */}
+            {socialProof && (
+              <div className="mb-5">
+                <LiveActivity viewers={socialProof.viewers} addedToCart={socialProof.addedToCart} purchases={socialProof.purchases} />
+              </div>
+            )}
+
             {isAdmin && <AdminProductPanel product={product} />}
 
             {/* Trust indicators */}
