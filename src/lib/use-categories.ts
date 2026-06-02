@@ -41,6 +41,7 @@ function bindRealtime() {
     .channel("categories-live")
     .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => {
       invalidateCategories();
+      if (allCache !== null) loadAllPublished(true);
       if (adminCache !== null) loadAdminCategories(true);
     })
     .subscribe();
