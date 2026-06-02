@@ -10,11 +10,13 @@ export function LazyMount({
   minHeight = 280,
   className,
   rootMargin = "400px 0px",
+  id,
 }: {
   children: React.ReactNode;
   minHeight?: number;
   className?: string;
   rootMargin?: string;
+  id?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [show, setShow] = useState(false);
@@ -34,7 +36,7 @@ export function LazyMount({
     return () => io.disconnect();
   }, [show, rootMargin]);
   return (
-    <div ref={ref} className={className} style={show ? undefined : { minHeight }}>
+    <div ref={ref} id={id} className={className} style={show ? undefined : { minHeight }}>
       {show ? children : null}
     </div>
   );
