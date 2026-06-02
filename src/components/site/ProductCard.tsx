@@ -10,8 +10,8 @@ import { ProductCardAdminControls } from "@/components/admin/ProductCardAdminCon
 import { Price } from "@/components/site/Price";
 import { ProductImage } from "@/components/site/ProductImage";
 
-/** Premium cards show at most 2 badges for a clean, luxury feel. */
-const MAX_BADGES = 2;
+/** Premium single-badge logic — at most one badge per card for a luxury feel. */
+const MAX_BADGES = 1;
 
 function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
