@@ -2282,16 +2282,19 @@ export type Database = {
         Row: {
           attribution_session_id: string | null
           attribution_utm: Json | null
+          cancelled_at: string | null
           carrier: string | null
           contact_email: string | null
           created_at: string
           currency: string
           discount: number
           expires_at: string | null
+          fulfilled_at: string | null
           fulfillment_status: string
           id: string
           is_seeded: boolean
           market_region: string | null
+          paid_at: string | null
           payment_method: string | null
           payment_provider: string | null
           payment_status: string
@@ -2312,16 +2315,19 @@ export type Database = {
         Insert: {
           attribution_session_id?: string | null
           attribution_utm?: Json | null
+          cancelled_at?: string | null
           carrier?: string | null
           contact_email?: string | null
           created_at?: string
           currency?: string
           discount?: number
           expires_at?: string | null
+          fulfilled_at?: string | null
           fulfillment_status?: string
           id?: string
           is_seeded?: boolean
           market_region?: string | null
+          paid_at?: string | null
           payment_method?: string | null
           payment_provider?: string | null
           payment_status?: string
@@ -2342,16 +2348,19 @@ export type Database = {
         Update: {
           attribution_session_id?: string | null
           attribution_utm?: Json | null
+          cancelled_at?: string | null
           carrier?: string | null
           contact_email?: string | null
           created_at?: string
           currency?: string
           discount?: number
           expires_at?: string | null
+          fulfilled_at?: string | null
           fulfillment_status?: string
           id?: string
           is_seeded?: boolean
           market_region?: string | null
+          paid_at?: string | null
           payment_method?: string | null
           payment_provider?: string | null
           payment_status?: string
