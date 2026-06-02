@@ -266,7 +266,7 @@ export function LiveChat() {
           type="button"
           aria-label="Open live support chat"
           onClick={() => setOpen(true)}
-          className="group fixed right-4 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground animate-orb-breathe transition-transform duration-200 active:scale-90"
+          className={`group fixed right-4 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground animate-orb-breathe transition-all duration-300 active:scale-90 ${orbHidden ? "orb-hidden" : ""}`}
           style={{ bottom: "calc(var(--floating-bottom-offset))" }}
         >
           <Headset className="h-6 w-6" />
