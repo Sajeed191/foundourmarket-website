@@ -348,6 +348,7 @@ function ProductsInner() {
     else if (state === "inactive") list = list.filter((p) => !p.in_stock);
     else if (state === "featured") list = list.filter((p) => p.featured);
     if (stock !== "all") list = list.filter((p) => health(p) === stock);
+    if (tag !== "all") list = list.filter((p) => matchesTag(p, tag));
     if (searchTerm) {
       list = list.filter((p) =>
         [p.name, p.sku, p.category, p.slug, p.tagline].some((v) => (v ?? "").toLowerCase().includes(searchTerm)));
