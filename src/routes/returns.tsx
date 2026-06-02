@@ -363,6 +363,16 @@ function ReturnsPage() {
         {/* World-class return center sections */}
         <ReturnCenterSections />
 
+        {/* Interconnected policy network */}
+        <div className="mt-12">
+          <PolicyCrossLinks
+            title="Related policies"
+            keys={["refund", "shipping", "buyerProtection", "terms", "privacy", "contact"]}
+            variant="dark"
+          />
+        </div>
+
+
         {/* Recommendations */}
         {recentSlugs.length > 0 && (
           <div className="mt-10">
