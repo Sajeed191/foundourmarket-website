@@ -285,7 +285,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
           if (guestChoice === "india" || guestChoice === "international") {
             try {
               const res = await lockFn({
-                data: { region: guestChoice, countryCode },
+                data: { region: guestChoice, countryCode: countryRef.current },
               });
               if (cancelled) return;
               setMarket(res.region);
