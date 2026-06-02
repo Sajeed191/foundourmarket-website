@@ -536,7 +536,7 @@ function Home() {
       </section>
 
       {/* Categories — premium interactive discovery */}
-      <section id="categories" className="px-4 sm:px-6 py-6 sm:py-10 max-w-7xl mx-auto scroll-mt-24">
+      <section id="categories" className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto scroll-mt-24">
         <div className="relative">
           <SectionHeader eyebrow="Browse" title="Featured Categories" href="/search" />
           {isProductAdmin && (
