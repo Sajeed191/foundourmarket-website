@@ -409,8 +409,8 @@ export function RegionProvider({ children }: { children: ReactNode }) {
       void track("region_locked", {
         metadata: { region, source: "manual", confidence },
       });
-      if (user) {
-        const res = await lockFn({ data: { region, countryCode } });
+      if (userId) {
+        const res = await lockFn({ data: { region, countryCode: countryRef.current } });
         setMarket(res.region);
         setLocked(true);
         setNeedsSelection(false);
@@ -427,7 +427,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
       persistRegion(region);
       if (typeof window !== "undefined") localStorage.setItem(GUEST_CHOICE_KEY, region);
     },
-    [user, lockFn, countryCode, confidence],
+    [userId, lockFn, confidence],
   );
 
   // Accept the detected region from the lightweight (70–89) confirmation.
