@@ -402,7 +402,7 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading, isAdmin, fetchMine, detect, lockFn, countryCode]);
+  }, [userId, authLoading, isAdmin, fetchMine, detect, lockFn]);
 
   const lockMarket = useCallback(
     async (region: MarketRegion) => {
