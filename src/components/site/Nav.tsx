@@ -202,26 +202,25 @@ export function Nav() {
             </div>
           </div>
         </nav>
-      </motion.div>
+      </div>
 
 
       {/* Mobile drawer */}
-      <AnimatePresence>
-        {open && (
+      {drawerMounted && (
           <div className="fixed inset-0 z-[60] md:hidden">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
+            <div
+              style={{
+                opacity: drawerVisible ? 1 : 0,
+                transition: "opacity 0.25s ease",
+              }}
               className="absolute inset-0 bg-black/75"
               onClick={() => setOpen(false)}
             />
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", stiffness: 360, damping: 38, mass: 0.7 }}
+            <aside
+              style={{
+                transform: drawerVisible ? "translateX(0)" : "translateX(-100%)",
+                transition: "transform 0.4s cubic-bezier(0.22,1,0.36,1)",
+              }}
               className="absolute left-0 top-0 bottom-0 w-[88%] max-w-sm flex flex-col overflow-hidden noise-layer border-r border-white/10 bg-[oklch(0.16_0.012_260)] [transform:translateZ(0)] will-change-transform"
             >
               {/* Background atmosphere */}
