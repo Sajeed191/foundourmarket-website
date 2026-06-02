@@ -68,11 +68,11 @@ function DepartmentCard({
     <Link
       to="/category/$slug"
       params={{ slug: cat.slug }}
-      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] transition-colors hover:border-accent/40"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] transition-colors hover:border-accent/40"
       style={{ contentVisibility: "auto", containIntrinsicSize: "360px" }}
     >
-      {/* Large image — consistent ratio across all cards */}
-      <div className="relative aspect-[5/4] w-full overflow-hidden bg-white/[0.04]">
+      {/* Large image — consistent 5/4 ratio across all cards */}
+      <div className="relative aspect-[5/4] w-full shrink-0 overflow-hidden bg-white/[0.04]">
         {img ? (
           <img
             src={img}
@@ -90,28 +90,32 @@ function DepartmentCard({
         <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
       </div>
 
-      {/* Meta — flex-1 keeps the CTA pinned to the bottom on every card */}
-      <div className="flex flex-1 flex-col gap-2.5 p-4 sm:p-5">
+      {/* Meta — fixed height so every card aligns */}
+      <div className="flex flex-1 flex-col gap-2 p-4 sm:p-5">
         <h2 className="line-clamp-1 text-base font-display font-semibold tracking-tight text-white transition-colors group-hover:text-accent sm:text-lg">
           {cat.name}
         </h2>
 
-        {/* Stats — sentence case, easy to scan */}
+        {/* Stats — single line, smaller, hide zero subcategory counts */}
         {total > 0 ? (
-          <p className="text-xs text-muted-foreground sm:text-[13px]">
-            📦 {total} {total === 1 ? "Product" : "Products"}
-            <span className="mx-1.5 text-white/20">•</span>
-            📂 {subCount} {subCount === 1 ? "Subcategory" : "Subcategories"}
+          <p className="text-[11px] text-muted-foreground sm:text-xs">
+            {total} {total === 1 ? "Product" : "Products"}
+            {subCount > 0 && (
+              <>
+                <span className="mx-1 text-white/20">•</span>
+                {subCount} {subCount === 1 ? "Subcategory" : "Subcategories"}
+              </>
+            )}
           </p>
         ) : (
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent">
-            🟠 Products Coming Soon
+          <span className="inline-flex w-fit items-center gap-1 rounded-full border border-accent/25 bg-accent/[0.07] px-2 py-0.5 text-[10px] font-medium text-accent">
+            Products Coming Soon
           </span>
         )}
 
-        {/* Premium micro CTA — compact pill */}
-        <span className="mt-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/40 bg-background/40 px-3 py-1.5 text-xs font-semibold text-accent backdrop-blur transition-colors group-hover:border-accent group-hover:bg-accent group-hover:text-accent-foreground">
-          Browse {cat.name}
+        {/* Premium CTA — "Explore →" pill, pinned to bottom */}
+        <span className="mt-auto inline-flex h-8 w-fit items-center gap-1 rounded-full border border-accent/40 bg-white/[0.04] px-3.5 text-[13px] font-semibold text-accent backdrop-blur-sm transition-colors group-hover:border-accent group-hover:bg-accent group-hover:text-accent-foreground">
+          Explore
           <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>
@@ -162,7 +166,7 @@ function CategoriesPage() {
   );
 
   return (
-    <section className="px-4 sm:px-6 pt-8 sm:pt-14 pb-8 max-w-7xl mx-auto">
+    <section className="px-4 sm:px-6 pt-8 sm:pt-14 pb-5 max-w-7xl mx-auto">
       <div className="mb-8 sm:mb-12">
         <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">Browse</p>
         <h1 className="text-fluid-2xl font-display tracking-tight">Explore All Categories</h1>
