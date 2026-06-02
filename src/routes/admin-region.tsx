@@ -33,6 +33,46 @@ function Pill({ region }: { region: string | null }) {
   );
 }
 
+/** Human-readable label for how the region was locked + which signals drove it. */
+const METHOD_LABELS: Record<string, string> = {
+  self: "Self / auto-detected",
+  admin: "Admin override",
+  support_approval: "Support approval",
+};
+const SOURCE_LABELS: Record<string, string> = {
+  "geo-ip+signals": "Geo-IP + device signals",
+  signals: "Device signals only",
+};
+const TIER_LABELS: Record<string, string> = {
+  auto: "Auto-applied",
+  confirm: "One-tap confirmed",
+  pick: "Manual picker",
+};
+
+function ConfidenceBadge({ value }: { value: number | null }) {
+  if (value == null) {
+    return (
+      <span className="rounded-md border border-border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground/60">
+        No data
+      </span>
+    );
+  }
+  const tone =
+    value >= 90
+      ? "border-accent/30 bg-accent/10 text-accent"
+      : value >= 70
+        ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
+        : "border-destructive/30 bg-destructive/10 text-destructive";
+  return (
+    <span
+      className={`rounded-md border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider ${tone}`}
+      title="Blended detection confidence across IP, timezone, locale, currency & history"
+    >
+      {Math.round(value)}% confidence
+    </span>
+  );
+}
+
 function AdminRegionPage() {
   const listCustomers = useServerFn(adminListCustomerRegions);
   const listRequests = useServerFn(adminListRegionRequests);
