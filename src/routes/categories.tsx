@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ArrowRight, Layers, Package } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useAllCategories, type Category } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { iconForCategory } from "@/components/site/CategoryCard";
