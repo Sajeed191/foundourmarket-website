@@ -288,6 +288,48 @@ export function Nav() {
 
               <NotificationBell />
 
+              {/* Account — desktop dropdown (replaces floating launcher) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label="Account"
+                    className="hidden md:flex items-center gap-2 h-11 pl-1.5 pr-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/5 active:bg-accent/10 active:text-accent transition-all duration-200"
+                  >
+                    <span className="grid place-items-center size-8 rounded-lg bg-accent/15 ring-1 ring-accent/30 overflow-hidden text-accent">
+                      {user?.user_metadata?.avatar_url
+                        ? <img src={user.user_metadata.avatar_url as string} alt="" className="size-full object-cover" />
+                        : <User className="size-[17px]" />}
+                    </span>
+                    <span className="text-[13px] font-medium max-w-[7rem] truncate">{user ? "Account" : "Sign in"}</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 glass-strong border-white/10">
+                  <DropdownMenuLabel className="truncate">{user ? displayName : "Welcome to FoundOurMarket™"}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {user ? (
+                    <>
+                      <DropdownMenuItem asChild><Link to="/account">My Account</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/account">Orders</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/wishlist">Wishlist</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/track">Track Order</Link></DropdownMenuItem>
+                      {isAdmin && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild><Link to="/admin">Admin Panel</Link></DropdownMenuItem>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem asChild><Link to="/auth">Sign in</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/track">Track Order</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/help">Help Center</Link></DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+
               <Link
                 to="/cart"
                 aria-label="Cart"
