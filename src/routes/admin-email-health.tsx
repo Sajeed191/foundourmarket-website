@@ -10,7 +10,7 @@ import {
   CartesianGrid, Tooltip, Legend,
 } from "recharts";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { getEmailDeliverability } from "@/lib/email-admin.functions";
+import { getEmailDeliverability, getEmailQueueStatus } from "@/lib/email-admin.functions";
 
 export const Route = createFileRoute("/admin-email-health")({
   head: () => ({ meta: [{ title: "Email health — Admin" }] }),
