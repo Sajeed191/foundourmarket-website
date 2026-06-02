@@ -31,8 +31,36 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/products/$slug")({
   loader: async ({ params }) => {
     const product = await fetchProduct(params.slug);
-    return { product };
+    let crumbs: { name: string; href: string }[] = [];
+    if (product?.category) {
+      const { data: cat } = await supabase
+        .from("categories")
+        .select("id,slug,name,parent_id")
+        .eq("slug", product.category)
+        .maybeSingle();
+      if (cat) {
+        let parent: { slug: string; name: string } | null = null;
+        if (cat.parent_id) {
+          const { data: p } = await supabase
+            .from("categories")
+            .select("slug,name")
+            .eq("id", cat.parent_id)
+            .maybeSingle();
+          parent = p ?? null;
+        }
+        if (parent) {
+          crumbs = [
+            { name: parent.name, href: `https://foundourmarket.com/category/${parent.slug}` },
+            { name: cat.name, href: `https://foundourmarket.com/category/${parent.slug}/${cat.slug}` },
+          ];
+        } else {
+          crumbs = [{ name: cat.name, href: `https://foundourmarket.com/category/${cat.slug}` }];
+        }
+      }
+    }
+    return { product, crumbs };
   },
+
   head: ({ params, loaderData }) => {
     const p = loaderData?.product;
     const url = `https://foundourmarket.com/products/${params.slug}`;
