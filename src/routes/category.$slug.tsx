@@ -120,7 +120,6 @@ function CategoryPage() {
         <div className="py-24 grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
       ) : subs.length > 0 ? (
         <>
-          {/* Subcategory chooser — NO products on this page */}
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-4">Shop by subcategory</p>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
             {subs.map((s) => {
@@ -158,30 +157,14 @@ function CategoryPage() {
               );
             })}
           </div>
-
-          {/* Large CTA row */}
-          <div className="mt-10 grid gap-2.5 sm:grid-cols-2">
-            {subs.map((s) => (
-              <Link
-                key={s.slug}
-                to="/category/$main/$sub"
-                params={{ main: slug, sub: s.slug }}
-                className="group flex items-center justify-between rounded-2xl border border-border/60 bg-background/30 px-4 py-3.5 text-sm font-medium backdrop-blur transition hover:border-accent/50 hover:bg-accent/10"
-              >
-                <span className="truncate">Explore {s.name}</span>
-                <ArrowRight className="size-4 shrink-0 text-accent transition group-hover:translate-x-0.5" />
-              </Link>
-            ))}
-          </div>
         </>
       ) : ownItems.length > 0 ? (
-        // Fallback: a main category with no subcategories still shows its products.
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {ownItems.map((p) => (<ProductCard key={p.slug} product={p} />))}
         </div>
       ) : (
         <div className="py-20 text-center border border-dashed border-border rounded-2xl">
-          <p className="text-muted-foreground">Nothing here yet. Check back soon.</p>
+          <p className="text-muted-foreground">Subcategories coming soon</p>
           <Link to="/categories" className="inline-block mt-6 text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1">
             Explore all categories
           </Link>
