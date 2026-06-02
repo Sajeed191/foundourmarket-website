@@ -78,6 +78,32 @@ const updateSchema = z.object({
   rating: z.number().min(0).max(5).optional(),
   reviews: z.number().int().min(0).max(100_000_000).optional(),
   warranty: z.string().min(1).max(120).optional(),
+  // Merchandising flags
+  trending: z.boolean().optional(),
+  bestseller: z.boolean().optional(),
+  newArrival: z.boolean().optional(),
+  hotDeal: z.boolean().optional(),
+  flashDeal: z.boolean().optional(),
+  staffPick: z.boolean().optional(),
+  recommended: z.boolean().optional(),
+  homepageHero: z.boolean().optional(),
+  giftIdea: z.boolean().optional(),
+  // Store placement
+  homepageSection: z.string().max(60).nullable().optional(),
+  isCategoryBanner: z.boolean().optional(),
+  hideFromSearch: z.boolean().optional(),
+  hideFromRecommendations: z.boolean().optional(),
+  homepagePosition: z.number().int().min(0).max(100_000).nullable().optional(),
+  categoryPosition: z.number().int().min(0).max(100_000).nullable().optional(),
+  featuredUntil: z.string().datetime().nullable().optional(),
+  // Related merchandising
+  relatedProducts: z.array(z.string().min(1).max(200)).max(50).optional(),
+  crossSellProducts: z.array(z.string().min(1).max(200)).max(50).optional(),
+  upsellProducts: z.array(z.string().min(1).max(200)).max(50).optional(),
+  // SEO
+  seoTitle: z.string().max(300).nullable().optional(),
+  seoDescription: z.string().max(1000).nullable().optional(),
+  metaKeywords: z.array(z.string().min(1).max(120)).max(50).optional(),
 });
 
 /**
