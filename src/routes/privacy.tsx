@@ -4,6 +4,7 @@ import {
   ShieldCheck, Globe, Fingerprint,
 } from "lucide-react";
 import { DocPage, CheckList, FeatureCards, type DocSection } from "@/components/site/DocPage";
+import { PolicyCrossLinks } from "@/components/site/PolicyLinks";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
