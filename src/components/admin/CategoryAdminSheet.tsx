@@ -707,6 +707,25 @@ export function CategoryAdminSheet({
                 />
               </Field>
 
+              <Field label="Parent category (leave empty for a main category)">
+                <select
+                  value={editing.parent_id ?? ""}
+                  onChange={(e) => setEditing({ ...editing, parent_id: e.target.value || null })}
+                  className={input}
+                >
+                  <option value="">— Main category —</option>
+                  {rows
+                    .filter((r) => !r.parent_id && r.id !== editing.id)
+                    .map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                </select>
+              </Field>
+
+
+
               <div className="rounded-xl border border-white/10 p-3 space-y-3">
                 <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
                   Visibility & type
