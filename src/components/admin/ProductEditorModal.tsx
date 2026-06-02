@@ -147,6 +147,28 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
     bestseller: row?.bestseller ?? false,
     trending: row?.trending ?? false,
     new_arrival: row?.new_arrival ?? false,
+    flash_deal: (row as any)?.flash_deal ?? false,
+    staff_pick: (row as any)?.staff_pick ?? false,
+    recommended: (row as any)?.recommended ?? false,
+    homepage_hero: (row as any)?.homepage_hero ?? false,
+    gift_idea: (row as any)?.gift_idea ?? false,
+    homepage_section: (row as any)?.homepage_section ?? "none",
+    is_category_banner: (row as any)?.is_category_banner ?? false,
+    hide_from_search: (row as any)?.hide_from_search ?? false,
+    hide_from_recommendations: (row as any)?.hide_from_recommendations ?? false,
+    homepage_position: (row as any)?.homepage_position != null ? String((row as any).homepage_position) : "",
+    category_position: (row as any)?.category_position != null ? String((row as any).category_position) : "",
+    featured_until: (row as any)?.featured_until
+      ? new Date(new Date((row as any).featured_until).getTime() - new Date().getTimezoneOffset() * 60000)
+          .toISOString().slice(0, 16)
+      : "",
+    scheduled_expiry_at: (row as any)?.scheduled_expiry_at
+      ? new Date(new Date((row as any).scheduled_expiry_at).getTime() - new Date().getTimezoneOffset() * 60000)
+          .toISOString().slice(0, 16)
+      : "",
+    related_products: ((row as any)?.related_products ?? []).join(", "),
+    cross_sell_products: ((row as any)?.cross_sell_products ?? []).join(", "),
+    upsell_products: ((row as any)?.upsell_products ?? []).join(", "),
     brand: row?.brand ?? "",
     product_type: row?.product_type ?? "",
     weight: row?.weight != null ? String(row.weight) : "",
