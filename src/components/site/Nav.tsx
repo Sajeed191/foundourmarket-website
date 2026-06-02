@@ -98,18 +98,47 @@ export function Nav() {
     { to: "/category/$slug", params: { slug: "home" }, label: "Home" },
   ] as const;
 
-  const categories = [
-    { to: "/category/$slug", params: { slug: "electronics" }, label: "Electronics", icon: Smartphone },
-    { to: "/category/$slug", params: { slug: "fashion" }, label: "Fashion", icon: Shirt },
-    { to: "/category/$slug", params: { slug: "home" }, label: "Home", icon: HomeIcon },
-    { to: "/category/$slug", params: { slug: "fitness" }, label: "Fitness", icon: Dumbbell },
-    { to: "/category/$slug", params: { slug: "beauty" }, label: "Beauty", icon: Gem },
-  ] as const;
+  // Lazily-loaded merchandising data — only fetched the first time the drawer
+  // opens, so non-shopping pages never pay for it (and we reuse cached data).
+  const [cats, setCats] = useState<Category[]>([]);
+  const [catCounts, setCatCounts] = useState<Record<string, number>>({});
+  const [collCounts, setCollCounts] = useState({ flash: 0, best: 0, fresh: 0 });
+  const [ordersCount, setOrdersCount] = useState<number | null>(null);
+  const drawerDataLoaded = useRef(false);
+
+  useEffect(() => {
+    if (!open || drawerDataLoaded.current) return;
+    drawerDataLoaded.current = true;
+    loadCategories().then((list) => setCats(list.filter((c) => !c.parent_id)));
+    loadProducts().then((prods) => {
+      const cc: Record<string, number> = {};
+      let flash = 0, best = 0, fresh = 0;
+      for (const p of prods) {
+        cc[p.category] = (cc[p.category] ?? 0) + 1;
+        if (p.flashDeal) flash++;
+        if (p.bestseller) best++;
+        if (p.newArrival) fresh++;
+      }
+      setCatCounts(cc);
+      setCollCounts({ flash, best, fresh });
+    });
+  }, [open]);
+
+  // Customer order count for the profile card (lazy, only when signed in).
+  useEffect(() => {
+    if (!open || !user) return;
+    let active = true;
+    supabase.from("orders").select("id", { count: "exact", head: true }).eq("user_id", user.id)
+      .then(({ count: c }) => { if (active) setOrdersCount(c ?? 0); });
+    return () => { active = false; };
+  }, [open, user]);
+
+  const membership = (user?.user_metadata?.membership || user?.user_metadata?.tier) as string | undefined;
 
   const collections = [
-    { to: "/products/new-arrivals" as const, label: "New Arrivals", desc: "Fresh drops", icon: Sparkles },
-    { to: "/products/best-sellers" as const, label: "Best Sellers", desc: "Most loved", icon: TrendingUp },
-    { to: "/deals" as const, label: "Flash Deals", desc: "Limited time", icon: Zap },
+    { to: "/deals" as const, label: "Flash Deals", desc: "Limited time", icon: Flame, count: collCounts.flash },
+    { to: "/products/best-sellers" as const, label: "Best Sellers", desc: "Most loved", icon: TrendingUp, count: collCounts.best },
+    { to: "/products/new-arrivals" as const, label: "New Arrivals", desc: "Fresh drops", icon: Sparkles, count: collCounts.fresh },
   ];
 
   const quickActions = [
