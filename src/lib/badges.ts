@@ -37,6 +37,7 @@ export const DEFAULT_BADGE_SETTINGS: BadgeSettings = {
 export type BadgeKey =
   | "flash_deal"
   | "staff_pick"
+  | "editors_choice"
   | "gift_idea"
   | "bestseller"
   | "trending"
