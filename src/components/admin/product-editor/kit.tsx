@@ -10,6 +10,7 @@ import { invalidateProducts } from "@/lib/use-products";
 import { useUnsavedGuard } from "@/hooks/use-unsaved-guard";
 import { SaveStateBadge } from "@/components/admin/SaveStateBadge";
 import { writeLocalDraft, readLocalDraft, clearLocalDraft, type SaveState } from "@/lib/drafts";
+import { COMPLETION_COLS, COMPLETION_SECTIONS, computeCompletion, type SectionCompletion, type SectionKey } from "@/lib/product-completion";
 
 const DRAFT_ENTITY = "product_section";
 const draftId = (slug: string, sectionKey: string) => `${slug}:${sectionKey}`;
