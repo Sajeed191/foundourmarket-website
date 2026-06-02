@@ -23,6 +23,12 @@ import {
   Globe2,
   History,
   Sparkles,
+  ChevronDown,
+  ChevronRight,
+  CheckSquare,
+  Square,
+  Pencil,
+  FolderUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
@@ -52,6 +58,7 @@ import {
 
 type Row = Category;
 type ImageSlot = "image" | "banner_image" | "mobile_image";
+type CatFilter = "all" | "main" | "sub" | "visible" | "hidden" | "empty";
 
 const slugify = (s: string) =>
   s
@@ -144,8 +151,11 @@ export function CategoryAdminSheet({
   const [uploadingSlot, setUploadingSlot] = useState<ImageSlot | null>(null);
   const [progress, setProgress] = useState(0);
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | CategoryStatus>("all");
+  const [filter, setFilter] = useState<CatFilter>("all");
   const [aiBusy, setAiBusy] = useState(false);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [cardAiId, setCardAiId] = useState<string | null>(null);
   const genImage = useServerFn(generateCategoryImage);
   const fileSlot = useRef<ImageSlot>("image");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -424,14 +434,277 @@ export function CategoryAdminSheet({
     onChanged();
   }
 
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (filter !== "all" && r.status !== filter) return false;
-      if (q && !`${r.name} ${r.slug}`.toLowerCase().includes(q)) return false;
-      return true;
+  function toggleCollapse(id: string) {
+    setCollapsed((p) => {
+      const n = new Set(p);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
     });
-  }, [rows, query, filter]);
+  }
+
+  function toggleSelect(id: string) {
+    setSelected((p) => {
+      const n = new Set(p);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  }
+
+  async function quickHomepage(row: Row) {
+    const next = !row.homepage_visible;
+    const { error } = await supabase
+      .from("categories")
+      .update({ homepage_visible: next })
+      .eq("id", row.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await load();
+    invalidateCategories();
+    onChanged();
+  }
+
+  async function convertToMain(row: Row) {
+    const { error } = await supabase
+      .from("categories")
+      .update({ parent_id: null })
+      .eq("id", row.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`"${row.name}" is now a main category`);
+    logActivity("category_update", "category", row.id, { converted: "main" });
+    await load();
+    invalidateCategories();
+    onChanged();
+  }
+
+  async function generateCardImage(row: Row) {
+    setCardAiId(row.id);
+    try {
+      const { url } = await genImage({
+        data: {
+          name: row.name,
+          slug: row.slug,
+          description: row.description?.trim() || undefined,
+        },
+      });
+      const { error } = await supabase
+        .from("categories")
+        .update({ image: url })
+        .eq("id", row.id);
+      if (error) throw error;
+      toast.success("AI image generated");
+      await load();
+      invalidateCategories();
+      onChanged();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "AI generation failed");
+    } finally {
+      setCardAiId(null);
+    }
+  }
+
+  async function bulkVisibility(homepage_visible: boolean) {
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    const { error } = await supabase
+      .from("categories")
+      .update({ homepage_visible })
+      .in("id", ids);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`${ids.length} ${homepage_visible ? "shown" : "hidden"}`);
+    setSelected(new Set());
+    await load();
+    invalidateCategories();
+    onChanged();
+  }
+
+  async function bulkDelete() {
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    if (!confirm(`Delete ${ids.length} categories permanently?`)) return;
+    const { error } = await supabase.from("categories").delete().in("id", ids);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`${ids.length} deleted`);
+    setSelected(new Set());
+    await load();
+    invalidateCategories();
+    onChanged();
+  }
+
+  const productCount = (r: Row) => productCounts[r.slug] ?? 0;
+
+  const groups = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const nameOf = (id: string) => rows.find((r) => r.id === id)?.name ?? "";
+    const count = (r: Row) => productCounts[r.slug] ?? 0;
+    const matches = (r: Row) => {
+      if (q) {
+        const hay = `${r.name} ${r.slug} ${
+          r.parent_id ? nameOf(r.parent_id) : ""
+        }`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      switch (filter) {
+        case "main":
+          return !r.parent_id;
+        case "sub":
+          return !!r.parent_id;
+        case "visible":
+          return !!r.homepage_visible;
+        case "hidden":
+          return !r.homepage_visible;
+        case "empty":
+          return count(r) === 0;
+        default:
+          return true;
+      }
+    };
+    const mains = rows.filter((r) => !r.parent_id);
+    const mainIds = new Set(mains.map((m) => m.id));
+    const out: { main: Row; subs: Row[]; totalSubs: number }[] = [];
+    for (const m of mains) {
+      const allSubs = rows.filter((s) => s.parent_id === m.id);
+      const mSubs = allSubs.filter(matches);
+      if (matches(m) || mSubs.length > 0)
+        out.push({ main: m, subs: mSubs, totalSubs: allSubs.length });
+    }
+    const orphans = rows.filter(
+      (s) => s.parent_id && !mainIds.has(s.parent_id) && matches(s),
+    );
+    return { out, orphans };
+  }, [rows, query, filter, productCounts]);
+
+  const renderCard = (r: Row, isSub: boolean, index: number, total: number) => {
+    const sel = selected.has(r.id);
+    const meta = STATUS_META[r.status];
+    return (
+      <div
+        className={cn(
+          "rounded-xl border bg-white/[0.02] p-2.5 transition-colors",
+          sel ? "border-accent/60 bg-accent/[0.06]" : "border-white/10",
+        )}
+      >
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => toggleSelect(r.id)}
+            className="grid size-5 shrink-0 place-items-center text-muted-foreground hover:text-accent"
+            aria-label="Select category"
+          >
+            {sel ? (
+              <CheckSquare className="size-4 text-accent" />
+            ) : (
+              <Square className="size-4" />
+            )}
+          </button>
+          <button
+            onClick={() => open(r)}
+            className="size-12 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]"
+          >
+            {r.image ? (
+              <img
+                src={r.image}
+                alt=""
+                loading="lazy"
+                className="size-full object-cover"
+              />
+            ) : (
+              <div className="grid size-full place-items-center text-muted-foreground/40">
+                <Tag className="size-4" />
+              </div>
+            )}
+          </button>
+          <button onClick={() => open(r)} className="min-w-0 flex-1 text-left">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-sm font-medium">{r.name}</p>
+              {r.featured && <Star className="size-3 shrink-0 text-accent" />}
+              {r.trending && <Flame className="size-3 shrink-0 text-orange-400" />}
+            </div>
+            <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+              <span
+                className={cn(
+                  "rounded border px-1.5 py-px text-[8px] font-mono uppercase tracking-wider",
+                  isSub
+                    ? "border-sky-500/30 bg-sky-500/10 text-sky-300"
+                    : "border-accent/30 bg-accent/10 text-accent",
+                )}
+              >
+                {isSub ? "Sub" : "Main"}
+              </span>
+              <span
+                className={cn(
+                  "rounded border px-1.5 py-px text-[8px] font-mono uppercase tracking-wider",
+                  meta.cls,
+                )}
+              >
+                {meta.label}
+              </span>
+              <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
+                {productCount(r)} products
+              </span>
+            </div>
+          </button>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-2">
+          <QuickBtn onClick={() => open(r)} title="Edit">
+            <Pencil className="size-3.5" />
+          </QuickBtn>
+          <QuickBtn
+            onClick={() => quickHomepage(r)}
+            title={r.homepage_visible ? "Hide" : "Show"}
+          >
+            {r.homepage_visible ? (
+              <EyeOff className="size-3.5" />
+            ) : (
+              <Eye className="size-3.5" />
+            )}
+          </QuickBtn>
+          <QuickBtn onClick={() => duplicate(r)} title="Duplicate">
+            <Copy className="size-3.5" />
+          </QuickBtn>
+          <QuickBtn onClick={() => generateCardImage(r)} title="Generate AI image">
+            {cardAiId === r.id ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="size-3.5" />
+            )}
+          </QuickBtn>
+          {isSub && (
+            <QuickBtn onClick={() => convertToMain(r)} title="Make main category">
+              <FolderUp className="size-3.5" />
+            </QuickBtn>
+          )}
+          <QuickBtn
+            onClick={() => reorder(r, "up")}
+            title="Move up"
+          >
+            <ArrowUp className="size-3.5" />
+          </QuickBtn>
+          <QuickBtn
+            onClick={() => reorder(r, "down")}
+            title="Move down"
+          >
+            <ArrowDown className="size-3.5" />
+          </QuickBtn>
+          <QuickBtn onClick={() => del(r.id)} title="Delete" danger>
+            <Trash2 className="size-3.5" />
+          </QuickBtn>
+        </div>
+      </div>
+    );
+  };
+
 
   return (
     <AnimatePresence>
@@ -502,8 +775,17 @@ export function CategoryAdminSheet({
                 />
               </div>
 
-              <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
-                {(["all", "published", "draft", "hidden", "archived"] as const).map((f) => (
+              <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1">
+                {(
+                  [
+                    ["all", "All"],
+                    ["main", "Main"],
+                    ["sub", "Subcategories"],
+                    ["visible", "Visible"],
+                    ["hidden", "Hidden"],
+                    ["empty", "Empty"],
+                  ] as const
+                ).map(([f, label]) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
@@ -514,102 +796,98 @@ export function CategoryAdminSheet({
                         : "border-white/10 text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    {f}
+                    {label}
                   </button>
                 ))}
               </div>
+
+              {selected.size > 0 && (
+                <div className="mb-3 flex items-center gap-1.5 rounded-xl border border-accent/30 bg-accent/[0.06] p-2">
+                  <span className="ml-1 text-[10px] font-mono uppercase tracking-widest text-accent">
+                    {selected.size} selected
+                  </span>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <QuickBtn onClick={() => bulkVisibility(true)} title="Show">
+                      <Eye className="size-3.5" />
+                    </QuickBtn>
+                    <QuickBtn onClick={() => bulkVisibility(false)} title="Hide">
+                      <EyeOff className="size-3.5" />
+                    </QuickBtn>
+                    <QuickBtn onClick={bulkDelete} title="Delete" danger>
+                      <Trash2 className="size-3.5" />
+                    </QuickBtn>
+                    <button
+                      onClick={() => setSelected(new Set())}
+                      className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {loading ? (
                 <div className="grid place-items-center py-16">
                   <Loader2 className="size-5 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <ul className="space-y-2">
-                  {visible.map((r, i) => (
-                    <li
-                      key={r.id}
-                      className="rounded-xl border border-white/10 bg-white/[0.02] p-2.5"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="flex shrink-0 flex-col">
-                          <button
-                            onClick={() => reorder(r, "up")}
-                            disabled={i === 0}
-                            className="grid size-5 place-items-center rounded text-muted-foreground/60 hover:text-accent disabled:opacity-20"
-                            aria-label="Move up"
-                          >
-                            <ArrowUp className="size-3.5" />
-                          </button>
-                          <button
-                            onClick={() => reorder(r, "down")}
-                            disabled={i === visible.length - 1}
-                            className="grid size-5 place-items-center rounded text-muted-foreground/60 hover:text-accent disabled:opacity-20"
-                            aria-label="Move down"
-                          >
-                            <ArrowDown className="size-3.5" />
-                          </button>
-                        </div>
-                        <div className="size-11 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
-                          {r.image ? (
-                            <img src={r.image} alt="" className="size-full object-cover" />
-                          ) : (
-                            <div className="grid size-full place-items-center text-muted-foreground/40">
-                              <Tag className="size-4" />
-                            </div>
-                          )}
-                        </div>
-                        <button onClick={() => open(r)} className="min-w-0 flex-1 text-left">
-                          <div className="flex items-center gap-1.5">
-                            <p className="truncate text-sm">{r.name}</p>
-                            {r.featured && <Star className="size-3 shrink-0 text-accent" />}
-                            {r.trending && <Flame className="size-3 shrink-0 text-orange-400" />}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={cn(
-                                "rounded border px-1.5 py-px text-[8px] font-mono uppercase tracking-wider",
-                                STATUS_META[r.status].cls,
-                              )}
+                <div className="space-y-2.5">
+                  {groups.out.map(({ main, subs, totalSubs }, mi) => {
+                    const isCollapsed = collapsed.has(main.id);
+                    return (
+                      <div key={main.id} className="space-y-1.5">
+                        <div className="flex items-stretch gap-1">
+                          {totalSubs > 0 ? (
+                            <button
+                              onClick={() => toggleCollapse(main.id)}
+                              className="grid w-6 shrink-0 place-items-center rounded-lg border border-white/10 text-muted-foreground hover:text-accent"
+                              aria-label={isCollapsed ? "Expand" : "Collapse"}
                             >
-                              {STATUS_META[r.status].label}
-                            </span>
-                            <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
-                              {productCounts[r.slug] ?? 0} items
-                            </span>
-                          </div>
-                        </button>
-                      </div>
-                      <div className="mt-2 flex items-center gap-1.5 border-t border-white/5 pt-2">
-                        <QuickBtn
-                          onClick={() =>
-                            quickStatus(r, r.status === "published" ? "hidden" : "published")
-                          }
-                          title={r.status === "published" ? "Unpublish" : "Publish"}
-                        >
-                          {r.status === "published" ? (
-                            <EyeOff className="size-3.5" />
+                              {isCollapsed ? (
+                                <ChevronRight className="size-4" />
+                              ) : (
+                                <ChevronDown className="size-4" />
+                              )}
+                            </button>
                           ) : (
-                            <Eye className="size-3.5" />
+                            <div className="w-6 shrink-0" />
                           )}
-                        </QuickBtn>
-                        <QuickBtn onClick={() => duplicate(r)} title="Duplicate">
-                          <Copy className="size-3.5" />
-                        </QuickBtn>
-                        <span className="ml-auto flex items-center gap-2 text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
-                          <BarChart3 className="size-3" /> {r.views}v · {r.clicks}c
-                        </span>
-                        <QuickBtn onClick={() => del(r.id)} title="Delete" danger>
-                          <Trash2 className="size-3.5" />
-                        </QuickBtn>
+                          <div className="min-w-0 flex-1">
+                            {renderCard(main, false, mi, groups.out.length)}
+                          </div>
+                        </div>
+                        {!isCollapsed &&
+                          subs.map((s, si) => (
+                            <div key={s.id} className="flex items-stretch gap-1">
+                              <div className="flex w-6 shrink-0 justify-center">
+                                <span className="w-px bg-white/10" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                {renderCard(s, true, si, subs.length)}
+                              </div>
+                            </div>
+                          ))}
                       </div>
-                    </li>
-                  ))}
-                  {visible.length === 0 && (
-                    <li className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">
-                      No categories match.
-                    </li>
+                    );
+                  })}
+
+                  {groups.orphans.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="px-1 text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
+                        Ungrouped
+                      </p>
+                      {groups.orphans.map((s, si) => (
+                        <div key={s.id}>{renderCard(s, true, si, groups.orphans.length)}</div>
+                      ))}
+                    </div>
                   )}
-                </ul>
+
+                  {groups.out.length === 0 && groups.orphans.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">
+                      No categories match.
+                    </div>
+                  )}
+                </div>
               )}
             </>
           )}
