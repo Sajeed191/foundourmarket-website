@@ -485,6 +485,9 @@ function OrderOpsPage() {
           <KpiCard label="Refunded" value={inr(k.refund_total)} icon={<ArrowDownRight className="size-4" />} sub={<span className="text-[11px] text-muted-foreground">{data.refundRate}% rate</span>} />
         </div>
 
+        {/* Order integrity monitor */}
+        <OrderIntegrityMonitor />
+
         <Tabs defaultValue="warroom">
           <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="warroom">War Room</TabsTrigger>
