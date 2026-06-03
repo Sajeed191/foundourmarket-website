@@ -23,8 +23,6 @@ import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { AnnouncementBar } from "@/components/site/AnnouncementBar";
 import { TrustBadgesStrip } from "@/components/site/TrustBadgesStrip";
-import { RecentlyViewed } from "@/components/site/RecentlyViewed";
-
 import { NewsletterForm } from "@/components/site/NewsletterForm";
 
 import { TestimonialsCarousel } from "@/components/site/TestimonialsCarousel";
@@ -720,15 +718,6 @@ function Home() {
             </>
           </LazyMount>
         )}
-      </section>
-
-      <CinematicDivider />
-
-      {/* Recently viewed — personalised rail */}
-      <section className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
-        <LazyMount minHeight={200}>
-          <RecentlyViewed eyebrow="For You" title="Recently Viewed" />
-        </LazyMount>
       </section>
 
       <CinematicDivider />
