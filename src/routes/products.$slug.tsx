@@ -611,7 +611,9 @@ function ProductPage() {
               </div>
             )}
 
-            <p className="text-muted-foreground leading-relaxed mb-6">{product.description}</p>
+            <div className="mb-6">
+              <ProductDescription description={product.description} />
+            </div>
 
             {/* Delivery */}
             <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4 flex items-start gap-3">
