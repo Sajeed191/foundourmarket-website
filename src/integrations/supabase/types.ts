@@ -5536,6 +5536,7 @@ export type Database = {
           price_usd: number | null
           priority_score: number | null
           rating: number | null
+          rating_source: string | null
           razorpay_enabled: boolean | null
           recommended: boolean | null
           related_products: string[] | null
@@ -5622,6 +5623,7 @@ export type Database = {
           price_usd?: number | null
           priority_score?: number | null
           rating?: number | null
+          rating_source?: string | null
           razorpay_enabled?: boolean | null
           recommended?: boolean | null
           related_products?: string[] | null
@@ -5708,6 +5710,7 @@ export type Database = {
           price_usd?: number | null
           priority_score?: number | null
           rating?: number | null
+          rating_source?: string | null
           razorpay_enabled?: boolean | null
           recommended?: boolean | null
           related_products?: string[] | null
