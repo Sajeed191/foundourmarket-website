@@ -5232,6 +5232,39 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_gateways_public: {
+        Row: {
+          configured: boolean | null
+          display_name: string | null
+          enabled: boolean | null
+          last_checked_at: string | null
+          mode: string | null
+          provider: string | null
+          supports_region: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          configured?: boolean | null
+          display_name?: string | null
+          enabled?: boolean | null
+          last_checked_at?: string | null
+          mode?: string | null
+          provider?: string | null
+          supports_region?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          configured?: boolean | null
+          display_name?: string | null
+          enabled?: boolean | null
+          last_checked_at?: string | null
+          mode?: string | null
+          provider?: string | null
+          supports_region?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       product_reviews_public: {
         Row: {
           admin_reply: string | null
@@ -5550,6 +5583,54 @@ export type Database = {
           views_count?: number | null
           warranty?: string | null
           wishlist_count?: number | null
+        }
+        Relationships: []
+      }
+      store_settings_public: {
+        Row: {
+          cod_enabled: boolean | null
+          flat_shipping_inr: number | null
+          flat_shipping_usd: number | null
+          free_shipping_enabled: boolean | null
+          free_shipping_threshold_inr: number | null
+          free_shipping_threshold_usd: number | null
+          id: boolean | null
+          include_seed_in_analytics: boolean | null
+          prepaid_discount_percent: number | null
+          shipping_mode: string | null
+          support_response_minutes: number | null
+          support_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cod_enabled?: boolean | null
+          flat_shipping_inr?: number | null
+          flat_shipping_usd?: number | null
+          free_shipping_enabled?: boolean | null
+          free_shipping_threshold_inr?: number | null
+          free_shipping_threshold_usd?: number | null
+          id?: boolean | null
+          include_seed_in_analytics?: boolean | null
+          prepaid_discount_percent?: number | null
+          shipping_mode?: string | null
+          support_response_minutes?: number | null
+          support_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cod_enabled?: boolean | null
+          flat_shipping_inr?: number | null
+          flat_shipping_usd?: number | null
+          free_shipping_enabled?: boolean | null
+          free_shipping_threshold_inr?: number | null
+          free_shipping_threshold_usd?: number | null
+          id?: boolean | null
+          include_seed_in_analytics?: boolean | null
+          prepaid_discount_percent?: number | null
+          shipping_mode?: string | null
+          support_response_minutes?: number | null
+          support_status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
