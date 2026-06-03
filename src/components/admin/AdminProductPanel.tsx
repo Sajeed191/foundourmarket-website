@@ -28,6 +28,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/products";
+import { ProductDescription } from "@/components/site/ProductDescription";
+import { DESCRIPTION_TEMPLATE } from "@/lib/product-description";
 import { adminUpdateProduct } from "@/lib/admin-products.functions";
 import { invalidateProducts } from "@/lib/use-products";
 import { useEditorProtection } from "@/hooks/use-editor-protection";
