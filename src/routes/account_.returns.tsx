@@ -630,9 +630,9 @@ function ReturnsPage() {
 
         {/* COMPACT UTILITY FOOTER */}
         <footer className="mt-10 pt-5 border-t border-white/[0.06] flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-mono uppercase tracking-[0.22em] text-white/40">
-          <Link to="/pages/$slug" params={{ slug: "privacy" }} className="hover:text-white/80 transition">Privacy</Link>
+          <Link to="/privacy" className="hover:text-white/80 transition">Privacy</Link>
           <span className="text-white/15">·</span>
-          <Link to="/pages/$slug" params={{ slug: "terms" }} className="hover:text-white/80 transition">Terms</Link>
+          <Link to="/terms" className="hover:text-white/80 transition">Terms</Link>
           <span className="text-white/15">·</span>
           <Link to="/returns" className="hover:text-white/80 transition">Refund Policy</Link>
         </footer>
