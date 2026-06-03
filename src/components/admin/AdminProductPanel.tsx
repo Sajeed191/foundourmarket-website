@@ -467,24 +467,17 @@ export function AdminProductPanel({
                       <Toggle label="In stock / live" on={f.inStock} onClick={() => setF({ ...f, inStock: !f.inStock })} />
                       <Toggle label="Out of stock" on={!f.inStock} onClick={() => setF({ ...f, inStock: !f.inStock })} />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Rating (0–5)">
-                        <Input
-                          type="number"
-                          step="0.1"
-                          value={f.rating}
-                          onChange={(e) => setF({ ...f, rating: e.target.value })}
-                        />
-                      </Field>
-                      <Field label="Reviews">
-                        <Input
-                          type="number"
-                          value={f.reviews}
-                          onChange={(e) => setF({ ...f, reviews: e.target.value })}
-                        />
-                      </Field>
-                    </div>
                   </div>
+                </CollapsibleModule>
+
+                {/* SECTION 3b — PRODUCT RATING MANAGEMENT */}
+                <CollapsibleModule
+                  eyebrow="Section 3"
+                  title="Product Rating Management"
+                  defaultOpen={false}
+                  badge={<Star className="size-4 text-accent" />}
+                >
+                  <ProductRatingManager slug={product.slug} />
                 </CollapsibleModule>
 
                 {/* SECTION 4 — SHIPPING */}
