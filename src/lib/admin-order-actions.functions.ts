@@ -71,7 +71,10 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({
       orderId: z.string().uuid(),
-      stage: z.enum(["packed", "shipped", "delivered", "processing", "cancelled"]),
+      stage: z.enum([
+        "confirmed", "processing", "packed", "shipped",
+        "out_for_delivery", "delivered", "completed", "cancelled",
+      ]),
     }).parse(input),
   )
   .handler(async ({ data: input, context }) => {
