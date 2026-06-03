@@ -80,6 +80,17 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
     const order = await getOrder(input.orderId);
     const nowIso = new Date().toISOString();
 
+    // Block fulfillment stages unless payment is valid (COD always allowed).
+    if (input.stage !== "cancelled" && !paymentAllowsFulfillment(order.payment_status, order.payment_method)) {
+      await logSecurity({
+        actorId: userId, actorRole: primaryRole, action: "ops.order.mark_stage",
+        target: input.orderId, success: false,
+        detail: { stage: input.stage, reason: "payment_incomplete", paymentStatus: order.payment_status },
+      });
+      throw new Error(PAYMENT_BLOCK_MSG);
+    }
+
+
     const orderPatch: Record<string, unknown> = { fulfillment_status: input.stage };
     if (input.stage === "shipped" || input.stage === "delivered" || input.stage === "cancelled") {
       orderPatch.status = input.stage;
