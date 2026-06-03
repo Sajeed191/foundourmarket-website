@@ -158,6 +158,15 @@ function FlashDealsAdmin() {
     if (new Date(editing.end_at).getTime() <= new Date(editing.start_at).getTime())
       return toast.error("End date must be after start date");
 
+    // Client-side duplicate guard (DB unique index is the hard backstop).
+    if (editing.active) {
+      const dupe = (deals ?? []).some(
+        (d) => d.product_id === editing.product_id && d.active && d.id !== editing.id,
+      );
+      if (dupe) return toast.error("This product already has an active flash deal");
+    }
+
+
     setSaving(true);
     const payload = {
       product_id: editing.product_id,
