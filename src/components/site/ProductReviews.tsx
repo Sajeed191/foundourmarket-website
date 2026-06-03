@@ -59,7 +59,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   const load = useCallback(async () => {
     const { data } = await supabase
-      .from("product_reviews")
+      .from(isAdmin ? "product_reviews" : "product_reviews_public")
       .select((isAdmin ? REVIEW_COLS : REVIEW_COLS_PUBLIC) as string)
       .eq("product_slug", productSlug)
       .order("created_at", { ascending: false });
