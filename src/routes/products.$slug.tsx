@@ -303,7 +303,9 @@ function ProductPage() {
   // product + variants + images loaded, main image decoded, and currency
   // resolved. Combined with the scroll gate this prevents overlap, layout
   // shift and currency flicker after a refresh.
-  const showPurchaseDock = dataReady && mobileDockVisible;
+  // Hide the customer purchase dock whenever an admin is inside the inline
+  // editor — they're managing the product, not shopping.
+  const showPurchaseDock = dataReady && mobileDockVisible && !editorOpen;
 
   const handleAdd = () => {
     add(product.slug, qty);
