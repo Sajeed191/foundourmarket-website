@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   ChevronRight,
   Globe,
-  MapPin,
 } from "lucide-react";
 
 export const Route = createFileRoute("/pages/shipping")({
@@ -183,9 +182,9 @@ function ShippingReturnsPage() {
               <p className="mt-1.5 text-sm text-white/60 leading-relaxed">
                 FoundOurMarket does <strong className="text-white/90">not</strong> offer express,
                 overnight, or same-day delivery at this time. Every order ships via our vetted
-                Standard network, ensuring reliable, trackable service at no unnecessary premium.
-                Free Standard shipping is automatically applied to orders over $50 (or local
-                equivalent).
+                Standard network. Free delivery is available only on eligible products and
+                promotional offers. Shipping availability and charges are displayed on each
+                product page before checkout.
               </p>
             </div>
           </div>
@@ -193,10 +192,6 @@ function ShippingReturnsPage() {
             <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-white/70">
               <Globe className="size-3 text-orange-300" />
               Global Coverage
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-white/70">
-              <MapPin className="size-3 text-orange-300" />
-              Door-to-Door Tracking
             </span>
             <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-white/70">
               <Clock className="size-3 text-orange-300" />
@@ -245,6 +240,22 @@ function ShippingReturnsPage() {
               </motion.div>
             ))}
           </div>
+
+          <div className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6">
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-orange-500/10 border border-orange-500/20 grid place-items-center">
+                <AlertTriangle className="size-4 text-orange-300" />
+              </div>
+              <div>
+                <h4 className="font-display font-medium text-sm">Important Shipping Information</h4>
+                <p className="mt-1.5 text-xs sm:text-sm text-white/50 leading-relaxed">
+                  Shipping costs and delivery options vary by product, supplier, destination country, and shipping method.
+                  Estimated delivery dates are provided for reference and may vary due to carrier operations, customs processing, weather conditions, holidays, or other factors outside our control.
+                  Tracking is available only for eligible shipments and supported carriers.
+                </p>
+              </div>
+            </div>
+          </div>
         </motion.section>
 
         {/* ── RETURNS POLICY ── */}
@@ -283,6 +294,21 @@ function ShippingReturnsPage() {
                 </div>
               </motion.div>
             ))}
+          </div>
+
+          <div className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6">
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-orange-500/10 border border-orange-500/20 grid place-items-center">
+                <AlertTriangle className="size-4 text-orange-300" />
+              </div>
+              <div>
+                <h4 className="font-display font-medium text-sm">Important Return Information</h4>
+                <p className="mt-1.5 text-xs sm:text-sm text-white/50 leading-relaxed">
+                  Return eligibility varies by product category, supplier policies, product condition, and destination country.
+                  Not all products are eligible for returns or refunds. Return eligibility is clearly indicated on the relevant product page where applicable.
+                </p>
+              </div>
+            </div>
           </div>
         </motion.section>
 
