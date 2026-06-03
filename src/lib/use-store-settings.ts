@@ -36,7 +36,7 @@ export function useStoreSettings() {
     let active = true;
     const load = async () => {
       const { data } = await supabase
-        .from("store_settings")
+        .from("store_settings_public")
         .select("cod_enabled,prepaid_discount_percent,shipping_mode,free_shipping_enabled,flat_shipping_inr,flat_shipping_usd,free_shipping_threshold_inr,free_shipping_threshold_usd")
         .limit(1)
         .maybeSingle();
