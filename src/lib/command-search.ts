@@ -233,7 +233,7 @@ const SEARCHERS: Searcher[] = [
         supabase.from("banners").select("id,title,status").ilike("title", `%${q}%`).limit(4),
         supabase.from("announcements").select("id,message,active").ilike("message", `%${q}%`).limit(3),
         supabase.from("cms_pages").select("id,title,slug,published").ilike("title", `%${q}%`).limit(3),
-        supabase.from("cms_posts").select("id,title,slug").ilike("title", `%${q}%`).limit(3),
+        supabase.from("cms_posts_public" as "cms_posts").select("id,title,slug").ilike("title", `%${q}%`).limit(3),
         supabase.from("storefront_blocks").select("id,type,status").ilike("type", `%${q}%`).limit(3),
       ]);
       const out: SearchResult[] = [];
