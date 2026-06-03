@@ -26,13 +26,26 @@ const SUPPORT_STAFF: StaffRole[] = ["admin", "super_admin", "manager", "support"
 async function getOrder(orderId: string) {
   const { data, error } = await supabaseAdmin
     .from("orders")
-    .select("id, user_id, carrier, tracking_number, total, currency, contact_email")
+    .select("id, user_id, carrier, tracking_number, total, currency, contact_email, payment_status, payment_method")
     .eq("id", orderId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Order not found");
   return data;
 }
+
+/**
+ * Mirror of the DB `payment_allows_fulfillment` guard. Used to return a clean,
+ * descriptive message to staff BEFORE the protective trigger raises. COD orders
+ * are always allowed; otherwise payment must be paid/authorized/succeeded/cod.
+ */
+function paymentAllowsFulfillment(paymentStatus?: string | null, paymentMethod?: string | null): boolean {
+  if ((paymentMethod ?? "").toLowerCase() === "cod") return true;
+  return ["paid", "authorized", "succeeded", "cod"].includes((paymentStatus ?? "").toLowerCase());
+}
+
+const PAYMENT_BLOCK_MSG =
+  "This order cannot be fulfilled because payment has not been completed.";
 
 async function latestShipment(orderId: string) {
   const { data } = await supabaseAdmin
