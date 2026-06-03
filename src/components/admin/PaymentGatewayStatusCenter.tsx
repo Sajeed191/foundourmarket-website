@@ -147,7 +147,7 @@ function ConfigPill({ ok, icon: Icon, label }: { ok: boolean; icon: typeof KeyRo
 
 /** Admin Payment Gateway Status Center — Stripe & PayPal connection status. */
 export function PaymentGatewayStatusCenter() {
-  const { gateways, loading, internationalLive } = usePaymentGateways();
+  const { gateways, loading, internationalLive } = usePaymentGateways(true);
 
   return (
     <section className="space-y-4">
