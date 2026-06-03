@@ -47,23 +47,31 @@ export function useStoreSettings() {
     };
     load();
 
-    const channel = supabase
-      .channel("store-settings-live")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "store_settings" },
-        (payload) => {
-          const row = payload.new as Partial<StoreSettings> | null;
-          if (row) {
-            setSettings(normalizeSettings(row));
-          }
-        },
-      )
-      .subscribe();
+    // Live updates stream from the store_settings base table, which is
+    // staff-only. Anonymous visitors are no longer permitted to subscribe to
+    // the store-settings-live topic, so only wire up realtime for signed-in
+    // sessions (customers still get fresh values on initial load via the view).
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active || !data.session) return;
+      channel = supabase
+        .channel("store-settings-live")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "store_settings" },
+          (payload) => {
+            const row = payload.new as Partial<StoreSettings> | null;
+            if (row) {
+              setSettings(normalizeSettings(row));
+            }
+          },
+        )
+        .subscribe();
+    });
 
     return () => {
       active = false;
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
