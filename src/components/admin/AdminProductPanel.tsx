@@ -38,6 +38,7 @@ import { EditorSaveBar } from "@/components/admin/EditorSaveBar";
 import { logActivity } from "@/components/admin/AdminShell";
 import { ProductMarketingPanel } from "@/components/admin/ProductMarketingPanel";
 import { CollapsibleModule } from "@/components/admin/CollapsibleModule";
+import { ProductRatingManager } from "@/components/admin/ProductRatingManager";
 
 type Patch = {
   name?: string;
