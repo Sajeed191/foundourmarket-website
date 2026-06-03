@@ -295,6 +295,21 @@ function ShippingReturnsPage() {
               </motion.div>
             ))}
           </div>
+
+          <div className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6">
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-orange-500/10 border border-orange-500/20 grid place-items-center">
+                <AlertTriangle className="size-4 text-orange-300" />
+              </div>
+              <div>
+                <h4 className="font-display font-medium text-sm">Important Return Information</h4>
+                <p className="mt-1.5 text-xs sm:text-sm text-white/50 leading-relaxed">
+                  Return eligibility varies by product category, supplier policies, product condition, and destination country.
+                  Not all products are eligible for returns or refunds. Return eligibility is clearly indicated on the relevant product page where applicable.
+                </p>
+              </div>
+            </div>
+          </div>
         </motion.section>
 
         {/* ── SUMMARY CTA ── */}
