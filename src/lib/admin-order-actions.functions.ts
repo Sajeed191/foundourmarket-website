@@ -185,6 +185,16 @@ export const updateTrackingFn = createServerFn({ method: "POST" })
     const order = await getOrder(input.orderId);
     let ship = await latestShipment(input.orderId);
 
+    if (!paymentAllowsFulfillment(order.payment_status, order.payment_method)) {
+      await logSecurity({
+        actorId: userId, actorRole: primaryRole, action: "ops.shipment.update_tracking",
+        target: input.orderId, success: false,
+        detail: { reason: "payment_incomplete", paymentStatus: order.payment_status },
+      });
+      throw new Error(PAYMENT_BLOCK_MSG);
+    }
+
+
     if (!ship) {
       const { data: created, error } = await supabaseAdmin.from("shipments").insert({
         order_id: input.orderId, user_id: order.user_id, carrier: input.carrier,
