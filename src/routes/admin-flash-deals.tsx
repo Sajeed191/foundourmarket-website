@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Flame, Plus, Pencil, Pause, Play, Trash2, Loader2, X } from "lucide-react";
+import { Flame, Plus, Pencil, Pause, Play, Trash2, Loader2, X, Eye, MousePointerClick, ShoppingBag, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { KpiCard } from "@/components/admin/KpiCard";
