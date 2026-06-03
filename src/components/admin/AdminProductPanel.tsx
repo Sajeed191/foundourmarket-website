@@ -79,11 +79,25 @@ const numOrNull = (v: string): number | null => {
  * (the parent gates on useIsAdmin). All writes go through the role-protected
  * adminUpdateProduct server function — the panel is purely a UX surface.
  */
-export function AdminProductPanel({ product }: { product: Product }) {
+export function AdminProductPanel({
+  product,
+  onOpenChange,
+}: {
+  product: Product;
+  /** Notifies the parent page when the full inline editor opens/closes so it
+   *  can hide customer purchase UI (sticky Buy Now dock) while editing. */
+  onOpenChange?: (open: boolean) => void;
+}) {
   const update = useServerFn(adminUpdateProduct);
   const [open, setOpen] = useState(false);
   const [marketing, setMarketing] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Surface editor open-state to the parent product page.
+  useEffect(() => {
+    onOpenChange?.(open);
+    return () => onOpenChange?.(false);
+  }, [open, onOpenChange]);
 
   // form state
   const [f, setF] = useState(() => toForm(product));
