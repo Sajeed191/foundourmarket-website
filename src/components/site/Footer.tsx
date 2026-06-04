@@ -62,9 +62,9 @@ export function Footer() {
           {/* Contact */}
           <ul className="text-xs space-y-2 text-muted-foreground pt-0.5">
             <li>
-              <a href="mailto:foundourmarket@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
+              <a href="mailto:support@foundourmarket.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
                 <Mail className="size-3.5 text-accent shrink-0" />
-                <span className="truncate">foundourmarket@gmail.com</span>
+                <span className="truncate">support@foundourmarket.com</span>
               </a>
             </li>
             <li>
