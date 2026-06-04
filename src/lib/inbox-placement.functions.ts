@@ -149,7 +149,7 @@ export const createPlacementTest = createServerFn({ method: "POST" })
         payload: {
           message_id: messageId,
           to: recipient,
-          from: `${SITE_NAME} <orders@${FROM_DOMAIN}>`,
+          from: `${SITE_NAME} <support@${FROM_DOMAIN}>`,
           sender_domain: SENDER_DOMAIN,
           subject,
           html,

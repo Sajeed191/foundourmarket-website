@@ -92,7 +92,7 @@ async function enqueue(opts: {
       payload: {
         message_id: opts.messageId,
         to: opts.recipient,
-        from: `${SITE_NAME} Support <${opts.fromUser}@${FROM_DOMAIN}>`,
+        from: `${SITE_NAME} <support@${FROM_DOMAIN}>`,
         sender_domain: SENDER_DOMAIN,
         subject,
         html,

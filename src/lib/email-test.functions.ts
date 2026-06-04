@@ -75,7 +75,7 @@ export const sendTestEmail = createServerFn({ method: "POST" })
       payload: {
         message_id: messageId,
         to: recipient,
-        from: `${SITE_NAME} <no-reply@${FROM_DOMAIN}>`,
+        from: `${SITE_NAME} <support@${FROM_DOMAIN}>`,
         sender_domain: SENDER_DOMAIN,
         subject: "FoundOurMarket™ — Test email delivery ✦",
         html,
