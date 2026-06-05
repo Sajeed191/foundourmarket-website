@@ -74,15 +74,51 @@ function ConfidenceBadge({ value }: { value: number | null }) {
   );
 }
 
+type RegionDebug = {
+  detectedCountry: string | null;
+  timezone: string | null;
+  market: Region;
+  currency: string;
+  pricingSource: "profile_locked" | "edge_geo" | "default";
+  confidence: number;
+  profileLocked: boolean;
+};
+
+const PRICING_SOURCE_LABELS: Record<string, string> = {
+  profile_locked: "Saved region (profile)",
+  edge_geo: "Geo-IP country header",
+  default: "Default fallback (unknown)",
+};
+
+/** Derived region profile shown in the live debug panel. */
+function regionProfile(market: Region) {
+  return market === "india"
+    ? {
+        phoneCode: "+91",
+        gateway: "Razorpay (UPI · Cards)",
+        gatewayNote: "International gateways hidden",
+        shipping: "India domestic shipping",
+      }
+    : {
+        phoneCode: "Manual country code",
+        gateway: "International gateways (Stripe / PayPal)",
+        gatewayNote: "Razorpay / INR pricing hidden",
+        shipping: "International / worldwide shipping",
+      };
+}
+
 function AdminRegionPage() {
   const listCustomers = useServerFn(adminListCustomerRegions);
   const listRequests = useServerFn(adminListRegionRequests);
   const setRegion = useServerFn(adminSetUserRegion);
   const review = useServerFn(adminReviewRegionRequest);
+  const fetchDebug = useServerFn(getCheckoutRegionDebug);
 
-  const [tab, setTab] = useState<"customers" | "requests">("requests");
+  const [tab, setTab] = useState<"customers" | "requests" | "debug">("requests");
   const [customers, setCustomers] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
+  const [debug, setDebug] = useState<RegionDebug | null>(null);
+  const [debugLoading, setDebugLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -103,9 +139,25 @@ function AdminRegionPage() {
     }
   }, [listCustomers, listRequests, search]);
 
+  const loadDebug = useCallback(async () => {
+    setDebugLoading(true);
+    try {
+      const d = await fetchDebug();
+      setDebug(d as RegionDebug);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not resolve region debug.");
+    } finally {
+      setDebugLoading(false);
+    }
+  }, [fetchDebug]);
+
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (tab === "debug" && !debug) loadDebug();
+  }, [tab, debug, loadDebug]);
 
   async function override(userId: string, region: Region) {
     const reason = window.prompt(`Reason for setting region to ${region}?`)?.trim();
