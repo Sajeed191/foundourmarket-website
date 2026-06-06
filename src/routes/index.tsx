@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
   Search, ArrowRight, Star, Sparkles, Award, Package, Globe2, Users, Flame,
@@ -11,7 +11,9 @@ import type { LucideIcon } from "lucide-react";
 import { useCategories, useAdminCategories, toggleCategoryVisible } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { useProductAdminEditing } from "@/lib/admin-overlay";
-import { CategoryAdminSheet } from "@/components/admin/CategoryAdminSheet";
+const CategoryAdminSheet = lazy(() =>
+  import("@/components/admin/CategoryAdminSheet").then((m) => ({ default: m.CategoryAdminSheet })),
+);
 import { useHomepageSections, saveHomepageSection, toggleHomepageSection } from "@/lib/use-homepage-sections";
 import { InlineActiveToggle } from "@/components/admin/InlineActiveToggle";
 import { toast } from "sonner";
@@ -600,7 +602,9 @@ function Home() {
         </div>
       </section>
       {isProductAdmin && editCats && (
-        <CategoryAdminSheet onClose={() => setEditCats(false)} onChanged={() => {}} productCounts={categoryCounts} />
+        <Suspense fallback={null}>
+          <CategoryAdminSheet onClose={() => setEditCats(false)} onChanged={() => {}} productCounts={categoryCounts} />
+        </Suspense>
       )}
 
       <CinematicDivider />
