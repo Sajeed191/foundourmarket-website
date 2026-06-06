@@ -116,7 +116,6 @@ import { Route as AdminProductSlugIndexRouteImport } from './routes/admin-produc
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as CategoryMainSubRouteImport } from './routes/category.$main.$sub'
 import { Route as ApiPublicRazorpayWebhookRouteImport } from './routes/api/public/razorpay-webhook'
-import { Route as ApiPublicExpireOrdersRouteImport } from './routes/api/public/expire-orders'
 import { Route as AdminProductSlugShippingRouteImport } from './routes/admin-product.$slug.shipping'
 import { Route as AdminProductSlugSeoRouteImport } from './routes/admin-product.$slug.seo'
 import { Route as AdminProductSlugReturnsRouteImport } from './routes/admin-product.$slug.returns'
@@ -677,11 +676,6 @@ const ApiPublicRazorpayWebhookRoute =
     path: '/api/public/razorpay-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicExpireOrdersRoute = ApiPublicExpireOrdersRouteImport.update({
-  id: '/api/public/expire-orders',
-  path: '/api/public/expire-orders',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminProductSlugShippingRoute =
   AdminProductSlugShippingRouteImport.update({
     id: '/shipping',
@@ -896,7 +890,6 @@ export interface FileRoutesByFullPath {
   '/admin-product/$slug/returns': typeof AdminProductSlugReturnsRoute
   '/admin-product/$slug/seo': typeof AdminProductSlugSeoRoute
   '/admin-product/$slug/shipping': typeof AdminProductSlugShippingRoute
-  '/api/public/expire-orders': typeof ApiPublicExpireOrdersRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/category/$main/$sub': typeof CategoryMainSubRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -1023,7 +1016,6 @@ export interface FileRoutesByTo {
   '/admin-product/$slug/returns': typeof AdminProductSlugReturnsRoute
   '/admin-product/$slug/seo': typeof AdminProductSlugSeoRoute
   '/admin-product/$slug/shipping': typeof AdminProductSlugShippingRoute
-  '/api/public/expire-orders': typeof ApiPublicExpireOrdersRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/category/$main/$sub': typeof CategoryMainSubRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -1152,7 +1144,6 @@ export interface FileRoutesById {
   '/admin-product/$slug/returns': typeof AdminProductSlugReturnsRoute
   '/admin-product/$slug/seo': typeof AdminProductSlugSeoRoute
   '/admin-product/$slug/shipping': typeof AdminProductSlugShippingRoute
-  '/api/public/expire-orders': typeof ApiPublicExpireOrdersRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/category/$main/$sub': typeof CategoryMainSubRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -1282,7 +1273,6 @@ export interface FileRouteTypes {
     | '/admin-product/$slug/returns'
     | '/admin-product/$slug/seo'
     | '/admin-product/$slug/shipping'
-    | '/api/public/expire-orders'
     | '/api/public/razorpay-webhook'
     | '/category/$main/$sub'
     | '/lovable/email/suppression'
@@ -1409,7 +1399,6 @@ export interface FileRouteTypes {
     | '/admin-product/$slug/returns'
     | '/admin-product/$slug/seo'
     | '/admin-product/$slug/shipping'
-    | '/api/public/expire-orders'
     | '/api/public/razorpay-webhook'
     | '/category/$main/$sub'
     | '/lovable/email/suppression'
@@ -1537,7 +1526,6 @@ export interface FileRouteTypes {
     | '/admin-product/$slug/returns'
     | '/admin-product/$slug/seo'
     | '/admin-product/$slug/shipping'
-    | '/api/public/expire-orders'
     | '/api/public/razorpay-webhook'
     | '/category/$main/$sub'
     | '/lovable/email/suppression'
@@ -1653,7 +1641,6 @@ export interface RootRouteChildren {
   ProductsNewArrivalsRoute: typeof ProductsNewArrivalsRoute
   ProductsTrendingRoute: typeof ProductsTrendingRoute
   AccountPaymentMethodsAddRoute: typeof AccountPaymentMethodsAddRoute
-  ApiPublicExpireOrdersRoute: typeof ApiPublicExpireOrdersRoute
   ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
   CategoryMainSubRoute: typeof CategoryMainSubRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -2418,13 +2405,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRazorpayWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/expire-orders': {
-      id: '/api/public/expire-orders'
-      path: '/api/public/expire-orders'
-      fullPath: '/api/public/expire-orders'
-      preLoaderRoute: typeof ApiPublicExpireOrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin-product/$slug/shipping': {
       id: '/admin-product/$slug/shipping'
       path: '/shipping'
@@ -2726,7 +2706,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsNewArrivalsRoute: ProductsNewArrivalsRoute,
   ProductsTrendingRoute: ProductsTrendingRoute,
   AccountPaymentMethodsAddRoute: AccountPaymentMethodsAddRoute,
-  ApiPublicExpireOrdersRoute: ApiPublicExpireOrdersRoute,
   ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
   CategoryMainSubRoute: CategoryMainSubRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
@@ -2742,3 +2721,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
