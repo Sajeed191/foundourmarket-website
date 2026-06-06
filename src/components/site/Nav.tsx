@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import {
   ShoppingBag, Search, User, Heart, Menu, X, LayoutDashboard,
   Smartphone, Shirt, Home as HomeIcon, Store, Package, Truck, Clock,
@@ -9,7 +9,9 @@ import {
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
-import { SearchCommand } from "@/components/site/SearchCommand";
+const SearchCommand = lazy(() =>
+  import("@/components/site/SearchCommand").then((m) => ({ default: m.SearchCommand })),
+);
 import { NotificationBell } from "@/components/site/NotificationBell";
 import { CurrencySwitcher } from "@/components/site/CurrencySwitcher";
 import { supabase } from "@/integrations/supabase/client";
@@ -581,7 +583,11 @@ export function Nav() {
           </div>
       )}
 
-      <SearchCommand open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {searchOpen && (
+        <Suspense fallback={null}>
+          <SearchCommand open={searchOpen} onClose={() => setSearchOpen(false)} />
+        </Suspense>
+      )}
     </>
   );
 }
