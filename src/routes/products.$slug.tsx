@@ -442,11 +442,13 @@ function ProductPage() {
                   </button>
                 </div>
                 {isAdmin && (
-                  <AdminImageManager
-                    product={product}
-                    images={galleryImages.filter((g) => g.id !== "main")}
-                    onChanged={setImages}
-                  />
+                  <Suspense fallback={null}>
+                    <AdminImageManager
+                      product={product}
+                      images={galleryImages.filter((g) => g.id !== "main")}
+                      onChanged={setImages}
+                    />
+                  </Suspense>
                 )}
               </div>
             </div>
