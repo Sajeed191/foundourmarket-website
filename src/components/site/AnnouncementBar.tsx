@@ -193,7 +193,7 @@ export function AnnouncementBar({ page = "home" }: { page?: string }) {
         )}
       </div>
 
-      {canEdit && editing && <AnnouncementAdminSheet onClose={() => setEditing(false)} onChanged={fetchItems} />}
+      {canEdit && editing && <Suspense fallback={null}><AnnouncementAdminSheet onClose={() => setEditing(false)} onChanged={fetchItems} /></Suspense>}
     </>
   );
 }
