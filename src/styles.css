@@ -152,6 +152,19 @@
 .animate-glow { animation: glow-pulse 4s ease-in-out infinite; }
 .animate-orb { animation: orb-drift 22s ease-in-out infinite; }
 
+/* Hero entrance — pure CSS so the LCP hero paints from the SSR HTML on parse,
+   with no dependency on the JS bundle / hydration. Mirrors the previous
+   framer-motion fade-up timings exactly (visual parity, faster LCP). */
+.hero-rise { animation: fade-up 0.7s var(--ease-out-expo) both; }
+.hero-rise-h1 { animation: fade-up 0.9s var(--ease-out-expo) both; }
+.hero-rise-1 { animation-delay: 0.15s; }
+.hero-rise-2 { animation-delay: 0.25s; }
+.hero-rise-3 { animation-delay: 0.35s; }
+.hero-rise-4 { animation-delay: 0.45s; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise, .hero-rise-h1 { animation: none; }
+}
+
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.96) translateY(-4px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
