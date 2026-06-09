@@ -2,6 +2,42 @@
 @source "../src";
 @import "tw-animate-css";
 
+/* Self-hosted fonts (latin) — removes the render-blocking Google Fonts CSS +
+   cross-origin font waterfall that delayed the hero LCP text paint. The hero
+   h1 weight (Space Grotesk 600) is preloaded in __root.tsx for fast LCP. */
+@font-face {
+  font-family: "Space Grotesk"; font-style: normal; font-weight: 400;
+  font-display: swap; src: url("/fonts/space-grotesk-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk"; font-style: normal; font-weight: 600;
+  font-display: swap; src: url("/fonts/space-grotesk-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk"; font-style: normal; font-weight: 700;
+  font-display: swap; src: url("/fonts/space-grotesk-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Sans"; font-style: normal; font-weight: 400;
+  font-display: swap; src: url("/fonts/dm-sans-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Sans"; font-style: normal; font-weight: 500;
+  font-display: swap; src: url("/fonts/dm-sans-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Sans"; font-style: normal; font-weight: 600;
+  font-display: swap; src: url("/fonts/dm-sans-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Sans"; font-style: normal; font-weight: 700;
+  font-display: swap; src: url("/fonts/dm-sans-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400;
+  font-display: swap; src: url("/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /* Cinematic Noir — premium dark commerce */
@@ -121,6 +157,10 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes rise-only {
+  from { transform: translateY(20px); }
+  to { transform: translateY(0); }
+}
 @keyframes slide-in-up {
   from { opacity: 0; transform: translateY(120%); }
   to { opacity: 1; transform: translateY(0); }
@@ -156,7 +196,10 @@
    with no dependency on the JS bundle / hydration. Mirrors the previous
    framer-motion fade-up timings exactly (visual parity, faster LCP). */
 .hero-rise { animation: fade-up 0.7s var(--ease-out-expo) both; }
-.hero-rise-h1 { animation: fade-up 0.9s var(--ease-out-expo) both; }
+/* LCP hero headline rises WITHOUT fading opacity, so the largest text block is
+   a contentful paint at first paint instead of being delayed by a 0→1 opacity
+   tween. Visual rise is preserved via translateY only. */
+.hero-rise-h1 { animation: rise-only 0.9s var(--ease-out-expo) both; }
 .hero-rise-1 { animation-delay: 0.15s; }
 .hero-rise-2 { animation-delay: 0.25s; }
 .hero-rise-3 { animation-delay: 0.35s; }
