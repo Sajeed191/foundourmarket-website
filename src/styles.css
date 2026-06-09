@@ -192,7 +192,10 @@
    with no dependency on the JS bundle / hydration. Mirrors the previous
    framer-motion fade-up timings exactly (visual parity, faster LCP). */
 .hero-rise { animation: fade-up 0.7s var(--ease-out-expo) both; }
-.hero-rise-h1 { animation: fade-up 0.9s var(--ease-out-expo) both; }
+/* LCP hero headline rises WITHOUT fading opacity, so the largest text block is
+   a contentful paint at first paint instead of being delayed by a 0→1 opacity
+   tween. Visual rise is preserved via translateY only. */
+.hero-rise-h1 { animation: rise-only 0.9s var(--ease-out-expo) both; }
 .hero-rise-1 { animation-delay: 0.15s; }
 .hero-rise-2 { animation-delay: 0.25s; }
 .hero-rise-3 { animation-delay: 0.35s; }
