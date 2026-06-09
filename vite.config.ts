@@ -39,8 +39,10 @@ export default defineConfig({
           // many route/lazy chunks, so Rollup would otherwise hoist it into the
           // always-loaded entry. Isolating it means only motion-using routes
           // fetch it (in parallel, and cached across navigations).
-          manualChunks: {
-            "framer-motion": ["framer-motion"],
+          manualChunks(id) {
+            if (id.includes("node_modules/framer-motion")) {
+              return "framer-motion";
+            }
           },
         },
       },
