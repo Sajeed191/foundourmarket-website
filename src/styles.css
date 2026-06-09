@@ -157,6 +157,10 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes rise-only {
+  from { transform: translateY(20px); }
+  to { transform: translateY(0); }
+}
 @keyframes slide-in-up {
   from { opacity: 0; transform: translateY(120%); }
   to { opacity: 1; transform: translateY(0); }
