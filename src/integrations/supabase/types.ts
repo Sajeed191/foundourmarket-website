@@ -5526,7 +5526,6 @@ export type Database = {
           meta_keywords: string[] | null
           name: string | null
           new_arrival: boolean | null
-          orders_count: number | null
           paypal_enabled: boolean | null
           pickup_supported: boolean | null
           premium: boolean | null
@@ -5613,7 +5612,6 @@ export type Database = {
           meta_keywords?: string[] | null
           name?: string | null
           new_arrival?: boolean | null
-          orders_count?: number | null
           paypal_enabled?: boolean | null
           pickup_supported?: boolean | null
           premium?: boolean | null
@@ -5700,7 +5698,6 @@ export type Database = {
           meta_keywords?: string[] | null
           name?: string | null
           new_arrival?: boolean | null
-          orders_count?: number | null
           paypal_enabled?: boolean | null
           pickup_supported?: boolean | null
           premium?: boolean | null
