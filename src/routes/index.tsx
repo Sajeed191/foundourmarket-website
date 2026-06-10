@@ -50,17 +50,8 @@ function useRotatingPlaceholder(active: boolean) {
   return PLACEHOLDERS[idx];
 }
 
-function AnimatedCounter({ to, suffix = "", duration = 2, decimals = 0 }: { to: number; suffix?: string; duration?: number; decimals?: number }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-  const mv = useMotionValue(0);
-  const spring = useSpring(mv, { duration: duration * 1000, bounce: 0 });
-  const display = useTransform(spring, (v) =>
-    (decimals > 0 ? v.toFixed(decimals) : Math.round(v).toLocaleString()) + suffix
-  );
-  useEffect(() => { if (inView) mv.set(to); }, [inView, to, mv]);
-  return <motion.span ref={ref}>{display}</motion.span>;
-}
+import { Reveal, AnimatedCounter } from "@/components/site/Reveal";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
