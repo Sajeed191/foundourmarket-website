@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Flame, ArrowRight, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Price } from "@/components/site/Price";
 import { trackFlashDealEvent } from "@/lib/flash-deal-analytics";
