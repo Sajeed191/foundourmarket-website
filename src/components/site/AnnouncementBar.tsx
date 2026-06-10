@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, lazy, Suspense } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminEditing } from "@/lib/admin-overlay";
-import { AnnouncementIcon } from "@/lib/announcement-icons";
+import { StaticAnnouncement } from "@/components/site/AnnouncementMessage";
+// framer-motion crossfade — lazy so the homepage initial bundle stays motion-free.
+const MotionAnnouncement = lazy(() => import("@/components/site/AnnouncementMessage.motion"));
 // Heavy admin editor — lazy so shoppers never download it on the homepage.
 const AnnouncementAdminSheet = lazy(() =>
   import("@/components/admin/AnnouncementAdminSheet").then((m) => ({ default: m.AnnouncementAdminSheet })),
