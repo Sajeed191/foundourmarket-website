@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
-import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
+
 import {
   Search, ArrowRight, Star, Sparkles, Award, Package, Globe2, Users, Flame,
   BadgeCheck, Pencil,
