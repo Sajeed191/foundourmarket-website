@@ -27,6 +27,7 @@ export function ProductCollection({
   icon: Icon,
   sort,
   filterFlag,
+  forceBadge,
 }: {
   eyebrow: string;
   title: string;
@@ -38,6 +39,11 @@ export function ProductCollection({
    * the collection. Products without the badge NEVER show here.
    */
   filterFlag?: "trending" | "bestseller" | "flashDeal" | "featured";
+  /**
+   * When set, each card shows ONLY this section's badge (e.g. Trending page →
+   * Trending badge only), hiding any other badges the product qualifies for.
+   */
+  forceBadge?: BadgeKey | null;
 }) {
   const { products, loading } = useProducts();
 
