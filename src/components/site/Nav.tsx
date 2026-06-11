@@ -335,12 +335,12 @@ export function Nav() {
 
 
               {/* Soft divider between actions and cart */}
-              <span aria-hidden className="self-center mx-1 sm:mx-1.5 h-6 w-px bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+              <span aria-hidden className="self-center mx-0.5 sm:mx-1.5 h-6 w-px bg-gradient-to-b from-transparent via-white/15 to-transparent" />
 
               <Link
                 to="/cart"
                 aria-label="Cart"
-                className="shrink-0 relative flex items-center justify-center gap-1 sm:gap-1.5 h-10 sm:h-11 min-w-10 sm:min-w-11 px-2.5 sm:px-3.5 rounded-xl bg-accent text-accent-foreground hover:brightness-110 active:scale-[0.97] transition-all shadow-[var(--shadow-ember)]"
+                className="shrink-0 relative flex items-center justify-center gap-1 sm:gap-1.5 h-10 sm:h-11 min-w-10 sm:min-w-11 px-2 sm:px-3.5 rounded-xl bg-accent text-accent-foreground hover:brightness-110 active:scale-[0.97] transition-all shadow-[var(--shadow-ember)]"
               >
                 <ShoppingBag className="size-[18px]" />
                 <span className="text-xs font-mono font-semibold">{count}</span>
