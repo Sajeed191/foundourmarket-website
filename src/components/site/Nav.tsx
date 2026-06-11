@@ -156,7 +156,7 @@ export function Nav() {
   ];
 
   const quickActions = [
-    { to: "/account" as const, label: "Orders", icon: Package, badge: null as number | null },
+    { to: "/account/orders" as const, label: "Orders", icon: Package, badge: null as number | null },
     { to: "/wishlist" as const, label: "Wishlist", icon: Heart, badge: wishSlugs.size },
     { to: "/cart" as const, label: "Cart", icon: ShoppingBag, badge: count },
     { to: "/track" as const, label: "Track Order", icon: Truck, badge: null as number | null },
