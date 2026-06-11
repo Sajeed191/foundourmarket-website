@@ -102,7 +102,7 @@ export function CategoryCard({
 
       {/* Title + product count below */}
       <div className="flex flex-1 flex-col items-center justify-center gap-0.5 px-2.5 py-3 text-center sm:py-3.5">
-        <h3 className="line-clamp-1 text-[13px] font-semibold leading-snug tracking-tight text-white transition-colors group-hover:text-accent sm:text-[15px]">
+        <h3 className="line-clamp-1 text-[13px] font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-accent sm:text-[15px]">
           {category.name}
         </h3>
         {count > 0 && (
