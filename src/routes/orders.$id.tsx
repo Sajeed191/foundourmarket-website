@@ -16,6 +16,7 @@ const STATUSES = [
   { key: "pending", label: "Order placed", icon: Clock },
   { key: "paid", label: "Payment received", icon: CheckCircle2 },
   { key: "shipped", label: "Shipped", icon: Truck },
+  { key: "out_for_delivery", label: "Out for delivery", icon: MapPin },
   { key: "delivered", label: "Delivered", icon: Package },
 ] as const;
 
