@@ -47,9 +47,9 @@ function unitPricing(sale: number, compareAt?: number | null, discount?: number)
   return { sale, original, save: Math.max(0, original - sale), discount: discount ?? 0 };
 }
 
-function shareProduct(slug: string, name: string) {
+function shareProduct(slug: string, name: string, image?: string) {
   if (typeof window === "undefined") return;
-  openShare({ title: name, url: `${window.location.origin}/products/${slug}` });
+  openShare({ title: name, url: `${window.location.origin}/products/${slug}`, image });
 }
 
 function CartPage() {
@@ -254,7 +254,7 @@ function CartPage() {
                         <button onClick={() => { moveToWishlist(item.slug); toast.success("Moved to wishlist"); }} className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-accent inline-flex items-center gap-1.5">
                           <Heart className="size-3" /> Wishlist
                         </button>
-                        <button onClick={() => shareProduct(item.slug, item.product.name)} className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-accent inline-flex items-center gap-1.5">
+                        <button onClick={() => shareProduct(item.slug, item.product.name, item.product.image)} className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-accent inline-flex items-center gap-1.5">
                           <Share2 className="size-3" /> Share
                         </button>
                       </div>
