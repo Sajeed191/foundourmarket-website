@@ -29,6 +29,8 @@ import {
 } from "libphonenumber-js";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { saveProfile } from "@/lib/profile.functions";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { cn } from "@/lib/utils";
@@ -106,6 +108,7 @@ function EditProfilePage() {
   const { user, loading } = useAuth();
   const { market, countryCode: detectedCC } = useRegion();
   const nav = useNavigate();
+  const saveProfileFn = useServerFn(saveProfile);
   const [form, setForm] = useState<Form>(EMPTY);
   const [initial, setInitial] = useState<Form>(EMPTY);
   const [fetching, setFetching] = useState(true);
@@ -270,10 +273,9 @@ function EditProfilePage() {
       const dial = cc ? getCountryCallingCode(cc) : "";
       const e164 = (digits: string) =>
         digits && dial ? `+${dial}${digits}` : digits || null;
-      const { error } = await supabase
-        .from("profiles")
-        .upsert({
-          id: user.id,
+      // Server validates phone numbers again before persisting.
+      await saveProfileFn({
+        data: {
           full_name: form.fullName.trim() || null,
           phone: e164(form.phone.trim()),
           alt_phone: e164(form.altPhone.trim()),
@@ -284,8 +286,8 @@ function EditProfilePage() {
           language: form.language.trim() || null,
           timezone: form.timezone.trim() || null,
           avatar_url: form.avatarUrl.trim() || null,
-        }, { onConflict: "id" });
-      if (error) throw error;
+        },
+      });
       await supabase.auth.updateUser({ data: { full_name: form.fullName.trim(), avatar_url: form.avatarUrl.trim() } });
       setSaved(true);
       setInitial(form);
