@@ -150,7 +150,7 @@ export function Nav() {
   const membership = (user?.user_metadata?.membership || user?.user_metadata?.tier) as string | undefined;
 
   const collections = [
-    { to: "/deals" as const, label: "Trending Products", desc: "Popular right now", icon: TrendingUp, count: collCounts.flash },
+    { to: "/products/trending" as const, label: "Trending Products", desc: "Popular right now", icon: TrendingUp, count: collCounts.flash },
     { to: "/products/best-sellers" as const, label: "Best Sellers", desc: "Most loved", icon: Zap, count: collCounts.best },
     { to: "/products/new-arrivals" as const, label: "New Arrivals", desc: "Fresh drops", icon: Sparkles, count: collCounts.fresh },
   ];
@@ -444,22 +444,11 @@ export function Nav() {
                   </div>
                 </div>
 
-                {/* Sticky search */}
-                <div className="px-4 pt-1 pb-2">
-                  <button
-                    onClick={() => { setOpen(false); setSearchOpen(true); }}
-                    className="group relative w-full flex items-center gap-2.5 rounded-2xl glass border border-white/10 px-4 py-3 text-left hover:border-accent/40 active:scale-[0.99] transition shadow-[0_0_24px_-14px_var(--color-accent)]"
-                  >
-                    <span aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition shadow-[0_0_28px_-10px_var(--color-accent)]" />
-                    <Search className="size-4 text-accent shrink-0" />
-                    <span className="text-xs text-muted-foreground truncate">Search products, brands, categories…</span>
-                  </button>
-                </div>
 
                 {/* Trending promo banner */}
-                <div className="px-4 pb-2">
+                <div className="px-4 pt-2 pb-2">
                   <Link
-                    to="/deals"
+                    to="/products/trending"
                     onClick={() => { setOpen(false); trackMenu("Trending Products", "promo"); }}
                     className="group relative flex items-center gap-3 overflow-hidden rounded-2xl px-4 py-3.5 ring-1 ring-accent/30 active:scale-[0.98] transition"
                     style={{ background: "var(--gradient-ember)" }}
