@@ -86,8 +86,12 @@ function FallbackSection({ featured }: { featured: Product[] }) {
 }
 
 export function FlashDeals() {
-  const { items, loading, now, products } = useFlashDeals();
+  const { items: allItems, loading, now, products } = useFlashDeals();
   const { priceOf } = useRegion();
+
+  // Homepage shows ONLY the first 4 active flash deals (rotated twice daily by
+  // the shared hook). The remaining deals are loaded on the dedicated /deals page.
+  const items = useMemo(() => allItems.slice(0, 4), [allItems]);
 
   // Featured fallback used only when no flash deals exist.
   const featuredFallback = useMemo(
