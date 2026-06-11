@@ -107,7 +107,7 @@ function FallbackSection({ featured }: { featured: Product[] }) {
                     )}
                   </div>
                   <p className="mt-1.5 text-[11px] font-medium truncate">{p.name}</p>
-                  <Price value={p.price} className="text-xs font-display font-semibold text-accent tabular-nums" />
+                  <Price value={priceOf(p)} className="text-xs font-display font-semibold text-accent tabular-nums" />
                 </Link>
               ))}
             </div>
