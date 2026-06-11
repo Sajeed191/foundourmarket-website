@@ -98,20 +98,21 @@ export function OrderActionCenter({ orderId, hasCustomer, currentStage, onDone }
 
           {/* Fulfilment stage */}
           <div>
-            <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1.5">Fulfilment</p>
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1.5">Fulfilment · steps in order</p>
             <div className="grid grid-cols-2 gap-1.5">
-              <Btn icon={<Boxes className="size-3.5" />} label={stageDone("packed") ? "Packed ✓" : "Mark Packed"}
+              <Btn icon={<Boxes className="size-3.5" />} label={stageDone("packed") ? "1. Packed ✓" : "1. Mark Packed"}
                 busy={busy === "packed"} disabled={stageDone("packed")} done={stageDone("packed")}
                 onClick={() => run("packed", () => mark({ data: { orderId, stage: "packed" } }), "Marked packed")} />
-              <Btn icon={<Truck className="size-3.5" />} label={stageDone("shipped") ? "Shipped ✓" : "Mark Shipped"}
+              <Btn icon={<Truck className="size-3.5" />} label={stageDone("shipped") ? "2. Shipped ✓" : "2. Mark Shipped"}
                 busy={busy === "shipped"} disabled={stageDone("shipped")} done={stageDone("shipped")}
                 onClick={() => run("shipped", () => mark({ data: { orderId, stage: "shipped" } }), "Marked shipped")} />
-              <Btn icon={<MapPin className="size-3.5" />} label={stageDone("out_for_delivery") ? "Out for Delivery ✓" : "Out for Delivery"}
+              <Btn icon={<MapPin className="size-3.5" />} label={stageDone("out_for_delivery") ? "3. Out for Delivery ✓" : "3. Out for Delivery"}
                 busy={busy === "out_for_delivery"} disabled={stageDone("out_for_delivery")} done={stageDone("out_for_delivery")}
                 onClick={() => run("out_for_delivery", () => mark({ data: { orderId, stage: "out_for_delivery" } }), "Marked out for delivery")} />
-              <Btn icon={<CheckCircle2 className="size-3.5" />} label={stageDone("delivered") ? "Delivered ✓" : "Mark Delivered"}
+              <Btn icon={<CheckCircle2 className="size-3.5" />} label={stageDone("delivered") ? "4. Delivered ✓" : "4. Mark Delivered"}
                 tone="good" busy={busy === "delivered"} disabled={stageDone("delivered")} done={stageDone("delivered")}
                 onClick={() => run("delivered", () => mark({ data: { orderId, stage: "delivered" } }), "Marked delivered")} />
+
               <Btn icon={<XCircle className="size-3.5" />} label="Cancel Order" tone="bad" busy={busy === "cancelled"}
                 disabled={stageDone("delivered")}
                 onClick={() => run("cancelled", () => mark({ data: { orderId, stage: "cancelled" } }), "Order cancelled")} />
