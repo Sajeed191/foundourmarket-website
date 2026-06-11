@@ -108,6 +108,7 @@ function EditProfilePage() {
   const { user, loading } = useAuth();
   const { market, countryCode: detectedCC } = useRegion();
   const nav = useNavigate();
+  const saveProfileFn = useServerFn(saveProfile);
   const [form, setForm] = useState<Form>(EMPTY);
   const [initial, setInitial] = useState<Form>(EMPTY);
   const [fetching, setFetching] = useState(true);
