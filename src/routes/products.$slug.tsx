@@ -335,9 +335,9 @@ function ProductPage() {
         <div className="absolute -top-32 -left-24 size-[36rem] rounded-full opacity-50 animate-orb" style={{ background: "var(--gradient-ember-soft)", filter: "blur(110px)" }} />
         <div className="absolute top-1/3 -right-32 size-[34rem] rounded-full opacity-40 animate-orb" style={{ background: "var(--gradient-violet)", filter: "blur(120px)", animationDelay: "-8s" }} />
       </div>
-      <div data-product-page data-product-phase="final" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16">
+      <div data-product-page data-product-phase="final" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16">
         {/* Breadcrumb: Home → Main → Sub → Product */}
-        <nav aria-label="Breadcrumb" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6 sm:mb-8 truncate">
+        <nav aria-label="Breadcrumb" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3 sm:mb-8 truncate">
           <Link to="/" className="hover:text-foreground">Shop</Link>
           {breadcrumbCat && breadcrumbParent && (
             <>
@@ -364,7 +364,7 @@ function ProductPage() {
         </nav>
 
 
-        <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-12 xl:gap-16">
+        <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 lg:gap-12 xl:gap-16">
           {/* Gallery */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -376,7 +376,7 @@ function ProductPage() {
               {/* Cinematic ambient backlight */}
               <div aria-hidden className="absolute -inset-10 -z-10 rounded-[3rem] opacity-70 animate-pulse" style={{ background: "var(--gradient-ember-soft)", filter: "blur(80px)" }} />
               <div aria-hidden className="absolute left-1/2 top-1/2 -z-10 size-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.5), transparent 70%)", filter: "blur(50px)" }} />
-              <div data-product-image className="relative aspect-[4/5] sm:aspect-square card-premium rounded-2xl sm:rounded-3xl overflow-hidden group border border-white/10 shadow-[0_30px_60px_-28px_oklch(0_0_0/0.7)]">
+              <div data-product-image className="relative aspect-[4/3] sm:aspect-square max-h-[58svh] sm:max-h-none mx-auto w-full card-premium rounded-2xl sm:rounded-3xl overflow-hidden group border border-white/10 shadow-[0_30px_60px_-28px_oklch(0_0_0/0.7)]">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeImage?.id}
@@ -455,7 +455,7 @@ function ProductPage() {
 
 
             {galleryImages.length > 1 && (
-              <div className="mt-3 grid grid-cols-6 gap-2 sm:gap-2.5">
+              <div className="mt-2.5 grid grid-cols-6 gap-2 sm:gap-2.5">
                 {galleryImages.map((img, i) => (
                   <button
                     key={img.id}
@@ -487,8 +487,8 @@ function ProductPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
           >
-            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent/90 mb-2 mt-5 lg:mt-0">{product.tagline}</p>
-            <h1 className="text-[1.6rem] sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-3 text-balance leading-[1.18] sm:leading-[1.12]">{product.name}</h1>
+            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent/90 mb-1.5 mt-4 lg:mt-0">{product.tagline}</p>
+            <h1 className="text-[1.35rem] sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-2.5 text-balance leading-[1.22] sm:leading-[1.12]">{product.name}</h1>
 
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <StarRating
@@ -867,12 +867,12 @@ function ProductLayoutDiagnostics({ phase }: { phase: "loading" | "final" }) {
 function ProductPageSkeleton() {
   return (
     <>
-    <div data-product-page data-product-phase="loading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16" aria-busy="true">
+    <div data-product-page data-product-phase="loading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16" aria-busy="true">
       <ProductLayoutDiagnostics phase="loading" />
-      <div className="mb-6 h-3 w-44 rounded-full bg-white/[0.05] animate-pulse" />
-      <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-12 xl:gap-16">
+      <div className="mb-3 sm:mb-6 h-3 w-44 rounded-full bg-white/[0.05] animate-pulse" />
+      <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 lg:gap-12 xl:gap-16">
         <div className="space-y-3">
-          <div data-product-image className="aspect-[4/5] sm:aspect-square rounded-2xl sm:rounded-3xl border border-border bg-white/[0.04] animate-pulse" />
+          <div data-product-image className="aspect-[4/3] sm:aspect-square max-h-[58svh] sm:max-h-none rounded-2xl sm:rounded-3xl border border-border bg-white/[0.04] animate-pulse" />
           <div className="grid grid-cols-6 gap-2 sm:gap-2.5">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="aspect-square rounded-xl bg-white/[0.04] animate-pulse" />
