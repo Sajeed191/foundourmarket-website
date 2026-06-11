@@ -131,8 +131,11 @@ export function FlashDeals() {
   function fetchDeals() {
     supabase
       .from("flash_deals")
-      .select("id,product_id,product_slug,flash_price,start_at,end_at,priority,created_at")
-      .then(({ data }) => setDeals((data as unknown as DealRow[]) ?? []));
+      .select("id,product_id,flash_price,start_at,end_at,priority,created_at,product:products(slug)")
+      .then(({ data }) => {
+        const rows = (data as unknown as Array<Omit<DealRow, "product_slug"> & { product: { slug: string } | null }>) ?? [];
+        setDeals(rows.map((r) => ({ ...r, product_slug: r.product?.slug ?? null })));
+      });
   }
 
   useEffect(() => {
