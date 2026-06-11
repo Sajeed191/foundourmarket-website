@@ -34,6 +34,8 @@ export const Route = createFileRoute("/account")({
 type Order = {
   id: string;
   status: string;
+  payment_status: string | null;
+  payment_method: string | null;
   total: number;
   discount: number | null;
   currency: string;
@@ -83,7 +85,7 @@ function AccountPage() {
     const loadOrders = () =>
       supabase
         .from("orders")
-        .select("id,status,total,discount,currency,created_at,order_items(name,quantity,image)")
+        .select("id,status,payment_status,payment_method,total,discount,currency,created_at,order_items(name,quantity,image)")
         .order("created_at", { ascending: false })
         .limit(20)
         .then(({ data }) => setOrders((data as Order[]) ?? []));
@@ -125,7 +127,15 @@ function AccountPage() {
     const categoryCount = new Map<string, number>();
     for (const o of list) for (const it of o.order_items) categoryCount.set(it.name, (categoryCount.get(it.name) ?? 0) + it.quantity);
     const topCategory = [...categoryCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
-    const latestActive = list.find((o) => !["delivered", "cancelled", "refunded"].includes(String(o.status).toLowerCase())) ?? null;
+    const isPaid = (o: Order) => {
+      const pm = String(o.payment_method ?? "").toLowerCase();
+      const ps = String(o.payment_status ?? "").toLowerCase();
+      const st = String(o.status).toLowerCase();
+      if (st === "payment_failed" || ps === "failed") return false;
+      if (pm === "cod") return true; // COD orders track without prepayment
+      return ps === "succeeded" || ps === "paid"; // prepaid must be successfully captured
+    };
+    const latestActive = list.find((o) => isPaid(o) && !["delivered", "cancelled", "refunded"].includes(String(o.status).toLowerCase())) ?? null;
     return { count: list.length, spent, active, saved, memberSince, topCategory, latestActive };
   }, [orders, user]);
 
