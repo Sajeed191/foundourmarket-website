@@ -30,6 +30,9 @@ type Form = {
   stockQuantity: string;
   inStock: boolean;
   featured: boolean;
+  trending: boolean;
+  bestseller: boolean;
+  flashDeal: boolean;
 };
 
 function toForm(p: Product): Form {
@@ -41,6 +44,9 @@ function toForm(p: Product): Form {
     stockQuantity: String(p.stockQuantity ?? 0),
     inStock: p.inStock,
     featured: p.featured,
+    trending: p.trending,
+    bestseller: p.bestseller,
+    flashDeal: p.flashDeal,
   };
 }
 
@@ -103,6 +109,9 @@ export function ProductQuickEditSheet({
           stockQuantity,
           inStock: form.inStock,
           featured: form.featured,
+          trending: form.trending,
+          bestseller: form.bestseller,
+          flashDeal: form.flashDeal,
         },
       });
       await invalidateProducts();
@@ -218,10 +227,17 @@ export function ProductQuickEditSheet({
                 />
               </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Toggle label="In stock" value={form.inStock} onChange={(v) => set("inStock", v)} />
-                <Toggle label="Featured" value={form.featured} onChange={(v) => set("featured", v)} />
-              </div>
+              <Toggle label="In stock" value={form.inStock} onChange={(v) => set("inStock", v)} />
+
+
+              <Field label="Collection badges">
+                <div className="grid grid-cols-2 gap-3">
+                  <Toggle label="Trending" value={form.trending} onChange={(v) => set("trending", v)} />
+                  <Toggle label="Best seller" value={form.bestseller} onChange={(v) => set("bestseller", v)} />
+                  <Toggle label="Flash deal" value={form.flashDeal} onChange={(v) => set("flashDeal", v)} />
+                  <Toggle label="Featured" value={form.featured} onChange={(v) => set("featured", v)} />
+                </div>
+              </Field>
 
               <Field label="Badges">
                 <ProductBadgeManager slug={product.slug} />
