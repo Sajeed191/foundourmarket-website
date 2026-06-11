@@ -360,7 +360,7 @@ function CartPage() {
               </div>
 
               <p className="mt-4 pt-4 border-t border-border text-[11px] leading-relaxed text-muted-foreground">
-                Free 7-day returns on eligible items. Refunds processed to your original payment method within 3–5 business days.
+                Free 4-day returns on eligible items. Refunds processed to your original payment method within 3–5 business days.
               </p>
             </div>
 

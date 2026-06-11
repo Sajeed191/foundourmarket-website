@@ -120,7 +120,7 @@ function RefundTracker() {
 
 /* ---------------- 3. Return Window by Category ---------------- */
 const WINDOWS = [
-  { icon: Shirt, cat: "Fashion & Apparel", window: "7 days", note: "Tags attached, unworn" },
+  { icon: Shirt, cat: "Fashion & Apparel", window: "4 days", note: "Tags attached, unworn" },
   { icon: Home, cat: "Home & Living", window: "5 days", note: "Original packaging" },
   { icon: Smartphone, cat: "Electronics", window: "Warranty", note: "Repair / replace" },
   { icon: Watch, cat: "Watches & Accessories", window: "5 days", note: "Unused, boxed" },

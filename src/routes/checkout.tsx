@@ -734,7 +734,7 @@ function CheckoutPage() {
                 <TrustCard icon={<ShieldHalf className="size-4" />} title="PCI-DSS" sub="Compliant" />
                 <TrustCard icon={<Lock className="size-4" />} title="Encrypted" sub="256-bit SSL" />
                 <TrustCard icon={<BadgeCheck className="size-4" />} title="Razorpay" sub="Verified" />
-                <TrustCard icon={<RotateCcw className="size-4" />} title="Easy returns" sub="7-day window" />
+                <TrustCard icon={<RotateCcw className="size-4" />} title="Easy returns" sub="4-day window" />
                 <TrustCard icon={<Headphones className="size-4" />} title="Fast support" sub="24/7 help" />
                 <TrustCard icon={<PackageCheck className="size-4" />} title="Tracked" sub="Real-time" />
               </section>
@@ -807,7 +807,7 @@ function CheckoutPage() {
                 )}
 
                 <p className="hidden lg:flex text-[10px] text-muted-foreground text-center mt-3 font-mono uppercase tracking-widest items-center justify-center gap-1.5 w-full">
-                  <ShieldCheck className="size-3" /> Encrypted · PCI-DSS · 7-day returns
+                  <ShieldCheck className="size-3" /> Encrypted · PCI-DSS · 4-day returns
                 </p>
               </div>
             </aside>
