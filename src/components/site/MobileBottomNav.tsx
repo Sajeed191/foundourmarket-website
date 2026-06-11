@@ -87,7 +87,7 @@ export function MobileBottomNav() {
                 </span>
                 <span
                   className={`truncate max-w-full leading-none transition-colors duration-200 ${
-                    active ? "text-accent font-semibold" : isLight ? "text-muted-foreground" : "text-white/60"
+                    active ? "text-accent font-semibold" : frosted ? "text-muted-foreground" : "text-white/60"
                   }`}
                 >
                   {label}
