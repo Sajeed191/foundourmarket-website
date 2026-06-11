@@ -274,6 +274,7 @@ function RootComponent() {
   // nav on top of that caused a duplicate notification bell whose dropdown
   // floated over admin controls. Suppress public chrome on admin routes.
   const isAdminRoute = pathname.startsWith("/admin");
+  const isCheckoutRoute = pathname.startsWith("/checkout");
   const hideSiteChrome = isAuthRoute || isAdminRoute;
 
   return (
