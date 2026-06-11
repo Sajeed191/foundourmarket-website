@@ -367,24 +367,22 @@ function AccountPage() {
           />
         </motion.section>
 
-        {/* 10 — FOOTER ACTIONS */}
-        <motion.footer {...fadeUp} className="pt-2">
-          <div className="relative overflow-hidden rounded-3xl glass-strong p-5 sm:p-7">
-            <div aria-hidden className="absolute -top-20 -left-10 size-64 rounded-full opacity-40" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
-            <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <FooterAction icon={LifeBuoy} label="Support" to="/help" />
-              <FooterAction icon={HelpCircle} label="FAQ" to="/help" />
-              <FooterAction icon={MessageCircle} label="Contact" onClick={() => openCrispChat()} />
-              <button
-                onClick={signOut}
-                className="group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-destructive/50 hover:text-destructive hover:-translate-y-0.5 transition-all"
-              >
-                <span className="size-9 rounded-xl bg-destructive/10 text-destructive grid place-items-center group-hover:bg-destructive/20 transition-colors">
-                  <LogOut className="size-4" />
-                </span>
-                <span className="text-[11px] uppercase tracking-widest">Sign out</span>
-              </button>
-            </div>
+        {/* 10 — FOOTER ACTIONS — distinct elevated surface */}
+        <motion.footer {...fadeUp} className="account-footer mt-2 relative overflow-hidden rounded-3xl p-5 sm:p-7">
+          <div aria-hidden className="absolute -top-20 -left-10 size-64 rounded-full opacity-30" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
+          <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <FooterAction icon={LifeBuoy} label="Support" to="/help" />
+            <FooterAction icon={HelpCircle} label="FAQ" to="/help" />
+            <FooterAction icon={MessageCircle} label="Contact" onClick={() => openCrispChat()} />
+            <button
+              onClick={signOut}
+              className="group flex flex-col items-center justify-center gap-2 rounded-2xl glass p-4 hover:border-destructive/50 hover:text-destructive hover:-translate-y-0.5 transition-all"
+            >
+              <span className="size-9 rounded-xl bg-destructive/10 text-destructive grid place-items-center group-hover:bg-destructive/20 transition-colors">
+                <LogOut className="size-4" />
+              </span>
+              <span className="text-[11px] uppercase tracking-widest">Sign out</span>
+            </button>
           </div>
         </motion.footer>
       </div>
