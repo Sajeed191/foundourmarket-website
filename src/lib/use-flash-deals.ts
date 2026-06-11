@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/lib/use-products";
 import type { Product } from "@/lib/products";
+import { useRotationNonce } from "@/lib/use-rotation-nonce";
 
 /** A row from the dedicated flash_deals table (optional flash pricing + window). */
 export type DealRow = {
