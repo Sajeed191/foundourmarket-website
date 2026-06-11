@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { RegionProvider } from "@/lib/region";
 import { CartProvider } from "@/lib/cart";
 import { AuthProvider } from "@/lib/auth";
+import { ThemeProvider } from "@/lib/theme";
 import { WishlistProvider } from "@/lib/wishlist";
 import { WishlistAlertsProvider } from "@/lib/wishlist-alerts";
 import { NotificationsProvider } from "@/lib/notifications";
