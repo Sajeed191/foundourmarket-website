@@ -30,6 +30,9 @@ type Form = {
   stockQuantity: string;
   inStock: boolean;
   featured: boolean;
+  trending: boolean;
+  bestseller: boolean;
+  flashDeal: boolean;
 };
 
 function toForm(p: Product): Form {
@@ -41,6 +44,9 @@ function toForm(p: Product): Form {
     stockQuantity: String(p.stockQuantity ?? 0),
     inStock: p.inStock,
     featured: p.featured,
+    trending: p.trending,
+    bestseller: p.bestseller,
+    flashDeal: p.flashDeal,
   };
 }
 
