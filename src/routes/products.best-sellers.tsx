@@ -19,6 +19,7 @@ export const Route = createFileRoute("/products/best-sellers")({
       icon={Award}
       sort="best_sellers"
       filterFlag="bestseller"
+      forceBadge="bestseller"
     />
   ),
 });
