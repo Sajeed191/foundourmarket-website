@@ -225,6 +225,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const removeSaved = async (slug: string) => {
+    setItems((p) => p.filter((i) => !(i.slug === slug && i.savedForLater)));
+    if (user && cartId) {
+      await supabase
+        .from("cart_items")
+        .delete()
+        .eq("cart_id", cartId)
+        .eq("product_slug", slug)
+        .eq("saved_for_later", true);
+    }
+  };
+
   const undoRemove = async () => {
     if (!lastRemoved) return;
     const { slug, qty } = lastRemoved;
