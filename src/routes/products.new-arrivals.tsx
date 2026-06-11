@@ -18,6 +18,7 @@ export const Route = createFileRoute("/products/new-arrivals")({
       description="The freshest additions to the marketplace, curated and delivered worldwide."
       icon={Sparkles}
       sort="newest"
+      forceBadge="new"
     />
   ),
 });
