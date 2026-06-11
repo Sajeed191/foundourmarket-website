@@ -156,8 +156,9 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
         });
         return { ok: true, alreadyDone: true };
       }
-      for (let step = Math.max(baseStep, 1) + (baseStep === 0 ? -1 : 0); step < targetStep; step++) {
-        const next = LIFECYCLE_SEQ[step]; // step is 0-based index of the NEXT status
+      // Apply each lifecycle status from baseStep+1 up to the target (1-based steps).
+      for (let s = baseStep + 1; s <= targetStep; s++) {
+        const next = LIFECYCLE_SEQ[s - 1];
         const { error: sErr } = await supabaseAdmin.from("orders")
           .update({ status: next, fulfillment_status: next } as never)
           .eq("id", input.orderId);
