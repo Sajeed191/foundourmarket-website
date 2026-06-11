@@ -277,6 +277,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
       <AuthProvider>
         <NotificationsProvider>
           <WishlistProvider>
