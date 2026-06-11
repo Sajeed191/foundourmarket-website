@@ -304,8 +304,8 @@ export function FlashDeals() {
                 <p className="mt-2 text-[11px] font-medium truncate">{p.name}</p>
                 <div className="flex items-baseline gap-1.5 flex-wrap">
                   <Price value={displayPrice} className="text-xs font-display font-semibold text-accent tabular-nums" />
-                  {i.flashPrice != null && (
-                    <Price value={p.price} className="text-[10px] font-mono line-through text-muted-foreground tabular-nums" />
+                  {hasFlash && (
+                    <Price value={regularPrice} className="text-[10px] font-mono line-through text-muted-foreground tabular-nums" />
                   )}
                 </div>
                 {showOnlyLeft && (
