@@ -47,6 +47,7 @@ function OrderDetailPage() {
   const nav = useNavigate();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [returnOpen, setReturnOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) nav({ to: "/auth" });
