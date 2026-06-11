@@ -109,6 +109,9 @@ export function ProductQuickEditSheet({
           stockQuantity,
           inStock: form.inStock,
           featured: form.featured,
+          trending: form.trending,
+          bestseller: form.bestseller,
+          flashDeal: form.flashDeal,
         },
       });
       await invalidateProducts();
