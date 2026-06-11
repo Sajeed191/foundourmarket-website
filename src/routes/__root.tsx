@@ -296,7 +296,7 @@ function RootComponent() {
                       </main>
                       {!hideSiteChrome && <Footer />}
                       {!hideSiteChrome && <MobileBottomNav />}
-                      <DeferredShell isAuthRoute={isAuthRoute} isAdminRoute={isAdminRoute} />
+                      <DeferredShell isAuthRoute={isAuthRoute} isAdminRoute={isAdminRoute} hideLiveChat={isCheckoutRoute} />
                       <Toaster position="bottom-center" richColors />
                       <ShareDialog />
                     </div>
