@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   ShoppingBag, Heart, X, LayoutDashboard, Package, Truck, ChevronRight,
-  ChevronDown, LifeBuoy, FileText, Mail, MessageCircle, HelpCircle,
+  LifeBuoy, Mail, MessageCircle, HelpCircle,
   Sparkles, TrendingUp, Zap, Grid3x3, Crown, Home as HomeIcon, Clock,
   Monitor, Moon, Palette, Sun, Check, ShieldCheck,
 } from "lucide-react";
