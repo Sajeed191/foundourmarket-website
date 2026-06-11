@@ -3710,6 +3710,7 @@ export type Database = {
           is_seeded: boolean
           notes: string | null
           order_id: string
+          photo_urls: string[]
           reason: string
           refund_amount: number
           refund_status: string
@@ -3724,6 +3725,7 @@ export type Database = {
           is_seeded?: boolean
           notes?: string | null
           order_id: string
+          photo_urls?: string[]
           reason: string
           refund_amount?: number
           refund_status?: string
@@ -3738,6 +3740,7 @@ export type Database = {
           is_seeded?: boolean
           notes?: string | null
           order_id?: string
+          photo_urls?: string[]
           reason?: string
           refund_amount?: number
           refund_status?: string

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
+import { ReturnRequestDialog } from "@/components/site/ReturnRequestDialog";
 
 export const Route = createFileRoute("/orders/$id")({
   head: () => ({ meta: [{ title: "Order Details — FoundOurMarket™" }] }),
@@ -46,6 +47,7 @@ function OrderDetailPage() {
   const nav = useNavigate();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [returnOpen, setReturnOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) nav({ to: "/auth" });
@@ -233,15 +235,25 @@ function OrderDetailPage() {
             </motion.div>
           )}
 
-          {returnWindowOpen && (
-            <Link
-              to="/returns"
-              search={{ order: order.id }}
-              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-3 hover:border-accent/40 hover:text-accent transition-colors"
-            >
-              <RotateCcw className="size-3.5" /> Request return
-            </Link>
+          {returnWindowOpen && user && (
+            <>
+              <button
+                type="button"
+                onClick={() => setReturnOpen(true)}
+                className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-3 hover:border-accent/40 hover:text-accent transition-colors"
+              >
+                <RotateCcw className="size-3.5" /> Request return
+              </button>
+              <ReturnRequestDialog
+                open={returnOpen}
+                onOpenChange={setReturnOpen}
+                orderId={order.id}
+                userId={user.id}
+                items={order.order_items}
+              />
+            </>
           )}
+
         </div>
       </div>
 
