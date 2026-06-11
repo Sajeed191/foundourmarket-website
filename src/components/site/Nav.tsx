@@ -288,7 +288,7 @@ export function Nav() {
                 </Link>
               )}
 
-              <div className="scale-90 sm:scale-100 origin-right">
+              <div className="flex items-center">
                 <NotificationBell />
               </div>
 
@@ -333,6 +333,9 @@ export function Nav() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+
+              {/* Soft divider between actions and cart */}
+              <span aria-hidden className="self-center mx-1 sm:mx-1.5 h-6 w-px bg-gradient-to-b from-transparent via-white/15 to-transparent" />
 
               <Link
                 to="/cart"

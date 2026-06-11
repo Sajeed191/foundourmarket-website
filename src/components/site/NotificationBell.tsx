@@ -67,7 +67,7 @@ export function NotificationBell() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Notifications"
-        className={`relative size-11 rounded-xl grid place-items-center text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-white/5 active:bg-accent/10 active:text-accent ${
+        className={`relative size-10 sm:size-11 rounded-xl grid place-items-center text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-white/5 active:bg-accent/10 active:text-accent active:scale-95 ${
           open ? "bg-white/5 text-foreground" : ""
         }`}
       >

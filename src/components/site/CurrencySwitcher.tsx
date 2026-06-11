@@ -1,10 +1,17 @@
+import { useEffect, useState } from "react";
 import { useRegion } from "@/lib/region";
 
 const FLAGS: Record<string, string> = { INR: "🇮🇳", USD: "🇺🇸" };
 
 export function CurrencySwitcher() {
   const { currency } = useRegion();
-  const flag = FLAGS[currency] ?? "🌍";
+  // Avoid SSR/client hydration mismatch: the server has no access to the
+  // visitor's stored region, so only paint the resolved currency post-mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const shown = mounted ? currency : "USD";
+  const flag = FLAGS[shown] ?? "🌍";
 
   return (
     <div
@@ -12,7 +19,7 @@ export function CurrencySwitcher() {
       aria-label="Active currency"
     >
       <span className="text-sm leading-none">{flag}</span>
-      <span>{currency}</span>
+      <span>{shown}</span>
     </div>
   );
 }
