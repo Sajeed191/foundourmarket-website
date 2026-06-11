@@ -21,6 +21,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ReturnRouteImport } from './routes/return'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RecentlyViewedRouteImport } from './routes/recently-viewed'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HelpRouteImport } from './routes/help'
@@ -194,6 +195,11 @@ const ReturnRoute = ReturnRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecentlyViewedRoute = RecentlyViewedRouteImport.update({
+  id: '/recently-viewed',
+  path: '/recently-viewed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -850,6 +856,7 @@ export interface FileRoutesByFullPath {
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/recently-viewed': typeof RecentlyViewedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
@@ -978,6 +985,7 @@ export interface FileRoutesByTo {
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/recently-viewed': typeof RecentlyViewedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
@@ -1106,6 +1114,7 @@ export interface FileRoutesById {
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/recently-viewed': typeof RecentlyViewedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
   '/returns': typeof ReturnsRoute
@@ -1236,6 +1245,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/login'
     | '/privacy'
+    | '/recently-viewed'
     | '/reset-password'
     | '/return'
     | '/returns'
@@ -1364,6 +1374,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/login'
     | '/privacy'
+    | '/recently-viewed'
     | '/reset-password'
     | '/return'
     | '/returns'
@@ -1491,6 +1502,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/login'
     | '/privacy'
+    | '/recently-viewed'
     | '/reset-password'
     | '/return'
     | '/returns'
@@ -1620,6 +1632,7 @@ export interface RootRouteChildren {
   HelpRoute: typeof HelpRouteWithChildren
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
+  RecentlyViewedRoute: typeof RecentlyViewedRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReturnRoute: typeof ReturnRoute
   ReturnsRoute: typeof ReturnsRoute
@@ -1751,6 +1764,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recently-viewed': {
+      id: '/recently-viewed'
+      path: '/recently-viewed'
+      fullPath: '/recently-viewed'
+      preLoaderRoute: typeof RecentlyViewedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -2693,6 +2713,7 @@ const rootRouteChildren: RootRouteChildren = {
   HelpRoute: HelpRouteWithChildren,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
+  RecentlyViewedRoute: RecentlyViewedRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ReturnRoute: ReturnRoute,
   ReturnsRoute: ReturnsRoute,
@@ -2742,13 +2763,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
