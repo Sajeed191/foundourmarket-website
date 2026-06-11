@@ -20,11 +20,10 @@ export function MobileBottomNav() {
   // managing the store, so the two navigations never stack.
   if (adminMode && isAdmin) return null;
 
-  // Light & grey themes get a dedicated frosted-glass surface so the bar stays
-  // fully visible against their light backgrounds. Dark is left as before.
+  // Bottom nav is only shown in grey and light themes.
   const isLight = effectiveTheme === "light";
   const isGrey = effectiveTheme === "grey";
-  const frosted = isLight || isGrey;
+  if (!isLight && !isGrey) return null;
 
   const items: { to: string; label: string; icon: typeof Home; match: (p: string) => boolean; badge?: number }[] = [
     { to: "/", label: "Home", icon: Home, match: (p) => p === "/" },
