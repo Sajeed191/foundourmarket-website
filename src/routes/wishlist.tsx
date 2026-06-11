@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
+import { openShare } from "@/lib/share";
 import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
 import { useRegion } from "@/lib/region";
@@ -304,19 +305,11 @@ function WishlistPage() {
     exitSelect();
   };
 
-  const shareSelected = async () => {
+  const shareSelected = () => {
+    if (typeof window === "undefined") return;
     const chosen = items.filter((p) => selected.has(p.slug));
     const text = chosen.map((p) => p.name).join(", ");
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "My FoundOurMarket Wishlist", text, url });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(`${text} — ${url}`);
-      }
-    } catch {
-      /* user cancelled */
-    }
+    openShare({ title: "My FoundOurMarket Wishlist", text, url: window.location.href });
   };
 
 

@@ -7,6 +7,7 @@ import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
+import { openShare } from "@/lib/share";
 import { useAllCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
@@ -318,37 +319,9 @@ function ProductPage() {
     add(product.slug, qty);
     toast.success(`${product.name} added to cart`);
   };
-  const handleShare = async () => {
+  const handleShare = () => {
     if (typeof window === "undefined") return;
-    const url = window.location.href;
-    const shareData = { title: product.name, text: product.tagline, url };
-    if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch (err) {
-        // User cancelled the native share sheet — do nothing further
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        // Otherwise fall through to clipboard
-      }
-    }
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-      } else {
-        const ta = document.createElement("textarea");
-        ta.value = url;
-        ta.style.position = "fixed";
-        ta.style.opacity = "0";
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
-      }
-      toast.success("Link copied to clipboard");
-    } catch {
-      toast.error("Couldn't share — copy the link from the address bar");
-    }
+    openShare({ title: product.name, text: product.tagline, url: window.location.href });
   };
 
   return (

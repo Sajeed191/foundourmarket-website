@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
+import { openShare } from "@/lib/share";
 import { refreshProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
 import { RelatedProducts } from "@/components/site/RelatedProducts";
@@ -46,18 +47,9 @@ function unitPricing(sale: number, compareAt?: number | null, discount?: number)
   return { sale, original, save: Math.max(0, original - sale), discount: discount ?? 0 };
 }
 
-async function shareProduct(slug: string, name: string) {
-  const url = `${window.location.origin}/products/${slug}`;
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: name, url });
-    } else {
-      await navigator.clipboard.writeText(url);
-      toast.success("Product link copied");
-    }
-  } catch {
-    /* user cancelled share — no-op */
-  }
+function shareProduct(slug: string, name: string) {
+  if (typeof window === "undefined") return;
+  openShare({ title: name, url: `${window.location.origin}/products/${slug}` });
 }
 
 function CartPage() {

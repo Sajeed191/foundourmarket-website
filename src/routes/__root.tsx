@@ -30,6 +30,7 @@ import { loadProducts } from "@/lib/use-products";
 import { captureAttribution } from "@/lib/marketing-tracking";
 import { LayoutMetricsProvider } from "@/lib/layout-metrics";
 import { Toaster } from "@/components/ui/sonner";
+import { ShareDialog } from "@/components/site/ShareDialog";
 
 // Non-critical client-only shell: deferred out of the entry bundle so the
 // homepage/product/search first paint never pays for admin tooling, the live
@@ -296,6 +297,7 @@ function RootComponent() {
                       {!hideSiteChrome && <MobileBottomNav />}
                       <DeferredShell isAuthRoute={isAuthRoute} isAdminRoute={isAdminRoute} />
                       <Toaster position="bottom-center" richColors />
+                      <ShareDialog />
                     </div>
                   </LayoutMetricsProvider>
                  </CommandCenterProvider>
