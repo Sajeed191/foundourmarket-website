@@ -77,15 +77,18 @@ export function Footer() {
           {/* Social icons */}
           <div className="flex items-center gap-2 pt-0.5">
             {[
-              { icon: Instagram, label: "Instagram" },
-              { icon: Twitter, label: "Twitter" },
-              { icon: Facebook, label: "Facebook" },
-              { icon: Youtube, label: "YouTube" },
-            ].map(({ icon: Icon, label }) => (
+              { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/foundourmarket?igsh=MXgwd3QwcXlleXhueQ==", demo: false },
+              { icon: Twitter, label: "Twitter", href: "#", demo: true },
+              { icon: Facebook, label: "Facebook", href: "https://www.facebook.com/share/1DHs1PbeUN/", demo: false },
+              { icon: Youtube, label: "YouTube", href: "https://youtube.com/@foundourmarket?si=JsljIPlZFQtWIb1t", demo: false },
+            ].map(({ icon: Icon, label, href, demo }) => (
               <a
                 key={label}
-                href="#"
-                aria-label={label}
+                href={href}
+                {...(demo
+                  ? { onClick: (e: React.MouseEvent) => e.preventDefault() }
+                  : { target: "_blank", rel: "noopener noreferrer" })}
+                aria-label={demo ? `${label} (demo)` : label}
                 className="size-8 grid place-items-center rounded-xl glass text-muted-foreground hover:text-accent hover:border-accent/40 hover:-translate-y-0.5 transition-all"
               >
                 <Icon className="size-4" />
