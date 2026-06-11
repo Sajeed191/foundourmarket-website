@@ -49,7 +49,7 @@ export const trackOrder = createServerFn({ method: "POST" })
 
     // Resolve candidate orders. Full UUID => exact match. Short id => range
     // scan over the first UUID segment (id BETWEEN prefix-000…0 AND prefix-fff…f).
-    let candidates: Array<Record<string, unknown>> = [];
+    let candidates: OrderRow[] = [];
     if (isUuid) {
       const { data: order, error } = await supabaseAdmin
         .from("orders")
@@ -57,7 +57,7 @@ export const trackOrder = createServerFn({ method: "POST" })
         .eq("id", rawId)
         .maybeSingle();
       if (error) throw new Error(error.message);
-      if (order) candidates = [order];
+      if (order) candidates = [order as OrderRow];
     } else {
       const { data: rows, error } = await supabaseAdmin
         .from("orders")
@@ -65,7 +65,7 @@ export const trackOrder = createServerFn({ method: "POST" })
         .gte("id", `${rawId}-0000-0000-0000-000000000000`)
         .lte("id", `${rawId}-ffff-ffff-ffff-ffffffffffff`);
       if (error) throw new Error(error.message);
-      candidates = rows ?? [];
+      candidates = (rows ?? []) as OrderRow[];
     }
 
     console.log("[trackOrder] lookup", {
