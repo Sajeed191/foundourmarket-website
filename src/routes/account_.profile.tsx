@@ -273,10 +273,9 @@ function EditProfilePage() {
       const dial = cc ? getCountryCallingCode(cc) : "";
       const e164 = (digits: string) =>
         digits && dial ? `+${dial}${digits}` : digits || null;
-      const { error } = await supabase
-        .from("profiles")
-        .upsert({
-          id: user.id,
+      // Server validates phone numbers again before persisting.
+      await saveProfileFn({
+        data: {
           full_name: form.fullName.trim() || null,
           phone: e164(form.phone.trim()),
           alt_phone: e164(form.altPhone.trim()),
@@ -287,8 +286,8 @@ function EditProfilePage() {
           language: form.language.trim() || null,
           timezone: form.timezone.trim() || null,
           avatar_url: form.avatarUrl.trim() || null,
-        }, { onConflict: "id" });
-      if (error) throw error;
+        },
+      });
       await supabase.auth.updateUser({ data: { full_name: form.fullName.trim(), avatar_url: form.avatarUrl.trim() } });
       setSaved(true);
       setInitial(form);
