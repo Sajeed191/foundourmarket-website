@@ -54,7 +54,7 @@ function shareProduct(slug: string, name: string, image?: string) {
 
 function CartPage() {
   const {
-    detailed, savedDetailed, setQty, remove, saveForLater, moveToCart,
+    detailed, savedDetailed, setQty, remove, removeSaved, saveForLater, moveToCart,
     moveToWishlist, undoRemove, lastRemoved, subtotalUSD, count,
   } = useCart();
   const { format, priceOf, compareOf, shippingFeeOf, currencyReady } = useRegion();
