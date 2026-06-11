@@ -29,6 +29,8 @@ import {
 } from "libphonenumber-js";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { saveProfile } from "@/lib/profile.functions";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { cn } from "@/lib/utils";
