@@ -121,23 +121,26 @@ export function useFlashDeals() {
     return map;
   }, [deals, now]);
 
+  // Rotation boundary (12:00 AM / 12:00 PM). Stays fixed between boundaries so
+  // the randomized order is stable until the next rotation.
+  const rotationSeed = currentRotationSeed(now);
+
   const items = useMemo<FlashItem[]>(() => {
-    const included: FlashItem[] = [];
-    let excludedNotFlagged = 0;
+    let totalFlagged = 0;
+    const active: FlashItem[] = [];
     let excludedUnavailable = 0;
 
     for (const p of products) {
-      if (!isFlashDealProduct(p)) {
-        excludedNotFlagged++;
-        continue;
-      }
+      if (!isFlashDealProduct(p)) continue;
+      totalFlagged++;
+      // Active = published, in stock, and flagged. Inactive products are hidden everywhere.
       const available = p.status === "published" && p.inStock && p.stockQuantity > 0;
       if (!available) {
         excludedUnavailable++;
         continue;
       }
       const live = liveDealBySlug.get(p.slug) ?? null;
-      included.push({
+      active.push({
         product: p,
         flashPrice: live ? live.flash_price : null,
         endAt: live ? live.end_at : null,
@@ -146,25 +149,24 @@ export function useFlashDeals() {
       });
     }
 
-    included.sort((a, b) => {
-      if (b.priority !== a.priority) return b.priority - a.priority;
-      const da = a.flashPrice != null && a.product.price > 0 ? (a.product.price - a.flashPrice) / a.product.price : 0;
-      const db = b.flashPrice != null && b.product.price > 0 ? (b.product.price - b.flashPrice) / b.product.price : 0;
-      if (db !== da) return db - da;
-      return (b.product.createdAt ?? "").localeCompare(a.product.createdAt ?? "");
-    });
+    // Reshuffle every rotation window using a deterministic seed so the homepage,
+    // Offers page and Deals page all compute the exact same randomized order.
+    const ordered = seededShuffle(active, rotationSeed);
 
     if (typeof window !== "undefined") {
       // eslint-disable-next-line no-console
-      console.info(
-        `[FlashDeals] total Flash Deal products found: ${included.length} | excluded (not flagged): ${excludedNotFlagged} | excluded (unavailable): ${excludedUnavailable}`,
-      );
+      console.info(`[FlashDeals] total Flash Deal products found: ${totalFlagged}`);
       // eslint-disable-next-line no-console
-      console.info("[FlashDeals] product IDs/slugs returned:", included.map((i) => i.product.slug));
+      console.info(`[FlashDeals] active Flash Deal products: ${ordered.length} | excluded (inactive/unavailable): ${excludedUnavailable}`);
+      // eslint-disable-next-line no-console
+      console.info(`[FlashDeals] current rotation timestamp: ${new Date(rotationSeed).toISOString()}`);
+      // eslint-disable-next-line no-console
+      console.info("[FlashDeals] current display order:", ordered.map((i) => i.product.slug));
     }
 
-    return included;
-  }, [products, liveDealBySlug]);
+    return ordered;
+  }, [products, liveDealBySlug, rotationSeed]);
+
 
   return { items, loading, now, products };
 }
