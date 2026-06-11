@@ -1,45 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { Flame, ArrowRight, Sparkles } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
 import { Price } from "@/components/site/Price";
 import { trackFlashDealEvent } from "@/lib/flash-deal-analytics";
-import { useProducts } from "@/lib/use-products";
 import { useRegion } from "@/lib/region";
+import { useFlashDeals } from "@/lib/use-flash-deals";
 import type { Product } from "@/lib/products";
-
-/** A row from the dedicated flash_deals table (optional flash pricing + window). */
-type DealRow = {
-  id: string;
-  product_id: string;
-  product_slug: string | null;
-  flash_price: number;
-  start_at: string;
-  end_at: string;
-  priority: number;
-  created_at: string;
-};
-
-/** A storefront flash-deal entry built from a catalog product. */
-type FlashItem = {
-  product: Product;
-  /** Live override price from flash_deals table, if any. */
-  flashPrice: number | null;
-  /** Countdown end, if a live deal window applies. */
-  endAt: string | null;
-  dealId: string | null;
-  priority: number;
-};
-
-function useNow(intervalMs = 1000) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), intervalMs);
-    return () => clearInterval(id);
-  }, [intervalMs]);
-  return now;
-}
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
