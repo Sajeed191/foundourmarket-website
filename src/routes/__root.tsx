@@ -150,8 +150,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://client.crisp.chat", crossOrigin: "anonymous" },
       { rel: "dns-prefetch", href: "https://client.crisp.chat" },
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", href: "/logo.webp", type: "image/webp" },
-      { rel: "apple-touch-icon", href: "/logo.webp" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "icon", href: "/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { rel: "icon", href: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { rel: "icon", href: "/favicon-48.png", type: "image/png", sizes: "48x48" },
+      { rel: "icon", href: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { rel: "icon", href: "/icon-512.png", type: "image/png", sizes: "512x512" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
+      { rel: "mask-icon", href: "/favicon-64.png", color: "#f59e0b" },
     ],
     scripts: [
       {
