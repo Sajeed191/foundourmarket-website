@@ -550,7 +550,7 @@ function CheckoutPage() {
             <CheckoutProgress currentStep={checkoutState.currentStep} completedSteps={checkoutState.completedSteps} />
           </div>
 
-          <div className="mb-6 sm:mb-9 flex flex-wrap items-center gap-2">
+          <div className="mb-6 sm:mb-9 flex flex-wrap items-center gap-2 min-w-0 [&>div]:max-w-full [&_p]:break-words [&_p]:min-w-0">
             <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-full px-3 py-1.5">
               <Lock className="size-3 text-emerald-400 shrink-0" />
               <p className="text-[10px] font-mono uppercase tracking-widest text-emerald-400">256-bit secured · INR</p>
@@ -589,8 +589,8 @@ function CheckoutPage() {
             )}
           </div>
 
-          <form onSubmit={placeOrder} className="grid lg:grid-cols-3 gap-6 lg:gap-12">
-            <div className="lg:col-span-2 space-y-5 sm:space-y-6">
+          <form onSubmit={placeOrder} className="grid lg:grid-cols-3 gap-6 lg:gap-12 min-w-0">
+            <div className="lg:col-span-2 space-y-5 sm:space-y-6 min-w-0">
               {/* Reservation strip */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -745,7 +745,7 @@ function CheckoutPage() {
             </div>
 
             {/* Summary */}
-            <aside>
+            <aside className="min-w-0">
               <div className="glass border border-white/10 rounded-2xl p-5 sm:p-6 lg:sticky lg:top-24">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-lg font-medium">Summary</h2>
