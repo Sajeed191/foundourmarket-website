@@ -341,8 +341,25 @@ export function Nav() {
 
 
       {/* Mobile drawer */}
-      {drawerMounted && (
+      {drawerMounted && isLight && (
+        <LightMobileDrawer
+          visible={drawerVisible}
+          onClose={() => setOpen(false)}
+          user={user}
+          displayName={displayName}
+          initial={initial}
+          membership={membership}
+          ordersCount={ordersCount}
+          cats={cats}
+          wishCount={wishSlugs.size}
+          cartCount={count}
+          isAdmin={isAdmin}
+          avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
+        />
+      )}
+      {drawerMounted && !isLight && (
           <div className="fixed inset-0 z-[100] md:hidden">
+
             <div
               style={{
                 opacity: drawerVisible ? 1 : 0,
