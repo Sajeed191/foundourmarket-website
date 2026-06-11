@@ -15,7 +15,7 @@ import {
   Truck,
   LayoutGrid,
 } from "lucide-react";
-import { useProducts } from "@/lib/use-products";
+import { useFlashDeals } from "@/lib/use-flash-deals";
 import { ProductCard } from "@/components/site/ProductCard";
 
 export const Route = createFileRoute("/deals")({
