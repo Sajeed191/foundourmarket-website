@@ -25,6 +25,7 @@ import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { registerServiceWorker } from "@/lib/pwa";
 import { preloadCrisp } from "@/lib/crisp";
 import { trackPageView } from "@/lib/analytics";
+import { loadProducts } from "@/lib/use-products";
 import { captureAttribution } from "@/lib/marketing-tracking";
 import { LayoutMetricsProvider } from "@/lib/layout-metrics";
 import { Toaster } from "@/components/ui/sonner";
