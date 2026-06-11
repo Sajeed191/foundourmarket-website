@@ -234,7 +234,7 @@ function DeferredShell({ isAuthRoute, hideLiveChat }: { isAuthRoute: boolean; is
       {!isAuthRoute && <AdminCommandCenter />}
       <CompareTray />
       <InstallPrompt />
-      <LiveChat />
+      {!hideLiveChat && <LiveChat />}
     </Suspense>
   );
 }
