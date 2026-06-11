@@ -136,13 +136,12 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     e.preventDefault();
     if (!user) return;
     setSubmitting(true);
-    const { error } = await supabase.from("product_reviews").insert({
-      product_slug: productSlug,
-      user_id: user.id,
-      rating,
-      title: title.trim() || null,
-      body: body.trim() || null,
-      media: pendingMedia,
+    const { error } = await supabase.rpc("submit_review", {
+      p_product_slug: productSlug,
+      p_rating: rating,
+      p_title: title.trim() || undefined,
+      p_body: body.trim() || undefined,
+      p_media: pendingMedia,
     });
     setSubmitting(false);
     if (error) { toast.error("Could not post review", { description: error.message }); return; }
@@ -153,9 +152,12 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   async function saveEdit(id: string) {
-    const { error } = await supabase.from("product_reviews")
-      .update({ rating: editRating, title: editTitle.trim() || null, body: editBody.trim() || null })
-      .eq("id", id);
+    const { error } = await supabase.rpc("update_own_review", {
+      p_id: id,
+      p_rating: editRating,
+      p_title: editTitle.trim() || undefined,
+      p_body: editBody.trim() || undefined,
+    });
     if (error) { toast.error(error.message); return; }
     setEditingId(null);
     await load();

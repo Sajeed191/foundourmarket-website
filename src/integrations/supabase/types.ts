@@ -6239,6 +6239,16 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      submit_review: {
+        Args: {
+          p_body?: string
+          p_media?: Json
+          p_product_slug: string
+          p_rating: number
+          p_title?: string
+        }
+        Returns: string
+      }
       support_admin_unread_count: { Args: never; Returns: number }
       support_unread_count: { Args: never; Returns: number }
       svc_acquisition_metrics: {
@@ -6366,6 +6376,16 @@ export type Database = {
       try_fire_campaign_alert: {
         Args: { _alert_key: string; _campaign_id: string }
         Returns: boolean
+      }
+      update_own_review: {
+        Args: {
+          p_body?: string
+          p_id: string
+          p_media?: Json
+          p_rating: number
+          p_title?: string
+        }
+        Returns: undefined
       }
       upsert_editor_draft: {
         Args: {
