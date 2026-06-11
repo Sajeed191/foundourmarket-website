@@ -220,7 +220,7 @@ export function Nav() {
             {/* Zone 2 — Logo + Brand */}
             <Link
               to="/"
-              className="min-w-0 flex-none flex items-center gap-2 sm:gap-2.5 -ml-1 md:ml-0 font-display tracking-tight font-semibold"
+              className="min-w-0 flex-none flex items-center gap-2 sm:gap-2.5 -ml-0.5 md:ml-0 font-display tracking-tight font-semibold"
             >
               <span className="shrink-0 relative inline-grid place-items-center size-8 sm:size-11 rounded-2xl bg-black/40 ring-1 ring-accent/30 overflow-hidden shadow-[0_0_20px_-4px_var(--color-accent)]">
                 <img src={logoSrc} alt="FoundOurMarket logo" className="size-full object-cover" />
