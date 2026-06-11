@@ -142,7 +142,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // the cold-connection handshake and returns faster.
       ...(import.meta.env.VITE_SUPABASE_URL
         ? [
-            { rel: "preconnect", href: import.meta.env.VITE_SUPABASE_URL as string, crossOrigin: "anonymous" },
+            { rel: "preconnect", href: import.meta.env.VITE_SUPABASE_URL as string, crossOrigin: "anonymous" as const },
             { rel: "dns-prefetch", href: import.meta.env.VITE_SUPABASE_URL as string },
           ]
         : []),
