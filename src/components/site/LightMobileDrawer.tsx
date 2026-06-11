@@ -43,7 +43,7 @@ const quickActions = [
   { to: "/account/orders" as const, label: "Orders", icon: Package, tone: "amber" },
   { to: "/wishlist" as const, label: "Wishlist", icon: Heart, tone: "rose" },
   { to: "/cart" as const, label: "Cart", icon: ShoppingBag, tone: "blue" },
-  { to: "/track" as const, label: "Recently", icon: Clock, tone: "emerald" },
+  { to: "/recently-viewed" as const, label: "Recently", icon: Clock, tone: "emerald" },
 ];
 
 const mainNav = [
