@@ -67,6 +67,8 @@ export function Nav() {
   const { count } = useCart();
   const { user } = useAuth();
   const { slugs: wishSlugs } = useWishlist();
+  const { effectiveTheme } = useTheme();
+  const isLight = effectiveTheme === "light";
   const [open, setOpen] = useState(false);
   // Keep the drawer mounted during its exit transition.
   const [drawerMounted, setDrawerMounted] = useState(false);
