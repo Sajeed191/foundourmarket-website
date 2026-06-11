@@ -8,31 +8,34 @@ import {
   markOrderStageFn, createShipmentFn, updateTrackingFn, resolveRefundFn,
   sendOrderNotificationFn, sendRetryPaymentLinkFn, openOrderTicketFn,
 } from "@/lib/admin-order-actions.functions";
+import { lifecycleStep } from "@/lib/order-lifecycle";
 
 type Props = {
   orderId: string;
   hasCustomer: boolean;
+  /** Current fulfilment stage — used to disable stages already reached (one-time marking). */
+  currentStage?: string | null;
   onDone: () => void;
 };
 
 type Busy = string | null;
 
-function Btn({ icon, label, onClick, busy, tone = "default" }: {
+function Btn({ icon, label, onClick, busy, tone = "default", disabled, done }: {
   icon: React.ReactNode; label: string; onClick: () => void; busy?: boolean;
-  tone?: "default" | "good" | "bad";
+  tone?: "default" | "good" | "bad"; disabled?: boolean; done?: boolean;
 }) {
   const cls = tone === "good" ? "border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10"
     : tone === "bad" ? "border-destructive/30 text-destructive hover:bg-destructive/10"
     : "border-border hover:border-accent/40 hover:bg-muted/40";
   return (
-    <button onClick={onClick} disabled={busy}
-      className={`inline-flex items-center justify-center gap-1.5 text-[11px] px-2.5 py-2 rounded-lg border transition-colors disabled:opacity-50 ${cls}`}>
-      {busy ? <Loader2 className="size-3.5 animate-spin" /> : icon}{label}
+    <button onClick={onClick} disabled={busy || disabled}
+      className={`inline-flex items-center justify-center gap-1.5 text-[11px] px-2.5 py-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${cls}`}>
+      {busy ? <Loader2 className="size-3.5 animate-spin" /> : done ? <CheckCircle2 className="size-3.5" /> : icon}{label}
     </button>
   );
 }
 
-export function OrderActionCenter({ orderId, hasCustomer, onDone }: Props) {
+export function OrderActionCenter({ orderId, hasCustomer, currentStage, onDone }: Props) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<Busy>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -54,6 +57,11 @@ export function OrderActionCenter({ orderId, hasCustomer, onDone }: Props) {
   const notify = useServerFn(sendOrderNotificationFn);
   const retry = useServerFn(sendRetryPaymentLinkFn);
   const openTicket = useServerFn(openOrderTicketFn);
+
+  // One-time marking: a stage is "done" once the order's current lifecycle
+  // step has reached or passed it, so its button is shown completed + disabled.
+  const currentStep = lifecycleStep(currentStage);
+  const stageDone = (stage: string) => currentStep >= lifecycleStep(stage);
 
   const run = async (key: string, fn: () => Promise<unknown>, ok: string) => {
     setBusy(key); setMsg(null);
@@ -92,16 +100,24 @@ export function OrderActionCenter({ orderId, hasCustomer, onDone }: Props) {
           <div>
             <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1.5">Fulfilment</p>
             <div className="grid grid-cols-2 gap-1.5">
-              <Btn icon={<Boxes className="size-3.5" />} label="Mark Packed" busy={busy === "packed"}
+              <Btn icon={<Boxes className="size-3.5" />} label={stageDone("packed") ? "Packed ✓" : "Mark Packed"}
+                busy={busy === "packed"} disabled={stageDone("packed")} done={stageDone("packed")}
                 onClick={() => run("packed", () => mark({ data: { orderId, stage: "packed" } }), "Marked packed")} />
-              <Btn icon={<Truck className="size-3.5" />} label="Mark Shipped" busy={busy === "shipped"}
+              <Btn icon={<Truck className="size-3.5" />} label={stageDone("shipped") ? "Shipped ✓" : "Mark Shipped"}
+                busy={busy === "shipped"} disabled={stageDone("shipped")} done={stageDone("shipped")}
                 onClick={() => run("shipped", () => mark({ data: { orderId, stage: "shipped" } }), "Marked shipped")} />
-              <Btn icon={<CheckCircle2 className="size-3.5" />} label="Mark Delivered" tone="good" busy={busy === "delivered"}
+              <Btn icon={<MapPin className="size-3.5" />} label={stageDone("out_for_delivery") ? "Out for Delivery ✓" : "Out for Delivery"}
+                busy={busy === "out_for_delivery"} disabled={stageDone("out_for_delivery")} done={stageDone("out_for_delivery")}
+                onClick={() => run("out_for_delivery", () => mark({ data: { orderId, stage: "out_for_delivery" } }), "Marked out for delivery")} />
+              <Btn icon={<CheckCircle2 className="size-3.5" />} label={stageDone("delivered") ? "Delivered ✓" : "Mark Delivered"}
+                tone="good" busy={busy === "delivered"} disabled={stageDone("delivered")} done={stageDone("delivered")}
                 onClick={() => run("delivered", () => mark({ data: { orderId, stage: "delivered" } }), "Marked delivered")} />
               <Btn icon={<XCircle className="size-3.5" />} label="Cancel Order" tone="bad" busy={busy === "cancelled"}
+                disabled={stageDone("delivered")}
                 onClick={() => run("cancelled", () => mark({ data: { orderId, stage: "cancelled" } }), "Order cancelled")} />
             </div>
           </div>
+
 
           {/* Shipment / tracking */}
           <div>
