@@ -119,6 +119,10 @@ function PreferencesPage() {
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (
         <>
+          <div className="mb-6">
+            <ThemeSelector />
+          </div>
+
           <div className="rounded-2xl border border-border bg-card overflow-hidden mb-6">
             <div className="flex items-center gap-2 px-6 py-4 border-b border-border">
               <Mail className="size-4 text-accent" />
