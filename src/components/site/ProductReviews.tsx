@@ -139,8 +139,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     const { error } = await supabase.rpc("submit_review", {
       p_product_slug: productSlug,
       p_rating: rating,
-      p_title: title.trim() || null,
-      p_body: body.trim() || null,
+      p_title: title.trim() || undefined,
+      p_body: body.trim() || undefined,
       p_media: pendingMedia,
     });
     setSubmitting(false);
@@ -155,8 +155,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     const { error } = await supabase.rpc("update_own_review", {
       p_id: id,
       p_rating: editRating,
-      p_title: editTitle.trim() || null,
-      p_body: editBody.trim() || null,
+      p_title: editTitle.trim() || undefined,
+      p_body: editBody.trim() || undefined,
     });
     if (error) { toast.error(error.message); return; }
     setEditingId(null);
