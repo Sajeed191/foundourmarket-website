@@ -188,6 +188,16 @@ export function FlashDeals() {
             );
           })}
         </div>
+
+        {/* View All — navigates to the dedicated Flash Deals page. */}
+        <div className="relative mt-5 flex justify-center">
+          <Link
+            to="/deals"
+            className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-foreground px-6 py-3 text-xs font-mono uppercase tracking-widest hover:opacity-90 transition shadow-[var(--shadow-ember)]"
+          >
+            View All Flash Deals <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
       </div>
     </section>
   );
