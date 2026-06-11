@@ -38,7 +38,12 @@ function ProductCardImpl({ product, forceBadge }: { product: Product; compact?: 
   const discount = discountPercent(price, originalPrice);
   const shippingFee = shippingFeeOf(product);
   const freeShipping = shippingFee <= 0;
-  const labels = computeBadges(product, DEFAULT_BADGE_SETTINGS, MAX_BADGES);
+  // In a dedicated section (Trending, Best Sellers, New Arrivals, Premium) show
+  // ONLY that section's badge to avoid badge overload. Elsewhere show the full
+  // computed set.
+  const labels = forceBadge
+    ? [singleBadge(forceBadge)]
+    : computeBadges(product, DEFAULT_BADGE_SETTINGS, MAX_BADGES);
   const isPremium = labels.some((b) => b.key === "premium");
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
 
