@@ -11,6 +11,23 @@ const schema = z.object({
 const ORDER_COLUMNS =
   "id, user_id, status, fulfillment_status, currency, subtotal, discount, tax, shipping, total, contact_email, shipping_address, created_at, updated_at";
 
+type OrderRow = {
+  id: string;
+  user_id: string | null;
+  status: string;
+  fulfillment_status: string | null;
+  currency: string;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  shipping: number;
+  total: number;
+  contact_email: string | null;
+  shipping_address: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export const trackOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => schema.parse(input))
   .handler(async ({ data }) => {
