@@ -74,7 +74,7 @@ export function MobileBottomNav() {
                   <span className="relative">
                     <Icon
                       className={`size-[19px] transition-colors duration-200 ${
-                        active ? "text-accent" : isLight ? "text-muted-foreground" : "text-white/70"
+                        active ? "text-accent" : frosted ? "text-muted-foreground" : "text-white/70"
                       }`}
                       strokeWidth={active ? 2.4 : 2}
                     />
