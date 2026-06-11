@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
+import { useRotationSeed, seededShuffle } from "@/lib/rotation";
 import { ProductCard } from "@/components/site/ProductCard";
 import type { Product } from "@/lib/products";
 import type { BadgeKey } from "@/lib/badges";
