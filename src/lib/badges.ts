@@ -94,6 +94,15 @@ const PRIORITY: BadgeKey[] = [
 /** Maximum badges shown on a storefront product card. */
 export const MAX_CARD_BADGES = 3;
 
+/**
+ * Build a single badge by key — used by section-specific product cards that
+ * should display only their section's badge (e.g. Trending section → Trending
+ * badge only), regardless of any other badges the product qualifies for.
+ */
+export function singleBadge(key: BadgeKey): Badge {
+  return { key, ...BADGE_STYLES[key] };
+}
+
 function daysSince(iso: string): number {
   if (!iso) return Infinity;
   const t = new Date(iso).getTime();

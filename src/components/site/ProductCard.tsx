@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { memo, useState } from "react";
 import { Heart, Plus, Check, Star, Minus, Eye } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
-import { computeBadges, DEFAULT_BADGE_SETTINGS } from "@/lib/badges";
+import { computeBadges, singleBadge, DEFAULT_BADGE_SETTINGS, type BadgeKey } from "@/lib/badges";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
@@ -15,7 +15,7 @@ import { formatSold } from "@/lib/format-sold";
 /** Premium card: show at most two badges for a luxury marketplace feel. */
 const MAX_BADGES = 2;
 
-function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
+function ProductCardImpl({ product, forceBadge }: { product: Product; compact?: boolean; forceBadge?: BadgeKey | null }) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const { add, setQty, items } = useCart();
   const { has, toggle } = useWishlist();
@@ -38,7 +38,12 @@ function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
   const discount = discountPercent(price, originalPrice);
   const shippingFee = shippingFeeOf(product);
   const freeShipping = shippingFee <= 0;
-  const labels = computeBadges(product, DEFAULT_BADGE_SETTINGS, MAX_BADGES);
+  // In a dedicated section (Trending, Best Sellers, New Arrivals, Premium) show
+  // ONLY that section's badge to avoid badge overload. Elsewhere show the full
+  // computed set.
+  const labels = forceBadge
+    ? [singleBadge(forceBadge)]
+    : computeBadges(product, DEFAULT_BADGE_SETTINGS, MAX_BADGES);
   const isPremium = labels.some((b) => b.key === "premium");
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
 

@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { ProductCard } from "@/components/site/ProductCard";
 import type { Product } from "@/lib/products";
+import type { BadgeKey } from "@/lib/badges";
 
 export type CollectionSort = "trending" | "newest" | "best_sellers";
 
@@ -26,6 +27,7 @@ export function ProductCollection({
   icon: Icon,
   sort,
   filterFlag,
+  forceBadge,
 }: {
   eyebrow: string;
   title: string;
@@ -37,6 +39,11 @@ export function ProductCollection({
    * the collection. Products without the badge NEVER show here.
    */
   filterFlag?: "trending" | "bestseller" | "flashDeal" | "featured";
+  /**
+   * When set, each card shows ONLY this section's badge (e.g. Trending page →
+   * Trending badge only), hiding any other badges the product qualifies for.
+   */
+  forceBadge?: BadgeKey | null;
 }) {
   const { products, loading } = useProducts();
 
@@ -81,7 +88,7 @@ export function ProductCollection({
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {items.map((p) => (
-            <ProductCard key={p.slug} product={p} compact />
+            <ProductCard key={p.slug} product={p} compact forceBadge={forceBadge} />
           ))}
         </div>
       )}
