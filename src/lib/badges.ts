@@ -113,6 +113,7 @@ export function computeBadges(product: Product, s: BadgeSettings, cap?: number):
 
   // Admin-controlled promotional labels — always honored when flagged.
   if (product.flashDeal) active.add("flash_deal");
+  if (product.featured) active.add("featured");
   if (product.staffPick) active.add("staff_pick");
   if (product.editorsChoice) active.add("editors_choice");
   if (product.giftIdea) active.add("gift_idea");
