@@ -445,55 +445,44 @@ function SectionBlock({
   );
 }
 
+const TONES = {
+  amber: { icon: "bg-amber-500/15 text-amber-500", glow: "oklch(0.74 0.19 49)" },
+  rose: { icon: "bg-rose-500/15 text-rose-500", glow: "oklch(0.7 0.2 18)" },
+  blue: { icon: "bg-sky-500/15 text-sky-500", glow: "oklch(0.7 0.16 240)" },
+  emerald: { icon: "bg-emerald-500/15 text-emerald-500", glow: "oklch(0.72 0.16 160)" },
+} as const;
+
 function OverviewCard({
-  icon: Icon, label, value, hint, accent, loading, to, formatter,
-}: { icon: typeof Package; label: string; value: number; hint?: string; accent?: boolean; loading?: boolean; to?: string; formatter?: (n: number) => string }) {
+  icon: Icon, label, value, accent, loading, to, formatter, tone = "amber",
+}: { icon: typeof Package; label: string; value: number; accent?: boolean; loading?: boolean; to?: string; formatter?: (n: number) => string; tone?: keyof typeof TONES }) {
+  const t = TONES[tone];
   const inner = (
     <motion.div
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -3 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.25, ease }}
-      className={`group h-full w-full relative overflow-hidden rounded-2xl p-3.5 sm:p-5 card-premium glass-reflect transition-all ${
-        accent ? "ring-1 ring-accent/40 shadow-[var(--shadow-glow)]" : "hover:ring-1 hover:ring-accent/25"
+      className={`group h-full w-full relative overflow-hidden rounded-2xl p-3.5 sm:p-5 card-premium transition-all ${
+        accent ? "shadow-[var(--shadow-glow)]" : "hover:shadow-[var(--shadow-soft)]"
       }`}
     >
-      {/* Ambient ember edge glow — always present, stronger on accent / hover */}
+      {/* Soft tinted corner glow */}
       <div
         aria-hidden
-        className={`pointer-events-none absolute -top-12 -right-12 size-32 rounded-full blur-3xl transition-opacity duration-500 ${
-          accent ? "opacity-70 animate-ambient" : "opacity-0 group-hover:opacity-50"
-        }`}
-        style={{ background: "var(--gradient-ember)" }}
-      />
-
-      {/* Subtle grid texture */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "linear-gradient(oklch(1 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.6) 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
-          maskImage: "radial-gradient(ellipse at top right, black 0%, transparent 70%)",
-        }}
+        className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"
+        style={{ background: t.glow }}
       />
       <div className="relative flex items-center justify-between mb-3">
-        <span className={`size-9 rounded-xl grid place-items-center transition-all ${
-          accent
-            ? "bg-accent/25 text-accent shadow-[0_0_18px_-4px_var(--color-accent)]"
-            : "bg-white/[0.06] text-accent/90 group-hover:bg-accent/15 group-hover:text-accent group-hover:shadow-[0_0_18px_-6px_var(--color-accent)]"
-        }`}>
+        <span className={`size-9 rounded-xl grid place-items-center transition-transform group-hover:scale-105 ${t.icon}`}>
           <Icon className="size-4" />
         </span>
-        {hint && <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">{hint}</span>}
       </div>
       {loading ? (
-        <div className="h-7 w-12 rounded-md bg-white/5 animate-pulse" />
+        <div className="h-7 w-12 rounded-md bg-foreground/5 animate-pulse" />
       ) : (
         <AnimatedNumber
           value={value}
           formatter={formatter}
-          className={`relative block text-xl sm:text-3xl font-display font-semibold tabular-nums ${accent ? "text-gradient-ember" : "text-foreground"}`}
+          className="relative block text-xl sm:text-3xl font-display font-semibold tabular-nums text-foreground"
         />
       )}
       <p className="relative text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted-foreground mt-1.5 truncate">{label}</p>
