@@ -43,6 +43,40 @@ function useNow(intervalMs = 1000) {
 }
 
 /**
+ * Returns the timestamp (ms) of the most recent rotation boundary. Flash deals
+ * reshuffle every day at 12:00 AM and 12:00 PM. The returned value stays fixed
+ * between boundaries so the display order is stable until the next rotation.
+ */
+export function currentRotationSeed(nowMs: number): number {
+  const d = new Date(nowMs);
+  const boundary = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours() < 12 ? 0 : 12, 0, 0, 0);
+  return boundary.getTime();
+}
+
+/** Deterministic PRNG (mulberry32) so every surface computes the same order. */
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Seeded Fisher–Yates shuffle — same seed always yields the same order. */
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const rng = mulberry32(seed);
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+/**
  * Single shared source of truth for Flash Deal products. Used by the homepage
  * Flash Deals section, the Deals & Promotions / Offers page, and any "Shop
  * Deals" destination so all surfaces return the exact same products.
@@ -87,23 +121,26 @@ export function useFlashDeals() {
     return map;
   }, [deals, now]);
 
+  // Rotation boundary (12:00 AM / 12:00 PM). Stays fixed between boundaries so
+  // the randomized order is stable until the next rotation.
+  const rotationSeed = currentRotationSeed(now);
+
   const items = useMemo<FlashItem[]>(() => {
-    const included: FlashItem[] = [];
-    let excludedNotFlagged = 0;
+    let totalFlagged = 0;
+    const active: FlashItem[] = [];
     let excludedUnavailable = 0;
 
     for (const p of products) {
-      if (!isFlashDealProduct(p)) {
-        excludedNotFlagged++;
-        continue;
-      }
+      if (!isFlashDealProduct(p)) continue;
+      totalFlagged++;
+      // Active = published, in stock, and flagged. Inactive products are hidden everywhere.
       const available = p.status === "published" && p.inStock && p.stockQuantity > 0;
       if (!available) {
         excludedUnavailable++;
         continue;
       }
       const live = liveDealBySlug.get(p.slug) ?? null;
-      included.push({
+      active.push({
         product: p,
         flashPrice: live ? live.flash_price : null,
         endAt: live ? live.end_at : null,
@@ -112,25 +149,24 @@ export function useFlashDeals() {
       });
     }
 
-    included.sort((a, b) => {
-      if (b.priority !== a.priority) return b.priority - a.priority;
-      const da = a.flashPrice != null && a.product.price > 0 ? (a.product.price - a.flashPrice) / a.product.price : 0;
-      const db = b.flashPrice != null && b.product.price > 0 ? (b.product.price - b.flashPrice) / b.product.price : 0;
-      if (db !== da) return db - da;
-      return (b.product.createdAt ?? "").localeCompare(a.product.createdAt ?? "");
-    });
+    // Reshuffle every rotation window using a deterministic seed so the homepage,
+    // Offers page and Deals page all compute the exact same randomized order.
+    const ordered = seededShuffle(active, rotationSeed);
 
     if (typeof window !== "undefined") {
       // eslint-disable-next-line no-console
-      console.info(
-        `[FlashDeals] total Flash Deal products found: ${included.length} | excluded (not flagged): ${excludedNotFlagged} | excluded (unavailable): ${excludedUnavailable}`,
-      );
+      console.info(`[FlashDeals] total Flash Deal products found: ${totalFlagged}`);
       // eslint-disable-next-line no-console
-      console.info("[FlashDeals] product IDs/slugs returned:", included.map((i) => i.product.slug));
+      console.info(`[FlashDeals] active Flash Deal products: ${ordered.length} | excluded (inactive/unavailable): ${excludedUnavailable}`);
+      // eslint-disable-next-line no-console
+      console.info(`[FlashDeals] current rotation timestamp: ${new Date(rotationSeed).toISOString()}`);
+      // eslint-disable-next-line no-console
+      console.info("[FlashDeals] current display order:", ordered.map((i) => i.product.slug));
     }
 
-    return included;
-  }, [products, liveDealBySlug]);
+    return ordered;
+  }, [products, liveDealBySlug, rotationSeed]);
+
 
   return { items, loading, now, products };
 }
