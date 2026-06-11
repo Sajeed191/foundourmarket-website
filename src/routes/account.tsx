@@ -382,24 +382,6 @@ function AccountPage() {
 
 /* ---------- helpers ---------- */
 
-function HeroStat({
-  icon: Icon, label, value, loading,
-}: { icon: typeof Package; label: string; value: number; loading?: boolean }) {
-  return (
-    <div className="relative overflow-hidden rounded-2xl glass p-3 sm:p-4">
-      <div className="flex items-center gap-1.5 text-accent mb-1">
-        <Icon className="size-3.5 shrink-0" />
-        <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
-      </div>
-      {loading ? (
-        <div className="h-6 w-10 rounded-md bg-foreground/5 animate-pulse" />
-      ) : (
-        <AnimatedNumber value={value} className="block text-xl sm:text-2xl font-display font-semibold tabular-nums" />
-      )}
-    </div>
-  );
-}
-
 function SectionHeader({ title, eyebrow }: { title: string; eyebrow?: string }) {
   return (
     <div className="mb-4 sm:mb-5">
