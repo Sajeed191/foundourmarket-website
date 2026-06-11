@@ -47,9 +47,9 @@ function unitPricing(sale: number, compareAt?: number | null, discount?: number)
   return { sale, original, save: Math.max(0, original - sale), discount: discount ?? 0 };
 }
 
-function shareProduct(slug: string, name: string) {
+function shareProduct(slug: string, name: string, image?: string) {
   if (typeof window === "undefined") return;
-  openShare({ title: name, url: `${window.location.origin}/products/${slug}` });
+  openShare({ title: name, url: `${window.location.origin}/products/${slug}`, image });
 }
 
 function CartPage() {
