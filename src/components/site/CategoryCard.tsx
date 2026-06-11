@@ -31,7 +31,7 @@ const CATEGORY_ICON_RULES: { match: string[]; icon: LucideIcon }[] = [
   { match: ["toy", "kids"], icon: ToyBrick },
   { match: ["pet", "animal"], icon: PawPrint },
   { match: ["vehicle", "car", "auto", "moto"], icon: Car },
-  { match: ["fashion", "cloth", "apparel", "wear"], icon: Shirt },
+  { match: ["cloth", "apparel", "wear"], icon: Shirt },
   { match: ["fitness", "sport", "gym"], icon: Dumbbell },
   { match: ["watch", "accessor"], icon: Watch },
   { match: ["audio", "headphone", "sound"], icon: Headphones },
