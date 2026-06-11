@@ -314,15 +314,6 @@ function OrdersPage() {
             className={`size-9 grid place-items-center rounded-full border transition active:scale-95 ${searchOpen ? "border-accent text-accent bg-accent/10" : "border-border/60 hover:border-accent/50"}`}>
             <Search className="size-4" />
           </button>
-          <Link to="/account/notifications" aria-label="Notifications" className="size-9 grid place-items-center rounded-full border border-border/60 hover:border-accent/50 active:scale-95 transition">
-            <Bell className="size-4" />
-          </Link>
-          <Link to="/cart" aria-label="Cart" className="relative size-9 grid place-items-center rounded-full border border-border/60 hover:border-accent/50 active:scale-95 transition">
-            <ShoppingBag className="size-4" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold grid place-items-center">{cartCount}</span>
-            )}
-          </Link>
         </div>
 
         <AnimatePresence>
