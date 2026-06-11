@@ -85,7 +85,7 @@ function AccountPage() {
     const loadOrders = () =>
       supabase
         .from("orders")
-        .select("id,status,total,discount,currency,created_at,order_items(name,quantity,image)")
+        .select("id,status,payment_status,payment_method,total,discount,currency,created_at,order_items(name,quantity,image)")
         .order("created_at", { ascending: false })
         .limit(20)
         .then(({ data }) => setOrders((data as Order[]) ?? []));
