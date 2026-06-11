@@ -43,12 +43,12 @@ export function MobileBottomNav() {
       {/* Soft ambient glow — reduced ~40%, subtle only */}
       <div
         aria-hidden
-        className={`absolute inset-x-16 bottom-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] h-16 -z-10 blur-2xl ${isLight ? "opacity-[0.12]" : "opacity-[0.18]"}`}
+        className={`absolute inset-x-16 bottom-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] h-16 -z-10 blur-2xl ${frosted ? "opacity-[0.12]" : "opacity-[0.18]"}`}
         style={{ background: "var(--gradient-ember-soft)" }}
       />
       <ul
         className={
-          isLight
+          frosted
             ? "bottom-nav-light pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 rounded-[26px] px-1.5 py-2"
             : "pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 rounded-2xl glass-strong border border-white/10 shadow-[0_8px_28px_-12px_oklch(0_0_0/0.6)] px-1.5 py-2"
         }
