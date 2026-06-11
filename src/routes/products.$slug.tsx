@@ -455,13 +455,13 @@ function ProductPage() {
 
 
             {galleryImages.length > 1 && (
-              <div className="mt-4 grid grid-cols-5 sm:grid-cols-6 gap-2 sm:gap-3">
+              <div className="mt-3 grid grid-cols-6 gap-2 sm:gap-2.5">
                 {galleryImages.map((img, i) => (
                   <button
                     key={img.id}
                     onClick={() => setActiveImg(i)}
                     aria-label={`View image ${i + 1}`}
-                    className={`aspect-square rounded-xl overflow-hidden border transition-all bg-card ${i === activeImg ? "border-accent ring-2 ring-accent/30 shadow-[var(--shadow-ember)]" : "border-border opacity-60 hover:opacity-100 hover:border-accent/40"}`}
+                    className={`aspect-square rounded-xl overflow-hidden border transition-all bg-card ${i === activeImg ? "border-accent/70 ring-2 ring-accent/40 shadow-[0_6px_20px_-6px_oklch(0.74_0.19_49/0.55)]" : "border-white/10 opacity-55 hover:opacity-100 hover:border-accent/40"}`}
                   >
                     <img src={img.url} alt={img.alt || `${product.name} — view ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
                   </button>
