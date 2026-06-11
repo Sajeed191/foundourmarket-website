@@ -70,6 +70,7 @@ function Countdown({ end, now }: { end: string; now: number }) {
 }
 
 function FallbackSection({ featured }: { featured: Product[] }) {
+  const { priceOf } = useRegion();
   return (
     <section className="px-4 sm:px-6 py-8 sm:py-10 max-w-7xl mx-auto">
       <div className="relative rounded-3xl overflow-hidden border border-accent/20 bg-gradient-to-br from-accent/5 via-card to-card p-6 sm:p-8 text-center">
