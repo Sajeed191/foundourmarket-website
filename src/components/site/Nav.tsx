@@ -115,8 +115,6 @@ export function Nav() {
   // Lazily-loaded merchandising data — only fetched the first time the drawer
   // opens, so non-shopping pages never pay for it (and we reuse cached data).
   const [cats, setCats] = useState<Category[]>([]);
-  const [catCounts, setCatCounts] = useState<Record<string, number>>({});
-  const [collCounts, setCollCounts] = useState({ flash: 0, best: 0, fresh: 0 });
   const [ordersCount, setOrdersCount] = useState<number | null>(null);
   const drawerDataLoaded = useRef(false);
 
