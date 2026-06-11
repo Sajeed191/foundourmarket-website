@@ -3,8 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Reorder, motion } from "framer-motion";
 import {
   Loader2, GripVertical, Smartphone, Monitor, Eye, ShoppingCart, IndianRupee, TrendingUp,
-  Package, Sparkles, Crown, Check, X, ArrowRightLeft, Megaphone, Flame, Trophy, AlertTriangle, Rocket,
+  Package, Sparkles, Crown, Check, X, ArrowRightLeft, Megaphone, Flame, Trophy, AlertTriangle, Rocket, Shuffle,
 } from "lucide-react";
+import { triggerGlobalReshuffle } from "@/lib/use-rotation-nonce";
 import { toast } from "sonner";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { KpiCard } from "@/components/admin/KpiCard";
