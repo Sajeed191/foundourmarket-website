@@ -26,12 +26,48 @@ const SUPPORT_STAFF: StaffRole[] = ["admin", "super_admin", "manager", "support"
 async function getOrder(orderId: string) {
   const { data, error } = await supabaseAdmin
     .from("orders")
-    .select("id, user_id, carrier, tracking_number, total, currency, contact_email, payment_status, payment_method")
+    .select("id, user_id, carrier, tracking_number, total, currency, contact_email, payment_status, payment_method, status, fulfillment_status")
     .eq("id", orderId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Order not found");
   return data;
+}
+
+/** Mirror of the DB lifecycle ordering (order_lifecycle_step). */
+const LIFECYCLE_SEQ = [
+  "pending", "confirmed", "processing", "packed",
+  "shipped", "out_for_delivery", "delivered", "completed",
+] as const;
+
+function seqStep(status?: string | null): number {
+  const i = LIFECYCLE_SEQ.indexOf((status ?? "").toLowerCase() as (typeof LIFECYCLE_SEQ)[number]);
+  return i === -1 ? 0 : i + 1;
+}
+
+/** Customer-facing notification copy for each fulfilment stage. */
+const STAGE_NOTIFY: Record<string, { title: string; body: string; priority: "high" | "normal" }> = {
+  processing: { title: "⚙️ Order processing", body: "We've started preparing your order.", priority: "normal" },
+  packed: { title: "📦 Order packed", body: "Your order has been packed and is ready to ship.", priority: "normal" },
+  shipped: { title: "🚚 Order shipped", body: "Your order is on its way!", priority: "high" },
+  out_for_delivery: { title: "📍 Out for delivery", body: "Your package is out for delivery today.", priority: "high" },
+  delivered: { title: "✅ Delivered", body: "Your order has been delivered. Enjoy!", priority: "high" },
+  cancelled: { title: "❌ Order cancelled", body: "Your order has been cancelled.", priority: "high" },
+};
+
+async function notifyCustomer(userId: string | null | undefined, orderId: string, stage: string) {
+  if (!userId) return;
+  const copy = STAGE_NOTIFY[stage];
+  if (!copy) return;
+  await supabaseAdmin.from("notifications").insert({
+    user_id: userId,
+    type: "order_update",
+    title: copy.title,
+    body: copy.body,
+    link: `/orders/${orderId}`,
+    priority: copy.priority,
+    data: { order_id: orderId, status: stage } as never,
+  });
 }
 
 /**
@@ -94,22 +130,51 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
     }
 
 
-    const orderPatch: Record<string, unknown> = { fulfillment_status: input.stage };
-    if (input.stage === "shipped" || input.stage === "delivered" || input.stage === "cancelled") {
-      orderPatch.status = input.stage;
-    }
-    const { error: oErr } = await supabaseAdmin.from("orders").update(orderPatch as never).eq("id", input.orderId);
-    if (oErr) throw new Error(oErr.message);
-
     const ship = await latestShipment(input.orderId);
-    if (ship && input.stage !== "processing") {
-      const sPatch: Record<string, unknown> = { status: input.stage };
-      if (input.stage === "packed") sPatch.packed_at = nowIso;
-      if (input.stage === "shipped") sPatch.shipped_at = nowIso;
-      if (input.stage === "delivered") { sPatch.delivered_at = nowIso; sPatch.actual_delivery = nowIso; }
-      if (input.stage === "cancelled") sPatch.cancelled_at = nowIso;
-      await supabaseAdmin.from("shipments").update(sPatch as never).eq("id", ship.id);
-      await addEvent(ship.id, input.stage, `Order marked ${input.stage} by staff`, ship.carrier ?? order.carrier);
+
+    if (input.stage === "cancelled") {
+      // Terminal state — reachable from anywhere per the DB trigger.
+      const { error: oErr } = await supabaseAdmin.from("orders")
+        .update({ status: "cancelled", fulfillment_status: "cancelled" } as never)
+        .eq("id", input.orderId);
+      if (oErr) throw new Error(oErr.message);
+      if (ship) {
+        await supabaseAdmin.from("shipments").update({ status: "cancelled", cancelled_at: nowIso } as never).eq("id", ship.id);
+        await addEvent(ship.id, "cancelled", "Order cancelled by staff", ship.carrier ?? order.carrier);
+      }
+      await notifyCustomer(order.user_id, input.orderId, "cancelled");
+    } else {
+      // Forward stages: the DB enforces single-step status transitions, so we
+      // auto-advance through every intermediate lifecycle stage up to the target.
+      const targetStep = seqStep(input.stage);
+      const baseStep = Math.max(seqStep(order.status), seqStep(order.fulfillment_status));
+      if (targetStep <= baseStep) {
+        // Already at or past this stage — nothing to do (one-time marking).
+        await logSecurity({
+          actorId: userId, actorRole: primaryRole, action: "ops.order.mark_stage",
+          target: input.orderId, success: true, detail: { stage: input.stage, skipped: "already_reached" },
+        });
+        return { ok: true, alreadyDone: true };
+      }
+      // Apply each lifecycle status from baseStep+1 up to the target (1-based steps).
+      for (let s = baseStep + 1; s <= targetStep; s++) {
+        const next = LIFECYCLE_SEQ[s - 1];
+        const { error: sErr } = await supabaseAdmin.from("orders")
+          .update({ status: next, fulfillment_status: next } as never)
+          .eq("id", input.orderId);
+        if (sErr) throw new Error(sErr.message);
+
+        if (ship && next !== "processing") {
+          const sPatch: Record<string, unknown> = { status: next };
+          if (next === "packed") sPatch.packed_at = nowIso;
+          if (next === "shipped") sPatch.shipped_at = nowIso;
+          if (next === "delivered") { sPatch.delivered_at = nowIso; sPatch.actual_delivery = nowIso; }
+          await supabaseAdmin.from("shipments").update(sPatch as never).eq("id", ship.id);
+          await addEvent(ship.id, next, `Order marked ${next} by staff`, ship.carrier ?? order.carrier);
+        }
+        // Notify the customer instantly for every stage advance.
+        await notifyCustomer(order.user_id, input.orderId, next);
+      }
     }
 
     await logSecurity({
@@ -117,6 +182,7 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
       target: input.orderId, success: true, detail: { stage: input.stage },
     });
     return { ok: true };
+
   });
 
 /* ----------------------- Shipment create / tracking ---------------------- */
