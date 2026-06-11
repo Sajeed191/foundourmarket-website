@@ -6,7 +6,7 @@ import {
   LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
-  Search, Zap, Gift, Tag, Flame, Truck, Lock, BadgeCheck, Globe, Crown,
+  Search, Zap, Gift, Tag, Flame, Truck, Lock, Globe, Crown,
   CheckCircle2, Box, Home, X, Plus, Minus, CreditCard, UserCog,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
