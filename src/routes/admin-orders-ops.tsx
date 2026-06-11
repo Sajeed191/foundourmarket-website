@@ -601,7 +601,7 @@ function OrderOpsPage() {
 
   const recentList = actionFilter ? data.orders.filter((o) => actionFilter.ids.has(o.id)) : filtered;
 
-  const warTags: WarRoomTag[] = ["new", "failed_payment", "cod", "high_value", "international", "refund_request", "return_request", "shipment_delay", "support_linked"];
+
 
   return (
     <AdminShell
