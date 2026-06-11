@@ -235,15 +235,25 @@ function OrderDetailPage() {
             </motion.div>
           )}
 
-          {returnWindowOpen && (
-            <Link
-              to="/returns"
-              search={{ order: order.id }}
-              className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-3 hover:border-accent/40 hover:text-accent transition-colors"
-            >
-              <RotateCcw className="size-3.5" /> Request return
-            </Link>
+          {returnWindowOpen && user && (
+            <>
+              <button
+                type="button"
+                onClick={() => setReturnOpen(true)}
+                className="flex items-center justify-center gap-2 text-xs uppercase tracking-widest border border-border rounded-full px-5 py-3 hover:border-accent/40 hover:text-accent transition-colors"
+              >
+                <RotateCcw className="size-3.5" /> Request return
+              </button>
+              <ReturnRequestDialog
+                open={returnOpen}
+                onOpenChange={setReturnOpen}
+                orderId={order.id}
+                userId={user.id}
+                items={order.order_items}
+              />
+            </>
           )}
+
         </div>
       </div>
 
