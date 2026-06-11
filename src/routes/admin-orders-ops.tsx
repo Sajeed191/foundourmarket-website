@@ -252,6 +252,7 @@ function OrderDrawer({ o, onClose, onRefresh }: { o: EnrichedOrder; onClose: () 
         <OrderActionCenter
           orderId={o.id}
           hasCustomer={!!o.user_id}
+          currentStage={o.fulfillment_status || o.ship_status}
           onDone={() => { setBump((b) => b + 1); onRefresh(); }}
         />
 
