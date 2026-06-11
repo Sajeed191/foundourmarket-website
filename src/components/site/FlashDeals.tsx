@@ -3,9 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { Flame, ArrowRight, Sparkles } from "lucide-react";
 
 import { Price } from "@/components/site/Price";
+import { InlineActiveToggle } from "@/components/admin/InlineActiveToggle";
 import { trackFlashDealEvent } from "@/lib/flash-deal-analytics";
+import { useProductAdminEditing } from "@/lib/admin-overlay";
 import { useRegion } from "@/lib/region";
 import { useFlashDeals } from "@/lib/use-flash-deals";
+import { useHomepageSections, toggleHomepageSection } from "@/lib/use-homepage-sections";
 import type { Product } from "@/lib/products";
 
 function pad(n: number) {
