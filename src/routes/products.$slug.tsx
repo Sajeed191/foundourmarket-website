@@ -455,7 +455,7 @@ function ProductPage() {
 
 
             {galleryImages.length > 1 && (
-              <div className="mt-3 grid grid-cols-6 gap-2 sm:gap-2.5">
+              <div className="mt-2.5 grid grid-cols-6 gap-2 sm:gap-2.5">
                 {galleryImages.map((img, i) => (
                   <button
                     key={img.id}
