@@ -15,7 +15,7 @@ import {
   Truck,
   LayoutGrid,
 } from "lucide-react";
-import { useProducts } from "@/lib/use-products";
+import { useFlashDeals } from "@/lib/use-flash-deals";
 import { ProductCard } from "@/components/site/ProductCard";
 
 export const Route = createFileRoute("/deals")({
@@ -62,16 +62,26 @@ function useDailyCountdown() {
 }
 
 function DealsPage() {
-  const { products, loading } = useProducts();
+  // Single shared Flash Deal source — identical to the homepage Flash Deals
+  // section, so any product shown there also appears here on the Offers /
+  // Deals & Promotions page.
+  const { items, loading } = useFlashDeals();
   const countdown = useDailyCountdown();
   const [activeCat, setActiveCat] = useState<string>("all");
 
   const dealProducts = useMemo(
-    () => products.filter((p) => (p.discount ?? 0) > 0).sort((a, b) => (b.discount ?? 0) - (a.discount ?? 0)),
-    [products]
+    () => items.map((i) => i.product),
+    [items],
   );
 
-  const topDiscount = dealProducts[0]?.discount ?? 0;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // eslint-disable-next-line no-console
+    console.info(`[OffersPage] Flash Deal products rendered: ${dealProducts.length}`, dealProducts.map((p) => p.slug));
+  }, [dealProducts]);
+
+  const topDiscount = dealProducts.reduce((max, p) => Math.max(max, p.discount ?? 0), 0);
+
 
   const categories = useMemo(() => {
     const map = new Map<string, number>();
