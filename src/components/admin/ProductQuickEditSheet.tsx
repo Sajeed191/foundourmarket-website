@@ -232,6 +232,15 @@ export function ProductQuickEditSheet({
                 <Toggle label="Featured" value={form.featured} onChange={(v) => set("featured", v)} />
               </div>
 
+              <Field label="Collection badges">
+                <div className="grid grid-cols-2 gap-3">
+                  <Toggle label="Trending" value={form.trending} onChange={(v) => set("trending", v)} />
+                  <Toggle label="Best seller" value={form.bestseller} onChange={(v) => set("bestseller", v)} />
+                  <Toggle label="Flash deal" value={form.flashDeal} onChange={(v) => set("flashDeal", v)} />
+                  <Toggle label="Featured" value={form.featured} onChange={(v) => set("featured", v)} />
+                </div>
+              </Field>
+
               <Field label="Badges">
                 <ProductBadgeManager slug={product.slug} />
               </Field>
