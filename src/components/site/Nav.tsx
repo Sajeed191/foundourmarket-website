@@ -483,7 +483,7 @@ export function Nav() {
                     </div>
                   </Section>
 
-                  {/* Main categories (top 6, with image + count) */}
+                  {/* Main categories (top 6, with image) */}
                   <Section label="Categories">
                     <div className="space-y-1.5">
                       {cats.slice(0, 6).map((cat, i) => {
