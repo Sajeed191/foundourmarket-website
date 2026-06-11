@@ -548,10 +548,10 @@ function CountryStatus({ status }: { status: "idle" | "checking" | "valid" | "in
   );
 }
 
-function FieldError({ msg }: { msg: string | null }) {
+function FieldError({ msg, className }: { msg: string | null; className?: string }) {
   if (!msg) return null;
   return (
-    <p className="-mt-2 flex items-center gap-1.5 text-[11px] text-destructive">
+    <p className={cn("-mt-2 flex items-center gap-1.5 text-[11px] text-destructive", className)}>
       <X className="size-3 shrink-0" /> {msg}
     </p>
   );
