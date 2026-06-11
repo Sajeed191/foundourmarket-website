@@ -85,6 +85,7 @@ export function useFlashDeals() {
   const { products, loading } = useProducts();
   const [deals, setDeals] = useState<DealRow[]>([]);
   const now = useNow();
+  const rotationNonce = useRotationNonce();
 
   function fetchDeals() {
     supabase
