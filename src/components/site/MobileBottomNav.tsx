@@ -42,15 +42,11 @@ export function MobileBottomNav() {
       {/* Soft ambient glow — reduced ~40%, subtle only */}
       <div
         aria-hidden
-        className={`absolute inset-x-16 bottom-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] h-16 -z-10 blur-2xl ${frosted ? "opacity-[0.12]" : "opacity-[0.18]"}`}
+        className="absolute inset-x-16 bottom-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] h-16 -z-10 blur-2xl opacity-[0.12]"
         style={{ background: "var(--gradient-ember-soft)" }}
       />
       <ul
-        className={
-          frosted
-            ? "bottom-nav-light pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 rounded-[26px] px-1.5 py-2"
-            : "pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 rounded-2xl glass-strong border border-white/10 shadow-[0_8px_28px_-12px_oklch(0_0_0/0.6)] px-1.5 py-2"
-        }
+        className="bottom-nav-light pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 rounded-[26px] px-1.5 py-2"
       >
         {items.map(({ to, label, icon: Icon, match, badge }) => {
           const active = match(pathname);
@@ -64,16 +60,12 @@ export function MobileBottomNav() {
                   {/* Small premium capsule behind icon only */}
                   <span
                     aria-hidden
-                    className={
-                      frosted
-                        ? `absolute inset-0 rounded-full bg-accent/12 ring-1 ring-accent/25 shadow-[0_4px_12px_-4px_oklch(0.66_0.205_47/0.4)] transition-all duration-300 ${active ? "opacity-100 scale-100" : "opacity-0 scale-75"}`
-                        : `absolute inset-0 rounded-full bg-accent/15 ring-1 ring-accent/30 transition-opacity duration-200 ${active ? "opacity-100" : "opacity-0"}`
-                    }
+                    className={`absolute inset-0 rounded-full bg-accent/12 ring-1 ring-accent/25 shadow-[0_4px_12px_-4px_oklch(0.66_0.205_47/0.4)] transition-all duration-300 ${active ? "opacity-100 scale-100" : "opacity-0 scale-75"}`}
                   />
                   <span className="relative">
                     <Icon
                       className={`size-[19px] transition-colors duration-200 ${
-                        active ? "text-accent" : frosted ? "text-muted-foreground" : "text-white/70"
+                        active ? "text-accent" : "text-muted-foreground"
                       }`}
                       strokeWidth={active ? 2.4 : 2}
                     />
@@ -86,7 +78,7 @@ export function MobileBottomNav() {
                 </span>
                 <span
                   className={`truncate max-w-full leading-none transition-colors duration-200 ${
-                    active ? "text-accent font-semibold" : frosted ? "text-muted-foreground" : "text-white/60"
+                    active ? "text-accent font-semibold" : "text-muted-foreground"
                   }`}
                 >
                   {label}
