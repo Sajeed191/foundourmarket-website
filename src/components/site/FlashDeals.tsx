@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Price } from "@/components/site/Price";
 import { trackFlashDealEvent } from "@/lib/flash-deal-analytics";
 import { useProducts } from "@/lib/use-products";
+import { useRegion } from "@/lib/region";
 import type { Product } from "@/lib/products";
 
 /** A row from the dedicated flash_deals table (optional flash pricing + window). */
@@ -69,6 +70,7 @@ function Countdown({ end, now }: { end: string; now: number }) {
 }
 
 function FallbackSection({ featured }: { featured: Product[] }) {
+  const { priceOf } = useRegion();
   return (
     <section className="px-4 sm:px-6 py-8 sm:py-10 max-w-7xl mx-auto">
       <div className="relative rounded-3xl overflow-hidden border border-accent/20 bg-gradient-to-br from-accent/5 via-card to-card p-6 sm:p-8 text-center">
@@ -105,7 +107,7 @@ function FallbackSection({ featured }: { featured: Product[] }) {
                     )}
                   </div>
                   <p className="mt-1.5 text-[11px] font-medium truncate">{p.name}</p>
-                  <Price value={p.price} className="text-xs font-display font-semibold text-accent tabular-nums" />
+                  <Price value={priceOf(p)} className="text-xs font-display font-semibold text-accent tabular-nums" />
                 </Link>
               ))}
             </div>
@@ -125,6 +127,7 @@ function isFlashDealProduct(p: Product): boolean {
 
 export function FlashDeals() {
   const { products, loading } = useProducts();
+  const { priceOf } = useRegion();
   const [deals, setDeals] = useState<DealRow[]>([]);
   const now = useNow();
 
@@ -260,8 +263,15 @@ export function FlashDeals() {
         <div className="relative grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {items.map((i) => {
             const p = i.product;
-            const displayPrice = i.flashPrice ?? p.price;
-            const off = i.flashPrice != null && p.price > 0 ? Math.round(((p.price - i.flashPrice) / p.price) * 100) : 0;
+            // Region-resolved regular selling price (INR/USD per market).
+            const regularPrice = priceOf(p);
+            // Use the flash price ONLY when it's a real value > 0; otherwise fall
+            // back to the product's actual selling price. Never render ₹0 here.
+            const hasFlash = i.flashPrice != null && i.flashPrice > 0;
+            const displayPrice = hasFlash ? (i.flashPrice as number) : regularPrice;
+            const off = hasFlash && regularPrice > 0
+              ? Math.round(((regularPrice - (i.flashPrice as number)) / regularPrice) * 100)
+              : 0;
             const showOnlyLeft = p.stockQuantity > 0 && p.stockQuantity <= 15;
             return (
               <Link
@@ -294,8 +304,8 @@ export function FlashDeals() {
                 <p className="mt-2 text-[11px] font-medium truncate">{p.name}</p>
                 <div className="flex items-baseline gap-1.5 flex-wrap">
                   <Price value={displayPrice} className="text-xs font-display font-semibold text-accent tabular-nums" />
-                  {i.flashPrice != null && (
-                    <Price value={p.price} className="text-[10px] font-mono line-through text-muted-foreground tabular-nums" />
+                  {hasFlash && (
+                    <Price value={regularPrice} className="text-[10px] font-mono line-through text-muted-foreground tabular-nums" />
                   )}
                 </div>
                 {showOnlyLeft && (
