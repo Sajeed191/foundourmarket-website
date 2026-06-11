@@ -412,6 +412,97 @@ function Row({ k, v }: { k: string; v: React.ReactNode }) {
   return <div className="flex items-center justify-between gap-3 py-1 border-b border-border/40 last:border-0"><span className="text-muted-foreground">{k}</span><span className="text-right font-medium">{v}</span></div>;
 }
 
+/* ---------------- Redesigned section primitives ---------------- */
+
+type Tone = "attn" | "calm" | "normal";
+
+function SectionHeader({ title, sub, icon, actions }: { title: string; sub?: string; icon?: React.ReactNode; actions?: React.ReactNode }) {
+  return (
+    <div className="flex items-end justify-between gap-3 mb-4">
+      <div className="min-w-0">
+        <h2 className="text-lg sm:text-xl font-display font-semibold flex items-center gap-2 tracking-tight">{icon}{title}</h2>
+        {sub && <p className="text-[12px] text-muted-foreground mt-0.5">{sub}</p>}
+      </div>
+      {actions}
+    </div>
+  );
+}
+
+function OverviewStat({ label, value, icon, tone, onClick }: { label: string; value: number; icon: React.ReactNode; tone: Tone; onClick?: () => void }) {
+  const active = tone === "attn" && value > 0;
+  const cls = active
+    ? "border-amber-400/40 bg-amber-400/[0.07]"
+    : tone === "calm"
+      ? "border-emerald-400/25 bg-emerald-400/[0.04]"
+      : "border-border/70 bg-card/40";
+  const valueCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
+  return (
+    <button
+      onClick={onClick}
+      className={`text-left rounded-2xl border p-4 transition-all hover:border-accent/40 ${cls}`}
+    >
+      <div className="flex items-center gap-1.5 text-muted-foreground mb-2">
+        <span className={active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent"}>{icon}</span>
+        <span className="text-[10px] font-mono uppercase tracking-[0.18em] truncate">{label}</span>
+      </div>
+      <p className={`text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
+    </button>
+  );
+}
+
+const PRIORITY_TONE: Record<string, string> = {
+  critical: "text-destructive border-destructive/40 bg-destructive/10",
+  high: "text-amber-300 border-amber-400/40 bg-amber-400/10",
+  medium: "text-sky-300 border-sky-400/40 bg-sky-400/10",
+};
+
+function ActionGroup({ label, count, priority, icon, onView }: { label: string; count: number; priority: "critical" | "high" | "medium"; icon: React.ReactNode; onView: () => void }) {
+  const dim = count === 0;
+  return (
+    <div className={`rounded-2xl border p-4 flex flex-col gap-3 transition-all ${dim ? "border-border/50 bg-card/30 opacity-70" : "card-premium"}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-accent shrink-0">{icon}</span>
+          <span className="text-sm font-medium truncate">{label}</span>
+        </div>
+        <span className={`shrink-0 text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full border ${PRIORITY_TONE[priority]}`}>{priority}</span>
+      </div>
+      <div className="flex items-end justify-between gap-2">
+        <span className="text-3xl font-display font-semibold tabular-nums leading-none">{num(count)}</span>
+        <button
+          onClick={onView}
+          disabled={dim}
+          className="text-[11px] font-medium px-3 py-1.5 rounded-lg border border-border hover:border-accent/40 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1"
+        >
+          View <ArrowDownRight className="size-3" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PipelineStage({ label, value, icon, last }: { label: string; value: number; icon: React.ReactNode; last?: boolean }) {
+  return (
+    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="rounded-2xl border border-border/70 bg-card/50 px-4 py-3 min-w-[110px] text-center">
+        <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1.5"><span className="text-accent">{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.12em]">{label}</span></div>
+        <p className="text-2xl font-display font-semibold tabular-nums leading-none">{num(value)}</p>
+      </div>
+      {!last && <span className="text-muted-foreground/40 text-lg shrink-0">→</span>}
+    </div>
+  );
+}
+
+function MiniStat({ label, value, icon, tone }: { label: string; value: string; icon: React.ReactNode; tone?: Tone }) {
+  const valueCls = tone === "attn" ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card/40 p-4">
+      <div className="flex items-center gap-1.5 text-muted-foreground mb-2"><span className="text-accent">{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.16em] truncate">{label}</span></div>
+      <p className={`text-2xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{value}</p>
+    </div>
+  );
+}
+
 function OrderOpsPage() {
   const { data, staffPerf, loading, refreshing, error, refresh } = useOrderOperations();
   const [sel, setSel] = useState<EnrichedOrder | null>(null);
