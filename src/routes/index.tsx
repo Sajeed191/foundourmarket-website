@@ -57,9 +57,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "FoundOurMarket™ — Whatever You Need. All In One Place." },
-      { name: "description", content: "Premium global marketplace. Curated electronics, fashion, home, fitness and more — delivered worldwide." },
+      { name: "description", content: "Premium global marketplace. Curated electronics, home, fitness and more — delivered worldwide." },
       { property: "og:title", content: "FoundOurMarket™ — Premium Global Marketplace" },
-      { property: "og:description", content: "Curated electronics, fashion, home, fitness and more — delivered worldwide with secure checkout." },
+      { property: "og:description", content: "Curated electronics, home, fitness and more — delivered worldwide with secure checkout." },
       { property: "og:url", content: "https://foundourmarket.com/" },
     ],
     links: [{ rel: "canonical", href: "https://foundourmarket.com/" }],
@@ -98,7 +98,7 @@ const CATEGORY_ICON_RULES: { match: string[]; icon: LucideIcon }[] = [
   { match: ["toy", "kids"], icon: ToyBrick },
   { match: ["pet", "animal"], icon: PawPrint },
   { match: ["vehicle", "car", "auto", "moto"], icon: Car },
-  { match: ["fashion", "cloth", "apparel", "wear"], icon: Shirt },
+  { match: ["cloth", "apparel", "wear"], icon: Shirt },
   { match: ["fitness", "sport", "gym"], icon: Dumbbell },
   { match: ["watch", "accessor"], icon: Watch },
   { match: ["audio", "headphone", "sound"], icon: Headphones },

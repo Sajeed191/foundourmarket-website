@@ -37,7 +37,7 @@ function trackMenu(label: string, kind: string) {
 function catFallbackIcon(slug: string, name: string) {
   const hay = `${slug} ${name}`.toLowerCase();
   if (/(electronic|tech|gadget|phone)/.test(hay)) return Smartphone;
-  if (/(fashion|cloth|apparel|wear)/.test(hay)) return Shirt;
+  if (/(cloth|apparel|wear)/.test(hay)) return Shirt;
   if (/(home|decor|furnitur|kitchen)/.test(hay)) return HomeIcon;
   if (/(fitness|sport|gym)/.test(hay)) return Dumbbell;
   if (/(beauty|cosmetic|skin)/.test(hay)) return Gem;
@@ -105,7 +105,7 @@ export function Nav() {
   const navLinks = [
     { to: "/", label: "Shop" },
     { to: "/category/$slug", params: { slug: "electronics" }, label: "Electronics" },
-    { to: "/category/$slug", params: { slug: "fashion" }, label: "Fashion" },
+    
     { to: "/category/$slug", params: { slug: "home" }, label: "Home" },
     { to: "/category/$slug", params: { slug: "beauty" }, label: "Beauty" },
     { to: "/category/$slug", params: { slug: "pet-supplies" }, label: "Pet Supplies" },

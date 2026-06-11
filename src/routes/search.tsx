@@ -40,7 +40,7 @@ export const Route = createFileRoute("/search")({
   head: () => ({
     meta: [
       { title: "Search the Marketplace — FoundOurMarket™" },
-      { name: "description", content: "Search thousands of curated electronics, fashion, home, and fitness products on FoundOurMarket. Filter by category, price, and availability." },
+      { name: "description", content: "Search thousands of curated electronics, home, and fitness products on FoundOurMarket. Filter by category, price, and availability." },
       { property: "og:title", content: "Search the Marketplace — FoundOurMarket™" },
       { property: "og:description", content: "Search and filter thousands of curated products on FoundOurMarket." },
       { property: "og:url", content: "https://foundourmarket.com/search" },
