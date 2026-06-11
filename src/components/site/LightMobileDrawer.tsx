@@ -63,12 +63,6 @@ const supportLinks = [
   { to: "/help" as const, label: "FAQ", icon: HelpCircle },
 ];
 
-const legalLinks = [
-  { to: "/privacy" as const, label: "Privacy Policy" },
-  { to: "/terms" as const, label: "Terms & Conditions" },
-  { to: "/pages/returns" as const, label: "Refund Policy" },
-  { to: "/pages/shipping" as const, label: "Shipping Policy" },
-];
 
 const TONES: Record<string, string> = {
   amber: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
