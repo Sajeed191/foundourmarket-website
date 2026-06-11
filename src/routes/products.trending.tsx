@@ -19,6 +19,7 @@ export const Route = createFileRoute("/products/trending")({
       icon={Flame}
       sort="trending"
       filterFlag="trending"
+      forceBadge="trending"
     />
   ),
 });
