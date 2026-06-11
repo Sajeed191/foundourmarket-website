@@ -15,7 +15,7 @@ import { formatSold } from "@/lib/format-sold";
 /** Premium card: show at most two badges for a luxury marketplace feel. */
 const MAX_BADGES = 2;
 
-function ProductCardImpl({ product }: { product: Product; compact?: boolean }) {
+function ProductCardImpl({ product, forceBadge }: { product: Product; compact?: boolean; forceBadge?: BadgeKey | null }) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const { add, setQty, items } = useCart();
   const { has, toggle } = useWishlist();
