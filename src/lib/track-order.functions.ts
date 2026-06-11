@@ -23,7 +23,19 @@ type OrderRow = {
   shipping: number;
   total: number;
   contact_email: string | null;
-  shipping_address: Record<string, unknown> | null;
+  shipping_address: {
+    name?: string;
+    full_name?: string;
+    phone?: string;
+    line1?: string;
+    line2?: string;
+    city?: string;
+    region?: string;
+    state?: string;
+    postal_code?: string;
+    postal?: string;
+    country?: string;
+  } | null;
   created_at: string;
   updated_at: string;
 };
