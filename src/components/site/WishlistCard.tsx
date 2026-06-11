@@ -6,7 +6,7 @@ import { useRegion } from "@/lib/region";
 import { Price } from "@/components/site/Price";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
-import { useWishlistAlerts } from "@/lib/wishlist-alerts";
+
 import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { computeBadges } from "@/lib/badges";
 import { useProductBadges, badgeAnimationClass } from "@/lib/use-product-badges";
