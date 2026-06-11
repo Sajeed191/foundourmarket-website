@@ -548,10 +548,10 @@ function CountryStatus({ status }: { status: "idle" | "checking" | "valid" | "in
   );
 }
 
-function FieldError({ msg }: { msg: string | null }) {
+function FieldError({ msg, className }: { msg: string | null; className?: string }) {
   if (!msg) return null;
   return (
-    <p className="-mt-2 flex items-center gap-1.5 text-[11px] text-destructive">
+    <p className={cn("-mt-2 flex items-center gap-1.5 text-[11px] text-destructive", className)}>
       <X className="size-3 shrink-0" /> {msg}
     </p>
   );
@@ -703,7 +703,7 @@ function PhoneField({
           className="flex-1 min-w-0 bg-transparent px-3 py-[0.925rem] text-sm outline-none"
         />
       </div>
-      <FieldError msg={error ?? (typedSymbol ? "Only numbers are allowed" : null)} />
+      <FieldError className="mt-2" msg={error ?? (typedSymbol ? "Only numbers are allowed" : null)} />
     </div>
   );
 }
