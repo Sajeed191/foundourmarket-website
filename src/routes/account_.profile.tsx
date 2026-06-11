@@ -475,6 +475,9 @@ function EditProfilePage() {
                   <input value={form.timezone} onChange={(e) => set("timezone", e.target.value)} maxLength={60} placeholder=" " className="peer input-glass" />
                 </FloatingField>
               </div>
+              <div className="mt-4">
+                <ThemeSelector />
+              </div>
             </Section>
 
             {/* ── Actions ── */}
