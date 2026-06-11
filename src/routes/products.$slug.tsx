@@ -867,12 +867,12 @@ function ProductLayoutDiagnostics({ phase }: { phase: "loading" | "final" }) {
 function ProductPageSkeleton() {
   return (
     <>
-    <div data-product-page data-product-phase="loading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16" aria-busy="true">
+    <div data-product-page data-product-phase="loading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 product-page-clearance sm:pb-24 lg:pb-16" aria-busy="true">
       <ProductLayoutDiagnostics phase="loading" />
-      <div className="mb-6 h-3 w-44 rounded-full bg-white/[0.05] animate-pulse" />
-      <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-12 xl:gap-16">
+      <div className="mb-3 sm:mb-6 h-3 w-44 rounded-full bg-white/[0.05] animate-pulse" />
+      <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 lg:gap-12 xl:gap-16">
         <div className="space-y-3">
-          <div data-product-image className="aspect-[4/5] sm:aspect-square rounded-2xl sm:rounded-3xl border border-border bg-white/[0.04] animate-pulse" />
+          <div data-product-image className="aspect-[4/3] sm:aspect-square max-h-[58svh] sm:max-h-none rounded-2xl sm:rounded-3xl border border-border bg-white/[0.04] animate-pulse" />
           <div className="grid grid-cols-6 gap-2 sm:gap-2.5">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="aspect-square rounded-xl bg-white/[0.04] animate-pulse" />
