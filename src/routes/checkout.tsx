@@ -5,7 +5,7 @@ import {
   Loader2, ShieldCheck, MapPin, Plus, Lock, Smartphone, CreditCard,
   Landmark, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Globe, Sparkles,
   Home, Briefcase, MapPinned, Pencil, Trash2, Star, ArrowRight, Clock,
-  PackageCheck, Headphones, BadgeCheck, ShieldHalf, Download,
+  PackageCheck, BadgeCheck, ShieldHalf, Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadInvoice } from "@/lib/invoice";
@@ -735,7 +735,7 @@ function CheckoutPage() {
                 <TrustCard icon={<Lock className="size-4" />} title="Encrypted" sub="256-bit SSL" />
                 <TrustCard icon={<BadgeCheck className="size-4" />} title="Razorpay" sub="Verified" />
                 <TrustCard icon={<RotateCcw className="size-4" />} title="Easy returns" sub="4-day window" />
-                <TrustCard icon={<Headphones className="size-4" />} title="Fast support" sub="24/7 help" />
+                
                 <TrustCard icon={<PackageCheck className="size-4" />} title="Tracked" sub="Real-time" />
               </section>
 
@@ -775,15 +775,10 @@ function CheckoutPage() {
                 <dl className="space-y-2.5 text-sm border-t border-white/10 pt-4">
                   <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className="font-mono">{fmt(subtotalINR)}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className="font-mono">{shippingINR === 0 ? <span className="text-emerald-400">Free</span> : fmt(shippingINR)}</dd></div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground inline-flex items-center gap-1">Tax<span className="text-[10px] text-muted-foreground/70">({market === "india" ? "18% GST" : "8%"} est.)</span></dt>
-                    <dd className="font-mono">{fmt(taxINR)}</dd>
-                  </div>
                   <div className="border-t border-white/10 pt-3 flex justify-between items-end">
                     <dt className="font-medium text-base">Total</dt>
                     <dd className="text-right">
                       <span className="block font-mono text-2xl font-semibold text-accent leading-none">{fmt(totalINR)}</span>
-                      <span className="block text-[10px] text-muted-foreground mt-1">Incl. all taxes</span>
                     </dd>
                   </div>
                 </dl>

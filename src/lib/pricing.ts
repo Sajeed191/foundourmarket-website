@@ -22,8 +22,8 @@ export const SHIPPING: Record<Region, { freeAbove: number; flat: number }> = {
 
 /** Tax rate applied to the subtotal, per region. */
 export const TAX_RATE: Record<Region, number> = {
-  india: 0.18,
-  international: 0.08,
+  india: 0,
+  international: 0,
 };
 
 /** INR is charged in whole rupees; USD keeps 2 decimal places. */

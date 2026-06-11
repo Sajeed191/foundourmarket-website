@@ -206,7 +206,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  * out of the entry bundle and off the critical hydration path, cutting TBT and
  * speeding up LCP on the homepage / product / search routes.
  */
-function DeferredShell({ isAuthRoute }: { isAuthRoute: boolean; isAdminRoute?: boolean }) {
+function DeferredShell({ isAuthRoute, hideLiveChat }: { isAuthRoute: boolean; isAdminRoute?: boolean; hideLiveChat?: boolean }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const ric =
@@ -234,7 +234,7 @@ function DeferredShell({ isAuthRoute }: { isAuthRoute: boolean; isAdminRoute?: b
       {!isAuthRoute && <AdminCommandCenter />}
       <CompareTray />
       <InstallPrompt />
-      <LiveChat />
+      {!hideLiveChat && <LiveChat />}
     </Suspense>
   );
 }
@@ -274,6 +274,7 @@ function RootComponent() {
   // nav on top of that caused a duplicate notification bell whose dropdown
   // floated over admin controls. Suppress public chrome on admin routes.
   const isAdminRoute = pathname.startsWith("/admin");
+  const isCheckoutRoute = pathname.startsWith("/checkout");
   const hideSiteChrome = isAuthRoute || isAdminRoute;
 
   return (
@@ -295,7 +296,7 @@ function RootComponent() {
                       </main>
                       {!hideSiteChrome && <Footer />}
                       {!hideSiteChrome && <MobileBottomNav />}
-                      <DeferredShell isAuthRoute={isAuthRoute} isAdminRoute={isAdminRoute} />
+                      <DeferredShell isAuthRoute={isAuthRoute} isAdminRoute={isAdminRoute} hideLiveChat={isCheckoutRoute} />
                       <Toaster position="bottom-center" richColors />
                       <ShareDialog />
                     </div>
