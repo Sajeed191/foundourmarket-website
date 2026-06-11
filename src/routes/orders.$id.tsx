@@ -153,11 +153,11 @@ function OrderDetailPage() {
           </div>
         ) : (
           <>
-            <ol className="grid grid-cols-4 gap-1 sm:gap-2 relative">
-              <div className="absolute top-5 left-[12.5%] right-[12.5%] h-px bg-border -z-0" aria-hidden />
+            <ol className="grid grid-cols-5 gap-1 sm:gap-2 relative">
+              <div className="absolute top-5 left-[10%] right-[10%] h-px bg-border -z-0" aria-hidden />
               <div
-                className="absolute top-5 left-[12.5%] h-px bg-accent -z-0 transition-all duration-700"
-                style={{ width: `${Math.max(0, currentIdx) / 3 * 75}%` }}
+                className="absolute top-5 left-[10%] h-px bg-accent -z-0 transition-all duration-700"
+                style={{ width: `${Math.max(0, currentIdx) / 4 * 80}%` }}
                 aria-hidden
               />
               {STATUSES.map((s, i) => {
