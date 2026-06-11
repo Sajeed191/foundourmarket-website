@@ -10,11 +10,6 @@ import type { BadgeKey } from "@/lib/badges";
 
 export type CollectionSort = "trending" | "newest" | "best_sellers";
 
-const SORTERS: Record<CollectionSort, (a: Product, b: Product) => number> = {
-  trending: (a, b) => (b.viewsCount ?? 0) - (a.viewsCount ?? 0),
-  newest: (a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""),
-  best_sellers: (a, b) => (b.soldCount ?? 0) - (a.soldCount ?? 0),
-};
 
 /**
  * Full collection page for a homepage rail's "View All" destination.
