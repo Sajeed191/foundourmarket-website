@@ -487,8 +487,8 @@ function ProductPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
           >
-            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent/90 mb-2 mt-5 lg:mt-0">{product.tagline}</p>
-            <h1 className="text-[1.6rem] sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-3 text-balance leading-[1.18] sm:leading-[1.12]">{product.name}</h1>
+            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent/90 mb-1.5 mt-4 lg:mt-0">{product.tagline}</p>
+            <h1 className="text-[1.35rem] sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-2.5 text-balance leading-[1.22] sm:leading-[1.12]">{product.name}</h1>
 
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <StarRating
