@@ -520,7 +520,7 @@ function Home() {
                   >
                     {/* Image above name — 1:1, premium rounded capsule.
                         Falls back to an icon inside a soft glass capsule. */}
-                    <div className="relative w-full aspect-square overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+                    <div className="relative w-full aspect-square overflow-hidden rounded-2xl border border-border bg-muted/60">
                       {hasImage ? (
                         <img
                           src={cat.mobile_image || cat.image || ""}
