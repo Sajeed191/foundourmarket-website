@@ -333,6 +333,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         items: active,
         add,
         remove,
+        removeSaved,
         setQty,
         clear,
         saveForLater,
