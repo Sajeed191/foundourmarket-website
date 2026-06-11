@@ -321,7 +321,7 @@ function ProductPage() {
   };
   const handleShare = () => {
     if (typeof window === "undefined") return;
-    openShare({ title: product.name, text: product.tagline, url: window.location.href });
+    openShare({ title: product.name, text: product.tagline, url: window.location.href, image: product.image });
   };
 
   return (
