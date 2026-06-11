@@ -288,7 +288,7 @@ export function Nav() {
                 </Link>
               )}
 
-              <div className="scale-90 sm:scale-100 origin-right">
+              <div className="flex items-center">
                 <NotificationBell />
               </div>
 
