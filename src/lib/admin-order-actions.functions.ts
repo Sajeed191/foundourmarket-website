@@ -130,22 +130,50 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
     }
 
 
-    const orderPatch: Record<string, unknown> = { fulfillment_status: input.stage };
-    if (input.stage === "shipped" || input.stage === "delivered" || input.stage === "cancelled") {
-      orderPatch.status = input.stage;
-    }
-    const { error: oErr } = await supabaseAdmin.from("orders").update(orderPatch as never).eq("id", input.orderId);
-    if (oErr) throw new Error(oErr.message);
-
     const ship = await latestShipment(input.orderId);
-    if (ship && input.stage !== "processing") {
-      const sPatch: Record<string, unknown> = { status: input.stage };
-      if (input.stage === "packed") sPatch.packed_at = nowIso;
-      if (input.stage === "shipped") sPatch.shipped_at = nowIso;
-      if (input.stage === "delivered") { sPatch.delivered_at = nowIso; sPatch.actual_delivery = nowIso; }
-      if (input.stage === "cancelled") sPatch.cancelled_at = nowIso;
-      await supabaseAdmin.from("shipments").update(sPatch as never).eq("id", ship.id);
-      await addEvent(ship.id, input.stage, `Order marked ${input.stage} by staff`, ship.carrier ?? order.carrier);
+
+    if (input.stage === "cancelled") {
+      // Terminal state — reachable from anywhere per the DB trigger.
+      const { error: oErr } = await supabaseAdmin.from("orders")
+        .update({ status: "cancelled", fulfillment_status: "cancelled" } as never)
+        .eq("id", input.orderId);
+      if (oErr) throw new Error(oErr.message);
+      if (ship) {
+        await supabaseAdmin.from("shipments").update({ status: "cancelled", cancelled_at: nowIso } as never).eq("id", ship.id);
+        await addEvent(ship.id, "cancelled", "Order cancelled by staff", ship.carrier ?? order.carrier);
+      }
+      await notifyCustomer(order.user_id, input.orderId, "cancelled");
+    } else {
+      // Forward stages: the DB enforces single-step status transitions, so we
+      // auto-advance through every intermediate lifecycle stage up to the target.
+      const targetStep = seqStep(input.stage);
+      const baseStep = Math.max(seqStep(order.status), seqStep(order.fulfillment_status));
+      if (targetStep <= baseStep) {
+        // Already at or past this stage — nothing to do (one-time marking).
+        await logSecurity({
+          actorId: userId, actorRole: primaryRole, action: "ops.order.mark_stage",
+          target: input.orderId, success: true, detail: { stage: input.stage, skipped: "already_reached" },
+        });
+        return { ok: true, alreadyDone: true };
+      }
+      for (let step = Math.max(baseStep, 1) + (baseStep === 0 ? -1 : 0); step < targetStep; step++) {
+        const next = LIFECYCLE_SEQ[step]; // step is 0-based index of the NEXT status
+        const { error: sErr } = await supabaseAdmin.from("orders")
+          .update({ status: next, fulfillment_status: next } as never)
+          .eq("id", input.orderId);
+        if (sErr) throw new Error(sErr.message);
+
+        if (ship && next !== "processing") {
+          const sPatch: Record<string, unknown> = { status: next };
+          if (next === "packed") sPatch.packed_at = nowIso;
+          if (next === "shipped") sPatch.shipped_at = nowIso;
+          if (next === "delivered") { sPatch.delivered_at = nowIso; sPatch.actual_delivery = nowIso; }
+          await supabaseAdmin.from("shipments").update(sPatch as never).eq("id", ship.id);
+          await addEvent(ship.id, next, `Order marked ${next} by staff`, ship.carrier ?? order.carrier);
+        }
+        // Notify the customer instantly for every stage advance.
+        await notifyCustomer(order.user_id, input.orderId, next);
+      }
     }
 
     await logSecurity({
@@ -153,6 +181,7 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
       target: input.orderId, success: true, detail: { stage: input.stage },
     });
     return { ok: true };
+
   });
 
 /* ----------------------- Shipment create / tracking ---------------------- */
