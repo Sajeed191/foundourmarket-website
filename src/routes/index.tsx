@@ -11,6 +11,8 @@ import type { LucideIcon } from "lucide-react";
 import { useCategories, useAdminCategories, toggleCategoryVisible } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { useProductAdminEditing } from "@/lib/admin-overlay";
+import { useRotationSeed, seededShuffle } from "@/lib/rotation";
+import { useRotationNonce } from "@/lib/use-rotation-nonce";
 const CategoryAdminSheet = lazy(() =>
   import("@/components/admin/CategoryAdminSheet").then((m) => ({ default: m.CategoryAdminSheet })),
 );
