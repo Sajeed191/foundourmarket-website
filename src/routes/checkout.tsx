@@ -550,7 +550,7 @@ function CheckoutPage() {
             <CheckoutProgress currentStep={checkoutState.currentStep} completedSteps={checkoutState.completedSteps} />
           </div>
 
-          <div className="mb-6 sm:mb-9 flex flex-wrap items-center gap-2">
+          <div className="mb-6 sm:mb-9 flex flex-wrap items-center gap-2 min-w-0 [&>div]:max-w-full [&_p]:break-words [&_p]:min-w-0">
             <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-full px-3 py-1.5">
               <Lock className="size-3 text-emerald-400 shrink-0" />
               <p className="text-[10px] font-mono uppercase tracking-widest text-emerald-400">256-bit secured · INR</p>
