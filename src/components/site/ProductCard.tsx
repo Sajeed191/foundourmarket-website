@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { memo, useState } from "react";
 import { Heart, Plus, Check, Star, Minus, Eye } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
-import { computeBadges, DEFAULT_BADGE_SETTINGS } from "@/lib/badges";
+import { computeBadges, singleBadge, DEFAULT_BADGE_SETTINGS, type BadgeKey } from "@/lib/badges";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
