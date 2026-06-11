@@ -233,7 +233,7 @@ function OrderDetailPage() {
             </motion.div>
           )}
 
-          {(order.status === "delivered" || shipments.some((s) => s.status === "delivered")) && (
+          {returnWindowOpen && (
             <Link
               to="/returns"
               search={{ order: order.id }}
