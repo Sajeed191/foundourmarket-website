@@ -20,7 +20,8 @@ export function ProductCollection({
   title,
   description,
   icon: Icon,
-  sort,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  sort: _sort,
   filterFlag,
   forceBadge,
 }: {
