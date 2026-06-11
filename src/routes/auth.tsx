@@ -60,6 +60,25 @@ function AuthPage() {
     return "/account";
   };
 
+  // Fallback: if the OAuth broker redirects back to /auth (instead of
+  // /auth/callback) with the issued tokens in the URL, establish the session
+  // here so the user isn't stranded on the "Connect Your Account" screen.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const fromQuery = new URLSearchParams(window.location.search);
+    const access_token = fromHash.get("access_token") ?? fromQuery.get("access_token");
+    const refresh_token = fromHash.get("refresh_token") ?? fromQuery.get("refresh_token");
+    if (!access_token || !refresh_token) return;
+    (async () => {
+      const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+      // Strip tokens from the URL so a refresh / back doesn't replay them.
+      window.history.replaceState({}, document.title, window.location.pathname);
+      if (!error) nav({ to: resolveDest() as any });
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (user) nav({ to: resolveDest() as any });
     // eslint-disable-next-line react-hooks/exhaustive-deps
