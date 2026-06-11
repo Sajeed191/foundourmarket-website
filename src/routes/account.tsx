@@ -34,6 +34,8 @@ export const Route = createFileRoute("/account")({
 type Order = {
   id: string;
   status: string;
+  payment_status: string | null;
+  payment_method: string | null;
   total: number;
   discount: number | null;
   currency: string;
