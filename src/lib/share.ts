@@ -26,6 +26,24 @@ export function toPublicUrl(rawUrl: string): string {
 }
 
 /**
+ * Returns a lightweight, CDN-resized version of a Supabase Storage image so
+ * link-preview crawlers (WhatsApp, Telegram, etc.) fetch a small, fast-loading
+ * file instead of the full-resolution original. Leaves non-Supabase URLs as-is.
+ */
+export function toPreviewImage(rawUrl: string, width = 800): string {
+  try {
+    const u = new URL(rawUrl);
+    const marker = "/storage/v1/object/public/";
+    const idx = u.pathname.indexOf(marker);
+    if (idx === -1) return rawUrl;
+    const path = u.pathname.slice(idx + marker.length);
+    return `${u.origin}/storage/v1/render/image/public/${path}?width=${width}&quality=70&resize=contain`;
+  } catch {
+    return rawUrl;
+  }
+}
+
+/**
  * Opens the share experience for the given data.
  * - Uses the native device share sheet (WhatsApp, Messages, etc.) when available.
  * - Falls back to an in-app share dialog (WhatsApp, Telegram, Facebook, X, Email, Copy).
