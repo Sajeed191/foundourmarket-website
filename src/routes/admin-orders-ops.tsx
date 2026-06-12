@@ -417,12 +417,12 @@ type Tone = "attn" | "calm" | "normal";
 
 function SectionHeader({ title, sub, icon, actions }: { title: string; sub?: string; icon?: React.ReactNode; actions?: React.ReactNode }) {
   return (
-    <div className="flex items-end justify-between gap-3 mb-4">
+    <div className="flex items-end justify-between gap-3 mb-5">
       <div className="min-w-0">
-        <h2 className="text-lg sm:text-xl font-display font-semibold flex items-center gap-2 tracking-tight">{icon}{title}</h2>
-        {sub && <p className="text-[12px] text-muted-foreground mt-0.5">{sub}</p>}
+        <h2 className="text-lg sm:text-xl font-display font-semibold flex items-center gap-2.5 tracking-tight">{icon}<span className="truncate">{title}</span></h2>
+        {sub && <p className="text-[12px] text-muted-foreground mt-1 leading-snug">{sub}</p>}
       </div>
-      {actions}
+      {actions && <div className="shrink-0">{actions}</div>}
     </div>
   );
 }
@@ -430,21 +430,20 @@ function SectionHeader({ title, sub, icon, actions }: { title: string; sub?: str
 function OverviewStat({ label, value, icon, tone, onClick }: { label: string; value: number; icon: React.ReactNode; tone: Tone; onClick?: () => void }) {
   const active = tone === "attn" && value > 0;
   const cls = active
-    ? "border-amber-400/40 bg-amber-400/[0.07]"
-    : tone === "calm"
-      ? "border-emerald-400/25 bg-emerald-400/[0.04]"
-      : "border-border/70 bg-card/40";
+    ? "border-amber-400/40 bg-amber-400/[0.06]"
+    : "border-border/60 bg-card/30";
+  const accentCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent";
   const valueCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-2xl border p-4 transition-all hover:border-accent/40 ${cls}`}
+      className={`text-left rounded-2xl border p-4 transition-colors hover:border-accent/40 ${cls}`}
     >
-      <div className="flex items-center gap-1.5 text-muted-foreground mb-2">
-        <span className={active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent"}>{icon}</span>
-        <span className="text-[10px] font-mono uppercase tracking-[0.18em] truncate">{label}</span>
+      <div className="flex items-center gap-2 text-muted-foreground mb-3">
+        <span className={accentCls}>{icon}</span>
+        <span className="text-[10px] font-mono uppercase tracking-[0.16em] truncate">{label}</span>
       </div>
-      <p className={`text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
+      <p className={`text-[28px] sm:text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
     </button>
   );
 }
@@ -455,23 +454,30 @@ const PRIORITY_TONE: Record<string, string> = {
   medium: "text-sky-300 border-sky-400/40 bg-sky-400/10",
 };
 
+const PRIORITY_BAR: Record<string, string> = {
+  critical: "bg-destructive",
+  high: "bg-amber-400",
+  medium: "bg-sky-400",
+};
+
 function ActionGroup({ label, count, priority, icon, onView }: { label: string; count: number; priority: "critical" | "high" | "medium"; icon: React.ReactNode; onView: () => void }) {
   const dim = count === 0;
   return (
-    <div className={`rounded-2xl border p-4 flex flex-col gap-3 transition-all ${dim ? "border-border/50 bg-card/30 opacity-70" : "card-premium"}`}>
+    <div className={`relative overflow-hidden rounded-2xl border p-4 pl-5 flex flex-col gap-4 transition-colors ${dim ? "border-border/50 bg-card/30" : "border-border/70 bg-card/50 hover:border-accent/40"}`}>
+      <span className={`absolute left-0 top-0 bottom-0 w-1 ${dim ? "bg-border/50" : PRIORITY_BAR[priority]}`} />
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-accent shrink-0">{icon}</span>
+          <span className={dim ? "text-muted-foreground shrink-0" : "text-accent shrink-0"}>{icon}</span>
           <span className="text-sm font-medium truncate">{label}</span>
         </div>
         <span className={`shrink-0 text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full border ${PRIORITY_TONE[priority]}`}>{priority}</span>
       </div>
       <div className="flex items-end justify-between gap-2">
-        <span className="text-3xl font-display font-semibold tabular-nums leading-none">{num(count)}</span>
+        <span className={`text-[32px] font-display font-semibold tabular-nums leading-none ${dim ? "text-muted-foreground/60" : "text-foreground"}`}>{num(count)}</span>
         <button
           onClick={onView}
           disabled={dim}
-          className="text-[11px] font-medium px-3 py-1.5 rounded-lg border border-border hover:border-accent/40 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1"
+          className="text-[11px] font-medium px-3 py-1.5 rounded-lg border border-border hover:border-accent/40 hover:bg-muted/30 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 transition-colors"
         >
           View <ArrowDownRight className="size-3" />
         </button>
@@ -481,22 +487,26 @@ function ActionGroup({ label, count, priority, icon, onView }: { label: string; 
 }
 
 function PipelineStage({ label, value, icon, last }: { label: string; value: number; icon: React.ReactNode; last?: boolean }) {
+  const cur = value > 0;
   return (
-    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-      <div className="rounded-2xl border border-border/70 bg-card/50 px-4 py-3 min-w-[110px] text-center">
-        <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1.5"><span className="text-accent">{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.12em]">{label}</span></div>
-        <p className="text-2xl font-display font-semibold tabular-nums leading-none">{num(value)}</p>
+    <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+      <div className={`rounded-2xl border px-4 py-3.5 min-w-[120px] text-center transition-colors ${cur ? "border-accent/30 bg-accent/[0.04]" : "border-border/60 bg-card/40"}`}>
+        <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-2"><span className={cur ? "text-accent" : "text-muted-foreground"}>{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.12em]">{label}</span></div>
+        <p className={`text-2xl font-display font-semibold tabular-nums leading-none ${cur ? "text-foreground" : "text-muted-foreground/60"}`}>{num(value)}</p>
       </div>
-      {!last && <span className="text-muted-foreground/40 text-lg shrink-0">→</span>}
+      {!last && <span className="text-muted-foreground/30 text-xl shrink-0">→</span>}
     </div>
   );
 }
 
 function MiniStat({ label, value, icon, tone }: { label: string; value: string; icon: React.ReactNode; tone?: Tone }) {
-  const valueCls = tone === "attn" ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
+  const active = tone === "attn";
+  const cls = active ? "border-amber-400/40 bg-amber-400/[0.05]" : "border-border/60 bg-card/40";
+  const valueCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
+  const accentCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent";
   return (
-    <div className="rounded-2xl border border-border/70 bg-card/40 p-4">
-      <div className="flex items-center gap-1.5 text-muted-foreground mb-2"><span className="text-accent">{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.16em] truncate">{label}</span></div>
+    <div className={`rounded-2xl border p-4 transition-colors ${cls}`}>
+      <div className="flex items-center gap-2 text-muted-foreground mb-3"><span className={accentCls}>{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.14em] truncate">{label}</span></div>
       <p className={`text-2xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{value}</p>
     </div>
   );
