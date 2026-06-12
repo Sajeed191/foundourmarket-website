@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { resolveImage, fetchProductImages, type ProductImage } from "@/lib/products";
 import { invalidateProducts } from "@/lib/use-products";
 import {
-  processAndUpload, validateFile, logMediaEvent, xhrUpload, formatBytes,
+  processAndUpload, validateFile, logMediaEvent, xhrUpload,
 } from "@/lib/media-engine";
 
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
