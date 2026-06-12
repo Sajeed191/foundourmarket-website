@@ -310,7 +310,7 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
             initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 32, stiffness: 320 }}
             drag="y" dragControls={undefined} dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 0.4 }} onDragEnd={onDragEnd}
-            className="fixed inset-x-0 bottom-0 z-[81] h-[94vh] rounded-t-3xl border-t border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl flex flex-col"
+            className="fixed inset-x-0 bottom-0 z-[81] h-[92dvh] max-h-[92dvh] rounded-t-3xl border-t border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden"
             role="dialog" aria-modal="true"
           >
             {/* grabber + header */}
