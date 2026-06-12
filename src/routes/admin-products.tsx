@@ -1151,11 +1151,22 @@ function ProductCard({
               </p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-mono">{inr(priceOf(p))}</p>
-              {p.compare_price_inr && Number(p.compare_price_inr) > priceOf(p) ? (
-                <p className="text-[10px] font-mono text-muted-foreground line-through">{inr(Number(p.compare_price_inr))}</p>
-              ) : null}
-              {p.discount ? <p className="text-[10px] text-accent">-{p.discount}%</p> : null}
+              {intl ? (
+                <>
+                  <p className="text-sm font-mono">{usd(Number(p.price_usd) || 0)}</p>
+                  {p.compare_price_usd && Number(p.compare_price_usd) > (Number(p.price_usd) || 0) ? (
+                    <p className="text-[10px] font-mono text-muted-foreground line-through">{usd(Number(p.compare_price_usd))}</p>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-mono">{inr(priceOf(p))}</p>
+                  {p.compare_price_inr && Number(p.compare_price_inr) > priceOf(p) ? (
+                    <p className="text-[10px] font-mono text-muted-foreground line-through">{inr(Number(p.compare_price_inr))}</p>
+                  ) : null}
+                  {p.discount ? <p className="text-[10px] text-accent">-{p.discount}%</p> : null}
+                </>
+              )}
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
