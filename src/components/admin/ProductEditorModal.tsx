@@ -668,10 +668,10 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
 
         {/* Returns & Warranty */}
         <CollapsibleModule eyebrow="Step 5" title="Returns & Warranty" badge={<RotateCcw className="size-3.5 text-accent" />} defaultOpen={false}>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <EField label="Return window (days)" type="number" value={String(form.return_window_days)} onChange={(v) => set({ return_window_days: Number(v) || 0 })} />
             <EField label="Warranty" value={form.warranty} onChange={(v) => set({ warranty: v })} />
-            <div className="col-span-2 flex flex-wrap gap-4 rounded-xl border border-white/10 bg-white/[0.02] p-3">
+            <div className="sm:col-span-2 flex flex-wrap gap-4 rounded-xl border border-white/10 bg-white/[0.02] p-3">
               <Toggle checked={form.return_eligible} onChange={(v) => set({ return_eligible: v })} label="Return eligible" />
               <Toggle checked={form.replacement_eligible} onChange={(v) => set({ replacement_eligible: v })} label="Replacement eligible" />
             </div>
