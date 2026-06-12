@@ -85,8 +85,9 @@ export function NotificationBell() {
         )}
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
+          ref={panelRef}
           className={`fixed right-[max(0.75rem,env(safe-area-inset-right))] left-[max(0.75rem,env(safe-area-inset-left))] sm:left-auto sm:w-[400px] ${
             isAdminRoute
               ? "top-[calc(env(safe-area-inset-top)+7.75rem)] sm:top-[calc(env(safe-area-inset-top)+4.25rem)] lg:right-10"
