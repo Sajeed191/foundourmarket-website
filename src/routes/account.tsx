@@ -1184,17 +1184,17 @@ function ContinueShopping({ items, format }: { items: Product[]; format: (n: num
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, ease, delay: Math.min(i * 0.05, 0.3) }}
-            className="snap-start shrink-0 w-[64%] xs:w-[56%] sm:w-[40%] lg:w-[28%] max-w-[260px] group"
+            className="snap-start shrink-0 w-[68%] xs:w-[60%] sm:w-[42%] lg:w-[30%] max-w-[280px] group"
           >
-            <div className="h-full card-premium rounded-2xl p-2.5 sm:p-3 hover:shadow-[0_22px_60px_-22px_oklch(0.74_0.19_49/0.55)] transition-shadow duration-500">
+            <div className="h-full card-premium rounded-2xl p-3 hover:shadow-[0_22px_60px_-22px_oklch(0.74_0.19_49/0.55)] transition-shadow duration-500">
               <Link to="/products/$slug" params={{ slug: p.slug }} className="block">
-                <div className="aspect-[4/5] rounded-xl overflow-hidden bg-black/40">
+                <div className="aspect-square rounded-xl overflow-hidden bg-black/40">
                   <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
               </Link>
-              <div className="px-1 pt-2.5 pb-1">
+              <div className="px-0.5 pt-3 pb-0.5">
                 <Link to="/products/$slug" params={{ slug: p.slug }}>
-                  <p className="text-[13px] sm:text-sm font-medium leading-snug line-clamp-2 group-hover:text-accent transition-colors">{p.name}</p>
+                  <p className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-accent transition-colors">{p.name}</p>
                 </Link>
                 {typeof p.rating === "number" && p.rating > 0 && (
                   <div className="mt-1.5 flex items-center gap-1 text-amber-400">
@@ -1202,12 +1202,12 @@ function ContinueShopping({ items, format }: { items: Product[]; format: (n: num
                     <span className="text-[11px] font-mono tabular-nums text-muted-foreground">{p.rating.toFixed(1)}</span>
                   </div>
                 )}
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <span className="font-mono text-sm text-accent tabular-nums truncate">{format(Number(p.price))}</span>
+                <div className="mt-2.5 flex items-center justify-between gap-2">
+                  <span className="font-display font-semibold text-base text-accent tabular-nums truncate">{format(Number(p.price))}</span>
                   <button
                     onClick={() => add(p.slug)}
                     aria-label="Add to cart"
-                    className="shrink-0 size-9 grid place-items-center rounded-full bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+                    className="shrink-0 size-10 grid place-items-center rounded-full bg-accent text-accent-foreground shadow-[var(--shadow-ember)] hover:brightness-110 active:scale-90 transition-all"
                   >
                     <Plus className="size-4" />
                   </button>
