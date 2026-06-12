@@ -677,6 +677,15 @@ function OrderOpsPage() {
 
   const packedOrders = ords.filter((o) => /pack/i.test(stageStr(o)) && isActive(o));
   const ofdOrders = ords.filter((o) => /out.?for.?delivery|ofd/i.test(stageStr(o)) && isActive(o));
+  // Live stage classification — derived from the SAME `ords` source as Recent Orders,
+  // so Overview / Pipeline / Action Required / Recent Orders never drift apart.
+  const deliveredOrders = ords.filter((o) => o.delivered_at || /delivered|completed/i.test(o.status ?? ""));
+  const shippedOrders = ords.filter((o) => (o.shipped_at || /shipped/i.test(stageStr(o))) && !o.delivered_at && !/delivered|completed/i.test(o.status ?? "") && !ofdOrders.includes(o));
+  // Pending = active orders still early in fulfilment (pending/confirmed/processing),
+  // i.e. not yet packed, shipped, out-for-delivery or delivered.
+  const pendingOrders = ords.filter((o) =>
+    isActive(o) && !o.shipped_at && !o.delivered_at &&
+    !packedOrders.includes(o) && !ofdOrders.includes(o) && !shippedOrders.includes(o));
   const cancelOrders = ords.filter((o) => /cancel/i.test(o.status ?? ""));
   const newToProcess = ords.filter((o) => o.payment_status === "paid" && !o.shipped_at && isActive(o));
   const failedOrders = data.warRoom.failed_payment;
