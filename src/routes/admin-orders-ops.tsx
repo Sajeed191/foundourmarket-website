@@ -617,8 +617,8 @@ function MiniStat({ label, value, icon, tone }: { label: string; value: string; 
   const valueCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
   const accentCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent";
   return (
-    <div className={`rounded-2xl border p-4 transition-colors ${cls}`}>
-      <div className="flex items-center gap-2 text-muted-foreground mb-3"><span className={accentCls}>{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.14em] truncate">{label}</span></div>
+    <div className={`rounded-2xl border p-3.5 sm:p-4 w-full min-w-0 flex flex-col justify-between min-h-[88px] transition-colors ${cls}`}>
+      <div className="flex items-center gap-1.5 text-muted-foreground mb-2 min-w-0"><span className={`${accentCls} shrink-0`}>{icon}</span><span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.12em] truncate">{label}</span></div>
       <p className={`text-2xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{value}</p>
     </div>
   );
