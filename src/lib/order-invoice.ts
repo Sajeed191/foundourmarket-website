@@ -8,7 +8,7 @@
  */
 
 export type InvoiceItem = {
-  name: string;
+  name: string | null;
   quantity: number;
   unit_price: number;
   line_total: number;
