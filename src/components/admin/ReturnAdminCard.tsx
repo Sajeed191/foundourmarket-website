@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   User, Mail, Phone, MapPin, Check, X, Package, ImageOff, Images,
   CalendarClock, ShieldCheck, ShieldX, Receipt, Truck, CreditCard,
-  Wallet, RotateCcw, Clock,
+  Wallet, RotateCcw, Clock, ChevronDown,
 } from "lucide-react";
 import type { AdminReturnRow } from "@/lib/returns-admin.functions";
 import type { Product } from "@/lib/products";
@@ -71,6 +71,7 @@ export function ReturnAdminCard({
   onUpdate: (id: string, patch: Record<string, unknown>) => void;
 }) {
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [customerOpen, setCustomerOpen] = useState(false);
   const photos = (r.photo_urls ?? []).filter(Boolean);
   const activeIdx = r.status === "rejected" ? -1 : timelineIndex(r);
 
@@ -87,12 +88,12 @@ export function ReturnAdminCard({
     <div className="card-premium rounded-2xl p-4 sm:p-5">
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3 mb-4">
-        <div className="min-w-0">
-          <p className="font-mono text-[11px] text-muted-foreground">
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[11px] text-muted-foreground break-words">
             Return #{r.id.slice(0, 8)} · Order #{r.order_id.slice(0, 8)}
           </p>
-          <p className="text-sm mt-1 font-medium">{r.reason}</p>
-          {r.notes && <p className="text-xs text-muted-foreground mt-1">{r.notes}</p>}
+          <p className="text-sm mt-1 font-medium break-words">{r.reason}</p>
+          {r.notes && <p className="text-xs text-muted-foreground mt-1 break-words">{r.notes}</p>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-full border ${STATUS_TONE[r.status] ?? "text-muted-foreground border-border"}`}>
@@ -103,16 +104,18 @@ export function ReturnAdminCard({
 
       {/* Timeline */}
       {r.status !== "rejected" ? (
-        <div className="mb-5 overflow-x-auto">
-          <div className="flex items-center min-w-[480px] sm:min-w-0">
+        <div className="mb-6">
+          {/* Vertical timeline (mobile, < md) */}
+          <ol className="md:hidden space-y-0">
             {TIMELINE.map((step, i) => {
               const done = i <= activeIdx;
               const current = i === activeIdx;
+              const isLast = i === TIMELINE.length - 1;
               return (
-                <div key={step.key} className="flex items-center flex-1 last:flex-none">
-                  <div className="flex flex-col items-center gap-1.5 shrink-0">
+                <li key={step.key} className="flex gap-3">
+                  <div className="flex flex-col items-center">
                     <div
-                      className={`grid place-items-center size-7 rounded-full border text-[11px] transition-colors ${
+                      className={`grid place-items-center size-7 rounded-full border text-[11px] shrink-0 transition-colors ${
                         done
                           ? "bg-accent/20 border-accent text-accent"
                           : "bg-background border-border text-muted-foreground"
@@ -120,35 +123,64 @@ export function ReturnAdminCard({
                     >
                       {done ? <Check className="size-3.5" /> : i + 1}
                     </div>
-                    <span className={`text-[9px] font-mono uppercase tracking-wider text-center leading-tight w-16 ${done ? "text-foreground" : "text-muted-foreground"}`}>
-                      {step.label}
-                    </span>
+                    {!isLast && <div className={`w-px flex-1 my-1 ${i < activeIdx ? "bg-accent" : "bg-border"}`} />}
                   </div>
-                  {i < TIMELINE.length - 1 && (
-                    <div className={`h-px flex-1 mx-1 mb-5 ${i < activeIdx ? "bg-accent" : "bg-border"}`} />
-                  )}
-                </div>
+                  <span className={`text-xs font-mono uppercase tracking-wider leading-7 pb-2 ${done ? "text-foreground" : "text-muted-foreground"}`}>
+                    {step.label}
+                  </span>
+                </li>
               );
             })}
+          </ol>
+
+          {/* Horizontal timeline (>= md) */}
+          <div className="hidden md:block overflow-x-auto">
+            <div className="flex items-center">
+              {TIMELINE.map((step, i) => {
+                const done = i <= activeIdx;
+                const current = i === activeIdx;
+                return (
+                  <div key={step.key} className="flex items-center flex-1 last:flex-none">
+                    <div className="flex flex-col items-center gap-1.5 shrink-0">
+                      <div
+                        className={`grid place-items-center size-7 rounded-full border text-[11px] transition-colors ${
+                          done
+                            ? "bg-accent/20 border-accent text-accent"
+                            : "bg-background border-border text-muted-foreground"
+                        } ${current ? "ring-2 ring-accent/40" : ""}`}
+                      >
+                        {done ? <Check className="size-3.5" /> : i + 1}
+                      </div>
+                      <span className={`text-[9px] font-mono uppercase tracking-wider text-center leading-tight w-16 ${done ? "text-foreground" : "text-muted-foreground"}`}>
+                        {step.label}
+                      </span>
+                    </div>
+                    {i < TIMELINE.length - 1 && (
+                      <div className={`h-px flex-1 mx-1 mb-5 ${i < activeIdx ? "bg-accent" : "bg-border"}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="mb-5 flex items-center gap-2 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs text-rose-400">
+        <div className="mb-6 flex items-center gap-2 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs text-rose-400">
           <ShieldX className="size-4 shrink-0" /> This return was rejected.
         </div>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-3">
+      <div className="grid lg:grid-cols-2 gap-4">
         {/* Product Preview */}
         <section className="rounded-xl border border-border/60 bg-background/40 p-3">
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
             <Package className="size-3.5 text-accent" /> Product Preview
           </p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {r.return_items.map((item) => {
               const p = products.get(item.product_slug);
               return (
-                <div key={item.id} className="flex items-center gap-3">
+                <div key={item.id} className="flex items-start gap-3">
                   <div className="size-14 rounded-lg overflow-hidden bg-muted/30 border border-border/60 shrink-0 grid place-items-center">
                     {p?.image ? (
                       <img src={p.image} alt={p.name} className="size-full object-cover" loading="lazy" />
@@ -157,15 +189,15 @@ export function ReturnAdminCard({
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{p?.name ?? item.product_slug}</p>
-                    <p className="text-[11px] text-muted-foreground font-mono">
-                      SKU: {p?.sku || "—"} · Qty: {item.quantity}
-                    </p>
-                    {item.reason && <p className="text-[11px] text-muted-foreground truncate">{item.reason}</p>}
+                    <p className="text-sm font-medium line-clamp-2 break-words">{p?.name ?? item.product_slug}</p>
+                    {/* Metadata stacks vertically on mobile */}
+                    <div className="mt-1 flex flex-col gap-0.5 text-[11px] text-muted-foreground font-mono">
+                      <span className="truncate">SKU: {p?.sku || "—"}</span>
+                      <span>Qty: {item.quantity}</span>
+                      <span className="font-semibold text-foreground">{p ? fmtMoney(p.price, r.order.currency) : "—"}</span>
+                    </div>
+                    {item.reason && <p className="text-[11px] text-muted-foreground mt-1 break-words">{item.reason}</p>}
                   </div>
-                  <span className="text-sm font-semibold shrink-0">
-                    {p ? fmtMoney(p.price, r.order.currency) : "—"}
-                  </span>
                 </div>
               );
             })}
@@ -177,10 +209,10 @@ export function ReturnAdminCard({
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
             <ShieldCheck className="size-3.5 text-accent" /> Return Intelligence
           </p>
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-xs">
             <div>
               <dt className="text-muted-foreground flex items-center gap-1"><RotateCcw className="size-3" /> Reason</dt>
-              <dd className="font-medium mt-0.5 truncate">{r.reason}</dd>
+              <dd className="font-medium mt-0.5 break-words">{r.reason}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground flex items-center gap-1"><CalendarClock className="size-3" /> Requested</dt>
@@ -194,7 +226,7 @@ export function ReturnAdminCard({
               <dt className="text-muted-foreground flex items-center gap-1"><Wallet className="size-3" /> Refund Status</dt>
               <dd className="font-medium mt-0.5 capitalize">{r.refund_status}</dd>
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <dt className="text-muted-foreground">Eligibility</dt>
               <dd className="mt-1">
                 {eligible == null ? (
@@ -219,7 +251,7 @@ export function ReturnAdminCard({
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
             <Receipt className="size-3.5 text-accent" /> Original Order
           </p>
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-xs">
             <div>
               <dt className="text-muted-foreground">Order ID</dt>
               <dd className="font-mono font-medium mt-0.5">#{r.order_id.slice(0, 8)}</dd>
@@ -247,34 +279,47 @@ export function ReturnAdminCard({
           </dl>
         </section>
 
-        {/* Customer */}
+        {/* Customer (collapsible) */}
         <section className="rounded-xl border border-border/60 bg-background/40 p-3">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
-            <User className="size-3.5 text-accent" /> Requested By
-          </p>
-          <div className="grid gap-1.5 text-xs">
-            <span className="flex items-center gap-2"><User className="size-3.5 text-accent shrink-0" />{r.customer.name ?? "—"}</span>
-            <span className="flex items-center gap-2"><Phone className="size-3.5 text-accent shrink-0" />{r.customer.phone ?? "—"}</span>
-            <a href={r.customer.email ? `mailto:${r.customer.email}` : undefined} className="flex items-center gap-2 min-w-0 hover:text-accent">
-              <Mail className="size-3.5 text-accent shrink-0" /><span className="truncate">{r.customer.email ?? "—"}</span>
-            </a>
-            <span className="flex items-start gap-2"><MapPin className="size-3.5 text-accent shrink-0 mt-0.5" /><span>{r.customer.address ?? "—"}</span></span>
-          </div>
+          <button
+            type="button"
+            onClick={() => setCustomerOpen((v) => !v)}
+            className="w-full flex items-center justify-between gap-2 min-h-[44px] text-left"
+            aria-expanded={customerOpen}
+          >
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <User className="size-3.5 text-accent" /> Requested By
+            </span>
+            <span className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+              <span className="truncate max-w-[120px] sm:max-w-none">{r.customer.name ?? "—"}</span>
+              <ChevronDown className={`size-4 shrink-0 transition-transform ${customerOpen ? "rotate-180" : ""}`} />
+            </span>
+          </button>
+          {customerOpen && (
+            <div className="grid gap-2.5 text-xs mt-3 pt-3 border-t border-border/40">
+              <span className="flex items-center gap-2"><User className="size-3.5 text-accent shrink-0" /><span className="break-words">{r.customer.name ?? "—"}</span></span>
+              <a href={r.customer.phone ? `tel:${r.customer.phone}` : undefined} className="flex items-center gap-2 min-h-[24px] hover:text-accent"><Phone className="size-3.5 text-accent shrink-0" /><span className="break-words">{r.customer.phone ?? "—"}</span></a>
+              <a href={r.customer.email ? `mailto:${r.customer.email}` : undefined} className="flex items-center gap-2 min-w-0 hover:text-accent">
+                <Mail className="size-3.5 text-accent shrink-0" /><span className="break-all">{r.customer.email ?? "—"}</span>
+              </a>
+              <span className="flex items-start gap-2"><MapPin className="size-3.5 text-accent shrink-0 mt-0.5" /><span className="break-words whitespace-pre-line">{r.customer.address ?? "—"}</span></span>
+            </div>
+          )}
         </section>
       </div>
 
       {/* Customer Evidence */}
       {photos.length > 0 && (
-        <section className="mt-3 rounded-xl border border-border/60 bg-background/40 p-3">
+        <section className="mt-4 rounded-xl border border-border/60 bg-background/40 p-3">
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
             <Images className="size-3.5 text-accent" /> Customer Evidence ({photos.length})
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
             {photos.map((url, i) => (
               <button
                 key={url + i}
                 onClick={() => setLightbox(i)}
-                className="size-16 rounded-lg overflow-hidden border border-border/60 hover:ring-2 hover:ring-accent/50 transition-all"
+                className="aspect-square rounded-lg overflow-hidden border border-border/60 hover:ring-2 hover:ring-accent/50 transition-all"
               >
                 <img src={url} alt={`Evidence ${i + 1}`} className="size-full object-cover" loading="lazy" />
               </button>
@@ -297,23 +342,23 @@ export function ReturnAdminCard({
           <div className="flex flex-wrap gap-2 mb-2">
             <button
               onClick={() => onUpdate(r.id, { status: "approved" })}
-              className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 text-emerald-400 px-3 py-2.5 text-[11px] font-mono uppercase tracking-widest hover:bg-emerald-400/20 transition-colors"
+              className="flex-1 min-w-[120px] min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 text-emerald-400 px-3 py-2.5 text-[11px] font-mono uppercase tracking-widest hover:bg-emerald-400/20 transition-colors"
             >
               <Check className="size-3.5" /> Approve
             </button>
             <button
               onClick={() => onUpdate(r.id, { status: "rejected" })}
-              className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-400/30 bg-rose-400/10 text-rose-400 px-3 py-2.5 text-[11px] font-mono uppercase tracking-widest hover:bg-rose-400/20 transition-colors"
+              className="flex-1 min-w-[120px] min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-400/30 bg-rose-400/10 text-rose-400 px-3 py-2.5 text-[11px] font-mono uppercase tracking-widest hover:bg-rose-400/20 transition-colors"
             >
               <X className="size-3.5" /> Reject
             </button>
           </div>
         )}
-        <div className="grid sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <select
             value={r.status}
             onChange={(e) => onUpdate(r.id, { status: e.target.value })}
-            className="bg-background border border-border rounded-md px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent"
+            className="bg-background border border-border rounded-md px-3 py-2 min-h-[44px] text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent"
           >
             {RETURN_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
@@ -323,12 +368,12 @@ export function ReturnAdminCard({
             defaultValue={r.refund_amount}
             placeholder="Refund"
             onBlur={(e) => Number(e.target.value) !== Number(r.refund_amount) && onUpdate(r.id, { refund_amount: Number(e.target.value) })}
-            className="bg-background border border-border rounded-md px-3 py-2 text-xs focus:outline-none focus:border-accent font-mono"
+            className="bg-background border border-border rounded-md px-3 py-2 min-h-[44px] text-xs focus:outline-none focus:border-accent font-mono"
           />
           <select
             value={r.refund_status}
             onChange={(e) => onUpdate(r.id, { refund_status: e.target.value })}
-            className="bg-background border border-border rounded-md px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent"
+            className="bg-background border border-border rounded-md px-3 py-2 min-h-[44px] text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent"
           >
             {REFUND_STATUSES.map((s) => <option key={s} value={s}>refund: {s}</option>)}
           </select>
