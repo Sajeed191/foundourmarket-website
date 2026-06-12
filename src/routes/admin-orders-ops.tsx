@@ -549,13 +549,13 @@ function OverviewStat({ label, value, icon, tone, onClick }: { label: string; va
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-2xl border p-4 transition-colors hover:border-accent/40 ${cls}`}
+      className={`text-left w-full min-w-0 rounded-2xl border p-3 sm:p-4 flex flex-col justify-between min-h-[88px] sm:min-h-[104px] transition-colors hover:border-accent/40 ${cls}`}
     >
-      <div className="flex items-center gap-2 text-muted-foreground mb-3">
-        <span className={accentCls}>{icon}</span>
-        <span className="text-[10px] font-mono uppercase tracking-[0.16em] truncate">{label}</span>
+      <div className="flex items-center gap-1.5 text-muted-foreground mb-2 min-w-0">
+        <span className={`${accentCls} shrink-0`}>{icon}</span>
+        <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.12em] truncate">{label}</span>
       </div>
-      <p className={`text-[28px] sm:text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
+      <p className={`text-2xl sm:text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
     </button>
   );
 }
