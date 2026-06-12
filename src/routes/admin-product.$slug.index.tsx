@@ -402,7 +402,7 @@ function CommandCenter({ r, slug }: { r: Record<string, any>; slug: string }) {
 
         {/* Quick actions */}
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link to={SECTION_TO("details")} params={{ slug }}
+          <Link to={FIX_TO.details} params={{ slug }}
             className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-accent-foreground hover:brightness-110 active:scale-[0.98] transition-all">
             <Pencil className="size-3.5" /> Edit
           </Link>
@@ -417,7 +417,7 @@ function CommandCenter({ r, slug }: { r: Record<string, any>; slug: string }) {
             className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-white/20">
             <ExternalLink className="size-3.5" /> View Storefront
           </Link>
-          <Link to={SECTION_TO("seo")} params={{ slug }}
+          <Link to={FIX_TO.seo} params={{ slug }}
             className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-white/20">
             <Search className="size-3.5" /> Preview SEO
           </Link>
@@ -478,7 +478,7 @@ function CommandCenter({ r, slug }: { r: Record<string, any>; slug: string }) {
                         <span className={it.ok ? "text-muted-foreground" : "text-foreground"}>{it.key}</span>
                       </span>
                       {!it.ok && it.fix && (
-                        <Link to={SECTION_TO(it.fix)} params={{ slug }} className="text-accent hover:underline shrink-0">Fix</Link>
+                        <Link to={FIX_TO[it.fix as FixKey]} params={{ slug }} className="text-accent hover:underline shrink-0">Fix</Link>
                       )}
                     </div>
                   ))}
@@ -533,7 +533,7 @@ function CommandCenter({ r, slug }: { r: Record<string, any>; slug: string }) {
               <Mini icon={<Heart className="size-3.5" />} label="Wishlist" value={wishlist.toLocaleString()} />
               <Mini icon={<Boxes className="size-3.5" />} label="Placements" value={String(placements.length)} />
             </div>
-            <Link to={SECTION_TO("analytics")} params={{ slug }}
+            <Link to={FIX_TO.analytics} params={{ slug }}
               className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-white/20">
               <BarChart3 className="size-3.5" /> Full Analytics
             </Link>
