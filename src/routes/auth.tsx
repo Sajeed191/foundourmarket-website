@@ -90,7 +90,7 @@ function AuthPage() {
     setError(null);
     try {
       if (isSignup) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -99,6 +99,13 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        // If email confirmation is required, no session is returned — don't
+        // bounce the user to a protected page. Tell them to confirm instead.
+        if (!data.session) {
+          setError("Account created — check your email to confirm, then sign in.");
+          setIsSignup(false);
+          return;
+        }
         nav({ to: resolveDest() as any });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -111,6 +118,7 @@ function AuthPage() {
       setBusy(false);
     }
   };
+
 
   const onForgot = async () => {
     setError(null);
@@ -131,6 +139,12 @@ function AuthPage() {
   const onGoogle = async () => {
     setGoogleBusy(true);
     setError(null);
+    // Persist the intended destination so /auth/callback can resolve it after
+    // the full-page OAuth redirect (the redirect search param is lost otherwise).
+    if (typeof window !== "undefined") {
+      const dest = safeInternalPath(redirect);
+      if (dest) localStorage.setItem("post_auth_redirect", dest);
+    }
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: `${window.location.origin}/auth/callback`,
       extraParams: { prompt: "select_account" },
@@ -143,6 +157,7 @@ function AuthPage() {
     if (result.redirected) return;
     nav({ to: "/auth/callback" });
   };
+
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-5 py-6 sm:py-10 overflow-hidden" style={{ background: "#050816" }}>
