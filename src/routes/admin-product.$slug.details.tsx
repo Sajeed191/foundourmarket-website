@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   FileText, ImageIcon, Film, Tag, Layers, ListChecks, Search, Activity,
-  ChevronDown, ArrowLeft, X, Sparkles, CheckCircle2, AlertTriangle, Send, EyeOff,
+  ChevronDown, Sparkles, CheckCircle2, AlertTriangle, Send, EyeOff,
   Package,
 } from "lucide-react";
 import { toast } from "sonner";
