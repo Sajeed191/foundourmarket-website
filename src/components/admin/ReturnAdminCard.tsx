@@ -20,22 +20,6 @@ const STATUS_TONE: Record<string, string> = {
   rejected: "text-rose-400 border-rose-400/30 bg-rose-400/10",
 };
 
-const REFUND_TIMELINE = [
-  { key: "requested", label: "Requested" },
-  { key: "approved", label: "Approved" },
-  { key: "received", label: "Item Received" },
-  { key: "processing", label: "Refund Processing" },
-  { key: "completed", label: "Refund Completed" },
-] as const;
-
-const REPLACEMENT_TIMELINE = [
-  { key: "requested", label: "Replacement Approved" },
-  { key: "approved", label: "Replacement Approved" },
-  { key: "processing", label: "Replacement Processing" },
-  { key: "shipped", label: "Replacement Shipped" },
-  { key: "delivered", label: "Replacement Delivered" },
-] as const;
-
 /** Unified compact tracker: Requested → Approved → Processing → Shipped → Delivered. */
 const COMPACT_STEPS = ["Requested", "Approved", "Processing", "Shipped", "Delivered"] as const;
 
