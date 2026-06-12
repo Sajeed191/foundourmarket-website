@@ -767,7 +767,7 @@ function OrderOpsPage() {
         {/* SECTION 2 — ACTION REQUIRED */}
         <section className="relative rounded-3xl border border-amber-400/20 bg-amber-400/[0.02] p-4 sm:p-6">
           <SectionHeader title="Action Required" sub="Your primary workspace — orders and customers waiting on you" icon={<AlertTriangle className="size-5 text-amber-300" />} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             {actionGroups.map((g) => (
               <ActionGroup key={g.key} label={g.label} count={g.orders.length} priority={g.priority} icon={g.icon} onView={() => focusOrders(g.label, g.orders)} />
             ))}
