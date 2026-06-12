@@ -54,6 +54,12 @@ export function ReturnRequestDialog({
   const [done, setDone] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (!done) return;
+    const t = setTimeout(() => handleOpenChange(false), 1800);
+    return () => clearTimeout(t);
+  }, [done]);
+
   const reset = () => {
     setSelected({});
     setReason("");
