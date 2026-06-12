@@ -206,7 +206,7 @@ function ReturnsPage() {
     if (!user) return;
     supabase
       .from("returns")
-      .select("id,order_id,status,reason,refund_amount,refund_status,created_at")
+      .select("id,order_id,status,reason,refund_amount,refund_status,resolution_type,replacement_status,created_at")
       .order("created_at", { ascending: false })
       .then(({ data }) => setReturns((data as ReturnRow[]) ?? []));
   }, [user]);
