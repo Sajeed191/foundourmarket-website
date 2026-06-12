@@ -700,24 +700,32 @@ function OrderOpsPage() {
   const resolvedTickets = data.staffSupport.reduce((a, s) => a + s.tickets_resolved, 0);
   const urgentTickets = supportOrders.filter((o) => o.riskScore >= 60).length;
 
+  // ---- Returns overview buckets (frontend-only, derived from return_status) ----
+  const rs = (o: EnrichedOrder) => (o.return_status ?? "").toLowerCase();
+  const returnsInProgress = returnOrders.filter((o) => !/complete|closed|resolved/i.test(rs(o)));
+  const returnsBuckets: { label: string; value: number; icon: React.ReactNode; orders: EnrichedOrder[] }[] = [
+    { label: "Return Requested", icon: <RotateCcw className="size-3.5" />, orders: returnOrders.filter((o) => /request|pending|initiat/i.test(rs(o)) || rs(o) === "") },
+    { label: "Replacement Approved", icon: <Check className="size-3.5" />, orders: returnOrders.filter((o) => /approv/i.test(rs(o))) },
+    { label: "Replacement Processing", icon: <RefreshCcw className="size-3.5" />, orders: returnOrders.filter((o) => /process|replac/i.test(rs(o)) && !/ship|complet/i.test(rs(o))) },
+    { label: "Replacement Shipped", icon: <Truck className="size-3.5" />, orders: returnOrders.filter((o) => /ship/i.test(rs(o))) },
+    { label: "Refund Processing", icon: <Wallet className="size-3.5" />, orders: returnOrders.filter((o) => /refund/i.test(rs(o)) || ((o.refund_amount ?? 0) > 0 && !/complet/i.test(rs(o)))) },
+    { label: "Replacement Completed", icon: <PackageCheck className="size-3.5" />, orders: returnOrders.filter((o) => /complet|closed|resolved|delivered/i.test(rs(o))) },
+  ].map((b) => ({ ...b, value: b.orders.length }));
+
   const overview: { label: string; value: number; icon: React.ReactNode; tone: Tone; orders?: EnrichedOrder[] }[] = [
     { label: "Pending", value: pendingOrders.length, icon: <Clock className="size-3.5" />, tone: "attn", orders: pendingOrders },
     { label: "Packed", value: packedOrders.length, icon: <Package className="size-3.5" />, tone: "normal", orders: packedOrders },
     { label: "Shipped", value: shippedOrders.length, icon: <Truck className="size-3.5" />, tone: "normal", orders: shippedOrders },
     { label: "Out for Delivery", value: ofdOrders.length, icon: <MapPin className="size-3.5" />, tone: "normal", orders: ofdOrders },
     { label: "Delivered", value: deliveredOrders.length, icon: <Check className="size-3.5" />, tone: "calm", orders: deliveredOrders },
-    { label: "Failed Payments", value: k.failed_payments, icon: <CreditCard className="size-3.5" />, tone: "attn", orders: failedOrders },
-
-    { label: "Cancel Requests", value: cancelOrders.length, icon: <X className="size-3.5" />, tone: "attn", orders: cancelOrders },
-    { label: "Return Requests", value: returnOrders.length, icon: <RotateCcw className="size-3.5" />, tone: "attn", orders: returnOrders },
+    { label: "Returns In Progress", value: returnsInProgress.length, icon: <RotateCcw className="size-3.5" />, tone: "attn", orders: returnsInProgress },
   ];
 
   const actionGroups: { key: string; label: string; orders: EnrichedOrder[]; priority: "critical" | "high" | "medium"; icon: React.ReactNode }[] = [
-    { key: "new", label: "New Orders To Process", orders: newToProcess, priority: "high", icon: <Sparkles className="size-4" /> },
-    { key: "failed", label: "Failed Payments", orders: failedOrders, priority: "critical", icon: <CreditCard className="size-4" /> },
-    { key: "cancel", label: "Cancellation Requests", orders: cancelOrders, priority: "high", icon: <X className="size-4" /> },
-    { key: "return", label: "Return Requests", orders: returnOrders, priority: "medium", icon: <RotateCcw className="size-4" /> },
-    { key: "support", label: "Customer Support Requests", orders: supportOrders, priority: "medium", icon: <LifeBuoy className="size-4" /> },
+    { key: "new", label: "Pending Orders", orders: pendingOrders, priority: "high", icon: <Clock className="size-4" /> },
+    { key: "return", label: "Returns Review", orders: returnOrders, priority: "high", icon: <RotateCcw className="size-4" /> },
+    { key: "failed", label: "Payment Issues", orders: failedOrders, priority: "critical", icon: <CreditCard className="size-4" /> },
+    { key: "support", label: "Support Cases", orders: supportOrders, priority: "medium", icon: <LifeBuoy className="size-4" /> },
   ];
 
   const pipeline: { label: string; value: number; icon: React.ReactNode; orders: EnrichedOrder[] }[] = [
