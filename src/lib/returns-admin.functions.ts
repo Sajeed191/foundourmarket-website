@@ -51,17 +51,22 @@ export const getReturnsAdminFn = createServerFn({ method: "POST" })
     const { data: returns, error } = await supabaseAdmin
       .from("returns")
       .select(
-        "id,order_id,user_id,status,reason,notes,refund_amount,refund_status,created_at,return_items(id,product_slug,quantity,reason)",
+        "id,order_id,user_id,status,reason,notes,refund_amount,refund_status,created_at,photo_urls,return_items(id,product_slug,quantity,reason)",
       )
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
-    const rows = (returns ?? []) as Omit<AdminReturnRow, "customer">[];
+    const rows = (returns ?? []) as Omit<AdminReturnRow, "customer" | "order">[];
     const orderIds = [...new Set(rows.map((r) => r.order_id))];
     const userIds = [...new Set(rows.map((r) => r.user_id))];
 
     const [{ data: orders }, { data: profiles }] = await Promise.all([
-      supabaseAdmin.from("orders").select("id,contact_email,shipping_address").in("id", orderIds),
+      supabaseAdmin
+        .from("orders")
+        .select(
+          "id,contact_email,shipping_address,currency,total,payment_status,fulfillment_status,status,created_at,fulfilled_at",
+        )
+        .in("id", orderIds),
       supabaseAdmin.from("profiles").select("id,full_name,phone").in("id", userIds),
     ]);
 
@@ -82,6 +87,15 @@ export const getReturnsAdminFn = createServerFn({ method: "POST" })
           email: o?.contact_email || null,
           phone: addr.phone || p?.phone || null,
           address: addressParts || null,
+        },
+        order: {
+          currency: o?.currency ?? null,
+          total: o?.total ?? null,
+          payment_status: o?.payment_status ?? null,
+          fulfillment_status: o?.fulfillment_status ?? null,
+          order_status: o?.status ?? null,
+          created_at: o?.created_at ?? null,
+          fulfilled_at: o?.fulfilled_at ?? null,
         },
       };
     });
