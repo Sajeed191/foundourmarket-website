@@ -351,7 +351,7 @@ function ProductsInner() {
       oos, low,
       best: best && best.units > 0 ? best.name : "—",
       mostViewed: viewed && viewed.views > 0 ? viewed.name : "—",
-      inventoryValue: list.reduce((s, p) => s + Number(p.price) * p.stock_quantity, 0),
+      inventoryValue: list.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0),
     };
   }, [products, stats]);
 
@@ -377,8 +377,8 @@ function ProductsInner() {
         case "stock_desc": return b.stock_quantity - a.stock_quantity;
         case "views": return b.views_count - a.views_count;
         case "conversion": return conv(b) - conv(a);
-        case "price": return Number(b.price) - Number(a.price);
-        case "price_asc": return Number(a.price) - Number(b.price);
+        case "price": return priceOf(b) - priceOf(a);
+        case "price_asc": return priceOf(a) - priceOf(b);
         case "name": return (a.name ?? "").localeCompare(b.name ?? "");
         default: return +new Date(b.created_at) - +new Date(a.created_at);
       }
@@ -436,7 +436,7 @@ function ProductsInner() {
 
   function exportCsv() {
     const rows = filtered.map((p) => ({
-      slug: p.slug, name: p.name, sku: p.sku ?? "", category: p.category, price: p.price,
+      slug: p.slug, name: p.name, sku: p.sku ?? "", category: p.category, price: priceOf(p),
       discount: p.discount ?? "", stock: p.stock_quantity, reserved: p.reserved_quantity,
       active: p.in_stock, featured: p.featured, units_sold: stats[p.slug]?.units ?? 0,
       revenue: (stats[p.slug]?.revenue ?? 0).toFixed(2), views: p.views_count,
@@ -719,7 +719,7 @@ function ProductsInner() {
             <div className="grid grid-cols-2 gap-3">
               <IntelStat label="Units on hand" value={(products.reduce((s, p) => s + p.stock_quantity, 0)).toLocaleString()} />
               <IntelStat label="Reserved" value={(products.reduce((s, p) => s + (p.reserved_quantity ?? 0), 0)).toLocaleString()} />
-              <IntelStat label="Stock value" value={inr(products.reduce((s, p) => s + Number(p.price) * p.stock_quantity, 0))} />
+              <IntelStat label="Stock value" value={inr(products.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0))} />
               <IntelStat label="At cost" value={inr(products.reduce((s, p) => s + Number(p.cost) * p.stock_quantity, 0))} accent />
             </div>
             <Link to="/admin-inventory" className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-accent hover:underline">
@@ -818,8 +818,8 @@ function ProductCard({
               </p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-mono">{inr(p.price)}</p>
-              {p.compare_price_inr && Number(p.compare_price_inr) > Number(p.price) ? (
+              <p className="text-sm font-mono">{inr(priceOf(p))}</p>
+              {p.compare_price_inr && Number(p.compare_price_inr) > priceOf(p) ? (
                 <p className="text-[10px] font-mono text-muted-foreground line-through">{inr(Number(p.compare_price_inr))}</p>
               ) : null}
               {p.discount ? <p className="text-[10px] text-accent">-{p.discount}%</p> : null}
