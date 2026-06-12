@@ -24,6 +24,7 @@ type FullOrder = {
   currency: string; promo_code: string | null; contact_email: string | null; payment_method: string | null;
   payment_status: string | null; fulfillment_status: string | null; tracking_number: string | null; carrier: string | null;
   shipping_address: Address; razorpay_order_id: string | null; razorpay_payment_id: string | null;
+  cancel_window_expires_at: string | null;
   created_at: string; updated_at: string; order_items: OrderItem[];
 };
 type ShipmentEvent = { id: string; status: string; description: string | null; location: string | null; occurred_at: string };
