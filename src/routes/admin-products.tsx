@@ -739,10 +739,23 @@ function ProductsInner() {
               <h3 className="text-sm font-display">Inventory intelligence</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <IntelStat label="Units on hand" value={(products.reduce((s, p) => s + p.stock_quantity, 0)).toLocaleString()} />
-              <IntelStat label="Reserved" value={(products.reduce((s, p) => s + (p.reserved_quantity ?? 0), 0)).toLocaleString()} />
-              <IntelStat label="Stock value" value={inr(products.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0))} />
-              <IntelStat label="At cost" value={inr(products.reduce((s, p) => s + Number(p.cost) * p.stock_quantity, 0))} accent />
+              <IntelStat
+                label="Units on hand"
+                value={(summary?.valuation.unitsOnHand ?? products.reduce((s, p) => s + p.stock_quantity, 0)).toLocaleString()}
+              />
+              <IntelStat
+                label="Reserved"
+                value={(summary?.valuation.reserved ?? products.reduce((s, p) => s + (p.reserved_quantity ?? 0), 0)).toLocaleString()}
+              />
+              <IntelStat
+                label="Stock value"
+                value={inr(summary?.valuation.stockValue ?? products.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0))}
+              />
+              <IntelStat
+                label="At cost"
+                value={inr(summary?.valuation.costValue ?? products.reduce((s, p) => s + costOf(p) * p.stock_quantity, 0))}
+                accent
+              />
             </div>
             <Link to="/admin-inventory" className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-accent hover:underline">
               <Layers className="size-3" /> Full inventory console
