@@ -350,7 +350,7 @@ function AccountPage() {
             <ActionCard to="/account/profile" icon={UserIcon} title="Profile" subtitle="Your details" />
             <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
             <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Requests & status" badge={returns?.length ?? 0} />
-            <ActionCard to="/search" icon={Gift} title="Offers" subtitle="Deals & promos" />
+            <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
             <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
           </div>
         </motion.section>
