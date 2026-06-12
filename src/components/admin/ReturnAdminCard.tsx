@@ -345,9 +345,9 @@ export function ReturnAdminCard({
       )}
 
       {/* Resolution method (replacement-first) */}
-      <section className="mt-4 rounded-xl border border-border/60 bg-background/40 p-3">
+      <section className="rounded-xl border border-border/60 bg-background/40 p-3">
         <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
-          <Repeat className="size-3.5 text-accent" /> Resolution Method
+          <Repeat className="size-3.5 text-accent" /> Resolution Controls
         </p>
         <div className="grid grid-cols-2 gap-2">
           <button
