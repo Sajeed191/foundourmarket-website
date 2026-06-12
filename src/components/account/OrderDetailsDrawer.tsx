@@ -279,7 +279,10 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
   const cancellable = (() => {
     if (!order) return false;
     const s = (order.status ?? "").toLowerCase();
-    if (!["pending", "confirmed"].includes(s)) return false;
+    const fs = (order.fulfillment_status ?? "").toLowerCase();
+    // Disallow cancel once fulfilment has begun (packed or later)
+    if (!["pending", "confirmed", "processing"].includes(s)) return false;
+    if (["packed", "shipped", "out_for_delivery", "delivered", "completed"].includes(fs)) return false;
     const expires = order.cancel_window_expires_at
       ? new Date(order.cancel_window_expires_at).getTime()
       : new Date(order.created_at).getTime() + 3_600_000;
