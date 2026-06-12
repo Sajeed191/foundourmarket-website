@@ -640,7 +640,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
 
         {/* Shipping */}
         <CollapsibleModule eyebrow="Step 4" title="Shipping" badge={<Truck className="size-3.5 text-accent" />}>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <EField label="India Shipping Charge ₹" type="number" value={form.shipping_fee_inr} onChange={(v) => set({ shipping_fee_inr: v })} />
             <EField label="International Shipping Charge $" type="number" value={form.shipping_fee_usd} onChange={(v) => set({ shipping_fee_usd: v })} />
             <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
