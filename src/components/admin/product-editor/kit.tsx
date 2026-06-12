@@ -146,6 +146,40 @@ function useProductRow(slug: string, cols: string[]) {
   return { row, loading, notFound };
 }
 
+/* ----------------------------- editor nav bar ----------------------------- */
+
+function EditorNavBar({ slug, sectionKey }: { slug: string; sectionKey?: string }) {
+  const navigate = useNavigate();
+  const isOverview = !sectionKey;
+  return (
+    <div className="sticky top-0 z-40 -mx-4 -mt-4 lg:-mx-10 lg:-mt-6 mb-3 border-b border-white/10 bg-background/85 px-4 py-2.5 backdrop-blur-xl lg:px-10">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate({ to: isOverview ? "/admin-products" : "/admin-product/$slug", params: isOverview ? undefined : { slug } })}
+          aria-label={isOverview ? "Back to products" : "Back to overview"}
+          className="grid size-9 place-items-center rounded-full border border-white/10 bg-white/[0.03] text-muted-foreground transition-all hover:text-foreground hover:border-white/20 active:scale-95"
+        >
+          <ArrowLeft className="size-4" />
+        </button>
+        <div className="min-w-0 text-center">
+          <p className="truncate text-sm font-semibold text-muted-foreground">
+            {isOverview ? "Product Overview" : "Product Editor"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/admin-products" })}
+          aria-label="Close"
+          className="grid size-9 place-items-center rounded-full border border-white/10 bg-white/[0.03] text-muted-foreground transition-all hover:text-foreground hover:border-white/20 active:scale-95"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ----------------------------- section shell ----------------------------- */
 
 const SECTIONS = [
