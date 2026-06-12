@@ -980,15 +980,32 @@ function OrderTimeline({ order, format }: { order: Order; format: (n: number) =>
 function ReturnTimeline({ ret, format }: { ret: Return; format: (n: number) => string }) {
   const status = String(ret.status).toLowerCase();
   const refund = String(ret.refund_status).toLowerCase();
+  const replacement = String(ret.replacement_status).toLowerCase();
+  const isReplacement = String(ret.resolution_type).toLowerCase() !== "refund";
   const rejected = status === "rejected";
-  const steps = [
-    { key: "requested", label: "Requested", icon: RotateCcw },
-    { key: "approved", label: "Approved", icon: CheckCircle2 },
-    { key: "received", label: "Item Received", icon: Box },
-    { key: "processing", label: "Refund Processing", icon: Wallet },
-    { key: "completed", label: "Refund Completed", icon: Home },
-  ];
+  const steps = isReplacement
+    ? [
+        { key: "requested", label: "Requested", icon: RotateCcw },
+        { key: "approved", label: "Approved", icon: CheckCircle2 },
+        { key: "processing", label: "Processing", icon: Box },
+        { key: "shipped", label: "Shipped", icon: Wallet },
+        { key: "delivered", label: "Delivered", icon: Home },
+      ]
+    : [
+        { key: "requested", label: "Requested", icon: RotateCcw },
+        { key: "approved", label: "Approved", icon: CheckCircle2 },
+        { key: "received", label: "Item Received", icon: Box },
+        { key: "processing", label: "Refund Processing", icon: Wallet },
+        { key: "completed", label: "Refund Completed", icon: Home },
+      ];
   const activeIdx = (() => {
+    if (isReplacement) {
+      if (replacement === "delivered") return 4;
+      if (replacement === "shipped") return 3;
+      if (replacement === "processing") return 2;
+      if (replacement === "approved" || status === "approved") return 1;
+      return 0;
+    }
     if (refund === "issued" || status === "completed") return 4;
     if (refund === "processing") return 3;
     if (status === "received") return 2;
