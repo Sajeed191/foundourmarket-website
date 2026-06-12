@@ -167,6 +167,8 @@ function ProductsInner() {
   const [editing, setEditing] = useState<Product | "new" | null>(null);
   const navigate = useNavigate();
   const [busy, setBusy] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 24;
 
   useEffect(() => {
     const t = setTimeout(() => setSearchTerm(query.trim().toLowerCase()), 250);
