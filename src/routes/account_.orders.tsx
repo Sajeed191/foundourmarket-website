@@ -464,7 +464,7 @@ function OrdersPage() {
             {FILTERS.map((f) => {
               const active = filter === f.id;
               const count = counts[f.id];
-              if (f.id === "failed" && count === 0) return null;
+              if ((f.id === "failed" || f.id === "returns" || f.id === "replacements") && count === 0 && filter !== f.id) return null;
               return (
                 <button key={f.id} onClick={() => setFilter(f.id)}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-widest font-mono whitespace-nowrap transition-all ${
