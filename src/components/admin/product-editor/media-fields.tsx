@@ -6,12 +6,21 @@
 // product's video_url column via the section form.
 // ============================================================
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
   ImagePlus, Camera, Trash2, Star, Loader2, ArrowLeft, ArrowRight,
   Film, Play, UploadCloud, X, RefreshCw, GripVertical,
 } from "lucide-react";
+import {
+  DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor,
+  useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext, arrayMove, rectSortingStrategy, useSortable,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { resolveImage, fetchProductImages, type ProductImage } from "@/lib/products";
@@ -176,6 +185,25 @@ export function ProductMediaGallery({
 
   const atLimit = images.length >= MAX_IMAGES;
 
+  // Sensors: desktop pointer (drag after 6px), mobile long-press (200ms), keyboard.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = images.findIndex((i) => i.id === active.id);
+    const newIndex = images.findIndex((i) => i.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const next = arrayMove(images, oldIndex, newIndex);
+    setImages(next);
+    void persistOrder(next);
+  }
+
+
   return (
     <div className="space-y-3">
       <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden"
@@ -240,7 +268,7 @@ export function ProductMediaGallery({
         ))}
       </AnimatePresence>
 
-      {/* Grid — drag to reorder; sequence + hero badges */}
+      {/* Grid — drag to reorder; stable CSS grid, sequence + hero badges */}
       {loading ? (
         <div className="grid place-items-center py-10"><Loader2 className="size-5 animate-spin text-accent" /></div>
       ) : images.length === 0 ? (
@@ -248,56 +276,86 @@ export function ProductMediaGallery({
           No images yet — the first image you upload becomes the Hero.
         </p>
       ) : (
-        <Reorder.Group axis="y" values={images} onReorder={setImages}
-          className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {images.map((img, i) => {
-            const isPrimary = img.url === primaryUrl;
-            return (
-              <Reorder.Item key={img.id} value={img}
-                onDragEnd={() => persistOrder(images)}
-                className={cn(
-                  "group relative cursor-grab overflow-hidden rounded-xl border bg-white/[0.02] active:cursor-grabbing",
-                  isPrimary ? "border-2 border-accent ring-1 ring-accent/40 shadow-[0_8px_30px_-10px_oklch(0.74_0.19_49/0.5)]" : "border border-white/10",
-                )}>
-                <div className="aspect-square w-full overflow-hidden bg-white/5">
-                  <img src={resolveImage(img.url)} alt={img.alt || name} loading="lazy" draggable={false} className="size-full object-cover" />
-                </div>
-
-                {/* Hero badge (top-left) */}
-                {isPrimary && (
-                  <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest text-accent-foreground shadow-md">
-                    <Star className="size-2.5 fill-current" /> Hero
-                  </span>
-                )}
-
-                {/* Sequence badge (top-right) */}
-                <span className={cn(
-                  "absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-md px-1 py-0.5 text-[10px] font-bold backdrop-blur",
-                  isPrimary ? "bg-accent text-accent-foreground" : "bg-black/55 text-white",
-                )}>#{i + 1}</span>
-
-                {/* Drag handle hint */}
-                <span className="pointer-events-none absolute left-1.5 bottom-9 grid size-5 place-items-center rounded-md bg-black/45 text-white/70 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
-                  <GripVertical className="size-3.5" />
-                </span>
-
-                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5">
-                  <div className="flex gap-1">
-                    <GalleryBtn label="Move left" disabled={busy || i === 0} onClick={() => move(i, -1)}><ArrowLeft className="size-3.5" /></GalleryBtn>
-                    <GalleryBtn label="Move right" disabled={busy || i === images.length - 1} onClick={() => move(i, 1)}><ArrowRight className="size-3.5" /></GalleryBtn>
-                  </div>
-                  <div className="flex gap-1">
-                    <GalleryBtn label={isPrimary ? "Hero image" : "Set hero"} disabled={busy || isPrimary} onClick={() => setPrimary(img)} active={isPrimary}>
-                      <Star className={cn("size-3.5", isPrimary && "fill-current")} />
-                    </GalleryBtn>
-                    <GalleryBtn label="Delete" disabled={busy} onClick={() => remove(img)} danger><Trash2 className="size-3.5" /></GalleryBtn>
-                  </div>
-                </div>
-              </Reorder.Item>
-            );
-          })}
-        </Reorder.Group>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={images.map((i) => i.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {images.map((img, i) => (
+                <SortableImageCard
+                  key={img.id} img={img} index={i} total={images.length} name={name}
+                  isPrimary={img.url === primaryUrl} busy={busy}
+                  onMoveLeft={() => move(i, -1)} onMoveRight={() => move(i, 1)}
+                  onSetHero={() => setPrimary(img)} onRemove={() => remove(img)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
+    </div>
+  );
+}
+
+function SortableImageCard({
+  img, index, total, name, isPrimary, busy, onMoveLeft, onMoveRight, onSetHero, onRemove,
+}: {
+  img: ProductImage; index: number; total: number; name: string;
+  isPrimary: boolean; busy: boolean;
+  onMoveLeft: () => void; onMoveRight: () => void; onSetHero: () => void; onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: img.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition ?? "transform 180ms ease",
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.9 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        "group relative touch-none select-none cursor-grab overflow-hidden rounded-xl bg-white/[0.02] active:cursor-grabbing",
+        isDragging && "scale-[1.03] shadow-2xl ring-2 ring-accent/50",
+        isPrimary ? "border-2 border-accent ring-1 ring-accent/40 shadow-[0_8px_30px_-10px_oklch(0.74_0.19_49/0.5)]" : "border border-white/10",
+      )}
+    >
+      <div className="aspect-square w-full overflow-hidden bg-white/5">
+        <img src={resolveImage(img.url)} alt={img.alt || name} loading="lazy" draggable={false} className="size-full object-cover" />
+      </div>
+
+      {/* Hero badge (top-left) */}
+      {isPrimary && (
+        <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest text-accent-foreground shadow-md">
+          <Star className="size-2.5 fill-current" /> Hero
+        </span>
+      )}
+
+      {/* Sequence badge (top-right) */}
+      <span className={cn(
+        "absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-md px-1 py-0.5 text-[10px] font-bold backdrop-blur",
+        isPrimary ? "bg-accent text-accent-foreground" : "bg-black/55 text-white",
+      )}>#{index + 1}</span>
+
+      {/* Drag handle hint */}
+      <span className="pointer-events-none absolute left-1.5 bottom-9 grid size-5 place-items-center rounded-md bg-black/45 text-white/70 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
+        <GripVertical className="size-3.5" />
+      </span>
+
+      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5">
+        <div className="flex gap-1">
+          <GalleryBtn label="Move left" disabled={busy || index === 0} onClick={onMoveLeft}><ArrowLeft className="size-3.5" /></GalleryBtn>
+          <GalleryBtn label="Move right" disabled={busy || index === total - 1} onClick={onMoveRight}><ArrowRight className="size-3.5" /></GalleryBtn>
+        </div>
+        <div className="flex gap-1">
+          <GalleryBtn label={isPrimary ? "Hero image" : "Set hero"} disabled={busy || isPrimary} onClick={onSetHero} active={isPrimary}>
+            <Star className={cn("size-3.5", isPrimary && "fill-current")} />
+          </GalleryBtn>
+          <GalleryBtn label="Delete" disabled={busy} onClick={onRemove} danger><Trash2 className="size-3.5" /></GalleryBtn>
+        </div>
+      </div>
     </div>
   );
 }
