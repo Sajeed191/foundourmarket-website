@@ -677,6 +677,15 @@ function OrderOpsPage() {
 
   const packedOrders = ords.filter((o) => /pack/i.test(stageStr(o)) && isActive(o));
   const ofdOrders = ords.filter((o) => /out.?for.?delivery|ofd/i.test(stageStr(o)) && isActive(o));
+  // Live stage classification — derived from the SAME `ords` source as Recent Orders,
+  // so Overview / Pipeline / Action Required / Recent Orders never drift apart.
+  const deliveredOrders = ords.filter((o) => o.delivered_at || /delivered|completed/i.test(o.status ?? ""));
+  const shippedOrders = ords.filter((o) => (o.shipped_at || /shipped/i.test(stageStr(o))) && !o.delivered_at && !/delivered|completed/i.test(o.status ?? "") && !ofdOrders.includes(o));
+  // Pending = active orders still early in fulfilment (pending/confirmed/processing),
+  // i.e. not yet packed, shipped, out-for-delivery or delivered.
+  const pendingOrders = ords.filter((o) =>
+    isActive(o) && !o.shipped_at && !o.delivered_at &&
+    !packedOrders.includes(o) && !ofdOrders.includes(o) && !shippedOrders.includes(o));
   const cancelOrders = ords.filter((o) => /cancel/i.test(o.status ?? ""));
   const newToProcess = ords.filter((o) => o.payment_status === "paid" && !o.shipped_at && isActive(o));
   const failedOrders = data.warRoom.failed_payment;
@@ -692,12 +701,13 @@ function OrderOpsPage() {
   const urgentTickets = supportOrders.filter((o) => o.riskScore >= 60).length;
 
   const overview: { label: string; value: number; icon: React.ReactNode; tone: Tone; orders?: EnrichedOrder[] }[] = [
-    { label: "Pending", value: k.pending, icon: <Clock className="size-3.5" />, tone: "attn", orders: ords.filter((o) => /pending|process/i.test(o.status ?? "")) },
+    { label: "Pending", value: pendingOrders.length, icon: <Clock className="size-3.5" />, tone: "attn", orders: pendingOrders },
     { label: "Packed", value: packedOrders.length, icon: <Package className="size-3.5" />, tone: "normal", orders: packedOrders },
-    { label: "Shipped", value: k.shipped, icon: <Truck className="size-3.5" />, tone: "normal", orders: ords.filter((o) => o.shipped_at && !o.delivered_at) },
+    { label: "Shipped", value: shippedOrders.length, icon: <Truck className="size-3.5" />, tone: "normal", orders: shippedOrders },
     { label: "Out for Delivery", value: ofdOrders.length, icon: <MapPin className="size-3.5" />, tone: "normal", orders: ofdOrders },
-    { label: "Delivered", value: k.delivered, icon: <Check className="size-3.5" />, tone: "calm", orders: ords.filter((o) => o.delivered_at) },
+    { label: "Delivered", value: deliveredOrders.length, icon: <Check className="size-3.5" />, tone: "calm", orders: deliveredOrders },
     { label: "Failed Payments", value: k.failed_payments, icon: <CreditCard className="size-3.5" />, tone: "attn", orders: failedOrders },
+
     { label: "Cancel Requests", value: cancelOrders.length, icon: <X className="size-3.5" />, tone: "attn", orders: cancelOrders },
     { label: "Return Requests", value: returnOrders.length, icon: <RotateCcw className="size-3.5" />, tone: "attn", orders: returnOrders },
   ];
@@ -711,11 +721,11 @@ function OrderOpsPage() {
   ];
 
   const pipeline: { label: string; value: number; icon: React.ReactNode; orders: EnrichedOrder[] }[] = [
-    { label: "Pending", value: k.pending, icon: <Clock className="size-3.5" />, orders: ords.filter((o) => /pending|process/i.test(o.status ?? "")) },
+    { label: "Pending", value: pendingOrders.length, icon: <Clock className="size-3.5" />, orders: pendingOrders },
     { label: "Packed", value: packedOrders.length, icon: <Package className="size-3.5" />, orders: packedOrders },
-    { label: "Shipped", value: k.shipped, icon: <Truck className="size-3.5" />, orders: ords.filter((o) => o.shipped_at && !o.delivered_at) },
+    { label: "Shipped", value: shippedOrders.length, icon: <Truck className="size-3.5" />, orders: shippedOrders },
     { label: "Out for Delivery", value: ofdOrders.length, icon: <MapPin className="size-3.5" />, orders: ofdOrders },
-    { label: "Delivered", value: k.delivered, icon: <Check className="size-3.5" />, orders: ords.filter((o) => o.delivered_at) },
+    { label: "Delivered", value: deliveredOrders.length, icon: <Check className="size-3.5" />, orders: deliveredOrders },
   ];
 
   const focusOrders = (label: string, list: EnrichedOrder[]) => {
