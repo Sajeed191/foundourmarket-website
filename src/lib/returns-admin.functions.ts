@@ -20,6 +20,9 @@ export type AdminReturnRow = {
   notes: string | null;
   refund_amount: number;
   refund_status: string;
+  resolution_type: string;
+  replacement_status: string;
+  replacement_order_id: string | null;
   created_at: string;
   photo_urls: string[] | null;
   return_items: { id: string; product_slug: string; quantity: number; reason: string | null }[];
