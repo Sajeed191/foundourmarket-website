@@ -358,7 +358,7 @@ function AccountPage() {
         {recentlyViewed.length > 0 && (
           <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }}>
             <SectionHeader title="Continue Shopping" eyebrow="Pick up where you left off" />
-            <ContinueShopping items={recentlyViewed} format={format} />
+            <ContinueShopping items={recentlyViewed} />
           </motion.section>
         )}
 
