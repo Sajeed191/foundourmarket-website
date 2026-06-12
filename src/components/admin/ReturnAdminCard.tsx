@@ -20,7 +20,7 @@ const STATUS_TONE: Record<string, string> = {
   rejected: "text-rose-400 border-rose-400/30 bg-rose-400/10",
 };
 
-const TIMELINE = [
+const REFUND_TIMELINE = [
   { key: "requested", label: "Requested" },
   { key: "approved", label: "Approved" },
   { key: "received", label: "Item Received" },
@@ -28,11 +28,27 @@ const TIMELINE = [
   { key: "completed", label: "Refund Completed" },
 ] as const;
 
-function timelineIndex(r: AdminReturnRow): number {
+const REPLACEMENT_TIMELINE = [
+  { key: "requested", label: "Requested" },
+  { key: "approved", label: "Replacement Approved" },
+  { key: "processing", label: "Replacement Processing" },
+  { key: "shipped", label: "Replacement Shipped" },
+  { key: "delivered", label: "Replacement Delivered" },
+] as const;
+
+function refundTimelineIndex(r: AdminReturnRow): number {
   if (r.refund_status === "issued") return 4;
   if (r.status === "completed") return 4;
   if (r.status === "received") return 3;
   if (r.status === "approved") return 1;
+  return 0;
+}
+
+function replacementTimelineIndex(r: AdminReturnRow): number {
+  if (r.replacement_status === "delivered") return 4;
+  if (r.replacement_status === "shipped") return 3;
+  if (r.replacement_status === "processing") return 2;
+  if (r.replacement_status === "approved" || r.status === "approved") return 1;
   return 0;
 }
 
