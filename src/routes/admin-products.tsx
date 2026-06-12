@@ -172,6 +172,9 @@ const CATALOG_TABS: { key: CatalogTab; label: string }[] = [
   { key: "draft", label: "Draft" },
 ];
 
+function ProductsInner() {
+
+
 
   const [products, setProducts] = useState<Product[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
