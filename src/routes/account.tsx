@@ -78,6 +78,7 @@ function AccountPage() {
   const { format } = useRegion();
   const nav = useNavigate();
   const [orders, setOrders] = useState<Order[] | null>(null);
+  const [returns, setReturns] = useState<Return[] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const { slugs: wishSlugs } = useWishlist();
   const { unread } = useNotifications();
