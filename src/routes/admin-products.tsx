@@ -36,7 +36,7 @@ type Product = {
   description: string | null; in_stock: boolean; featured: boolean;
   stock_quantity: number; reserved_quantity: number; low_stock_threshold: number;
   views_count: number; sku: string | null; rating: number; reviews: number;
-  sort_order: number; created_at: string;
+  sort_order: number; created_at: string; updated_at?: string | null;
   price_inr: number | null; compare_price_inr: number | null;
   price_usd: number | null; compare_price_usd: number | null;
   india_visible: boolean; international_visible: boolean;
@@ -56,6 +56,11 @@ const inr = (v: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(v) || 0);
 const usd = (v: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(Number(v) || 0);
+// Effective sell price: catalog stores the live price in price_inr; the legacy
+// `price` column is 0 for imported products, so always prefer price_inr.
+const priceOf = (p: Product) => Number(p.price_inr ?? p.price) || 0;
+
+
 
 type StockHealth = "oos" | "critical" | "low" | "ok";
 function health(p: Product): StockHealth {
@@ -111,15 +116,16 @@ function ProductsPage() {
   );
 }
 
-type SortKey = "newest" | "oldest" | "revenue" | "stock" | "views" | "conversion" | "price";
+type SortKey = "newest" | "oldest" | "revenue" | "stock" | "stock_desc" | "views" | "conversion" | "price" | "price_asc" | "name";
 type StockFilter = "all" | "ok" | "low" | "critical" | "oos";
 type StateFilter = "all" | "active" | "inactive" | "featured";
 type TagFilter =
-  | "all" | "active" | "hidden" | "oos" | "low" | "trending" | "bestseller"
+  | "all" | "active" | "draft" | "hidden" | "oos" | "low" | "trending" | "bestseller"
   | "new_arrival" | "featured" | "missing_images" | "missing_seo" | "missing_desc";
 const TAG_CHIPS: { key: TagFilter; label: string; icon: typeof Eye }[] = [
   { key: "all", label: "All", icon: Package },
   { key: "active", label: "Active", icon: CheckCircle2 },
+  { key: "draft", label: "Draft", icon: FileText },
   { key: "hidden", label: "Hidden", icon: EyeOff },
   { key: "oos", label: "Out of stock", icon: X },
   { key: "low", label: "Low stock", icon: AlertTriangle },
@@ -132,8 +138,9 @@ const TAG_CHIPS: { key: TagFilter; label: string; icon: typeof Eye }[] = [
 ];
 function matchesTag(p: Product, tag: TagFilter): boolean {
   switch (tag) {
-    case "active": return p.in_stock;
-    case "hidden": return !p.in_stock;
+    case "active": return p.in_stock && (p.status ?? "published") !== "draft" && (p.status ?? "published") !== "hidden";
+    case "draft": return (p.status ?? "") === "draft";
+    case "hidden": return !p.in_stock || (p.status ?? "") === "hidden";
     case "oos": return p.stock_quantity <= 0;
     case "low": return p.stock_quantity > 0 && p.stock_quantity <= p.low_stock_threshold;
     case "trending": return !!p.trending;
@@ -344,7 +351,7 @@ function ProductsInner() {
       oos, low,
       best: best && best.units > 0 ? best.name : "—",
       mostViewed: viewed && viewed.views > 0 ? viewed.name : "—",
-      inventoryValue: list.reduce((s, p) => s + Number(p.price) * p.stock_quantity, 0),
+      inventoryValue: list.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0),
     };
   }, [products, stats]);
 
@@ -359,7 +366,7 @@ function ProductsInner() {
     if (tag !== "all") list = list.filter((p) => matchesTag(p, tag));
     if (searchTerm) {
       list = list.filter((p) =>
-        [p.name, p.sku, p.category, p.slug, p.tagline].some((v) => (v ?? "").toLowerCase().includes(searchTerm)));
+        [p.name, p.sku, p.category, p.slug, p.tagline, p.id].some((v) => (v ?? "").toLowerCase().includes(searchTerm)));
     }
     const conv = (p: Product) => (p.views_count > 0 ? (stats[p.slug]?.units ?? 0) / p.views_count : 0);
     list.sort((a, b) => {
@@ -367,9 +374,12 @@ function ProductsInner() {
         case "oldest": return +new Date(a.created_at) - +new Date(b.created_at);
         case "revenue": return (stats[b.slug]?.revenue ?? 0) - (stats[a.slug]?.revenue ?? 0);
         case "stock": return a.stock_quantity - b.stock_quantity;
+        case "stock_desc": return b.stock_quantity - a.stock_quantity;
         case "views": return b.views_count - a.views_count;
         case "conversion": return conv(b) - conv(a);
-        case "price": return Number(b.price) - Number(a.price);
+        case "price": return priceOf(b) - priceOf(a);
+        case "price_asc": return priceOf(a) - priceOf(b);
+        case "name": return (a.name ?? "").localeCompare(b.name ?? "");
         default: return +new Date(b.created_at) - +new Date(a.created_at);
       }
     });
@@ -426,7 +436,7 @@ function ProductsInner() {
 
   function exportCsv() {
     const rows = filtered.map((p) => ({
-      slug: p.slug, name: p.name, sku: p.sku ?? "", category: p.category, price: p.price,
+      slug: p.slug, name: p.name, sku: p.sku ?? "", category: p.category, price: priceOf(p),
       discount: p.discount ?? "", stock: p.stock_quantity, reserved: p.reserved_quantity,
       active: p.in_stock, featured: p.featured, units_sold: stats[p.slug]?.units ?? 0,
       revenue: (stats[p.slug]?.revenue ?? 0).toFixed(2), views: p.views_count,
@@ -487,13 +497,16 @@ function ProductsInner() {
         </button>
         <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}
           className="bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent/40">
-          <option value="newest" className="bg-background">Newest</option>
-          <option value="oldest" className="bg-background">Oldest</option>
+          <option value="newest" className="bg-background">Newest first</option>
+          <option value="oldest" className="bg-background">Oldest first</option>
+          <option value="price" className="bg-background">Price: High → Low</option>
+          <option value="price_asc" className="bg-background">Price: Low → High</option>
+          <option value="stock_desc" className="bg-background">Inventory: High → Low</option>
+          <option value="stock" className="bg-background">Inventory: Low → High</option>
+          <option value="name" className="bg-background">Alphabetical A–Z</option>
           <option value="revenue" className="bg-background">Top revenue</option>
           <option value="conversion" className="bg-background">Conversion</option>
           <option value="views" className="bg-background">Most viewed</option>
-          <option value="stock" className="bg-background">Low stock first</option>
-          <option value="price" className="bg-background">Price</option>
         </select>
         <button onClick={exportCsv}
           className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-white/5">
@@ -706,7 +719,7 @@ function ProductsInner() {
             <div className="grid grid-cols-2 gap-3">
               <IntelStat label="Units on hand" value={(products.reduce((s, p) => s + p.stock_quantity, 0)).toLocaleString()} />
               <IntelStat label="Reserved" value={(products.reduce((s, p) => s + (p.reserved_quantity ?? 0), 0)).toLocaleString()} />
-              <IntelStat label="Stock value" value={inr(products.reduce((s, p) => s + Number(p.price) * p.stock_quantity, 0))} />
+              <IntelStat label="Stock value" value={inr(products.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0))} />
               <IntelStat label="At cost" value={inr(products.reduce((s, p) => s + Number(p.cost) * p.stock_quantity, 0))} accent />
             </div>
             <Link to="/admin-inventory" className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-accent hover:underline">
@@ -796,10 +809,19 @@ function ProductCard({
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate">{p.name}</p>
-              <p className="text-[10px] font-mono text-muted-foreground truncate">{p.sku ?? p.slug} · {p.category}</p>
+              <p className="text-[10px] font-mono text-muted-foreground truncate">
+                {p.sku ? p.sku : <span className="text-amber-400/80">No SKU</span>} · {p.category}
+              </p>
+              <p className="text-[9px] font-mono text-muted-foreground/70 truncate mt-0.5">
+                Added {new Date(p.created_at).toLocaleDateString()}
+                {p.updated_at ? ` · Upd ${new Date(p.updated_at).toLocaleDateString()}` : ""}
+              </p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-mono">{inr(p.price)}</p>
+              <p className="text-sm font-mono">{inr(priceOf(p))}</p>
+              {p.compare_price_inr && Number(p.compare_price_inr) > priceOf(p) ? (
+                <p className="text-[10px] font-mono text-muted-foreground line-through">{inr(Number(p.compare_price_inr))}</p>
+              ) : null}
               {p.discount ? <p className="text-[10px] text-accent">-{p.discount}%</p> : null}
             </div>
           </div>
