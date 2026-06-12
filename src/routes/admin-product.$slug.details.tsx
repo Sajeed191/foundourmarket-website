@@ -177,7 +177,7 @@ function RatingManager({ f, set }: {
       {/* Manual numeric controls */}
       <div className="grid grid-cols-2 gap-3">
         <Field label="Rating (0–5)" type="number" value={String(rating)}
-          onChange={(v) => set({ rating: Math.max(0, Math.min(5, Number(v) || 0)), rating_source: "manual" })}
+          onChange={(v) => set({ rating: Math.max(0, Math.min(5, Number(v) || 0)) })}
           hint="Supports decimals e.g. 4.5" />
         <Field label="Review Count" type="number" value={String(reviews)}
           onChange={(v) => set({ reviews: Math.max(0, Math.floor(Number(v) || 0)) })}
