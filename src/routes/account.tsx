@@ -1153,37 +1153,11 @@ function CompactSupportCard({
 
 function ContinueShopping({ items }: { items: Product[] }) {
   return (
-    <>
-      {/* Mobile — same snap-rail sizing as ProductRail */}
-      <div className="sm:hidden -mx-4">
-        <div
-          className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-4 pb-3 pt-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-          style={{
-            scrollPaddingLeft: "1rem",
-            scrollPaddingRight: "1rem",
-            WebkitOverflowScrolling: "touch",
-            overscrollBehaviorX: "contain",
-          }}
-        >
-          {items.map((p) => (
-            <div
-              key={p.slug}
-              className="snap-start shrink-0 w-[76%] min-[420px]:w-[66%]"
-            >
-              <ProductCard product={p} />
-            </div>
-          ))}
-          <div aria-hidden className="shrink-0 w-1" />
-        </div>
-      </div>
-
-      {/* Desktop — 2-4 column grid matching ProductCollection density */}
-      <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {items.map((p) => (
-          <ProductCard key={p.slug} product={p} />
-        ))}
-      </div>
-    </>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      {items.map((p) => (
+        <ProductCard key={p.slug} product={p} />
+      ))}
+    </div>
   );
 }
 
