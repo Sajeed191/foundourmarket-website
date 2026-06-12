@@ -127,7 +127,7 @@ type StockFilter = "all" | "ok" | "low" | "critical" | "oos";
 type StateFilter = "all" | "active" | "inactive" | "featured";
 type TagFilter =
   | "all" | "active" | "draft" | "hidden" | "oos" | "low" | "trending" | "bestseller"
-  | "new_arrival" | "featured" | "missing_images" | "missing_seo" | "missing_desc";
+  | "new_arrival" | "featured" | "missing_images" | "missing_seo" | "missing_desc" | "missing_sku";
 const TAG_CHIPS: { key: TagFilter; label: string; icon: typeof Eye }[] = [
   { key: "all", label: "All", icon: Package },
   { key: "active", label: "Active", icon: CheckCircle2 },
