@@ -166,11 +166,17 @@ function AccountPage() {
 
   const latestReturn = useMemo(() => {
     const list = returns ?? [];
-    return (
-      list.find((r) => String(r.status).toLowerCase() !== "rejected" && String(r.refund_status).toLowerCase() !== "issued") ??
-      list[0] ??
-      null
-    );
+    const isCompleted = (r: Return) => {
+      const status = String(r.status).toLowerCase();
+      const refund = String(r.refund_status).toLowerCase();
+      const replacement = String(r.replacement_status ?? "").toLowerCase();
+      const resolution = String(r.resolution_type ?? "").toLowerCase();
+      if (status === "rejected" || status === "completed") return true;
+      if (resolution === "refund") return refund === "issued";
+      if (resolution === "replacement") return replacement === "delivered";
+      return refund === "issued" || replacement === "delivered";
+    };
+    return list.find((r) => !isCompleted(r)) ?? null;
   }, [returns]);
 
 
