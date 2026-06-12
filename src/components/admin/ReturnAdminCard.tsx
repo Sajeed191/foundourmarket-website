@@ -39,22 +39,6 @@ function compactIndex(r: AdminReturnRow): number {
   return 0;
 }
 
-function refundTimelineIndex(r: AdminReturnRow): number {
-  if (r.refund_status === "issued") return 4;
-  if (r.status === "completed") return 4;
-  if (r.status === "received") return 3;
-  if (r.status === "approved") return 1;
-  return 0;
-}
-
-function replacementTimelineIndex(r: AdminReturnRow): number {
-  if (r.replacement_status === "delivered") return 4;
-  if (r.replacement_status === "shipped") return 3;
-  if (r.replacement_status === "processing") return 2;
-  if (r.replacement_status === "approved" || r.status === "approved") return 1;
-  return 0;
-}
-
 function fmtMoney(amount: number | null | undefined, currency: string | null | undefined) {
   if (amount == null) return "—";
   const cur = (currency || "USD").toUpperCase();
