@@ -331,15 +331,6 @@ function OrdersPage() {
   const successful = useMemo(() => (orders ?? []).filter((o) => !o.failed), [orders]);
   const failedOrders = useMemo(() => (orders ?? []).filter((o) => o.failed), [orders]);
 
-  // Overview metrics — only successfully paid orders
-  const stats = useMemo(() => {
-    const paid = (orders ?? []).filter((o) => o.succeeded);
-    const totalSpent = paid.reduce((n, o) => n + Number(o.total || 0), 0);
-    const delivered = paid.filter((o) => displayStatus(o).key === "delivered").length;
-    const refunded = paid.filter((o) => displayStatus(o).key === "refunded").length;
-    const inTransit = paid.filter((o) => { const k = displayStatus(o).key; return k === "shipped" || k === "ofd"; }).length;
-    return { total: paid.length, totalSpent, delivered, refunded, inTransit };
-  }, [orders]);
 
   // Overview metrics — only successfully paid orders
   const stats = useMemo(() => {
