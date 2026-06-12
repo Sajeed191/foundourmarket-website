@@ -494,6 +494,18 @@ function ProductsInner() {
   // Reset to first page whenever the filtered set changes
   useEffect(() => { setPage(1); }, [cat, state, stock, tag, searchTerm, sort, view, catalogTab]);
 
+  // Persist catalog filters/search/pagination so returning from a product preserves context.
+  useEffect(() => {
+    if (typeof sessionStorage === "undefined") return;
+    try {
+      sessionStorage.setItem(CATALOG_STATE_KEY, JSON.stringify({
+        query, cat, stock, state, sort, view, tag, catalogTab, page,
+      }));
+    } catch { /* noop */ }
+  }, [query, cat, stock, state, sort, view, tag, catalogTab, page]);
+
+
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const paged = useMemo(
