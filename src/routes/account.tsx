@@ -868,11 +868,11 @@ function PremiumLoader() {
 function OrderTimeline({ order, format }: { order: Order; format: (n: number) => string }) {
   const status = String(order.status).toLowerCase();
   const steps = [
-    { key: "ordered", label: "Ordered", icon: CheckCircle2, match: ["pending", "processing", "shipped", "in_transit", "out_for_delivery", "delivered"] },
-    { key: "packed", label: "Packed", icon: Box, match: ["processing", "shipped", "in_transit", "out_for_delivery", "delivered"] },
-    { key: "shipped", label: "Shipped", icon: Truck, match: ["shipped", "in_transit", "out_for_delivery", "delivered"] },
-    { key: "out", label: "Out for Delivery", icon: MapPin, match: ["out_for_delivery", "delivered"] },
-    { key: "delivered", label: "Delivered", icon: Home, match: ["delivered"] },
+    { key: "ordered", label: "Ordered", icon: CheckCircle2, match: ["pending", "confirmed", "processing", "packed", "shipped", "in_transit", "out_for_delivery", "delivered", "completed"] },
+    { key: "packed", label: "Packed", icon: Box, match: ["packed", "shipped", "in_transit", "out_for_delivery", "delivered", "completed"] },
+    { key: "shipped", label: "Shipped", icon: Truck, match: ["shipped", "in_transit", "out_for_delivery", "delivered", "completed"] },
+    { key: "out", label: "Out for Delivery", icon: MapPin, match: ["out_for_delivery", "delivered", "completed"] },
+    { key: "delivered", label: "Delivered", icon: Home, match: ["delivered", "completed"] },
   ];
   const activeIdx = steps.reduce((acc, s, i) => (s.match.includes(status) ? i : acc), 0);
   const eta = new Date(new Date(order.created_at).getTime() + 7 * 86400000).toLocaleDateString(undefined, { month: "short", day: "numeric" });
