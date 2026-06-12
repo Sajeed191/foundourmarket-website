@@ -40,6 +40,7 @@ type Order = {
 
 type ShipmentEvent = { id: string; status: string; description: string | null; location: string | null; occurred_at: string };
 type Shipment = { id: string; status: string; carrier: string | null; tracking_number: string | null; tracking_url: string | null; shipped_at: string | null; delivered_at: string | null; shipment_events: ShipmentEvent[] };
+type ReturnRec = { id: string; status: string; reason: string; resolution_type: string; replacement_status: string; refund_status: string; refund_amount: number | null; created_at: string };
 
 function OrderDetailPage() {
   const { id } = Route.useParams();
