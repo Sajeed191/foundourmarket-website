@@ -1137,9 +1137,9 @@ function AccountActionRow({
   to, icon: Icon, label, sublabel,
 }: { to: string; icon: typeof Package; label: string; sublabel: string }) {
   return (
-    <Link to={to} className="group flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 hover:bg-accent/5 transition-colors">
-      <span className="size-9 rounded-xl bg-accent/10 text-accent grid place-items-center shrink-0 group-hover:bg-accent/20 transition-colors">
-        <Icon className="size-4" />
+    <Link to={to} className="group flex items-center gap-3 px-4 py-3.5 sm:px-5 min-h-[56px] hover:bg-accent/5 active:bg-accent/10 transition-colors">
+      <span className="size-10 rounded-xl bg-accent/10 text-accent grid place-items-center shrink-0 group-hover:bg-accent/20 group-hover:scale-105 transition-all">
+        <Icon className="size-[18px]" />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium group-hover:text-accent transition-colors">{label}</p>
