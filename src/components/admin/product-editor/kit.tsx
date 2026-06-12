@@ -469,48 +469,82 @@ export function SectionEditor<T extends Record<string, any>>({
             {children(form, set, row!)}
           </motion.div>
 
-          {/* Sticky bottom action bar */}
+          {/* Flush bottom action bar — edge-to-edge, no floating card */}
           <div
-            className="fixed bottom-[var(--mobile-nav-clearance)] lg:bottom-0 inset-x-0 lg:left-[17.5rem] z-[75] border-t border-border bg-background/95 backdrop-blur-xl"
-            style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
+            className="fixed bottom-0 inset-x-0 lg:left-[17.5rem] z-[75] border-t border-border bg-background/95 backdrop-blur-xl"
+            style={{ paddingBottom: "calc(var(--mobile-nav-clearance) + max(0.5rem, env(safe-area-inset-bottom)))" }}
           >
-            <div className="mx-auto flex max-w-3xl flex-col gap-2 px-4 pt-2.5">
-              <div className="flex items-center justify-center">
-                <SaveStateBadge state={saveState} lastSavedAt={lastSavedAt} />
+            <div className="mx-auto flex max-w-3xl items-center gap-2 px-3 pt-2.5 pb-1">
+              {/* More Actions */}
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  aria-label="More actions"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((o) => !o)}
+                  className="grid size-11 place-items-center rounded-lg border border-white/12 bg-white/[0.03] text-muted-foreground transition-all hover:text-foreground hover:border-white/25 active:scale-95"
+                >
+                  <MoreVertical className="size-4" />
+                </button>
+                {menuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-[-1]" onClick={() => setMenuOpen(false)} />
+                    <div
+                      role="menu"
+                      className="absolute bottom-[calc(100%+0.5rem)] left-0 w-52 overflow-hidden rounded-xl border border-white/10 bg-background/95 shadow-xl backdrop-blur-xl"
+                    >
+                      <MenuItem
+                        icon={<FileText className="size-4" />}
+                        label="Save Draft"
+                        disabled={!dirty || saveState === "saving" || !!validationError}
+                        onClick={() => { setMenuOpen(false); void doSave(false); }}
+                      />
+                      <MenuItem
+                        icon={<Copy className="size-4" />}
+                        label="Duplicate Product"
+                        disabled={actionBusy}
+                        onClick={() => void duplicateProduct()}
+                      />
+                      <MenuItem
+                        icon={<Archive className="size-4" />}
+                        label="Archive Product"
+                        disabled={actionBusy}
+                        danger
+                        onClick={() => void archiveProduct()}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => void doSave(false)}
-                  disabled={!dirty || saveState === "saving" || !!validationError}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white/[0.03] px-3 py-2.5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground hover:border-white/25 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Save className="size-3.5" /> Save Draft
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/admin-product/$slug/preview", params: { slug } })}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-accent/35 bg-accent/10 px-3 py-2.5 text-xs font-semibold text-accent transition-all hover:bg-accent/20 active:scale-[0.97]"
-                >
-                  <Eye className="size-3.5" /> Preview
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void doSave(false)}
-                  disabled={(!dirty && !justSaved) || saveState === "saving" || !!validationError}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed ${justSaved ? "bg-emerald-500 text-white" : "bg-accent text-accent-foreground hover:brightness-110"}`}
-                >
-                  {saveState === "saving" ? (
-                    <><Loader2 className="size-3.5 animate-spin" /> Saving…</>
-                  ) : justSaved ? (
-                    <><Check className="size-3.5" /> Changes Saved</>
-                  ) : (
-                    <><Save className="size-3.5" /> Save Changes{dirty ? ` (${changedKeys.length})` : ""}</>
-                  )}
-                </button>
-              </div>
+
+              {/* Preview — secondary CTA (35%) */}
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/admin-product/$slug/preview", params: { slug } })}
+                className="inline-flex h-11 basis-[35%] grow-0 items-center justify-center gap-1.5 rounded-lg border border-accent/35 bg-accent/10 px-3 text-xs font-semibold text-accent transition-all hover:bg-accent/20 active:scale-[0.98]"
+              >
+                <Eye className="size-4" /> Preview
+              </button>
+
+              {/* Save Changes — primary CTA (65%) */}
+              <button
+                type="button"
+                onClick={() => void doSave(false)}
+                disabled={(!dirty && !justSaved) || saveState === "saving" || !!validationError}
+                className={`inline-flex h-11 basis-[65%] grow items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${justSaved ? "bg-emerald-500 text-white" : "bg-accent text-accent-foreground hover:brightness-110"}`}
+              >
+                {saveState === "saving" ? (
+                  <><Loader2 className="size-4 animate-spin" /> Saving…</>
+                ) : justSaved ? (
+                  <><Check className="size-4" /> Changes Saved</>
+                ) : (
+                  <><Save className="size-4" /> Save Changes{dirty ? ` (${changedKeys.length})` : ""}</>
+                )}
+              </button>
             </div>
           </div>
+
 
         </div>
       )}
