@@ -622,10 +622,13 @@ function ProductsInner() {
     return <div className="min-h-[40vh] grid place-items-center"><Loader2 className="size-5 animate-spin text-accent" /></div>;
   }
 
-  const headerChips = [
-    { icon: Package, label: "Total", value: String(kpis.total) },
+  const headerChips: { icon: typeof Package; label: string; value: string; tab?: CatalogTab; accent?: boolean }[] = [
+    { icon: Package, label: "Total", value: String(kpis.total), tab: "all" },
+    { icon: IndianRupee, label: "India", value: String(kpis.india), tab: "india" },
+    { icon: Globe, label: "International", value: String(kpis.international), tab: "international" },
     { icon: CheckCircle2, label: "Active", value: String(kpis.active) },
-    { icon: EyeOff, label: "Inactive", value: String(kpis.inactive) },
+    { icon: AlertTriangle, label: "Low Stock", value: String(kpis.low), tab: "low_stock", accent: kpis.low > 0 },
+    { icon: Tag, label: "Missing SKU", value: String(kpis.missingSku), accent: kpis.missingSku > 0 },
   ];
 
   return (
