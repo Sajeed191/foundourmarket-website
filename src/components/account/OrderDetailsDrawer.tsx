@@ -162,6 +162,25 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
     const done = new Set<string>();
     if (!order) return done;
     done.add("placed");
+    // Derive stages from the order status / fulfillment status so admin marks
+    // (packed, shipped, etc.) reflect even before a shipment row exists.
+    const ORDER_STAGE_FLOW = ["confirmed", "processing", "packed", "shipped", "out_for_delivery", "delivered"];
+    const STAGE_KEY: Record<string, string> = {
+      confirmed: "placed", processing: "placed", packed: "packed",
+      shipped: "shipped", out_for_delivery: "out_for_delivery", delivered: "delivered",
+    };
+    const markUpTo = (status?: string | null) => {
+      const s = (status ?? "").toLowerCase();
+      const idx = ORDER_STAGE_FLOW.indexOf(s);
+      if (idx === -1) return;
+      for (let i = 0; i <= idx; i++) {
+        const key = STAGE_KEY[ORDER_STAGE_FLOW[i]];
+        if (key) done.add(key);
+        if (ORDER_STAGE_FLOW[i] === "shipped") done.add("in_transit");
+      }
+    };
+    markUpTo(order.status);
+    markUpTo(order.fulfillment_status);
     if (shipment?.packed_at) done.add("packed");
     if (shipment?.shipped_at) { done.add("packed"); done.add("shipped"); }
     const evs = shipment?.shipment_events ?? [];
