@@ -188,9 +188,9 @@ function ProductsInner() {
   const [revenueToday, setRevenueToday] = useState(0);
   const [ordersToday, setOrdersToday] = useState(0);
   const [pulse, setPulse] = useState(false);
-  const [query, setQuery] = useState(saved.query ?? "");
-  const [searchTerm, setSearchTerm] = useState(saved.query ?? "");
-  const [cat, setCat] = useState(saved.cat ?? "all");
+  const [query, setQuery] = useState<string>(saved.query ?? "");
+  const [searchTerm, setSearchTerm] = useState<string>(saved.query ?? "");
+  const [cat, setCat] = useState<string>(saved.cat ?? "all");
   const [stock, setStock] = useState<StockFilter>(saved.stock ?? "all");
   const [state, setState] = useState<StateFilter>(saved.state ?? "all");
   const [sort, setSort] = useState<SortKey>(saved.sort ?? "newest");
