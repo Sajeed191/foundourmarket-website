@@ -228,16 +228,47 @@ function CommandCenter({ slug, f, set, row }: {
         </div>
       </div>
 
-      {/* Media gallery */}
-      <Collapsible title="Product Media Gallery" icon={<ImageIcon className="size-4" />} desc={`${imageCount} image${imageCount === 1 ? "" : "s"} · drag, reorder, set primary`}>
-        <ProductMediaGallery slug={slug} name={f.name} primaryUrl={primaryUrl}
-          onPrimaryChange={(u) => setPrimaryUrl(u)} onCountChange={setImageCount} />
+      {/* Media Center — images first, then video, with live health checks */}
+      <Collapsible title="Media Center" icon={<ImageIcon className="size-4" />}
+        desc={`${imageCount} image${imageCount === 1 ? "" : "s"} · ${f.video_url.trim() ? "video attached" : "no video"}`}
+        badge={
+          <span className="flex items-center gap-1">
+            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider ${imageCount > 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>IMG</span>
+            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider ${f.video_url.trim() ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>VID</span>
+          </span>
+        }>
+        <div className="space-y-5">
+          {/* Health checks */}
+          <div className="grid grid-cols-2 gap-2">
+            <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] ${imageCount > 0 ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400" : "border-amber-500/20 bg-amber-500/5 text-amber-400"}`}>
+              {imageCount > 0 ? <CheckCircle2 className="size-3.5 shrink-0" /> : <AlertTriangle className="size-3.5 shrink-0" />}
+              {imageCount > 0 ? "Images Added" : "Missing Images"}
+            </span>
+            <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] ${f.video_url.trim() ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400" : "border-amber-500/20 bg-amber-500/5 text-amber-400"}`}>
+              {f.video_url.trim() ? <CheckCircle2 className="size-3.5 shrink-0" /> : <AlertTriangle className="size-3.5 shrink-0" />}
+              {f.video_url.trim() ? "Video Added" : "Missing Video"}
+            </span>
+          </div>
+
+          {/* 1. Product Images */}
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
+              <ImageIcon className="size-3.5 text-accent" /> Product Images
+            </div>
+            <ProductMediaGallery slug={slug} name={f.name} primaryUrl={primaryUrl}
+              onPrimaryChange={(u) => setPrimaryUrl(u)} onCountChange={setImageCount} />
+          </div>
+
+          {/* 2. Product Video */}
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
+              <Film className="size-3.5 text-accent" /> Product Video
+            </div>
+            <ProductVideoUploader slug={slug} value={f.video_url} onChange={(u) => set({ video_url: u })} />
+          </div>
+        </div>
       </Collapsible>
 
-      {/* Video */}
-      <Collapsible title="Product Video" icon={<Film className="size-4" />} desc="MP4 or WEBM · up to 100MB">
-        <ProductVideoUploader slug={slug} value={f.video_url} onChange={(u) => set({ video_url: u })} />
-      </Collapsible>
 
       {/* Product information */}
       <Collapsible title="Product Information" icon={<Tag className="size-4" />} desc="Name, brand, type, category & tags">
