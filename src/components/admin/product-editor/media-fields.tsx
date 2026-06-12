@@ -6,12 +6,21 @@
 // product's video_url column via the section form.
 // ============================================================
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
   ImagePlus, Camera, Trash2, Star, Loader2, ArrowLeft, ArrowRight,
   Film, Play, UploadCloud, X, RefreshCw, GripVertical,
 } from "lucide-react";
+import {
+  DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor,
+  useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext, arrayMove, rectSortingStrategy, useSortable,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { resolveImage, fetchProductImages, type ProductImage } from "@/lib/products";
