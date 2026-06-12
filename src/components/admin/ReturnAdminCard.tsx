@@ -90,7 +90,15 @@ export function ReturnAdminCard({
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [customerOpen, setCustomerOpen] = useState(false);
   const photos = (r.photo_urls ?? []).filter(Boolean);
-  const activeIdx = r.status === "rejected" ? -1 : timelineIndex(r);
+
+  const resolution = r.resolution_type === "refund" ? "refund" : "replacement";
+  const TIMELINE = resolution === "refund" ? REFUND_TIMELINE : REPLACEMENT_TIMELINE;
+  const activeIdx =
+    r.status === "rejected"
+      ? -1
+      : resolution === "refund"
+        ? refundTimelineIndex(r)
+        : replacementTimelineIndex(r);
 
   // Return Intelligence values
   const deliveredAt = r.order.fulfilled_at;
@@ -101,7 +109,6 @@ export function ReturnAdminCard({
   const withinWindow =
     daysSinceDelivery != null && windowDays != null ? daysSinceDelivery <= windowDays : null;
 
-  const resolution = r.resolution_type === "refund" ? "refund" : "replacement";
   const isApproved = ["approved", "received", "completed"].includes(r.status);
   // Refund is only eligible when the request is approved, the product qualifies,
   // it's within the return window, and admin has chosen refund (replacement unavailable).
