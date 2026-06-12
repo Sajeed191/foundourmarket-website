@@ -365,15 +365,68 @@ function ProductsInner() {
       if (!best || u > best.units) best = { name: p.name, units: u };
       if (!viewed || p.views_count > viewed.views) viewed = { name: p.name, views: p.views_count };
     }
+    const live = list.filter((p) => !p.deleted_at);
     return {
       total: list.length,
       active: list.filter((p) => p.in_stock).length,
       inactive: list.filter((p) => !p.in_stock).length,
       featured: list.filter((p) => p.featured).length,
+      india: live.filter((p) => p.india_visible !== false).length,
+      international: live.filter((p) => p.international_visible !== false).length,
+      missingSku: live.filter((p) => !(p.sku && p.sku.trim())).length,
       oos, low,
       best: best && best.units > 0 ? best.name : "—",
       mostViewed: viewed && viewed.views > 0 ? viewed.name : "—",
       inventoryValue: list.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0),
+    };
+  }, [products, stats]);
+
+  // ---- Region intelligence: India 🇮🇳 vs International 🌍 ----
+  const regionData = useMemo(() => {
+    const live = (products ?? []).filter((p) => !p.deleted_at);
+    const indiaList = live.filter((p) => p.india_visible !== false);
+    const intlList = live.filter((p) => p.international_visible !== false);
+    const sumUnits = (arr: Product[]) => arr.reduce((s, p) => s + (stats[p.slug]?.units ?? 0), 0);
+    const indiaRevenue = indiaList.reduce((s, p) => s + (stats[p.slug]?.revenue ?? 0), 0);
+    // International revenue prefers USD pricing when available, else falls back to order revenue.
+    const intlRevenue = intlList.reduce((s, p) => {
+      const units = stats[p.slug]?.units ?? 0;
+      const usdPrice = Number(p.price_usd) || 0;
+      return s + (usdPrice > 0 ? usdPrice * units : 0);
+    }, 0);
+    const topCategories = (arr: Product[]) => {
+      const m = new Map<string, number>();
+      for (const p of arr) {
+        const rev = stats[p.slug]?.revenue ?? 0;
+        m.set(p.category, (m.get(p.category) ?? 0) + rev);
+      }
+      return [...m.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    };
+    const topProducts = (arr: Product[], byUsd: boolean) =>
+      arr
+        .map((p) => {
+          const units = stats[p.slug]?.units ?? 0;
+          const rev = byUsd && Number(p.price_usd) > 0 ? Number(p.price_usd) * units : (stats[p.slug]?.revenue ?? 0);
+          return { p, units, rev };
+        })
+        .filter((x) => x.units > 0)
+        .sort((a, b) => b.rev - a.rev)
+        .slice(0, 5);
+    return {
+      india: {
+        count: indiaList.length,
+        revenue: indiaRevenue,
+        units: sumUnits(indiaList),
+        categories: topCategories(indiaList),
+        top: topProducts(indiaList, false),
+      },
+      international: {
+        count: intlList.length,
+        revenue: intlRevenue,
+        units: sumUnits(intlList),
+        categories: topCategories(intlList),
+        top: topProducts(intlList, true),
+      },
     };
   }, [products, stats]);
 
