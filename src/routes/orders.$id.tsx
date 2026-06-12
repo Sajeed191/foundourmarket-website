@@ -255,7 +255,31 @@ function OrderDetailPage() {
             </motion.div>
           )}
 
-          {returnWindowOpen && user && (
+          {returnRec && (
+            <div className="rounded-2xl border border-border p-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Resolution Method</p>
+                  <p className="text-sm font-medium mt-1 flex items-center gap-2">
+                    <RotateCcw className="size-3.5 text-accent" />
+                    {returnRec.resolution_type === "refund" ? "Refund" : "Replacement"}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Status</p>
+                  <p className="text-sm font-semibold text-accent capitalize mt-1">
+                    {returnRec.status === "rejected"
+                      ? "Rejected"
+                      : returnRec.resolution_type === "refund"
+                        ? returnRec.refund_status
+                        : (returnRec.replacement_status || "pending")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+
             <>
               <button
                 type="button"
