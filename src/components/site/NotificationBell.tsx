@@ -57,6 +57,7 @@ export function NotificationBell() {
   const visible = filtered.slice(0, 6);
   const extra = filtered.length - visible.length;
   const hasReadItems = items.some((n) => n.read_at);
+  const isAdminRoute = pathname.startsWith("/admin") || pathname === "/builder";
 
   const clearRead = async () => {
     await Promise.all(items.filter((n) => n.read_at).map((n) => remove(n.id)));
@@ -81,7 +82,11 @@ export function NotificationBell() {
 
       {open && (
         <div
-          className="fixed sm:absolute right-[max(0.5rem,env(safe-area-inset-right))] sm:right-0 top-[calc(env(safe-area-inset-top)+4rem)] sm:top-12 w-[min(92vw,420px)] sm:w-[400px] max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-5.5rem)] sm:max-h-[70vh] flex flex-col rounded-2xl border border-accent/20 bg-popover/90 backdrop-blur-2xl shadow-[0_30px_80px_-30px_oklch(0_0_0_/_0.8),0_0_0_1px_oklch(0.74_0.19_49_/_0.15),0_0_40px_-8px_oklch(0.74_0.19_49_/_0.25)] z-[80] animate-scale-in origin-top-right overflow-hidden"
+          className={`fixed right-[max(0.75rem,env(safe-area-inset-right))] left-[max(0.75rem,env(safe-area-inset-left))] sm:left-auto sm:w-[400px] ${
+            isAdminRoute
+              ? "top-[calc(env(safe-area-inset-top)+7.75rem)] sm:top-[calc(env(safe-area-inset-top)+4.25rem)] lg:right-10"
+              : "top-[calc(env(safe-area-inset-top)+4.25rem)] sm:top-[calc(env(safe-area-inset-top)+4rem)]"
+          } bottom-[max(0.75rem,env(safe-area-inset-bottom))] sm:bottom-auto sm:max-h-[min(34rem,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-5.5rem))] flex flex-col rounded-2xl border border-accent/20 bg-popover/90 backdrop-blur-2xl shadow-[0_30px_80px_-30px_oklch(0_0_0_/_0.8),0_0_0_1px_oklch(0.74_0.19_49_/_0.15),0_0_40px_-8px_oklch(0.74_0.19_49_/_0.25)] z-[95] animate-scale-in origin-top-right overflow-hidden`}
         >
           {/* Header */}
           <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-accent/[0.06] to-transparent">
