@@ -1,22 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import {
   ShoppingBag, Loader2, AlertTriangle, Download, RefreshCw, Search, X,
   Package, Truck, RotateCcw, Wallet, Globe, ShieldAlert, Sparkles,
   Clock, Zap, Gauge, TrendingUp, Users, CreditCard, MapPin, Mail, ArrowDownRight,
   Phone, Receipt, Bell, ShieldCheck, Copy, Check, LifeBuoy,
-  CheckCircle2, XCircle, ChevronDown, Hash, Calendar,
+  CheckCircle2, XCircle, ChevronDown, Hash, Calendar, BarChart3, ArrowRight,
+  PackageCheck, RefreshCcw,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { KpiCard } from "@/components/admin/KpiCard";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useOrderOperations } from "@/lib/use-order-operations";
 import { fetchOrderDetail } from "@/lib/order-operations";
 import type { EnrichedOrder, OrderOps, WarRoomTag, OrderDetail } from "@/lib/order-operations";
 import { exportRows, exportJson, type ExportFormat } from "@/lib/traffic-export";
 import { OrderActionCenter } from "@/components/admin/OrderActionCenter";
 import { openInvoice } from "@/lib/order-invoice";
-import { OrderIntegrityMonitor } from "@/components/admin/OrderIntegrityMonitor";
 
 export const Route = createFileRoute("/admin-orders-ops")({
   head: () => ({ meta: [{ title: "Order Operations Center — Admin" }] }),
@@ -95,10 +93,8 @@ function StatusPill({ s }: { s: string | null }) {
   return <span className={`text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border ${cls}`}>{s || "—"}</span>;
 }
 
-function Bar({ value, max, color = "bg-accent" }: { value: number; max: number; color?: string }) {
-  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  return <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden"><div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} /></div>;
-}
+
+
 
 function ExportMenu({ data }: { data: OrderOps }) {
   const [open, setOpen] = useState(false);
@@ -553,22 +549,17 @@ function OverviewStat({ label, value, icon, tone, onClick }: { label: string; va
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-2xl border p-4 transition-colors hover:border-accent/40 ${cls}`}
+      className={`text-left w-full min-w-0 rounded-2xl border p-3 sm:p-4 flex flex-col justify-between min-h-[88px] sm:min-h-[104px] transition-colors hover:border-accent/40 ${cls}`}
     >
-      <div className="flex items-center gap-2 text-muted-foreground mb-3">
-        <span className={accentCls}>{icon}</span>
-        <span className="text-[10px] font-mono uppercase tracking-[0.16em] truncate">{label}</span>
+      <div className="flex items-center gap-1.5 text-muted-foreground mb-2 min-w-0">
+        <span className={`${accentCls} shrink-0`}>{icon}</span>
+        <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.12em] truncate">{label}</span>
       </div>
-      <p className={`text-[28px] sm:text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
+      <p className={`text-2xl sm:text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
     </button>
   );
 }
 
-const PRIORITY_TONE: Record<string, string> = {
-  critical: "text-destructive border-destructive/40 bg-destructive/10",
-  high: "text-amber-300 border-amber-400/40 bg-amber-400/10",
-  medium: "text-sky-300 border-sky-400/40 bg-sky-400/10",
-};
 
 const PRIORITY_BAR: Record<string, string> = {
   critical: "bg-destructive",
@@ -579,26 +570,24 @@ const PRIORITY_BAR: Record<string, string> = {
 function ActionGroup({ label, count, priority, icon, onView }: { label: string; count: number; priority: "critical" | "high" | "medium"; icon: React.ReactNode; onView: () => void }) {
   const dim = count === 0;
   return (
-    <div className={`relative overflow-hidden rounded-2xl border p-4 pl-5 flex flex-col gap-4 transition-colors ${dim ? "border-border/50 bg-card/30" : "border-border/70 bg-card/50 hover:border-accent/40"}`}>
+    <button
+      onClick={onView}
+      disabled={dim}
+      className={`relative text-left overflow-hidden rounded-2xl border p-3.5 pl-4 flex flex-col gap-3 w-full min-w-0 min-h-[112px] transition-colors disabled:cursor-default ${dim ? "border-border/50 bg-card/30" : "border-border/70 bg-card/50 hover:border-accent/40 active:bg-muted/30"}`}
+    >
       <span className={`absolute left-0 top-0 bottom-0 w-1 ${dim ? "bg-border/50" : PRIORITY_BAR[priority]}`} />
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-start justify-between gap-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
           <span className={dim ? "text-muted-foreground shrink-0" : "text-accent shrink-0"}>{icon}</span>
-          <span className="text-sm font-medium truncate">{label}</span>
+          <span className="text-[13px] sm:text-sm font-medium truncate">{label}</span>
         </div>
-        <span className={`shrink-0 text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full border ${PRIORITY_TONE[priority]}`}>{priority}</span>
+        <span className={`shrink-0 size-2 rounded-full ${dim ? "bg-border/50" : PRIORITY_BAR[priority]}`} aria-label={priority} />
       </div>
-      <div className="flex items-end justify-between gap-2">
-        <span className={`text-[32px] font-display font-semibold tabular-nums leading-none ${dim ? "text-muted-foreground/60" : "text-foreground"}`}>{num(count)}</span>
-        <button
-          onClick={onView}
-          disabled={dim}
-          className="text-[11px] font-medium px-3 py-1.5 rounded-lg border border-border hover:border-accent/40 hover:bg-muted/30 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 transition-colors"
-        >
-          View <ArrowDownRight className="size-3" />
-        </button>
+      <div className="flex items-end justify-between gap-2 mt-auto">
+        <span className={`text-[28px] sm:text-[32px] font-display font-semibold tabular-nums leading-none ${dim ? "text-muted-foreground/60" : "text-foreground"}`}>{num(count)}</span>
+        {!dim && <span className="text-[11px] font-medium text-muted-foreground inline-flex items-center gap-1 shrink-0">View <ArrowDownRight className="size-3" /></span>}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -621,8 +610,8 @@ function MiniStat({ label, value, icon, tone }: { label: string; value: string; 
   const valueCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
   const accentCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent";
   return (
-    <div className={`rounded-2xl border p-4 transition-colors ${cls}`}>
-      <div className="flex items-center gap-2 text-muted-foreground mb-3"><span className={accentCls}>{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.14em] truncate">{label}</span></div>
+    <div className={`rounded-2xl border p-3.5 sm:p-4 w-full min-w-0 flex flex-col justify-between min-h-[88px] transition-colors ${cls}`}>
+      <div className="flex items-center gap-1.5 text-muted-foreground mb-2 min-w-0"><span className={`${accentCls} shrink-0`}>{icon}</span><span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.12em] truncate">{label}</span></div>
       <p className={`text-2xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{value}</p>
     </div>
   );
@@ -664,9 +653,6 @@ function OrderOpsPage() {
   const k = data.kpis;
   const f = data.fulfillment;
   const ords = data.orders;
-  const maxCourier = Math.max(1, ...data.courierPerformance.map((c) => c.shipments));
-  const maxRegion = Math.max(1, ...data.regionPerformance.map((r) => r.orders));
-  const maxReason = Math.max(1, ...data.returnReasons.map((r) => r.cnt));
 
   // ---- derived stage / action data (frontend only) ----
   const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
@@ -688,8 +674,7 @@ function OrderOpsPage() {
   const pendingOrders = ords.filter((o) =>
     isActive(o) && !o.shipped_at && !o.delivered_at && !isPaymentFailed(o) &&
     !packedOrders.includes(o) && !ofdOrders.includes(o) && !shippedOrders.includes(o));
-  const cancelOrders = ords.filter((o) => /cancel/i.test(o.status ?? ""));
-  const newToProcess = ords.filter((o) => o.payment_status === "paid" && !o.shipped_at && isActive(o));
+  
   const failedOrders = data.warRoom.failed_payment;
   const returnOrders = data.warRoom.return_request;
   const supportOrders = data.warRoom.support_linked;
@@ -702,24 +687,32 @@ function OrderOpsPage() {
   const resolvedTickets = data.staffSupport.reduce((a, s) => a + s.tickets_resolved, 0);
   const urgentTickets = supportOrders.filter((o) => o.riskScore >= 60).length;
 
+  // ---- Returns overview buckets (frontend-only, derived from return_status) ----
+  const rs = (o: EnrichedOrder) => (o.return_status ?? "").toLowerCase();
+  const returnsInProgress = returnOrders.filter((o) => !/complete|closed|resolved/i.test(rs(o)));
+  const returnsBuckets: { label: string; value: number; icon: React.ReactNode; orders: EnrichedOrder[] }[] = [
+    { label: "Return Requested", icon: <RotateCcw className="size-3.5" />, orders: returnOrders.filter((o) => /request|pending|initiat/i.test(rs(o)) || rs(o) === "") },
+    { label: "Replacement Approved", icon: <Check className="size-3.5" />, orders: returnOrders.filter((o) => /approv/i.test(rs(o))) },
+    { label: "Replacement Processing", icon: <RefreshCcw className="size-3.5" />, orders: returnOrders.filter((o) => /process|replac/i.test(rs(o)) && !/ship|complet/i.test(rs(o))) },
+    { label: "Replacement Shipped", icon: <Truck className="size-3.5" />, orders: returnOrders.filter((o) => /ship/i.test(rs(o))) },
+    { label: "Refund Processing", icon: <Wallet className="size-3.5" />, orders: returnOrders.filter((o) => /refund/i.test(rs(o)) || ((o.refund_amount ?? 0) > 0 && !/complet/i.test(rs(o)))) },
+    { label: "Replacement Completed", icon: <PackageCheck className="size-3.5" />, orders: returnOrders.filter((o) => /complet|closed|resolved|delivered/i.test(rs(o))) },
+  ].map((b) => ({ ...b, value: b.orders.length }));
+
   const overview: { label: string; value: number; icon: React.ReactNode; tone: Tone; orders?: EnrichedOrder[] }[] = [
     { label: "Pending", value: pendingOrders.length, icon: <Clock className="size-3.5" />, tone: "attn", orders: pendingOrders },
     { label: "Packed", value: packedOrders.length, icon: <Package className="size-3.5" />, tone: "normal", orders: packedOrders },
     { label: "Shipped", value: shippedOrders.length, icon: <Truck className="size-3.5" />, tone: "normal", orders: shippedOrders },
     { label: "Out for Delivery", value: ofdOrders.length, icon: <MapPin className="size-3.5" />, tone: "normal", orders: ofdOrders },
     { label: "Delivered", value: deliveredOrders.length, icon: <Check className="size-3.5" />, tone: "calm", orders: deliveredOrders },
-    { label: "Failed Payments", value: k.failed_payments, icon: <CreditCard className="size-3.5" />, tone: "attn", orders: failedOrders },
-
-    { label: "Cancel Requests", value: cancelOrders.length, icon: <X className="size-3.5" />, tone: "attn", orders: cancelOrders },
-    { label: "Return Requests", value: returnOrders.length, icon: <RotateCcw className="size-3.5" />, tone: "attn", orders: returnOrders },
+    { label: "Returns In Progress", value: returnsInProgress.length, icon: <RotateCcw className="size-3.5" />, tone: "attn", orders: returnsInProgress },
   ];
 
   const actionGroups: { key: string; label: string; orders: EnrichedOrder[]; priority: "critical" | "high" | "medium"; icon: React.ReactNode }[] = [
-    { key: "new", label: "New Orders To Process", orders: newToProcess, priority: "high", icon: <Sparkles className="size-4" /> },
-    { key: "failed", label: "Failed Payments", orders: failedOrders, priority: "critical", icon: <CreditCard className="size-4" /> },
-    { key: "cancel", label: "Cancellation Requests", orders: cancelOrders, priority: "high", icon: <X className="size-4" /> },
-    { key: "return", label: "Return Requests", orders: returnOrders, priority: "medium", icon: <RotateCcw className="size-4" /> },
-    { key: "support", label: "Customer Support Requests", orders: supportOrders, priority: "medium", icon: <LifeBuoy className="size-4" /> },
+    { key: "new", label: "Pending Orders", orders: pendingOrders, priority: "high", icon: <Clock className="size-4" /> },
+    { key: "return", label: "Returns Review", orders: returnOrders, priority: "high", icon: <RotateCcw className="size-4" /> },
+    { key: "failed", label: "Payment Issues", orders: failedOrders, priority: "critical", icon: <CreditCard className="size-4" /> },
+    { key: "support", label: "Support Cases", orders: supportOrders, priority: "medium", icon: <LifeBuoy className="size-4" /> },
   ];
 
   const pipeline: { label: string; value: number; icon: React.ReactNode; orders: EnrichedOrder[] }[] = [
@@ -753,11 +746,11 @@ function OrderOpsPage() {
         </div>
       }
     >
-      <div className="space-y-12">
+      <div className="space-y-8 sm:space-y-12 w-full min-w-0 overflow-x-hidden">
         {/* SECTION 1 — OPERATIONS OVERVIEW */}
         <section>
           <SectionHeader title="Operations Overview" sub="A single glance at the whole pipeline" icon={<Gauge className="size-5 text-accent" />} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
             {overview.map((o) => (
               <OverviewStat key={o.label} label={o.label} value={o.value} icon={o.icon} tone={o.tone} onClick={() => focusOrders(o.label, o.orders ?? [])} />
             ))}
@@ -767,7 +760,7 @@ function OrderOpsPage() {
         {/* SECTION 2 — ACTION REQUIRED */}
         <section className="relative rounded-3xl border border-amber-400/20 bg-amber-400/[0.02] p-4 sm:p-6">
           <SectionHeader title="Action Required" sub="Your primary workspace — orders and customers waiting on you" icon={<AlertTriangle className="size-5 text-amber-300" />} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             {actionGroups.map((g) => (
               <ActionGroup key={g.key} label={g.label} count={g.orders.length} priority={g.priority} icon={g.icon} onView={() => focusOrders(g.label, g.orders)} />
             ))}
@@ -831,7 +824,7 @@ function OrderOpsPage() {
         {/* SECTION 5 — DELIVERY MONITOR */}
         <section>
           <SectionHeader title="Delivery Monitor" sub="Live shipping & delivery health" icon={<Truck className="size-5 text-accent" />} />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             <MiniStat label="Shipped Today" value={num(shippedToday)} icon={<Truck className="size-3.5" />} />
             <MiniStat label="Delayed" value={num(f.delayedCount)} icon={<AlertTriangle className="size-3.5" />} tone={f.delayedCount > 0 ? "attn" : "normal"} />
             <MiniStat label="Delivered Today" value={num(deliveredTodayN)} icon={<Check className="size-3.5" />} tone="calm" />
@@ -839,200 +832,48 @@ function OrderOpsPage() {
           </div>
         </section>
 
-        {/* SECTION 6 — SUPPORT CENTER */}
-        <section className="rounded-3xl border border-border/60 bg-card/30 p-4 sm:p-6">
-          <SectionHeader title="Support Center" sub="Customer conversations, kept separate from fulfilment" icon={<LifeBuoy className="size-5 text-accent" />} />
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            <MiniStat label="Open Tickets" value={num(openTickets)} icon={<LifeBuoy className="size-3.5" />} tone={openTickets > 0 ? "attn" : "normal"} />
-            <MiniStat label="Urgent Tickets" value={num(urgentTickets)} icon={<AlertTriangle className="size-3.5" />} tone={urgentTickets > 0 ? "attn" : "normal"} />
-            <MiniStat label="Resolved" value={num(resolvedTickets)} icon={<Check className="size-3.5" />} tone="calm" />
+        {/* SECTION 6 — RETURNS OVERVIEW */}
+        <section>
+          <SectionHeader title="Returns Overview" sub="Replacement-first resolution pipeline" icon={<RotateCcw className="size-5 text-accent" />} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+            {returnsBuckets.map((b) => (
+              <OverviewStat
+                key={b.label}
+                label={b.label}
+                value={b.value}
+                icon={b.icon}
+                tone={b.value > 0 ? "attn" : "normal"}
+                onClick={() => focusOrders(b.label, b.orders)}
+              />
+            ))}
           </div>
         </section>
 
-        {/* Integrity monitor preserved */}
-        <OrderIntegrityMonitor />
-
-        {/* Advanced analytics — full detail preserved */}
-        <section>
-          <SectionHeader title="Advanced Analytics" sub="Deep operational reporting" icon={<Zap className="size-5 text-accent" />} />
-          <Tabs defaultValue="fulfillment">
-            <TabsList className="flex-wrap h-auto">
-              <TabsTrigger value="fulfillment">Fulfilment</TabsTrigger>
-              <TabsTrigger value="delivery">Delivery</TabsTrigger>
-              <TabsTrigger value="returns">Returns &amp; Refunds</TabsTrigger>
-              <TabsTrigger value="staff">Staff</TabsTrigger>
-              <TabsTrigger value="performance">Performance</TabsTrigger>
-            </TabsList>
-
-            {/* FULFILMENT */}
-            <TabsContent value="fulfillment" className="space-y-5 mt-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <KpiCard label="Avg Processing" value={f.avgProcessingHours != null ? `${f.avgProcessingHours.toFixed(1)}h` : "—"} icon={<Clock className="size-4" />} />
-                <KpiCard label="Avg Delivery" value={f.avgDeliveryDays != null ? `${f.avgDeliveryDays.toFixed(1)}d` : "—"} icon={<Truck className="size-4" />} />
-                <KpiCard label="Delayed" value={num(f.delayedCount)} icon={<AlertTriangle className="size-4" />} />
-                <KpiCard label="In Transit" value={num(ords.filter((o) => o.shipped_at && !o.delivered_at).length)} icon={<Zap className="size-4" />} />
-              </div>
-              <div className="grid md:grid-cols-2 gap-3">
-                <Card title="Fastest deliveries" icon={<Zap className="size-4 text-emerald-400" />}>
-                  <div className="space-y-1">{f.fastest.map((o) => <div key={o.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border/40 last:border-0"><span className="truncate">#{o.id.slice(0, 8)} · {o.full_name ?? "Guest"}</span><span className="text-emerald-400 tabular-nums">{o.deliveryDays?.toFixed(1)}d</span></div>)}{f.fastest.length === 0 && <p className="text-xs text-muted-foreground">No delivered orders yet</p>}</div>
-                </Card>
-                <Card title="Slowest deliveries" icon={<Clock className="size-4 text-destructive" />}>
-                  <div className="space-y-1">{f.slowest.map((o) => <div key={o.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border/40 last:border-0"><span className="truncate">#{o.id.slice(0, 8)} · {o.full_name ?? "Guest"}</span><span className="text-destructive tabular-nums">{o.deliveryDays?.toFixed(1)}d</span></div>)}{f.slowest.length === 0 && <p className="text-xs text-muted-foreground">No delivered orders yet</p>}</div>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* DELIVERY */}
-            <TabsContent value="delivery" className="space-y-5 mt-4">
-              <Card title="Courier performance" icon={<Truck className="size-4 text-accent" />}>
-                <div className="space-y-3">
-                  {data.courierPerformance.map((c) => (
-                    <div key={c.courier}>
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="font-medium">{c.courier}</span>
-                        <span className="text-muted-foreground">{c.shipments} shipments · {c.successRate}% success · {c.returnRate}% return · {c.avg_days != null ? `${c.avg_days.toFixed(1)}d` : "—"} · quality {c.quality}</span>
-                      </div>
-                      <Bar value={c.shipments} max={maxCourier} color={c.quality >= 70 ? "bg-emerald-400" : c.quality >= 50 ? "bg-amber-400" : "bg-destructive"} />
-                    </div>
-                  ))}
-                  {data.courierPerformance.length === 0 && <p className="text-xs text-muted-foreground">No shipment data yet</p>}
-                </div>
-              </Card>
-              <Card title="Region performance" icon={<Globe className="size-4 text-accent" />}>
-                <div className="space-y-3">
-                  {data.regionPerformance.map((r) => (
-                    <div key={r.region}>
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="font-medium">{r.region}</span>
-                        <span className="text-muted-foreground">{r.orders} orders · {inr(r.revenue)} · {r.returnRate}% return</span>
-                      </div>
-                      <Bar value={r.orders} max={maxRegion} />
-                    </div>
-                  ))}
-                  {data.regionPerformance.length === 0 && <p className="text-xs text-muted-foreground">No region data yet</p>}
-                </div>
-              </Card>
-            </TabsContent>
-
-            {/* RETURNS & REFUNDS */}
-            <TabsContent value="returns" className="space-y-5 mt-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <KpiCard label="Returns" value={num(k.returned)} icon={<RotateCcw className="size-4" />} />
-                <KpiCard label="Return Rate" value={`${data.returnRate}%`} icon={<ArrowDownRight className="size-4" />} />
-                <KpiCard label="Refunded Orders" value={num(k.refunded)} icon={<Wallet className="size-4" />} />
-                <KpiCard label="Refund Total" value={inr(k.refund_total)} icon={<ArrowDownRight className="size-4" />} />
-              </div>
-              <div className="grid md:grid-cols-2 gap-3">
-                <Card title="Return reasons" icon={<RotateCcw className="size-4 text-accent" />}>
-                  <div className="space-y-3">
-                    {data.returnReasons.map((r) => (
-                      <div key={r.reason}>
-                        <div className="flex items-center justify-between text-xs mb-1"><span className="truncate">{r.reason}</span><span className="text-muted-foreground tabular-nums">{r.cnt}</span></div>
-                        <Bar value={r.cnt} max={maxReason} color="bg-orange-400" />
-                      </div>
-                    ))}
-                    {data.returnReasons.length === 0 && <p className="text-xs text-muted-foreground">No returns yet</p>}
-                  </div>
-                </Card>
-                <Card title="Most returned products" icon={<Package className="size-4 text-accent" />}>
-                  <div className="space-y-1">
-                    {data.topReturned.map((p) => <div key={p.slug} className="flex items-center justify-between text-xs py-1.5 border-b border-border/40 last:border-0"><span className="truncate">{p.name ?? p.slug}</span><span className="text-muted-foreground tabular-nums">{p.cnt}</span></div>)}
-                    {data.topReturned.length === 0 && <p className="text-xs text-muted-foreground">No returns yet</p>}
-                  </div>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* STAFF */}
-            <TabsContent value="staff" className="space-y-5 mt-4">
-              <Card title="Support performance" icon={<Users className="size-4 text-accent" />}>
-                <div className="space-y-1">
-                  {data.staffSupport.map((s) => (
-                    <div key={s.uid} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                      <Avatar name={s.full_name} url={s.avatar_url} size={30} />
-                      <div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">{s.full_name ?? "Staff"}</p><p className="text-[11px] text-muted-foreground">{s.tickets_resolved}/{s.tickets_handled} resolved</p></div>
-                      <span className="text-[11px] text-muted-foreground">{s.avg_handling_hours != null ? `${s.avg_handling_hours.toFixed(1)}h avg` : "—"}</span>
-                    </div>
-                  ))}
-                  {data.staffSupport.length === 0 && <p className="text-xs text-muted-foreground">No staff ticket data yet</p>}
-                </div>
-              </Card>
-              <Card title="Admin activity" icon={<Zap className="size-4 text-accent" />}>
-                <div className="space-y-1">
-                  {data.staffActivity.map((s) => (
-                    <div key={s.uid} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                      <Avatar name={s.full_name} url={s.avatar_url} size={30} />
-                      <div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">{s.full_name ?? "Staff"}</p><p className="text-[11px] text-muted-foreground">{timeAgo(s.last_action)}</p></div>
-                      <span className="text-[11px] text-muted-foreground tabular-nums">{num(s.actions)} actions</span>
-                    </div>
-                  ))}
-                  {data.staffActivity.length === 0 && <p className="text-xs text-muted-foreground">No admin activity yet</p>}
-                </div>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="performance" className="space-y-5 mt-4">
-              {(() => {
-                const totPacked = staffPerf.reduce((a, s) => a + s.packed, 0);
-                const totShipped = staffPerf.reduce((a, s) => a + s.shipped, 0);
-                const totRefunds = staffPerf.reduce((a, s) => a + s.refunds_handled, 0);
-                const hrs = staffPerf.map((s) => s.avg_handling_hours).filter((h): h is number => h != null);
-                const avgHrs = hrs.length ? hrs.reduce((a, b) => a + b, 0) / hrs.length : null;
-                return (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <KpiCard label="Packed" value={num(totPacked)} icon={<Package className="size-4" />} />
-                    <KpiCard label="Shipped" value={num(totShipped)} icon={<Truck className="size-4" />} />
-                    <KpiCard label="Refunds Handled" value={num(totRefunds)} icon={<RotateCcw className="size-4" />} />
-                    <KpiCard label="Avg Handling" value={avgHrs != null ? `${avgHrs.toFixed(1)}h` : "—"} icon={<Clock className="size-4" />} />
-                  </div>
-                );
-              })()}
-              <Card title="Staff performance" icon={<Gauge className="size-4 text-accent" />}
-                actions={<span className="text-[11px] text-muted-foreground">{staffPerf.length} staff · fulfilment KPIs</span>}>
-                {staffPerf.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No fulfilment activity recorded yet. Packed, shipped and refund actions appear here as staff process orders.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="text-muted-foreground border-b border-border/60">
-                          <th className="text-left font-medium py-2 pr-3">Staff</th>
-                          <th className="text-right font-medium py-2 px-3">Packed</th>
-                          <th className="text-right font-medium py-2 px-3">Shipped</th>
-                          <th className="text-right font-medium py-2 px-3">Refunds</th>
-                          <th className="text-right font-medium py-2 px-3">Actions</th>
-                          <th className="text-right font-medium py-2 px-3">Avg Handling</th>
-                          <th className="text-right font-medium py-2 pl-3">Last Active</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {staffPerf.map((s) => (
-                          <tr key={s.uid} className="border-b border-border/40 last:border-0">
-                            <td className="py-2 pr-3">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <Avatar name={s.full_name} url={s.avatar_url} size={26} />
-                                <div className="min-w-0">
-                                  <p className="font-medium truncate">{s.full_name ?? "Staff"}</p>
-                                  <p className="text-[10px] text-muted-foreground truncate">{s.roles.join(", ") || "—"}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="text-right tabular-nums py-2 px-3">{num(s.packed)}</td>
-                            <td className="text-right tabular-nums py-2 px-3">{num(s.shipped)}</td>
-                            <td className="text-right tabular-nums py-2 px-3">{num(s.refunds_handled)}</td>
-                            <td className="text-right tabular-nums py-2 px-3">{num(s.total_actions)}</td>
-                            <td className="text-right tabular-nums py-2 px-3">{s.avg_handling_hours != null ? `${s.avg_handling_hours.toFixed(1)}h` : "—"}</td>
-                            <td className="text-right text-muted-foreground py-2 pl-3">{timeAgo(s.last_action)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </Card>
-            </TabsContent>
-          </Tabs>
+        {/* SECTION 7 — SUPPORT CENTER */}
+        <section className="rounded-3xl border border-border/60 bg-card/30 p-4 sm:p-6">
+          <SectionHeader title="Support Center" sub="Customer conversations, kept separate from fulfilment" icon={<LifeBuoy className="size-5 text-accent" />} />
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+            <MiniStat label="Open Tickets" value={num(openTickets)} icon={<LifeBuoy className="size-3.5" />} tone={openTickets > 0 ? "attn" : "normal"} />
+            <MiniStat label="Urgent Tickets" value={num(urgentTickets)} icon={<AlertTriangle className="size-3.5" />} tone={urgentTickets > 0 ? "attn" : "normal"} />
+            <MiniStat label="Resolved" value={num(resolvedTickets)} icon={<Check className="size-3.5" />} tone="calm" />
+            <MiniStat label="Return Cases" value={num(returnOrders.length)} icon={<RotateCcw className="size-3.5" />} tone={returnOrders.length > 0 ? "attn" : "normal"} />
+          </div>
         </section>
+
+        {/* ADVANCED ANALYTICS — moved to dedicated page */}
+        <Link
+          to="/admin-orders-analytics"
+          className="flex items-center justify-between gap-3 card-premium rounded-2xl p-4 sm:p-5 hover:border-accent/40 transition-colors min-h-[60px]"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent"><BarChart3 className="size-5" /></span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">Advanced Analytics</p>
+              <p className="text-[12px] text-muted-foreground truncate">Fulfilment, delivery, returns & staff reporting</p>
+            </div>
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground shrink-0" />
+        </Link>
       </div>
 
       {sel && <OrderDrawer o={sel} onClose={() => setSel(null)} onRefresh={refresh} />}
