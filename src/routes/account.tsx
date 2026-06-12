@@ -265,7 +265,7 @@ function AccountPage() {
               }}
             />
           </div>
-          <div className="relative p-4 sm:p-5 lg:p-6">
+          <div className="relative p-3.5 sm:p-4 lg:p-5">
             <div className="flex items-center gap-3 sm:gap-4">
               {/* Avatar with online status */}
               <div className="relative shrink-0 animate-float-soft">
@@ -381,15 +381,16 @@ function AccountPage() {
         </motion.section>
 
         {/* 7 — SIGN OUT */}
-        <motion.footer {...fadeUp} className="mt-1">
+        <motion.footer {...fadeUp} className="mt-1 flex justify-center">
           <button
             onClick={signOut}
-            className="group w-full flex items-center justify-center gap-2.5 rounded-2xl glass p-3.5 min-h-[48px] hover:border-destructive/50 hover:text-destructive transition-all"
+            className="group relative flex w-full max-w-sm flex-col items-center gap-2 overflow-hidden rounded-2xl card-premium px-6 py-5 hover:shadow-[var(--shadow-soft)] transition-all active:scale-[0.98]"
           >
-            <span className="size-8 rounded-lg bg-destructive/10 text-destructive grid place-items-center group-hover:bg-destructive/20 transition-colors">
-              <LogOut className="size-4" />
+            <span className="size-11 rounded-2xl bg-destructive/10 text-destructive grid place-items-center ring-1 ring-destructive/20 group-hover:bg-destructive/20 group-hover:scale-105 transition-all">
+              <LogOut className="size-[18px]" />
             </span>
-            <span className="text-[11px] font-medium uppercase tracking-widest">Sign out</span>
+            <span className="text-sm font-display font-semibold group-hover:text-destructive transition-colors">Sign out</span>
+            <span className="text-[11px] text-muted-foreground">End your secure session</span>
           </button>
         </motion.footer>
       </div>
@@ -838,7 +839,7 @@ function ProfileCompletion({ user, profile }: { user: { email?: string | null; u
   const pct = Math.round((done / checks.length) * 100);
   if (pct === 100) return null;
   return (
-    <div className="mt-2 hidden sm:block">
+    <div className="mt-2.5 block">
       <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
         <span>Profile {pct}%</span>
         <Link to="/account/profile" className="text-accent hover:underline">Complete</Link>
@@ -1078,14 +1079,15 @@ function HubCard({
         transition={{ duration: 0.25, ease }}
         className="relative h-full min-h-[112px] overflow-hidden rounded-2xl p-4 sm:p-5 card-premium hover:shadow-[var(--shadow-soft)]"
       >
+        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50 bg-gradient-to-br from-white/[0.04] to-transparent" />
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"
+          className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"
           style={{ background: t.glow }}
         />
         <div className="relative flex items-start justify-between">
-          <span className={`size-10 rounded-xl grid place-items-center transition-transform group-hover:scale-105 ${t.icon}`}>
-            <Icon className="size-[18px]" />
+          <span className={`size-11 rounded-2xl grid place-items-center transition-transform group-hover:scale-105 ${t.icon}`}>
+            <Icon className="size-5" />
           </span>
           <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all" />
         </div>
@@ -1135,9 +1137,9 @@ function AccountActionRow({
   to, icon: Icon, label, sublabel,
 }: { to: string; icon: typeof Package; label: string; sublabel: string }) {
   return (
-    <Link to={to} className="group flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 hover:bg-accent/5 transition-colors">
-      <span className="size-9 rounded-xl bg-accent/10 text-accent grid place-items-center shrink-0 group-hover:bg-accent/20 transition-colors">
-        <Icon className="size-4" />
+    <Link to={to} className="group flex items-center gap-3 px-4 py-3.5 sm:px-5 min-h-[56px] hover:bg-accent/5 active:bg-accent/10 transition-colors">
+      <span className="size-10 rounded-xl bg-accent/10 text-accent grid place-items-center shrink-0 group-hover:bg-accent/20 group-hover:scale-105 transition-all">
+        <Icon className="size-[18px]" />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium group-hover:text-accent transition-colors">{label}</p>
@@ -1183,17 +1185,17 @@ function ContinueShopping({ items, format }: { items: Product[]; format: (n: num
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.4, ease, delay: Math.min(i * 0.05, 0.3) }}
-            className="snap-start shrink-0 w-[64%] xs:w-[56%] sm:w-[40%] lg:w-[28%] max-w-[260px] group"
+            className="snap-start shrink-0 w-[68%] xs:w-[60%] sm:w-[42%] lg:w-[30%] max-w-[280px] group"
           >
-            <div className="h-full card-premium rounded-2xl p-2.5 sm:p-3 hover:shadow-[0_22px_60px_-22px_oklch(0.74_0.19_49/0.55)] transition-shadow duration-500">
+            <div className="h-full card-premium rounded-2xl p-3 hover:shadow-[0_22px_60px_-22px_oklch(0.74_0.19_49/0.55)] transition-shadow duration-500">
               <Link to="/products/$slug" params={{ slug: p.slug }} className="block">
-                <div className="aspect-[4/5] rounded-xl overflow-hidden bg-black/40">
+                <div className="aspect-square rounded-xl overflow-hidden bg-black/40">
                   <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
               </Link>
-              <div className="px-1 pt-2.5 pb-1">
+              <div className="px-0.5 pt-3 pb-0.5">
                 <Link to="/products/$slug" params={{ slug: p.slug }}>
-                  <p className="text-[13px] sm:text-sm font-medium leading-snug line-clamp-2 group-hover:text-accent transition-colors">{p.name}</p>
+                  <p className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-accent transition-colors">{p.name}</p>
                 </Link>
                 {typeof p.rating === "number" && p.rating > 0 && (
                   <div className="mt-1.5 flex items-center gap-1 text-amber-400">
@@ -1201,12 +1203,12 @@ function ContinueShopping({ items, format }: { items: Product[]; format: (n: num
                     <span className="text-[11px] font-mono tabular-nums text-muted-foreground">{p.rating.toFixed(1)}</span>
                   </div>
                 )}
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <span className="font-mono text-sm text-accent tabular-nums truncate">{format(Number(p.price))}</span>
+                <div className="mt-2.5 flex items-center justify-between gap-2">
+                  <span className="font-display font-semibold text-base text-accent tabular-nums truncate">{format(Number(p.price))}</span>
                   <button
                     onClick={() => add(p.slug)}
                     aria-label="Add to cart"
-                    className="shrink-0 size-9 grid place-items-center rounded-full bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+                    className="shrink-0 size-10 grid place-items-center rounded-full bg-accent text-accent-foreground shadow-[var(--shadow-ember)] hover:brightness-110 active:scale-90 transition-all"
                   >
                     <Plus className="size-4" />
                   </button>
