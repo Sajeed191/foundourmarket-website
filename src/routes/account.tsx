@@ -1079,14 +1079,15 @@ function HubCard({
         transition={{ duration: 0.25, ease }}
         className="relative h-full min-h-[112px] overflow-hidden rounded-2xl p-4 sm:p-5 card-premium hover:shadow-[var(--shadow-soft)]"
       >
+        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50 bg-gradient-to-br from-white/[0.04] to-transparent" />
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"
+          className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"
           style={{ background: t.glow }}
         />
         <div className="relative flex items-start justify-between">
-          <span className={`size-10 rounded-xl grid place-items-center transition-transform group-hover:scale-105 ${t.icon}`}>
-            <Icon className="size-[18px]" />
+          <span className={`size-11 rounded-2xl grid place-items-center transition-transform group-hover:scale-105 ${t.icon}`}>
+            <Icon className="size-5" />
           </span>
           <ChevronRight className="size-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all" />
         </div>
