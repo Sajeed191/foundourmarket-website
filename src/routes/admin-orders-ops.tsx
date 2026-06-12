@@ -1,22 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import {
   ShoppingBag, Loader2, AlertTriangle, Download, RefreshCw, Search, X,
   Package, Truck, RotateCcw, Wallet, Globe, ShieldAlert, Sparkles,
   Clock, Zap, Gauge, TrendingUp, Users, CreditCard, MapPin, Mail, ArrowDownRight,
   Phone, Receipt, Bell, ShieldCheck, Copy, Check, LifeBuoy,
-  CheckCircle2, XCircle, ChevronDown, Hash, Calendar,
+  CheckCircle2, XCircle, ChevronDown, Hash, Calendar, BarChart3, ArrowRight,
+  PackageCheck, RefreshCcw,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { KpiCard } from "@/components/admin/KpiCard";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useOrderOperations } from "@/lib/use-order-operations";
 import { fetchOrderDetail } from "@/lib/order-operations";
 import type { EnrichedOrder, OrderOps, WarRoomTag, OrderDetail } from "@/lib/order-operations";
 import { exportRows, exportJson, type ExportFormat } from "@/lib/traffic-export";
 import { OrderActionCenter } from "@/components/admin/OrderActionCenter";
 import { openInvoice } from "@/lib/order-invoice";
-import { OrderIntegrityMonitor } from "@/components/admin/OrderIntegrityMonitor";
 
 export const Route = createFileRoute("/admin-orders-ops")({
   head: () => ({ meta: [{ title: "Order Operations Center — Admin" }] }),

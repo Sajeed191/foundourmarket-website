@@ -52,6 +52,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin-products'
 import { Route as AdminPerformanceRouteImport } from './routes/admin-performance'
 import { Route as AdminPaymentsRouteImport } from './routes/admin-payments'
 import { Route as AdminOrdersOpsRouteImport } from './routes/admin-orders-ops'
+import { Route as AdminOrdersAnalyticsRouteImport } from './routes/admin-orders-analytics'
 import { Route as AdminOrdersRouteImport } from './routes/admin-orders'
 import { Route as AdminNotificationsRouteImport } from './routes/admin-notifications'
 import { Route as AdminMerchandisingRouteImport } from './routes/admin-merchandising'
@@ -350,6 +351,11 @@ const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
 const AdminOrdersOpsRoute = AdminOrdersOpsRouteImport.update({
   id: '/admin-orders-ops',
   path: '/admin-orders-ops',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOrdersAnalyticsRoute = AdminOrdersAnalyticsRouteImport.update({
+  id: '/admin-orders-analytics',
+  path: '/admin-orders-analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
@@ -826,6 +832,7 @@ export interface FileRoutesByFullPath {
   '/admin-merchandising': typeof AdminMerchandisingRoute
   '/admin-notifications': typeof AdminNotificationsRoute
   '/admin-orders': typeof AdminOrdersRoute
+  '/admin-orders-analytics': typeof AdminOrdersAnalyticsRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
   '/admin-performance': typeof AdminPerformanceRoute
@@ -955,6 +962,7 @@ export interface FileRoutesByTo {
   '/admin-merchandising': typeof AdminMerchandisingRoute
   '/admin-notifications': typeof AdminNotificationsRoute
   '/admin-orders': typeof AdminOrdersRoute
+  '/admin-orders-analytics': typeof AdminOrdersAnalyticsRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
   '/admin-performance': typeof AdminPerformanceRoute
@@ -1084,6 +1092,7 @@ export interface FileRoutesById {
   '/admin-merchandising': typeof AdminMerchandisingRoute
   '/admin-notifications': typeof AdminNotificationsRoute
   '/admin-orders': typeof AdminOrdersRoute
+  '/admin-orders-analytics': typeof AdminOrdersAnalyticsRoute
   '/admin-orders-ops': typeof AdminOrdersOpsRoute
   '/admin-payments': typeof AdminPaymentsRoute
   '/admin-performance': typeof AdminPerformanceRoute
@@ -1215,6 +1224,7 @@ export interface FileRouteTypes {
     | '/admin-merchandising'
     | '/admin-notifications'
     | '/admin-orders'
+    | '/admin-orders-analytics'
     | '/admin-orders-ops'
     | '/admin-payments'
     | '/admin-performance'
@@ -1344,6 +1354,7 @@ export interface FileRouteTypes {
     | '/admin-merchandising'
     | '/admin-notifications'
     | '/admin-orders'
+    | '/admin-orders-analytics'
     | '/admin-orders-ops'
     | '/admin-payments'
     | '/admin-performance'
@@ -1472,6 +1483,7 @@ export interface FileRouteTypes {
     | '/admin-merchandising'
     | '/admin-notifications'
     | '/admin-orders'
+    | '/admin-orders-analytics'
     | '/admin-orders-ops'
     | '/admin-payments'
     | '/admin-performance'
@@ -1602,6 +1614,7 @@ export interface RootRouteChildren {
   AdminMerchandisingRoute: typeof AdminMerchandisingRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminOrdersAnalyticsRoute: typeof AdminOrdersAnalyticsRoute
   AdminOrdersOpsRoute: typeof AdminOrdersOpsRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminPerformanceRoute: typeof AdminPerformanceRoute
@@ -1981,6 +1994,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-orders-ops'
       fullPath: '/admin-orders-ops'
       preLoaderRoute: typeof AdminOrdersOpsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-orders-analytics': {
+      id: '/admin-orders-analytics'
+      path: '/admin-orders-analytics'
+      fullPath: '/admin-orders-analytics'
+      preLoaderRoute: typeof AdminOrdersAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-orders': {
@@ -2683,6 +2703,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminMerchandisingRoute: AdminMerchandisingRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
+  AdminOrdersAnalyticsRoute: AdminOrdersAnalyticsRoute,
   AdminOrdersOpsRoute: AdminOrdersOpsRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminPerformanceRoute: AdminPerformanceRoute,
@@ -2763,13 +2784,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
