@@ -13,6 +13,7 @@ export function NotificationBell() {
   const [filter, setFilter] = useState<Filter>("all");
   const [pulse, setPulse] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const prevUnread = useRef(unread);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -24,7 +25,10 @@ export function NotificationBell() {
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (ref.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
