@@ -410,7 +410,7 @@ export function ReturnAdminCard({
         )}
       </section>
 
-      <div className="sticky bottom-0 -mx-4 sm:-mx-5 mt-4 px-4 sm:px-5 pt-3 pb-1 bg-gradient-to-t from-card via-card/95 to-transparent backdrop-blur-sm border-t border-border/40 rounded-b-2xl">
+      <div className="sticky bottom-0 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 px-4 sm:px-6 pt-3 pb-4 bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-sm border-t border-border/40">
         {r.status === "requested" && (
           <div className="flex flex-wrap gap-2 mb-2">
             <button
