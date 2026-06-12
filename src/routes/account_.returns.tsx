@@ -96,6 +96,8 @@ type ReturnRow = {
   reason: string;
   refund_amount: number;
   refund_status: string;
+  resolution_type: string;
+  replacement_status: string;
   created_at: string;
 };
 
