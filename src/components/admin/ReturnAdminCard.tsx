@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  User, Mail, Phone, MapPin, Check, X, Package, ImageOff,
+  User, Mail, Phone, MapPin, Check, X, Package, ImageOff, Images,
   CalendarClock, ShieldCheck, ShieldX, Receipt, Truck, CreditCard,
   Wallet, RotateCcw, Clock,
 } from "lucide-react";
@@ -267,7 +267,7 @@ export function ReturnAdminCard({
       {photos.length > 0 && (
         <section className="mt-3 rounded-xl border border-border/60 bg-background/40 p-3">
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
-            <ImageOff className="size-3.5 text-accent" /> Customer Evidence ({photos.length})
+            <Images className="size-3.5 text-accent" /> Customer Evidence ({photos.length})
           </p>
           <div className="flex flex-wrap gap-2">
             {photos.map((url, i) => (
