@@ -70,6 +70,13 @@ function OrderDetailPage() {
       .eq("order_id", id)
       .order("created_at", { ascending: true })
       .then(({ data }) => setShipments((data as Shipment[]) ?? []));
+    supabase
+      .from("returns")
+      .select("id,status,reason,resolution_type,replacement_status,refund_status,refund_amount,created_at")
+      .eq("order_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => setReturnRec(((data as ReturnRec[]) ?? [])[0] ?? null));
   }, [user, id]);
 
   if (authLoading || order === undefined) {
