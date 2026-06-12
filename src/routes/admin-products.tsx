@@ -55,6 +55,7 @@ type Product = {
 
 type Category = { slug: string; name: string; id?: string; parent_id?: string | null };
 type Stat = { units: number; revenue: number; orders: number };
+type CatalogSummary = Awaited<ReturnType<typeof adminProductsSummary>>;
 
 const inr = (v: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(v) || 0);
