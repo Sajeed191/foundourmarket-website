@@ -134,6 +134,7 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
       returns: (retRes.data as Return[]) ?? [],
       notifications,
       returnWindowDays,
+      returnEligible,
       cost,
     };
     if (reqRef.current !== id) return;
