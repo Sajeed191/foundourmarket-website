@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   User, Mail, Phone, MapPin, Check, X, Package, ImageOff, Images,
   CalendarClock, ShieldCheck, ShieldX, Receipt, Truck, CreditCard,
-  Wallet, RotateCcw, Clock, ChevronDown,
+  Wallet, RotateCcw, Clock, ChevronDown, Repeat, AlertTriangle,
 } from "lucide-react";
 import type { AdminReturnRow } from "@/lib/returns-admin.functions";
 import type { Product } from "@/lib/products";
@@ -10,6 +10,7 @@ import { ImageLightbox } from "@/components/site/ImageLightbox";
 
 const RETURN_STATUSES = ["requested", "approved", "received", "completed", "rejected"] as const;
 const REFUND_STATUSES = ["pending", "issued", "failed"] as const;
+const REPLACEMENT_STATUSES = ["pending", "approved", "processing", "shipped", "delivered"] as const;
 
 const STATUS_TONE: Record<string, string> = {
   requested: "text-amber-400 border-amber-400/30 bg-amber-400/10",
@@ -19,7 +20,7 @@ const STATUS_TONE: Record<string, string> = {
   rejected: "text-rose-400 border-rose-400/30 bg-rose-400/10",
 };
 
-const TIMELINE = [
+const REFUND_TIMELINE = [
   { key: "requested", label: "Requested" },
   { key: "approved", label: "Approved" },
   { key: "received", label: "Item Received" },
@@ -27,11 +28,27 @@ const TIMELINE = [
   { key: "completed", label: "Refund Completed" },
 ] as const;
 
-function timelineIndex(r: AdminReturnRow): number {
+const REPLACEMENT_TIMELINE = [
+  { key: "requested", label: "Requested" },
+  { key: "approved", label: "Replacement Approved" },
+  { key: "processing", label: "Replacement Processing" },
+  { key: "shipped", label: "Replacement Shipped" },
+  { key: "delivered", label: "Replacement Delivered" },
+] as const;
+
+function refundTimelineIndex(r: AdminReturnRow): number {
   if (r.refund_status === "issued") return 4;
   if (r.status === "completed") return 4;
   if (r.status === "received") return 3;
   if (r.status === "approved") return 1;
+  return 0;
+}
+
+function replacementTimelineIndex(r: AdminReturnRow): number {
+  if (r.replacement_status === "delivered") return 4;
+  if (r.replacement_status === "shipped") return 3;
+  if (r.replacement_status === "processing") return 2;
+  if (r.replacement_status === "approved" || r.status === "approved") return 1;
   return 0;
 }
 
@@ -73,7 +90,15 @@ export function ReturnAdminCard({
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [customerOpen, setCustomerOpen] = useState(false);
   const photos = (r.photo_urls ?? []).filter(Boolean);
-  const activeIdx = r.status === "rejected" ? -1 : timelineIndex(r);
+
+  const resolution = r.resolution_type === "refund" ? "refund" : "replacement";
+  const TIMELINE = resolution === "refund" ? REFUND_TIMELINE : REPLACEMENT_TIMELINE;
+  const activeIdx =
+    r.status === "rejected"
+      ? -1
+      : resolution === "refund"
+        ? refundTimelineIndex(r)
+        : replacementTimelineIndex(r);
 
   // Return Intelligence values
   const deliveredAt = r.order.fulfilled_at;
@@ -83,6 +108,12 @@ export function ReturnAdminCard({
   const windowDays = firstProduct?.returnWindowDays ?? null;
   const withinWindow =
     daysSinceDelivery != null && windowDays != null ? daysSinceDelivery <= windowDays : null;
+
+  const isApproved = ["approved", "received", "completed"].includes(r.status);
+  // Refund is only eligible when the request is approved, the product qualifies,
+  // it's within the return window, and admin has chosen refund (replacement unavailable).
+  const refundEligible =
+    resolution === "refund" && isApproved && eligible !== false && withinWindow !== false;
 
   return (
     <div className="card-premium rounded-2xl p-4 sm:p-5">
@@ -336,7 +367,72 @@ export function ReturnAdminCard({
         </section>
       )}
 
-      {/* Sticky actions */}
+      {/* Resolution method (replacement-first) */}
+      <section className="mt-4 rounded-xl border border-border/60 bg-background/40 p-3">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
+          <Repeat className="size-3.5 text-accent" /> Resolution Method
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => onUpdate(r.id, { resolution_type: "replacement" })}
+            className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-[11px] font-mono uppercase tracking-widest transition-colors ${
+              resolution === "replacement"
+                ? "border-accent bg-accent/15 text-accent"
+                : "border-border bg-background text-muted-foreground hover:border-accent/40"
+            }`}
+          >
+            <Repeat className="size-3.5" /> Replacement
+          </button>
+          <button
+            type="button"
+            onClick={() => onUpdate(r.id, { resolution_type: "refund" })}
+            className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-[11px] font-mono uppercase tracking-widest transition-colors ${
+              resolution === "refund"
+                ? "border-amber-400 bg-amber-400/15 text-amber-400"
+                : "border-border bg-background text-muted-foreground hover:border-amber-400/40"
+            }`}
+          >
+            <Wallet className="size-3.5" /> Refund
+          </button>
+        </div>
+
+        {resolution === "replacement" ? (
+          <div className="mt-3">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Replacement Status
+            </label>
+            <select
+              value={r.replacement_status}
+              onChange={(e) => onUpdate(r.id, { replacement_status: e.target.value })}
+              className="mt-1.5 w-full bg-background border border-border rounded-md px-3 py-2 min-h-[44px] text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent"
+            >
+              {REPLACEMENT_STATUSES.map((s) => (
+                <option key={s} value={s}>replacement: {s}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="mt-3 space-y-2.5">
+            <div className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-400">
+              <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
+              <span>Refunds should only be used when replacement is unavailable.</span>
+            </div>
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="text-muted-foreground font-mono uppercase tracking-wider">Refund Eligible</span>
+              <span className={`inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider px-2 py-1 rounded-full border ${
+                refundEligible
+                  ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
+                  : "text-rose-400 border-rose-400/30 bg-rose-400/10"
+              }`}>
+                {refundEligible ? <ShieldCheck className="size-3" /> : <ShieldX className="size-3" />}
+                {refundEligible ? "Yes" : "No"}
+              </span>
+            </div>
+          </div>
+        )}
+      </section>
+
       <div className="sticky bottom-0 -mx-4 sm:-mx-5 mt-4 px-4 sm:px-5 pt-3 pb-1 bg-gradient-to-t from-card via-card/95 to-transparent backdrop-blur-sm border-t border-border/40 rounded-b-2xl">
         {r.status === "requested" && (
           <div className="flex flex-wrap gap-2 mb-2">
@@ -354,7 +450,7 @@ export function ReturnAdminCard({
             </button>
           </div>
         )}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className={`grid grid-cols-1 gap-2 ${resolution === "refund" ? "sm:grid-cols-3" : ""}`}>
           <select
             value={r.status}
             onChange={(e) => onUpdate(r.id, { status: e.target.value })}
@@ -362,21 +458,25 @@ export function ReturnAdminCard({
           >
             {RETURN_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <input
-            type="number"
-            step="0.01"
-            defaultValue={r.refund_amount}
-            placeholder="Refund"
-            onBlur={(e) => Number(e.target.value) !== Number(r.refund_amount) && onUpdate(r.id, { refund_amount: Number(e.target.value) })}
-            className="bg-background border border-border rounded-md px-3 py-2 min-h-[44px] text-xs focus:outline-none focus:border-accent font-mono"
-          />
-          <select
-            value={r.refund_status}
-            onChange={(e) => onUpdate(r.id, { refund_status: e.target.value })}
-            className="bg-background border border-border rounded-md px-3 py-2 min-h-[44px] text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent"
-          >
-            {REFUND_STATUSES.map((s) => <option key={s} value={s}>refund: {s}</option>)}
-          </select>
+          {resolution === "refund" && (
+            <>
+              <input
+                type="number"
+                step="0.01"
+                defaultValue={r.refund_amount}
+                placeholder="Refund"
+                onBlur={(e) => Number(e.target.value) !== Number(r.refund_amount) && onUpdate(r.id, { refund_amount: Number(e.target.value) })}
+                className="bg-background border border-border rounded-md px-3 py-2 min-h-[44px] text-xs focus:outline-none focus:border-accent font-mono"
+              />
+              <select
+                value={r.refund_status}
+                onChange={(e) => onUpdate(r.id, { refund_status: e.target.value })}
+                className="bg-background border border-border rounded-md px-3 py-2 min-h-[44px] text-[10px] font-mono uppercase tracking-widest text-accent focus:outline-none focus:border-accent"
+              >
+                {REFUND_STATUSES.map((s) => <option key={s} value={s}>refund: {s}</option>)}
+              </select>
+            </>
+          )}
         </div>
       </div>
     </div>

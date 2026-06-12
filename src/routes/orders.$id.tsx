@@ -40,6 +40,7 @@ type Order = {
 
 type ShipmentEvent = { id: string; status: string; description: string | null; location: string | null; occurred_at: string };
 type Shipment = { id: string; status: string; carrier: string | null; tracking_number: string | null; tracking_url: string | null; shipped_at: string | null; delivered_at: string | null; shipment_events: ShipmentEvent[] };
+type ReturnRec = { id: string; status: string; reason: string; resolution_type: string; replacement_status: string; refund_status: string; refund_amount: number | null; created_at: string };
 
 function OrderDetailPage() {
   const { id } = Route.useParams();
@@ -49,6 +50,7 @@ function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [returnOpen, setReturnOpen] = useState(false);
+  const [returnRec, setReturnRec] = useState<ReturnRec | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) nav({ to: "/auth" });
@@ -68,6 +70,13 @@ function OrderDetailPage() {
       .eq("order_id", id)
       .order("created_at", { ascending: true })
       .then(({ data }) => setShipments((data as Shipment[]) ?? []));
+    supabase
+      .from("returns")
+      .select("id,status,reason,resolution_type,replacement_status,refund_status,refund_amount,created_at")
+      .eq("order_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => setReturnRec(((data as ReturnRec[]) ?? [])[0] ?? null));
   }, [user, id]);
 
   if (authLoading || order === undefined) {
@@ -246,6 +255,29 @@ function OrderDetailPage() {
             </motion.div>
           )}
 
+          {returnRec && (
+            <div className="rounded-2xl border border-border p-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Resolution Method</p>
+                  <p className="text-sm font-medium mt-1 flex items-center gap-2">
+                    <RotateCcw className="size-3.5 text-accent" />
+                    {returnRec.resolution_type === "refund" ? "Refund" : "Replacement"}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Status</p>
+                  <p className="text-sm font-semibold text-accent capitalize mt-1">
+                    {returnRec.status === "rejected"
+                      ? "Rejected"
+                      : returnRec.resolution_type === "refund"
+                        ? returnRec.refund_status
+                        : (returnRec.replacement_status || "pending")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           {returnWindowOpen && user && (
             <>
               <button
