@@ -361,7 +361,7 @@ function ProductsInner() {
     if (tag !== "all") list = list.filter((p) => matchesTag(p, tag));
     if (searchTerm) {
       list = list.filter((p) =>
-        [p.name, p.sku, p.category, p.slug, p.tagline].some((v) => (v ?? "").toLowerCase().includes(searchTerm)));
+        [p.name, p.sku, p.category, p.slug, p.tagline, p.id].some((v) => (v ?? "").toLowerCase().includes(searchTerm)));
     }
     const conv = (p: Product) => (p.views_count > 0 ? (stats[p.slug]?.units ?? 0) / p.views_count : 0);
     list.sort((a, b) => {
