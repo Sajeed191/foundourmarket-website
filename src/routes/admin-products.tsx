@@ -235,14 +235,24 @@ function ProductsInner() {
     setOrdersToday(ordersTodayCount);
   }, []);
 
+  const loadSummary = useCallback(async () => {
+    try {
+      const s = await fetchSummary();
+      setSummary(s as CatalogSummary);
+    } catch {
+      /* non-fatal: intelligence panels fall back to client-derived values */
+    }
+  }, [fetchSummary]);
+
   const reloadAll = useCallback(() => {
     setPulse(true);
     setTimeout(() => setPulse(false), 1000);
     loadProducts();
     loadStats();
-  }, [loadProducts, loadStats]);
+    loadSummary();
+  }, [loadProducts, loadStats, loadSummary]);
 
-  useEffect(() => { loadProducts(); loadCategories(); loadStats(); }, [loadProducts, loadCategories, loadStats]);
+  useEffect(() => { loadProducts(); loadCategories(); loadStats(); loadSummary(); }, [loadProducts, loadCategories, loadStats, loadSummary]);
 
   // Realtime catalog + order sync
   useEffect(() => {
