@@ -101,6 +101,14 @@ function AccountPage() {
         .then(({ data }) => setOrders((data as Order[]) ?? []));
 
     loadOrders();
+    const loadReturns = () =>
+      supabase
+        .from("returns")
+        .select("id,order_id,status,refund_status,refund_amount,created_at")
+        .order("created_at", { ascending: false })
+        .limit(20)
+        .then(({ data }) => setReturns((data as Return[]) ?? []));
+    loadReturns();
     supabase
       .from("profiles")
       .select("full_name,phone,avatar_url")
