@@ -68,6 +68,9 @@ function DetailsPage() {
         seo_title: f.seo_title.trim() || null,
         seo_description: f.seo_description.trim() || null,
         meta_keywords: parseList(f.keywords),
+        rating: Math.max(0, Math.min(5, Number(f.rating) || 0)),
+        reviews: Math.max(0, Math.floor(Number(f.reviews) || 0)),
+        rating_source: f.rating_source || "manual",
       })}
       validate={(f) => (f.name.trim() ? null : "Product name is required.")}
     >
