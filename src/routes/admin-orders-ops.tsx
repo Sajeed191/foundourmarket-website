@@ -145,27 +145,26 @@ function ExportMenu({ data }: { data: OrderOps }) {
 
 function OrderRow({ o, onClick }: { o: EnrichedOrder; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="w-full text-left grid grid-cols-[auto_1fr_auto] gap-3 items-center p-3 rounded-xl hover:bg-muted/40 transition-colors border border-transparent hover:border-border">
-      <Avatar name={o.full_name} url={o.avatar_url} />
+    <button onClick={onClick} className="w-full text-left grid grid-cols-[auto_1fr_auto] gap-3 sm:gap-4 items-center p-3 sm:p-3.5 rounded-xl hover:bg-muted/30 transition-colors border border-transparent hover:border-border/70 active:bg-muted/40">
+      <Avatar name={o.full_name} url={o.avatar_url} size={40} />
       <div className="min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium truncate">{o.full_name ?? o.contact_email ?? "Guest"}</span>
-          <span className="text-[10px] font-mono text-muted-foreground">#{o.id.slice(0, 8)}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-sm font-semibold truncate">{o.full_name ?? o.contact_email ?? "Guest"}</span>
           <RiskBadge score={o.riskScore} />
         </div>
-        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-          {o.tags.slice(0, 4).map((t) => <TagPill key={t} t={t} />)}
-        </div>
         <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-          <StatusPill s={o.status} />
-          <span>{o.units} item{o.units !== 1 ? "s" : ""}</span>
-          <span>·</span>
+          <span className="font-mono">#{o.id.slice(0, 8)}</span>
+          <span className="text-border">·</span>
           <span>{timeAgo(o.created_at)}</span>
         </div>
+        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+          <StatusPill s={o.status} />
+          {o.tags.slice(0, 2).map((t) => <TagPill key={t} t={t} />)}
+        </div>
       </div>
-      <div className="text-right">
+      <div className="text-right shrink-0">
         <div className="text-sm font-semibold tabular-nums">{inr(o.total)}</div>
-        <div className={`text-[11px] tabular-nums ${o.profit < 0 ? "text-destructive" : "text-emerald-400"}`}>{o.profit < 0 ? "−" : "+"}{inr(Math.abs(o.profit))}</div>
+        <div className={`text-[11px] tabular-nums mt-0.5 ${o.profit < 0 ? "text-destructive" : "text-emerald-400"}`}>{o.profit < 0 ? "−" : "+"}{inr(Math.abs(o.profit))}</div>
       </div>
     </button>
   );
@@ -418,12 +417,12 @@ type Tone = "attn" | "calm" | "normal";
 
 function SectionHeader({ title, sub, icon, actions }: { title: string; sub?: string; icon?: React.ReactNode; actions?: React.ReactNode }) {
   return (
-    <div className="flex items-end justify-between gap-3 mb-4">
+    <div className="flex items-end justify-between gap-3 mb-5">
       <div className="min-w-0">
-        <h2 className="text-lg sm:text-xl font-display font-semibold flex items-center gap-2 tracking-tight">{icon}{title}</h2>
-        {sub && <p className="text-[12px] text-muted-foreground mt-0.5">{sub}</p>}
+        <h2 className="text-lg sm:text-xl font-display font-semibold flex items-center gap-2.5 tracking-tight">{icon}<span className="truncate">{title}</span></h2>
+        {sub && <p className="text-[12px] text-muted-foreground mt-1 leading-snug">{sub}</p>}
       </div>
-      {actions}
+      {actions && <div className="shrink-0">{actions}</div>}
     </div>
   );
 }
@@ -431,21 +430,20 @@ function SectionHeader({ title, sub, icon, actions }: { title: string; sub?: str
 function OverviewStat({ label, value, icon, tone, onClick }: { label: string; value: number; icon: React.ReactNode; tone: Tone; onClick?: () => void }) {
   const active = tone === "attn" && value > 0;
   const cls = active
-    ? "border-amber-400/40 bg-amber-400/[0.07]"
-    : tone === "calm"
-      ? "border-emerald-400/25 bg-emerald-400/[0.04]"
-      : "border-border/70 bg-card/40";
+    ? "border-amber-400/40 bg-amber-400/[0.06]"
+    : "border-border/60 bg-card/30";
+  const accentCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent";
   const valueCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-2xl border p-4 transition-all hover:border-accent/40 ${cls}`}
+      className={`text-left rounded-2xl border p-4 transition-colors hover:border-accent/40 ${cls}`}
     >
-      <div className="flex items-center gap-1.5 text-muted-foreground mb-2">
-        <span className={active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent"}>{icon}</span>
-        <span className="text-[10px] font-mono uppercase tracking-[0.18em] truncate">{label}</span>
+      <div className="flex items-center gap-2 text-muted-foreground mb-3">
+        <span className={accentCls}>{icon}</span>
+        <span className="text-[10px] font-mono uppercase tracking-[0.16em] truncate">{label}</span>
       </div>
-      <p className={`text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
+      <p className={`text-[28px] sm:text-3xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{num(value)}</p>
     </button>
   );
 }
@@ -456,23 +454,30 @@ const PRIORITY_TONE: Record<string, string> = {
   medium: "text-sky-300 border-sky-400/40 bg-sky-400/10",
 };
 
+const PRIORITY_BAR: Record<string, string> = {
+  critical: "bg-destructive",
+  high: "bg-amber-400",
+  medium: "bg-sky-400",
+};
+
 function ActionGroup({ label, count, priority, icon, onView }: { label: string; count: number; priority: "critical" | "high" | "medium"; icon: React.ReactNode; onView: () => void }) {
   const dim = count === 0;
   return (
-    <div className={`rounded-2xl border p-4 flex flex-col gap-3 transition-all ${dim ? "border-border/50 bg-card/30 opacity-70" : "card-premium"}`}>
+    <div className={`relative overflow-hidden rounded-2xl border p-4 pl-5 flex flex-col gap-4 transition-colors ${dim ? "border-border/50 bg-card/30" : "border-border/70 bg-card/50 hover:border-accent/40"}`}>
+      <span className={`absolute left-0 top-0 bottom-0 w-1 ${dim ? "bg-border/50" : PRIORITY_BAR[priority]}`} />
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-accent shrink-0">{icon}</span>
+          <span className={dim ? "text-muted-foreground shrink-0" : "text-accent shrink-0"}>{icon}</span>
           <span className="text-sm font-medium truncate">{label}</span>
         </div>
         <span className={`shrink-0 text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full border ${PRIORITY_TONE[priority]}`}>{priority}</span>
       </div>
       <div className="flex items-end justify-between gap-2">
-        <span className="text-3xl font-display font-semibold tabular-nums leading-none">{num(count)}</span>
+        <span className={`text-[32px] font-display font-semibold tabular-nums leading-none ${dim ? "text-muted-foreground/60" : "text-foreground"}`}>{num(count)}</span>
         <button
           onClick={onView}
           disabled={dim}
-          className="text-[11px] font-medium px-3 py-1.5 rounded-lg border border-border hover:border-accent/40 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1"
+          className="text-[11px] font-medium px-3 py-1.5 rounded-lg border border-border hover:border-accent/40 hover:bg-muted/30 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 transition-colors"
         >
           View <ArrowDownRight className="size-3" />
         </button>
@@ -482,22 +487,26 @@ function ActionGroup({ label, count, priority, icon, onView }: { label: string; 
 }
 
 function PipelineStage({ label, value, icon, last }: { label: string; value: number; icon: React.ReactNode; last?: boolean }) {
+  const cur = value > 0;
   return (
-    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-      <div className="rounded-2xl border border-border/70 bg-card/50 px-4 py-3 min-w-[110px] text-center">
-        <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-1.5"><span className="text-accent">{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.12em]">{label}</span></div>
-        <p className="text-2xl font-display font-semibold tabular-nums leading-none">{num(value)}</p>
+    <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+      <div className={`rounded-2xl border px-4 py-3.5 min-w-[120px] text-center transition-colors ${cur ? "border-accent/30 bg-accent/[0.04]" : "border-border/60 bg-card/40"}`}>
+        <div className="flex items-center justify-center gap-1.5 text-muted-foreground mb-2"><span className={cur ? "text-accent" : "text-muted-foreground"}>{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.12em]">{label}</span></div>
+        <p className={`text-2xl font-display font-semibold tabular-nums leading-none ${cur ? "text-foreground" : "text-muted-foreground/60"}`}>{num(value)}</p>
       </div>
-      {!last && <span className="text-muted-foreground/40 text-lg shrink-0">→</span>}
+      {!last && <span className="text-muted-foreground/30 text-xl shrink-0">→</span>}
     </div>
   );
 }
 
 function MiniStat({ label, value, icon, tone }: { label: string; value: string; icon: React.ReactNode; tone?: Tone }) {
-  const valueCls = tone === "attn" ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
+  const active = tone === "attn";
+  const cls = active ? "border-amber-400/40 bg-amber-400/[0.05]" : "border-border/60 bg-card/40";
+  const valueCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-foreground";
+  const accentCls = active ? "text-amber-300" : tone === "calm" ? "text-emerald-300" : "text-accent";
   return (
-    <div className="rounded-2xl border border-border/70 bg-card/40 p-4">
-      <div className="flex items-center gap-1.5 text-muted-foreground mb-2"><span className="text-accent">{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.16em] truncate">{label}</span></div>
+    <div className={`rounded-2xl border p-4 transition-colors ${cls}`}>
+      <div className="flex items-center gap-2 text-muted-foreground mb-3"><span className={accentCls}>{icon}</span><span className="text-[10px] font-mono uppercase tracking-[0.14em] truncate">{label}</span></div>
       <p className={`text-2xl font-display font-semibold tabular-nums leading-none ${valueCls}`}>{value}</p>
     </div>
   );
@@ -616,23 +625,21 @@ function OrderOpsPage() {
         </div>
       }
     >
-      <div className="space-y-10">
+      <div className="space-y-12">
         {/* SECTION 1 — OPERATIONS OVERVIEW */}
         <section>
           <SectionHeader title="Operations Overview" sub="A single glance at the whole pipeline" icon={<Gauge className="size-5 text-accent" />} />
-          <div className="card-premium rounded-3xl p-4 sm:p-5">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {overview.map((o) => (
-                <OverviewStat key={o.label} label={o.label} value={o.value} icon={o.icon} tone={o.tone} onClick={() => focusOrders(o.label, o.orders ?? [])} />
-              ))}
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {overview.map((o) => (
+              <OverviewStat key={o.label} label={o.label} value={o.value} icon={o.icon} tone={o.tone} onClick={() => focusOrders(o.label, o.orders ?? [])} />
+            ))}
           </div>
         </section>
 
         {/* SECTION 2 — ACTION REQUIRED */}
-        <section>
+        <section className="relative rounded-3xl border border-amber-400/20 bg-amber-400/[0.02] p-4 sm:p-6">
           <SectionHeader title="Action Required" sub="Your primary workspace — orders and customers waiting on you" icon={<AlertTriangle className="size-5 text-amber-300" />} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {actionGroups.map((g) => (
               <ActionGroup key={g.key} label={g.label} count={g.orders.length} priority={g.priority} icon={g.icon} onView={() => focusOrders(g.label, g.orders)} />
             ))}
@@ -642,8 +649,8 @@ function OrderOpsPage() {
         {/* SECTION 3 — ORDER PIPELINE */}
         <section>
           <SectionHeader title="Order Pipeline" sub="Spot bottlenecks across the fulfilment flow" icon={<TrendingUp className="size-5 text-accent" />} />
-          <div className="card-premium rounded-3xl p-4 sm:p-5 overflow-x-auto">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-max">
+          <div className="card-premium rounded-3xl p-4 sm:p-6 overflow-x-auto">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-max pb-1">
               {pipeline.map((p, i) => (
                 <button key={p.label} onClick={() => focusOrders(p.label, p.orders)} className="text-left">
                   <PipelineStage label={p.label} value={p.value} icon={p.icon} last={i === pipeline.length - 1} />
@@ -660,7 +667,7 @@ function OrderOpsPage() {
             sub={actionFilter ? undefined : "Search and review the latest orders"}
             icon={<ShoppingBag className="size-5 text-accent" />}
           />
-          <div className="space-y-3">
+          <div className="space-y-4">
             {actionFilter ? (
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border border-accent/40 bg-accent/10 text-accent">
@@ -671,15 +678,23 @@ function OrderOpsPage() {
               </div>
             ) : (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search orders, customers, products, tracking…" className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-border bg-background focus:border-accent/40 outline-none" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search orders, customers, products, tracking…" className="w-full pl-10 pr-3 py-3 text-sm rounded-xl border border-border bg-background focus:border-accent/40 outline-none transition-colors" />
               </div>
             )}
             <div className="card-premium rounded-3xl p-3 sm:p-4">
-              <p className="text-[11px] text-muted-foreground mb-2 px-1">{recentList.length} orders</p>
-              <div className="space-y-1.5 max-h-[70vh] overflow-y-auto">
+              <div className="flex items-center justify-between px-1 mb-2.5">
+                <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{recentList.length} orders</p>
+                {recentList.length > 60 && <p className="text-[10px] text-muted-foreground">Showing first 60</p>}
+              </div>
+              <div className="space-y-1 max-h-[70vh] overflow-y-auto -mx-1 px-1">
                 {recentList.slice(0, 60).map((o) => <OrderRow key={o.id} o={o} onClick={() => setSel(o)} />)}
-                {recentList.length === 0 && <p className="text-sm text-muted-foreground py-8 text-center">No orders match.</p>}
+                {recentList.length === 0 && (
+                  <div className="py-12 text-center">
+                    <ShoppingBag className="size-7 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No orders match.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -688,7 +703,7 @@ function OrderOpsPage() {
         {/* SECTION 5 — DELIVERY MONITOR */}
         <section>
           <SectionHeader title="Delivery Monitor" sub="Live shipping & delivery health" icon={<Truck className="size-5 text-accent" />} />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <MiniStat label="Shipped Today" value={num(shippedToday)} icon={<Truck className="size-3.5" />} />
             <MiniStat label="Delayed" value={num(f.delayedCount)} icon={<AlertTriangle className="size-3.5" />} tone={f.delayedCount > 0 ? "attn" : "normal"} />
             <MiniStat label="Delivered Today" value={num(deliveredTodayN)} icon={<Check className="size-3.5" />} tone="calm" />
@@ -697,9 +712,9 @@ function OrderOpsPage() {
         </section>
 
         {/* SECTION 6 — SUPPORT CENTER */}
-        <section>
+        <section className="rounded-3xl border border-border/60 bg-card/30 p-4 sm:p-6">
           <SectionHeader title="Support Center" sub="Customer conversations, kept separate from fulfilment" icon={<LifeBuoy className="size-5 text-accent" />} />
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <MiniStat label="Open Tickets" value={num(openTickets)} icon={<LifeBuoy className="size-3.5" />} tone={openTickets > 0 ? "attn" : "normal"} />
             <MiniStat label="Urgent Tickets" value={num(urgentTickets)} icon={<AlertTriangle className="size-3.5" />} tone={urgentTickets > 0 ? "attn" : "normal"} />
             <MiniStat label="Resolved" value={num(resolvedTickets)} icon={<Check className="size-3.5" />} tone="calm" />
