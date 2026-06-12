@@ -804,10 +804,19 @@ function ProductCard({
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate">{p.name}</p>
-              <p className="text-[10px] font-mono text-muted-foreground truncate">{p.sku ?? p.slug} · {p.category}</p>
+              <p className="text-[10px] font-mono text-muted-foreground truncate">
+                {p.sku ? p.sku : <span className="text-amber-400/80">No SKU</span>} · {p.category}
+              </p>
+              <p className="text-[9px] font-mono text-muted-foreground/70 truncate mt-0.5">
+                Added {new Date(p.created_at).toLocaleDateString()}
+                {p.updated_at ? ` · Upd ${new Date(p.updated_at).toLocaleDateString()}` : ""}
+              </p>
             </div>
             <div className="text-right shrink-0">
               <p className="text-sm font-mono">{inr(p.price)}</p>
+              {p.compare_price_inr && Number(p.compare_price_inr) > Number(p.price) ? (
+                <p className="text-[10px] font-mono text-muted-foreground line-through">{inr(Number(p.compare_price_inr))}</p>
+              ) : null}
               {p.discount ? <p className="text-[10px] text-accent">-{p.discount}%</p> : null}
             </div>
           </div>
