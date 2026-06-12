@@ -662,9 +662,6 @@ function OrderOpsPage() {
   const k = data.kpis;
   const f = data.fulfillment;
   const ords = data.orders;
-  const maxCourier = Math.max(1, ...data.courierPerformance.map((c) => c.shipments));
-  const maxRegion = Math.max(1, ...data.regionPerformance.map((r) => r.orders));
-  const maxReason = Math.max(1, ...data.returnReasons.map((r) => r.cnt));
 
   // ---- derived stage / action data (frontend only) ----
   const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
