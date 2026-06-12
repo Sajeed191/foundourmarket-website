@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Bell, Check, CheckCheck, Settings, Trash2, ShoppingBag, X } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useNotifications, categoryOf, type NotificationCategory, type Notification } from "@/lib/notifications";
