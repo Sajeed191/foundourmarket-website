@@ -376,6 +376,18 @@ function ProductsInner() {
     return list;
   }, [products, cat, state, stock, tag, searchTerm, sort, stats, view]);
 
+  // Reset to first page whenever the filtered set changes
+  useEffect(() => { setPage(1); }, [cat, state, stock, tag, searchTerm, sort, view]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paged = useMemo(
+    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filtered, currentPage],
+  );
+
+
+
   // ---- Catalog Health Center ----
   const catalogHealth = useMemo(() => {
     const list = (products ?? []).filter((p) => !p.deleted_at);
