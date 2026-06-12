@@ -551,6 +551,25 @@ export function SectionEditor<T extends Record<string, any>>({
   );
 }
 
+function MenuItem({ icon, label, onClick, disabled, danger }: {
+  icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex w-full items-center gap-2.5 px-3.5 py-3 text-left text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+        danger ? "text-destructive hover:bg-destructive/10" : "text-foreground hover:bg-white/5"
+      }`}
+    >
+      <span className={danger ? "text-destructive" : "text-muted-foreground"}>{icon}</span>
+      {label}
+    </button>
+  );
+}
+
 /** Read-only section frame (Analytics insights, Preview). */
 export function ReadOnlySection({
   slug, sectionKey, title, icon, cols, allow, children,
