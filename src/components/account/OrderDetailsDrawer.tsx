@@ -283,7 +283,7 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
     } finally { setCancelling(false); }
   }
 
-  const refundEligible = data ? (data.returnWindowDays > 0) : false;
+  const refundEligible = data ? (data.returnEligible && data.returnWindowDays > 0) : false;
   const windowRemaining = (() => {
     if (!order || !refundEligible) return null;
     const delivered = shipment?.delivered_at ?? shipment?.actual_delivery;
