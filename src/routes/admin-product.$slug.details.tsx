@@ -177,24 +177,24 @@ function RatingManager({ f, set }: {
       {/* Source */}
       <div>
         <label className="mb-1.5 block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Rating Source</label>
-        <div className="flex gap-2">
-          {(["manual", "auto"] as const).map((src) => (
-            <button key={src} type="button" onClick={() => set({ rating_source: src })}
-              className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold capitalize transition-all active:scale-[0.98] ${
-                f.rating_source === src
+        <div className="grid grid-cols-3 gap-2">
+          {RATING_SOURCES.map((src) => (
+            <button key={src.value} type="button" onClick={() => set({ rating_source: src.value })}
+              className={`rounded-lg border px-2 py-2 text-[11px] font-semibold transition-all active:scale-[0.98] ${
+                f.rating_source === src.value
                   ? "border-accent/40 bg-accent/15 text-accent"
                   : "border-white/10 bg-white/[0.02] text-muted-foreground hover:text-foreground"
               }`}>
-              {src === "manual" ? "Manual" : "Auto (from reviews)"}
+              {src.label}
             </button>
           ))}
         </div>
         <p className="mt-2 text-[10px] text-muted-foreground">
-          {f.rating_source === "auto"
-            ? "Rating is calculated automatically from customer reviews. Manual edits will be overwritten."
-            : "Rating and review count are set manually and won't be recalculated from reviews."}
+          {RATING_SOURCES.find((s) => s.value === f.rating_source)?.hint
+            ?? "Choose where this product's rating comes from."}
         </p>
       </div>
+
 
       {/* Quick presets */}
       <div className="flex flex-wrap gap-1.5">
