@@ -745,7 +745,56 @@ function ProductsInner() {
         </div>
       )}
 
-      {/* 4. Product Catalog — PRIMARY SECTION */}
+      {/* 3b. Product Catalog Tabs */}
+      <div className="-mx-1 overflow-x-auto no-scrollbar">
+        <div className="flex gap-1.5 px-1 min-w-max p-1 glass border border-white/10 rounded-2xl">
+          {CATALOG_TABS.map((t) => {
+            const on = catalogTab === t.key;
+            return (
+              <button key={t.key} onClick={() => setCatalogTab(t.key)}
+                className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-medium transition-colors ${on ? "bg-accent text-accent-foreground shadow" : "text-muted-foreground hover:bg-white/5"}`}>
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 4a. India Products Section */}
+      {catalogTab === "india" && (
+        <RegionInsightPanel
+          title="India Products"
+          flag="🇮🇳"
+          revenue={inr(regionData.india.revenue)}
+          units={regionData.india.units.toLocaleString()}
+          categories={regionData.india.categories.map(([name, rev]) => ({ name, value: inr(rev) }))}
+          top={regionData.india.top.map((x) => ({ p: x.p, revenue: inr(x.rev), units: x.units }))}
+          onOpen={(slug) => navigate({ to: "/admin-product/$slug", params: { slug } })}
+        />
+      )}
+
+      {/* 4b. International Products Section */}
+      {catalogTab === "international" && (
+        <RegionInsightPanel
+          title="International Products"
+          flag="🌍"
+          revenue={usd(regionData.international.revenue)}
+          units={regionData.international.units.toLocaleString()}
+          categories={regionData.international.categories.map(([name, rev]) => ({ name, value: inr(rev) }))}
+          top={regionData.international.top.map((x) => ({ p: x.p, revenue: usd(x.rev), units: x.units }))}
+          onOpen={(slug) => navigate({ to: "/admin-product/$slug", params: { slug } })}
+        />
+      )}
+
+      {/* 4c. Best Sellers Center */}
+      {catalogTab === "bestsellers" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <BestSellerColumn title="Top India 🇮🇳" items={regionData.india.top.map((x) => ({ p: x.p, revenue: inr(x.rev), units: x.units }))} onOpen={(slug) => navigate({ to: "/admin-product/$slug", params: { slug } })} />
+          <BestSellerColumn title="Top International 🌍" items={regionData.international.top.map((x) => ({ p: x.p, revenue: usd(x.rev), units: x.units }))} onOpen={(slug) => navigate({ to: "/admin-product/$slug", params: { slug } })} />
+        </div>
+      )}
+
+
       <div className="flex items-center justify-between gap-2 px-1">
         <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
           {filtered.length} of {products.length} products
