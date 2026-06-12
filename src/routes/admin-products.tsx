@@ -183,6 +183,10 @@ function ProductsInner() {
   const [busy, setBusy] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 24;
+  const [summary, setSummary] = useState<CatalogSummary | null>(null);
+  const [skuBusy, setSkuBusy] = useState(false);
+  const fetchSummary = useServerFn(adminProductsSummary);
+  const generateSkus = useServerFn(adminGenerateSkus);
 
   useEffect(() => {
     const t = setTimeout(() => setSearchTerm(query.trim().toLowerCase()), 250);
