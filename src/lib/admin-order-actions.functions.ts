@@ -147,7 +147,11 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
       // Forward stages: the DB enforces single-step status transitions, so we
       // auto-advance through every intermediate lifecycle stage up to the target.
       const targetStep = seqStep(input.stage);
-      const baseStep = Math.max(seqStep(order.status), seqStep(order.fulfillment_status));
+      // The DB trigger validates single-step transitions on `status`, so the
+      // loop must advance from the actual `status` position — using the max of
+      // status/fulfillment_status can skip steps when the two columns drift.
+      const statusStep = seqStep(order.status);
+      const baseStep = Math.max(statusStep, seqStep(order.fulfillment_status));
       if (targetStep <= baseStep) {
         // Already at or past this stage — nothing to do (one-time marking).
         await logSecurity({
@@ -156,8 +160,9 @@ export const markOrderStageFn = createServerFn({ method: "POST" })
         });
         return { ok: true, alreadyDone: true };
       }
-      // Apply each lifecycle status from baseStep+1 up to the target (1-based steps).
-      for (let s = baseStep + 1; s <= targetStep; s++) {
+      // Apply each lifecycle status from the current status step+1 up to the
+      // target (1-based steps), one stage at a time so the trigger is satisfied.
+      for (let s = statusStep + 1; s <= targetStep; s++) {
         const next = LIFECYCLE_SEQ[s - 1];
         const { error: sErr } = await supabaseAdmin.from("orders")
           .update({ status: next, fulfillment_status: next } as never)
