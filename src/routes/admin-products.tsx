@@ -633,23 +633,24 @@ function ProductsInner() {
 
   return (
     <div className="space-y-5 pb-28">
-      {/* 1. Products Header — compact KPI chips */}
-      <div className="-mx-1 overflow-x-auto no-scrollbar">
-        <div className="flex gap-2.5 px-1 min-w-max">
-          {headerChips.map((k) => (
-            <div
-              key={k.label}
-              className="relative overflow-hidden glass border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[110px] flex items-center gap-2.5"
-            >
-              <k.icon className="size-4 text-accent shrink-0" />
-              <div className="min-w-0">
-                <p className="text-base font-display tabular-nums leading-none">{k.value}</p>
-                <p className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground mt-1">{k.label}</p>
-              </div>
+      {/* 1. Products Overview — compact KPI chips */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+        {headerChips.map((k) => (
+          <button
+            key={k.label}
+            type="button"
+            onClick={() => k.tab && setCatalogTab(k.tab)}
+            className={`relative overflow-hidden glass border rounded-xl px-3 py-2.5 flex items-center gap-2.5 text-left transition-colors ${k.tab ? "hover:border-accent/40 cursor-pointer" : "cursor-default"} ${k.accent ? "border-amber-500/30 bg-amber-500/[0.04]" : "border-white/10"}`}
+          >
+            <k.icon className={`size-4 shrink-0 ${k.accent ? "text-amber-400" : "text-accent"}`} />
+            <div className="min-w-0">
+              <p className="text-base font-display tabular-nums leading-none">{k.value}</p>
+              <p className="text-[9px] font-mono uppercase tracking-[0.16em] text-muted-foreground mt-1 truncate">{k.label}</p>
             </div>
-          ))}
-        </div>
+          </button>
+        ))}
       </div>
+
 
       {/* 2. Search & Actions — sticky on mobile */}
       <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 glass-strong border border-white/10 rounded-2xl p-2.5">
