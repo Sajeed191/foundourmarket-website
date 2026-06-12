@@ -341,9 +341,20 @@ function OrdersPage() {
     return { total: paid.length, totalSpent, delivered, refunded, inTransit };
   }, [orders]);
 
+  // Overview metrics — only successfully paid orders
+  const stats = useMemo(() => {
+    const paid = (orders ?? []).filter((o) => o.succeeded);
+    const totalSpent = paid.reduce((n, o) => n + Number(o.total || 0), 0);
+    const delivered = paid.filter((o) => displayStatus(o).key === "delivered").length;
+    const refunded = paid.filter((o) => displayStatus(o).key === "refunded").length;
+    const inTransit = paid.filter((o) => { const k = displayStatus(o).key; return k === "shipped" || k === "ofd"; }).length;
+    const returnsInProgress = paid.filter((o) => hasActiveReturn(o)).length;
+    return { total: paid.length, totalSpent, delivered, refunded, inTransit, returnsInProgress };
+  }, [orders]);
+
   // Per-filter counts
   const counts = useMemo(() => {
-    const c: Record<FilterId, number> = { all: 0, active: 0, delivered: 0, in_transit: 0, pending: 0, refunded: 0, failed: failedOrders.length };
+    const c: Record<FilterId, number> = { all: 0, active: 0, delivered: 0, in_transit: 0, pending: 0, returns: 0, replacements: 0, refunded: 0, failed: failedOrders.length };
     for (const o of successful) {
       for (const f of FILTERS) {
         if (f.id === "failed") continue;
