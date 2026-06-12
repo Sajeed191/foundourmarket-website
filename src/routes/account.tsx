@@ -287,9 +287,13 @@ function AccountPage() {
               </div>
 
               <div className="min-w-0 flex-1 flex flex-col justify-center">
-                <h1 className="text-xl leading-tight sm:text-2xl lg:text-3xl font-display font-semibold tracking-tight truncate">
-                  {greeting().text}, <span className="text-gradient-ember">{firstName}</span> {greeting().emoji}
+                <p className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-gradient-ember">
+                  Online <span className="text-muted-foreground/60">·</span> {greeting().text} {greeting().emoji}
+                </p>
+                <h1 className="mt-0.5 text-xl leading-tight sm:text-2xl lg:text-3xl font-display font-semibold tracking-tight truncate">
+                  Welcome back, <span className="text-gradient-ember">{firstName}</span>
                 </h1>
+                <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground truncate">{user?.email}</p>
               </div>
 
               <div className="flex items-center gap-1.5 shrink-0 self-center">
