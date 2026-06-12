@@ -96,12 +96,16 @@ function scoreColor(score: number): string {
 
 function ProductsPage() {
   return (
-    <AdminShell title="Products" subtitle="Realtime catalog, inventory & performance" allow={["admin", "super_admin", "manager", "warehouse_staff", "editor"]}>
+    <AdminShell title="Products" subtitle="Product Operations Center — catalog, inventory & actions first" allow={["admin", "super_admin", "manager", "warehouse_staff", "editor"]}>
       <ProductsInner />
-      {/* FINANCIAL PRODUCT INSIGHTS */}
-      <div className="mt-8 space-y-6">
-        <ExecutiveSummaryPanel source="product" compact />
-        <FinancialInsightsPanel module="product" />
+      {/* FINANCIAL PRODUCT INSIGHTS — secondary, collapsed by default */}
+      <div className="mt-6">
+        <CollapsibleModule eyebrow="Insights" title="Financial Analytics" sectionId="products-financial" defaultOpen={false}>
+          <div className="space-y-6">
+            <ExecutiveSummaryPanel source="product" compact />
+            <FinancialInsightsPanel module="product" />
+          </div>
+        </CollapsibleModule>
       </div>
     </AdminShell>
   );
