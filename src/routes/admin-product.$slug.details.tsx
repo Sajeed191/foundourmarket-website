@@ -240,13 +240,14 @@ function CommandCenter({ slug, f, set, row }: {
 
       {/* Media Center — images first, then video, with live health checks */}
       <Collapsible title="Media Center" icon={<ImageIcon className="size-4" />}
-        desc={`${imageCount} image${imageCount === 1 ? "" : "s"} · ${f.video_url.trim() ? "video attached" : "no video"}`}
+        desc={`${imageCount} Image${imageCount === 1 ? "" : "s"} • ${primaryUrl ? "Hero Set" : "No Hero"} • ${f.video_url.trim() ? "Video" : "No Video"}`}
         badge={
           <span className="flex items-center gap-1">
-            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider ${imageCount > 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>IMG</span>
+            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider ${primaryUrl ? "bg-accent/15 text-accent" : "bg-amber-500/15 text-amber-400"}`}>HERO</span>
             <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider ${f.video_url.trim() ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>VID</span>
           </span>
         }>
+
         <div className="space-y-5">
           {/* Health checks */}
           <div className="grid grid-cols-2 gap-2">

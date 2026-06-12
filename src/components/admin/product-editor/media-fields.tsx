@@ -6,11 +6,11 @@
 // product's video_url column via the section form.
 // ============================================================
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { toast } from "sonner";
 import {
   ImagePlus, Camera, Trash2, Star, Loader2, ArrowLeft, ArrowRight,
-  Film, Play, UploadCloud, X, RefreshCw,
+  Film, Play, UploadCloud, X, RefreshCw, GripVertical,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -103,13 +103,36 @@ export function ProductMediaGallery({
 
   async function setPrimary(img: ProductImage) {
     setBusy(true);
+    // Hero becomes the product thumbnail AND moves to position #1.
+    const reordered = [img, ...images.filter((i) => i.id !== img.id)];
+    setImages(reordered);
     const { error } = await supabase.from("products").update({ image: img.url, updated_at: new Date().toISOString() }).eq("slug", slug);
+    if (error) {
+      setBusy(false);
+      toast.error("Could not set hero", { description: error.message });
+      await refresh();
+      return;
+    }
+    try {
+      await Promise.all(reordered.map((it, i) => supabase.from("product_images").update({ sort_order: i }).eq("id", it.id)));
+    } catch { /* order persistence best-effort */ }
     setBusy(false);
-    if (error) { toast.error("Could not set primary", { description: error.message }); return; }
     onPrimaryChange(img.url);
     await invalidateProducts();
     void logMediaEvent("thumbnail_change", { entityType: "product", entityRef: slug, meta: { url: img.url } });
-    toast.success("Primary image updated");
+    toast.success("Hero image set — it leads the storefront, search & category pages");
+  }
+
+  async function persistOrder(ordered: ProductImage[]) {
+    setBusy(true);
+    try {
+      await Promise.all(ordered.map((img, i) => supabase.from("product_images").update({ sort_order: i }).eq("id", img.id)));
+      await invalidateProducts();
+      void logMediaEvent("reorder", { entityType: "product", entityRef: slug, meta: { order: ordered.map((i) => i.id) } });
+    } catch {
+      toast.error("Reorder failed");
+      await refresh();
+    } finally { setBusy(false); }
   }
 
   async function remove(img: ProductImage) {
@@ -161,9 +184,13 @@ export function ProductMediaGallery({
         onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }} />
 
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
-          <span>{images.length}/{MAX_IMAGES} images</span>
+        <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.15em]">
+          <span className="rounded-full bg-white/[0.04] px-2 py-0.5 text-muted-foreground">{images.length} Image{images.length === 1 ? "" : "s"}</span>
+          <span className={cn("rounded-full px-2 py-0.5", primaryUrl ? "bg-accent/15 text-accent" : "bg-amber-500/15 text-amber-400")}>
+            {primaryUrl ? "Hero Set" : "No Hero"}
+          </span>
         </div>
+
         <div className="flex gap-2">
           <button type="button" disabled={atLimit || busy} onClick={() => cameraRef.current?.click()}
             className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground hover:border-white/20 active:scale-[0.97] disabled:opacity-40">
@@ -213,46 +240,63 @@ export function ProductMediaGallery({
         ))}
       </AnimatePresence>
 
-      {/* Grid */}
+      {/* Grid — drag to reorder; sequence + hero badges */}
       {loading ? (
         <div className="grid place-items-center py-10"><Loader2 className="size-5 animate-spin text-accent" /></div>
       ) : images.length === 0 ? (
         <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-xs text-muted-foreground">
-          No images yet — the first image you upload becomes the primary.
+          No images yet — the first image you upload becomes the Hero.
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Reorder.Group axis="y" values={images} onReorder={setImages}
+          className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {images.map((img, i) => {
             const isPrimary = img.url === primaryUrl;
             return (
-              <div key={img.id} className={cn(
-                "group relative overflow-hidden rounded-xl border bg-white/[0.02]",
-                isPrimary ? "border-accent/60 ring-1 ring-accent/40" : "border-white/10",
-              )}>
+              <Reorder.Item key={img.id} value={img}
+                onDragEnd={() => persistOrder(images)}
+                className={cn(
+                  "group relative cursor-grab overflow-hidden rounded-xl border bg-white/[0.02] active:cursor-grabbing",
+                  isPrimary ? "border-2 border-accent ring-1 ring-accent/40 shadow-[0_8px_30px_-10px_oklch(0.74_0.19_49/0.5)]" : "border border-white/10",
+                )}>
                 <div className="aspect-square w-full overflow-hidden bg-white/5">
-                  <img src={resolveImage(img.url)} alt={img.alt || name} loading="lazy" className="size-full object-cover" />
+                  <img src={resolveImage(img.url)} alt={img.alt || name} loading="lazy" draggable={false} className="size-full object-cover" />
                 </div>
+
+                {/* Hero badge (top-left) */}
                 {isPrimary && (
-                  <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-mono uppercase tracking-widest text-accent-foreground">
-                    <Star className="size-2.5 fill-current" /> Primary
+                  <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest text-accent-foreground shadow-md">
+                    <Star className="size-2.5 fill-current" /> Hero
                   </span>
                 )}
+
+                {/* Sequence badge (top-right) */}
+                <span className={cn(
+                  "absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-md px-1 py-0.5 text-[10px] font-bold backdrop-blur",
+                  isPrimary ? "bg-accent text-accent-foreground" : "bg-black/55 text-white",
+                )}>#{i + 1}</span>
+
+                {/* Drag handle hint */}
+                <span className="pointer-events-none absolute left-1.5 bottom-9 grid size-5 place-items-center rounded-md bg-black/45 text-white/70 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
+                  <GripVertical className="size-3.5" />
+                </span>
+
                 <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5">
                   <div className="flex gap-1">
                     <GalleryBtn label="Move left" disabled={busy || i === 0} onClick={() => move(i, -1)}><ArrowLeft className="size-3.5" /></GalleryBtn>
                     <GalleryBtn label="Move right" disabled={busy || i === images.length - 1} onClick={() => move(i, 1)}><ArrowRight className="size-3.5" /></GalleryBtn>
                   </div>
                   <div className="flex gap-1">
-                    <GalleryBtn label="Set primary" disabled={busy || isPrimary} onClick={() => setPrimary(img)} active={isPrimary}>
+                    <GalleryBtn label={isPrimary ? "Hero image" : "Set hero"} disabled={busy || isPrimary} onClick={() => setPrimary(img)} active={isPrimary}>
                       <Star className={cn("size-3.5", isPrimary && "fill-current")} />
                     </GalleryBtn>
                     <GalleryBtn label="Delete" disabled={busy} onClick={() => remove(img)} danger><Trash2 className="size-3.5" /></GalleryBtn>
                   </div>
                 </div>
-              </div>
+              </Reorder.Item>
             );
           })}
-        </div>
+        </Reorder.Group>
       )}
     </div>
   );
