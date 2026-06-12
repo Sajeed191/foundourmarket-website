@@ -77,6 +77,10 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [ticketing, setTicketing] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+  const cancelOrderFn = useServerFn(cancelMyOrderFn);
   const reqRef = useRef<string | null>(null);
 
   async function load(id: string, useCache = true) {
