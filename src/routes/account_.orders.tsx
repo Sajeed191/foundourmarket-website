@@ -21,6 +21,13 @@ export const Route = createFileRoute("/account_/orders")({
 });
 
 type Item = { name: string; quantity: number; image: string | null; unit_price: number | null; product_slug: string };
+type ReturnRec = {
+  status: string;
+  refund_status: string;
+  resolution_type: string;
+  replacement_status: string;
+  created_at: string;
+};
 type Order = {
   id: string;
   status: string;
@@ -40,7 +47,70 @@ type Order = {
   failAt: string | null;
   returnStatus: string | null;
   refundStatus: string | null;
+  returnRec: ReturnRec | null;
 };
+
+// ---- Returns / Replacements synchronization ----
+type ReturnView = {
+  label: string;
+  badge: string;
+  /** "return" | "replacement" | "refund" */
+  kind: "return" | "replacement" | "refund";
+  /** 0..4 index into the customer timeline (Requested→…→Delivered). -1 = rejected. */
+  stage: number;
+  /** Active = still being processed (not terminal). */
+  active: boolean;
+};
+
+const RV_AMBER = "bg-amber-500/10 text-amber-300 border-amber-500/30";
+const RV_SKY = "bg-sky-500/10 text-sky-300 border-sky-500/30";
+const RV_ORANGE = "bg-orange-500/10 text-orange-300 border-orange-500/30";
+const RV_EMERALD = "bg-emerald-500/10 text-emerald-300 border-emerald-500/30";
+const RV_FUCHSIA = "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/30";
+const RV_ROSE = "bg-rose-500/10 text-rose-300 border-rose-500/30";
+
+// Map a return record to a customer-facing status per the FoundOurMarket spec.
+function returnView(r: ReturnRec): ReturnView {
+  const st = (r.status ?? "").toLowerCase();
+  const res = (r.resolution_type ?? "").toLowerCase();
+  const refund = (r.refund_status ?? "").toLowerCase();
+  const repl = (r.replacement_status ?? "").toLowerCase();
+
+  if (st === "rejected")
+    return { label: "Return Rejected", badge: RV_ROSE, kind: "return", stage: -1, active: false };
+  if (st === "requested" || (!st && !res))
+    return { label: "Return Requested", badge: RV_AMBER, kind: "return", stage: 0, active: true };
+
+  if (res === "replacement") {
+    if (repl === "delivered")
+      return { label: "Replacement Completed", badge: RV_EMERALD, kind: "replacement", stage: 4, active: false };
+    if (repl === "shipped")
+      return { label: "Replacement Shipped", badge: RV_ORANGE, kind: "replacement", stage: 3, active: true };
+    if (repl === "processing" || st === "received")
+      return { label: "Replacement Processing", badge: RV_SKY, kind: "replacement", stage: 2, active: true };
+    if (repl === "approved")
+      return { label: "Replacement Approved", badge: RV_SKY, kind: "replacement", stage: 1, active: true };
+    return { label: "Return Approved", badge: RV_SKY, kind: "replacement", stage: 1, active: true };
+  }
+
+  if (res === "refund") {
+    if (refund === "issued" || st === "completed")
+      return { label: "Refunded", badge: RV_FUCHSIA, kind: "refund", stage: 4, active: false };
+    if (st === "received" || refund === "processing")
+      return { label: "Refund Processing", badge: RV_SKY, kind: "refund", stage: 2, active: true };
+    return { label: "Refund Approved", badge: RV_SKY, kind: "refund", stage: 1, active: true };
+  }
+
+  if (st === "approved")
+    return { label: "Return Approved", badge: RV_SKY, kind: "return", stage: 1, active: true };
+  if (st === "completed")
+    return { label: "Completed", badge: RV_EMERALD, kind: "return", stage: 4, active: false };
+  return { label: "Return Requested", badge: RV_AMBER, kind: "return", stage: 0, active: true };
+}
+
+function getReturnView(o: Order): ReturnView | null {
+  return o.returnRec ? returnView(o.returnRec) : null;
+}
 
 const PAGE = 10;
 
