@@ -469,6 +469,7 @@ export function SectionEditor<T extends Record<string, any>>({
         )
       ) : (
         <div className="space-y-5 pb-[calc(var(--mobile-nav-clearance)+5.5rem)] lg:pb-24">
+          <EditorNavBar slug={slug} sectionKey={sectionKey} />
           <ProductHeaderStrip h={header} active={sectionKey} />
 
           {recovery && (
