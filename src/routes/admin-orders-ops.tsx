@@ -759,11 +759,11 @@ function OrderOpsPage() {
         </div>
       }
     >
-      <div className="space-y-12">
+      <div className="space-y-8 sm:space-y-12 w-full min-w-0 overflow-x-hidden">
         {/* SECTION 1 — OPERATIONS OVERVIEW */}
         <section>
           <SectionHeader title="Operations Overview" sub="A single glance at the whole pipeline" icon={<Gauge className="size-5 text-accent" />} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
             {overview.map((o) => (
               <OverviewStat key={o.label} label={o.label} value={o.value} icon={o.icon} tone={o.tone} onClick={() => focusOrders(o.label, o.orders ?? [])} />
             ))}
