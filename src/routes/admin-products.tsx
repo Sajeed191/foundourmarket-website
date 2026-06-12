@@ -1113,10 +1113,10 @@ function BulkBtn({ onClick, icon: Icon, label, danger, busy }: { onClick: () => 
 }
 
 function ProductCard({
-  p, stat, selected, busy, onSelect, onEdit, onDuplicate, onDelete,
+  p, intl, stat, selected, busy, onSelect, onEdit, onDuplicate, onDelete,
   onToggleActive, onToggleFeatured, onAdjust, onSetStock, onCopyLink,
 }: {
-  p: Product; stat: Stat; selected: boolean; busy: boolean;
+  p: Product; intl: boolean; stat: Stat; selected: boolean; busy: boolean;
   onSelect: () => void; onEdit: () => void; onDuplicate: () => void; onDelete: () => void;
   onToggleActive: () => void; onToggleFeatured: () => void;
   onAdjust: (d: number) => void; onSetStock: (v: number) => void; onCopyLink: () => void;
