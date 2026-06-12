@@ -330,69 +330,50 @@ function AccountPage() {
 
 
 
-        {/* 2 — CUSTOMER HUB */}
+        {/* 2 — OVERVIEW */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }}>
-          <SectionHeader title="Your Hub" eyebrow="Primary" />
+          <SectionHeader title="Overview" eyebrow="Your account at a glance" />
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <HubCard icon={Package} title="Orders" count={stats.count} loading={!orders} desc="Track & manage" to="/account/orders" tone="amber" />
-            <HubCard icon={RotateCcw} title="Returns" count={returns?.length ?? 0} loading={!returns} desc="Requests & status" to="/account/returns" tone="rose" />
-            <HubCard icon={Heart} title="Wishlist" count={wishSlugs.size} desc="Your saved items" to="/wishlist" tone="rose" />
-            <HubCard icon={MapPin} title="Addresses" desc="Shipping & billing" to="/account/addresses" tone="blue" />
+            <OverviewCard icon={Package} label="Total Orders" value={stats.count} loading={!orders} to="/account/orders" tone="amber" />
+            <OverviewCard icon={Heart} label="Wishlist" value={wishSlugs.size} to="/wishlist" tone="rose" />
+            <OverviewCard icon={ShoppingBag} label="Cart Items" value={cartCount} to="/cart" tone="blue" />
+            <OverviewCard icon={Wallet} label="Total Saved" value={stats.saved} loading={!orders} formatter={format} tone="emerald" />
           </div>
         </motion.section>
 
-        {/* 3 — CONTINUE SHOPPING */}
+        {/* 3 — QUICK ACTIONS */}
+        <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }}>
+          <SectionHeader title="Quick actions" eyebrow="Jump to" />
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+            <ActionCard to="/account/orders" icon={Package} title="Orders" subtitle="Track & invoices" badge={stats.active} />
+            <ActionCard to="/wishlist" icon={Heart} title="Wishlist" subtitle="Saved items" badge={wishSlugs.size} />
+            <ActionCard to="/account/addresses" icon={MapPin} title="Addresses" subtitle="Shipping & billing" />
+            <ActionCard to="/account/payments" icon={CreditCard} title="Payments" subtitle="Saved methods" />
+            <ActionCard to="/account/profile" icon={UserIcon} title="Profile" subtitle="Your details" />
+            <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
+            <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Requests & status" badge={returns?.length ?? 0} />
+            <ActionCard to="/search" icon={Gift} title="Offers" subtitle="Deals & promos" />
+            <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
+          </div>
+        </motion.section>
+
+        {/* 4 — RECENTLY VIEWED */}
         {recentlyViewed.length > 0 && (
-          <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }}>
-            <SectionHeader title="Continue Shopping" eyebrow="Recently viewed" />
+          <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }}>
+            <SectionHeader title="Recently viewed" eyebrow="Continue browsing" />
             <ContinueShopping items={recentlyViewed} format={format} />
           </motion.section>
         )}
 
-        {/* 4 — ACTIVE ORDER / ACTIVE RESOLUTION */}
-        {(latestReturn || stats.latestActive) && (
-          <div className="space-y-4 sm:space-y-6">
-            {latestReturn
-              ? <ReturnTimeline ret={latestReturn} format={format} />
-              : stats.latestActive && <OrderTimeline order={stats.latestActive} format={format} />}
-          </div>
-        )}
-
-        {/* 5 — ACCOUNT ACTIONS */}
-        <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }}>
-          <SectionHeader title="Account Actions" eyebrow="Manage" />
-          <div className="card-premium rounded-2xl overflow-hidden divide-y divide-border/40">
-            <AccountActionRow to="/account/payments" icon={CreditCard} label="Payments" sublabel="Saved cards & methods" />
-            <AccountActionRow to="/account/profile" icon={UserCog} label="Profile" sublabel="Personal details" />
-            <AccountActionRow to="/account/security" icon={Shield} label="Security" sublabel="Password & 2FA" />
-            <AccountActionRow to="/account/support" icon={LifeBuoy} label="Support" sublabel="Help center & contact" />
+        {/* 5 — FOOTER ACTIONS */}
+        <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.12 }} className="pt-1">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+            <FooterAction icon={HelpCircle} label="Support" to="/account/support" />
+            <FooterAction icon={LifeBuoy} label="FAQ" to="/help" />
+            <FooterAction icon={MessageCircle} label="Contact" onClick={() => openCrispChat()} />
+            <FooterAction icon={LogOut} label="Sign out" onClick={signOut} />
           </div>
         </motion.section>
-
-        {/* 6 — SUPPORT CENTER */}
-        <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.12 }}>
-          <SectionHeader title="Support Center" eyebrow="We're here to help" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            <CompactSupportCard icon={HelpCircle} title="Help Center" desc="FAQ" to="/help" tone="blue" />
-            <CompactSupportCard icon={MessageCircle} title="Chat" desc="Live support" onClick={() => openCrispChat()} tone="emerald" />
-            <CompactSupportCard icon={LifeBuoy} title="Email" desc="Contact us" to="/account/support" tone="amber" />
-            <CompactSupportCard icon={RotateCcw} title="Returns" desc="Resolutions" to="/account/returns" tone="rose" />
-          </div>
-        </motion.section>
-
-        {/* 7 — SIGN OUT */}
-        <motion.footer {...fadeUp} className="mt-1 flex justify-center">
-          <button
-            onClick={signOut}
-            className="group relative flex w-full max-w-sm flex-col items-center gap-2 overflow-hidden rounded-2xl card-premium px-6 py-5 hover:shadow-[var(--shadow-soft)] transition-all active:scale-[0.98]"
-          >
-            <span className="size-11 rounded-2xl bg-destructive/10 text-destructive grid place-items-center ring-1 ring-destructive/20 group-hover:bg-destructive/20 group-hover:scale-105 transition-all">
-              <LogOut className="size-[18px]" />
-            </span>
-            <span className="text-sm font-display font-semibold group-hover:text-destructive transition-colors">Sign out</span>
-            <span className="text-[11px] text-muted-foreground">End your secure session</span>
-          </button>
-        </motion.footer>
       </div>
     </div>
   );
