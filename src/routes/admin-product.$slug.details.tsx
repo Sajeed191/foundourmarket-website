@@ -115,7 +115,102 @@ function Collapsible({ title, icon, desc, defaultOpen = true, badge, children }:
   );
 }
 
+/* ----------------------------- rating manager ----------------------------- */
+
+function RatingManager({ f, set }: {
+  f: Form; set: (patch: Partial<Form>) => void;
+}) {
+  const rating = Number(f.rating) || 0;
+  const reviews = Number(f.reviews) || 0;
+  const [hover, setHover] = useState<number | null>(null);
+  const display = hover ?? rating;
+
+  function setStar(value: number) {
+    // click on same star toggles half / full for fine control
+    set({ rating: value, rating_source: "manual" });
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Interactive star picker (supports half steps) */}
+      <div>
+        <label className="mb-2 block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Star Rating</label>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1" onMouseLeave={() => setHover(null)}>
+            {[1, 2, 3, 4, 5].map((i) => {
+              const filled = display >= i;
+              const half = !filled && display >= i - 0.5;
+              return (
+                <div key={i} className="relative">
+                  <Star className={`size-7 ${filled ? "fill-amber-400 text-amber-400" : "text-white/20"}`} />
+                  {half && (
+                    <Star className="absolute inset-0 size-7 fill-amber-400 text-amber-400"
+                      style={{ clipPath: "inset(0 50% 0 0)" }} />
+                  )}
+                  {/* left half hit area = i-0.5, right half = i */}
+                  <button type="button" aria-label={`${i - 0.5} stars`}
+                    className="absolute inset-y-0 left-0 w-1/2"
+                    onMouseEnter={() => setHover(i - 0.5)} onClick={() => setStar(i - 0.5)} />
+                  <button type="button" aria-label={`${i} stars`}
+                    className="absolute inset-y-0 right-0 w-1/2"
+                    onMouseEnter={() => setHover(i)} onClick={() => setStar(i)} />
+                </div>
+              );
+            })}
+          </div>
+          <span className="text-lg font-bold text-amber-400 tabular-nums">{rating.toFixed(1)}</span>
+          <span className="text-xs text-muted-foreground">/ 5.0</span>
+        </div>
+      </div>
+
+      {/* Manual numeric controls */}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Rating (0–5)" type="number" value={String(rating)}
+          onChange={(v) => set({ rating: Math.max(0, Math.min(5, Number(v) || 0)), rating_source: "manual" })}
+          hint="Supports decimals e.g. 4.5" />
+        <Field label="Review Count" type="number" value={String(reviews)}
+          onChange={(v) => set({ reviews: Math.max(0, Math.floor(Number(v) || 0)) })}
+          hint="Total number of reviews" />
+      </div>
+
+      {/* Source */}
+      <div>
+        <label className="mb-1.5 block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Rating Source</label>
+        <div className="flex gap-2">
+          {(["manual", "auto"] as const).map((src) => (
+            <button key={src} type="button" onClick={() => set({ rating_source: src })}
+              className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold capitalize transition-all active:scale-[0.98] ${
+                f.rating_source === src
+                  ? "border-accent/40 bg-accent/15 text-accent"
+                  : "border-white/10 bg-white/[0.02] text-muted-foreground hover:text-foreground"
+              }`}>
+              {src === "manual" ? "Manual" : "Auto (from reviews)"}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] text-muted-foreground">
+          {f.rating_source === "auto"
+            ? "Rating is calculated automatically from customer reviews. Manual edits will be overwritten."
+            : "Rating and review count are set manually and won't be recalculated from reviews."}
+        </p>
+      </div>
+
+      {/* Quick presets */}
+      <div className="flex flex-wrap gap-1.5">
+        {[5, 4.5, 4, 3.5, 0].map((preset) => (
+          <button key={preset} type="button"
+            onClick={() => set({ rating: preset, rating_source: "manual" })}
+            className="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:text-foreground active:scale-95">
+            {preset === 0 ? "Reset" : `${preset}★`}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ----------------------------- command center ----------------------------- */
+
 
 function CommandCenter({ slug, f, set, row }: {
   slug: string; f: Form; set: (patch: Partial<Form>) => void; row: Record<string, any>;
