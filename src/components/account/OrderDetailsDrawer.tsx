@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { cancelMyOrderFn } from "@/lib/order-cancel.functions";
@@ -155,9 +156,16 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId, user]);
 
-  // lock body scroll while open
+  // lock body scroll while open and hide mobile chrome that can cover actions
   useEffect(() => {
-    if (orderId) { document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = ""; }; }
+    if (orderId) {
+      document.body.style.overflow = "hidden";
+      document.body.dataset.orderDrawerOpen = "true";
+      return () => {
+        document.body.style.overflow = "";
+        delete document.body.dataset.orderDrawerOpen;
+      };
+    }
   }, [orderId]);
 
   // tick every 30s so the cancel/return windows expire live without a reload
@@ -300,7 +308,7 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
   })();
 
 
-  return (
+  const drawer = (
     <AnimatePresence>
       {orderId && (
         <>
@@ -597,6 +605,8 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
       )}
     </AnimatePresence>
   );
+
+  return typeof document === "undefined" ? null : createPortal(drawer, document.body);
 }
 
 function Section({ title, icon: Icon, children }: { title: string; icon: typeof Truck; children: React.ReactNode }) {
