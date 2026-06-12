@@ -112,7 +112,6 @@ function Collapsible({ title, icon, desc, defaultOpen = true, badge, children }:
 function CommandCenter({ slug, f, set, row }: {
   slug: string; f: Form; set: (patch: Partial<Form>) => void; row: Record<string, any>;
 }) {
-  const router = useRouter();
   const navigate = useNavigate();
   const [primaryUrl, setPrimaryUrl] = useState<string>(row.image ?? "");
   const [imageCount, setImageCount] = useState<number>(row.image ? 1 : 0);
