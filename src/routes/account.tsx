@@ -1181,7 +1181,7 @@ function ContinueShoppingCard({ product: p, format }: { product: Product; format
 
   const price = Number(p.price);
   const original = compareOf(p) ?? (p.discount ? price * (1 + p.discount / 100) : null);
-  const discount = original ? discountPercent(price, original) : 0;
+  const discount = (original ? discountPercent(price, original) : 0) ?? 0;
 
   const handleAdd = () => {
     add(p.slug);
