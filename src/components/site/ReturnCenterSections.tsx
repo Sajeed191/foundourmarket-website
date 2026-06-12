@@ -173,9 +173,7 @@ function TrustMetrics() {
 
 /* ---------------- 5. Return Reason Selector ---------------- */
 const REASONS = [
-  "Damaged or defective", "Wrong item received", "No longer needed",
-  "Size / fit issue", "Not as described", "Better price found",
-  "Arrived too late", "Quality not as expected",
+  "Defective / Damaged", "Wrong Item Received", "Item Doesn't Fit", "Other",
 ];
 
 function ReasonSelector() {

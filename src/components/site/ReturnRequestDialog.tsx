@@ -12,12 +12,9 @@ import {
 } from "@/components/ui/dialog";
 
 const REASONS = [
-  "Defective / damaged",
-  "Wrong item received",
-  "Not as described",
-  "Item doesn't fit",
-  "Arrived too late",
-  "No longer needed",
+  "Defective / Damaged",
+  "Wrong Item Received",
+  "Item Doesn't Fit",
   "Other",
 ] as const;
 
