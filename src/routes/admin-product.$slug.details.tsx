@@ -71,7 +71,7 @@ function DetailsPage() {
         meta_keywords: parseList(f.keywords),
         rating: Math.max(0, Math.min(5, Number(f.rating) || 0)),
         reviews: Math.max(0, Math.floor(Number(f.reviews) || 0)),
-        rating_source: f.rating_source || "manual",
+        rating_source: f.rating_source || "imported_supplier",
       })}
       validate={(f) => (f.name.trim() ? null : "Product name is required.")}
     >
