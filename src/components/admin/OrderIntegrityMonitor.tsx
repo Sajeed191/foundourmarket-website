@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ShieldCheck, ShieldAlert, Loader2, RefreshCw, ChevronDown } from "lucide-react";
 import { getOrderIntegrityFn, runOrderIntegrityScanFn } from "@/lib/admin-ops.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type ScanSummary = {
   scanned_at?: string;
