@@ -839,7 +839,7 @@ function ProfileCompletion({ user, profile }: { user: { email?: string | null; u
   const pct = Math.round((done / checks.length) * 100);
   if (pct === 100) return null;
   return (
-    <div className="mt-2 hidden sm:block">
+    <div className="mt-2.5 block">
       <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">
         <span>Profile {pct}%</span>
         <Link to="/account/profile" className="text-accent hover:underline">Complete</Link>
