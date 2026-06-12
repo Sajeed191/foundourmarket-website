@@ -317,8 +317,6 @@ function AccountPage() {
                 </Link>
               </div>
             </div>
-
-            <ProfileCompletion user={user} profile={profile} />
           </div>
         </motion.header>
         </div>
