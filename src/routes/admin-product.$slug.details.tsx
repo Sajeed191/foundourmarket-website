@@ -295,6 +295,19 @@ function CommandCenter({ slug, f, set, row }: {
           keyPlaceholder="e.g. Color" valuePlaceholder="e.g. Black" addLabel="Add Attribute" />
       </Collapsible>
 
+      {/* Rating management */}
+      <Collapsible title="Rating Management" icon={<Star className="size-4" />}
+        desc="Star rating, review count & source"
+        badge={
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider text-amber-400">
+            <Star className="size-2.5 fill-current" /> {(Number(f.rating) || 0).toFixed(1)}
+          </span>
+        }>
+        <RatingManager f={f} set={set} />
+      </Collapsible>
+
+
+
       {/* SEO center */}
       <Collapsible title="SEO Center" icon={<Search className="size-4" />} defaultOpen={false}
         desc="Search title, meta & keywords"
