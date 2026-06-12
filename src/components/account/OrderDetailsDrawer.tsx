@@ -252,15 +252,50 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
     if (info.offset.y > 140 || info.velocity.y > 700) onClose();
   }
 
+  async function handleCancel() {
+    if (!order) return;
+    if (!window.confirm("Cancel this order? This cannot be undone.")) return;
+    setCancelling(true);
+    try {
+      await cancelOrderFn({ data: { orderId: order.id } });
+      toast.success("Order cancelled");
+      load(order.id, false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not cancel order");
+    } finally { setCancelling(false); }
+  }
+
   const refundEligible = data ? (data.returnWindowDays > 0) : false;
   const windowRemaining = (() => {
     if (!order || !refundEligible) return null;
     const delivered = shipment?.delivered_at ?? shipment?.actual_delivery;
     if (!delivered) return "Available after delivery";
     const end = new Date(delivered); end.setDate(end.getDate() + data!.returnWindowDays);
-    const days = Math.ceil((end.getTime() - Date.now()) / 864e5);
+    const days = Math.ceil((end.getTime() - now) / 864e5);
     return days > 0 ? `${days} day${days !== 1 ? "s" : ""} left` : "Window closed";
   })();
+
+  // Cancel button: only pending/confirmed orders, within the 1-hour window.
+  const cancellable = (() => {
+    if (!order) return false;
+    const s = (order.status ?? "").toLowerCase();
+    if (!["pending", "confirmed"].includes(s)) return false;
+    const expires = order.cancel_window_expires_at
+      ? new Date(order.cancel_window_expires_at).getTime()
+      : new Date(order.created_at).getTime() + 3_600_000;
+    return now < expires;
+  })();
+
+  // Return button: delivered orders, eligible products, within the return window.
+  const returnWindowOpen = (() => {
+    if (!order || !refundEligible || ret) return false;
+    const delivered = shipment?.delivered_at ?? shipment?.actual_delivery
+      ?? ((order.status ?? "").toLowerCase() === "delivered" ? order.updated_at : null);
+    if (!delivered) return false;
+    const end = new Date(delivered).getTime() + data!.returnWindowDays * 864e5;
+    return now < end;
+  })();
+
 
   return (
     <AnimatePresence>
