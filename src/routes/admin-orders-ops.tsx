@@ -560,11 +560,6 @@ function OverviewStat({ label, value, icon, tone, onClick }: { label: string; va
   );
 }
 
-const PRIORITY_TONE: Record<string, string> = {
-  critical: "text-destructive border-destructive/40 bg-destructive/10",
-  high: "text-amber-300 border-amber-400/40 bg-amber-400/10",
-  medium: "text-sky-300 border-sky-400/40 bg-sky-400/10",
-};
 
 const PRIORITY_BAR: Record<string, string> = {
   critical: "bg-destructive",
