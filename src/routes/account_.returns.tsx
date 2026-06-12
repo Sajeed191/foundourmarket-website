@@ -974,12 +974,12 @@ function ReturnsPage() {
 
       {/* DETAIL DIALOG */}
       <Dialog open={!!detail} onOpenChange={(o) => { if (!o) setDetail(null); }}>
-        <DialogContent className="bg-[#050816] border-white/[0.08] text-white max-w-md rounded-2xl p-0 overflow-hidden">
+        <DialogContent className="bg-[#050816] border-white/[0.08] text-white w-[calc(100vw-1.5rem)] max-w-md rounded-2xl p-0 overflow-hidden">
           {detail && (() => {
             const view = deriveView(detail);
             const prod = productFor(detail);
             return (
-              <div className="relative">
+              <div className="relative w-full min-w-0 overflow-hidden">
                 <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF7A00]/70 to-transparent" />
                 <div className="p-5">
                   <DialogHeader className="space-y-0 text-left">
