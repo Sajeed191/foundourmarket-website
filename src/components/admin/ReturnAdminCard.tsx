@@ -304,31 +304,43 @@ export function ReturnAdminCard({
         </section>
       </div>
 
-      {/* Customer Evidence */}
+      {/* Customer Evidence (collapsible) */}
       {photos.length > 0 && (
-        <section className="mt-4 rounded-xl border border-border/60 bg-background/40 p-3">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
-            <Images className="size-3.5 text-accent" /> Customer Evidence ({photos.length})
-          </p>
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-            {photos.map((url, i) => (
-              <button
-                key={url + i}
-                onClick={() => setLightbox(i)}
-                className="aspect-square rounded-lg overflow-hidden border border-border/60 hover:ring-2 hover:ring-accent/50 transition-all"
-              >
-                <img src={url} alt={`Evidence ${i + 1}`} className="size-full object-cover" loading="lazy" />
-              </button>
-            ))}
-          </div>
-          <ImageLightbox
-            images={photos.map((url, i) => ({ id: `${url}-${i}`, url, alt: `Evidence ${i + 1}`, sortOrder: i }))}
-            index={lightbox ?? 0}
-            open={lightbox != null}
-            onIndexChange={setLightbox}
-            onClose={() => setLightbox(null)}
-            alt="Return evidence"
-          />
+        <section className="rounded-xl border border-border/60 bg-background/40 p-3">
+          <button
+            type="button"
+            onClick={() => setEvidenceOpen((v) => !v)}
+            className="w-full flex items-center justify-between gap-2 min-h-[44px] text-left"
+            aria-expanded={evidenceOpen}
+          >
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <Images className="size-3.5 text-accent" /> Evidence Gallery ({photos.length})
+            </span>
+            <ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform ${evidenceOpen ? "rotate-180" : ""}`} />
+          </button>
+          {evidenceOpen && (
+            <>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-3 pt-3 border-t border-border/40">
+                {photos.map((url, i) => (
+                  <button
+                    key={url + i}
+                    onClick={() => setLightbox(i)}
+                    className="aspect-square rounded-lg overflow-hidden border border-border/60 hover:ring-2 hover:ring-accent/50 transition-all"
+                  >
+                    <img src={url} alt={`Evidence ${i + 1}`} className="size-full object-cover" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+              <ImageLightbox
+                images={photos.map((url, i) => ({ id: `${url}-${i}`, url, alt: `Evidence ${i + 1}`, sortOrder: i }))}
+                index={lightbox ?? 0}
+                open={lightbox != null}
+                onIndexChange={setLightbox}
+                onClose={() => setLightbox(null)}
+                alt="Return evidence"
+              />
+            </>
+          )}
         </section>
       )}
 
