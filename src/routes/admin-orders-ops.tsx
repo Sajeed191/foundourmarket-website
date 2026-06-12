@@ -93,10 +93,8 @@ function StatusPill({ s }: { s: string | null }) {
   return <span className={`text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border ${cls}`}>{s || "—"}</span>;
 }
 
-function Bar({ value, max, color = "bg-accent" }: { value: number; max: number; color?: string }) {
-  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  return <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden"><div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} /></div>;
-}
+
+
 
 function ExportMenu({ data }: { data: OrderOps }) {
   const [open, setOpen] = useState(false);
