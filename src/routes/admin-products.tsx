@@ -115,11 +115,12 @@ type SortKey = "newest" | "oldest" | "revenue" | "stock" | "stock_desc" | "views
 type StockFilter = "all" | "ok" | "low" | "critical" | "oos";
 type StateFilter = "all" | "active" | "inactive" | "featured";
 type TagFilter =
-  | "all" | "active" | "hidden" | "oos" | "low" | "trending" | "bestseller"
+  | "all" | "active" | "draft" | "hidden" | "oos" | "low" | "trending" | "bestseller"
   | "new_arrival" | "featured" | "missing_images" | "missing_seo" | "missing_desc";
 const TAG_CHIPS: { key: TagFilter; label: string; icon: typeof Eye }[] = [
   { key: "all", label: "All", icon: Package },
   { key: "active", label: "Active", icon: CheckCircle2 },
+  { key: "draft", label: "Draft", icon: FileText },
   { key: "hidden", label: "Hidden", icon: EyeOff },
   { key: "oos", label: "Out of stock", icon: X },
   { key: "low", label: "Low stock", icon: AlertTriangle },
@@ -132,8 +133,9 @@ const TAG_CHIPS: { key: TagFilter; label: string; icon: typeof Eye }[] = [
 ];
 function matchesTag(p: Product, tag: TagFilter): boolean {
   switch (tag) {
-    case "active": return p.in_stock;
-    case "hidden": return !p.in_stock;
+    case "active": return p.in_stock && (p.status ?? "published") !== "draft" && (p.status ?? "published") !== "hidden";
+    case "draft": return (p.status ?? "") === "draft";
+    case "hidden": return !p.in_stock || (p.status ?? "") === "hidden";
     case "oos": return p.stock_quantity <= 0;
     case "low": return p.stock_quantity > 0 && p.stock_quantity <= p.low_stock_threshold;
     case "trending": return !!p.trending;
