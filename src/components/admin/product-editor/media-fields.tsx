@@ -276,7 +276,25 @@ function GalleryBtn({ children, label, onClick, disabled, danger, active }: {
 /* ============================ Video Uploader ============================ */
 
 const MAX_VIDEO_MB = 100;
-const VIDEO_TYPES = ["video/mp4", "video/webm"];
+const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+const VIDEO_EXT: Record<string, string> = {
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+  "video/mp4": "mp4",
+};
+
+function formatBytes(b: number): string {
+  if (b <= 0) return "—";
+  const mb = b / (1024 * 1024);
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`;
+}
+function formatDuration(sec: number): string {
+  if (!isFinite(sec) || sec <= 0) return "—";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 
 export function ProductVideoUploader({
   slug, value, onChange,
