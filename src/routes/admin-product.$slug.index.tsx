@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   FileText, IndianRupee, Boxes, Truck, RotateCcw, Search, Sparkles, BarChart3, Eye, ChevronRight,
-  TrendingUp, ShoppingCart, Heart, CheckCircle2, AlertCircle, Loader2, Activity, ArrowLeft,
+  TrendingUp, ShoppingCart, Heart, CheckCircle2, AlertCircle, Loader2, Activity,
   Copy, Archive, Trash2, Send, EyeOff, ExternalLink, ShieldCheck, DollarSign,
   Globe, Hash, Wand2, Download, Image as ImageIcon, ChevronDown, Pencil, Package,
 } from "lucide-react";
