@@ -1,4 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { adminProductsSummary } from "@/lib/admin-products-list.functions";
+import { adminGenerateSkus } from "@/lib/admin-sku.functions";
 import { ExecutiveSummaryPanel } from "@/components/admin/ExecutiveSummaryPanel";
 import { FinancialInsightsPanel } from "@/components/admin/FinancialInsightsPanel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -52,6 +55,7 @@ type Product = {
 
 type Category = { slug: string; name: string; id?: string; parent_id?: string | null };
 type Stat = { units: number; revenue: number; orders: number };
+type CatalogSummary = Awaited<ReturnType<typeof adminProductsSummary>>;
 
 const inr = (v: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(v) || 0);
@@ -124,7 +128,7 @@ type StockFilter = "all" | "ok" | "low" | "critical" | "oos";
 type StateFilter = "all" | "active" | "inactive" | "featured";
 type TagFilter =
   | "all" | "active" | "draft" | "hidden" | "oos" | "low" | "trending" | "bestseller"
-  | "new_arrival" | "featured" | "missing_images" | "missing_seo" | "missing_desc";
+  | "new_arrival" | "featured" | "missing_images" | "missing_seo" | "missing_desc" | "missing_sku";
 const TAG_CHIPS: { key: TagFilter; label: string; icon: typeof Eye }[] = [
   { key: "all", label: "All", icon: Package },
   { key: "active", label: "Active", icon: CheckCircle2 },
@@ -153,6 +157,7 @@ function matchesTag(p: Product, tag: TagFilter): boolean {
     case "missing_images": return !(p.image && p.image.trim());
     case "missing_seo": return !p.seo_title || !p.seo_description;
     case "missing_desc": return !p.description || p.description.trim().length < 20;
+    case "missing_sku": return !(p.sku && p.sku.trim());
     default: return true;
   }
 }
@@ -179,6 +184,10 @@ function ProductsInner() {
   const [busy, setBusy] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 24;
+  const [summary, setSummary] = useState<CatalogSummary | null>(null);
+  const [skuBusy, setSkuBusy] = useState(false);
+  const fetchSummary = useServerFn(adminProductsSummary);
+  const generateSkus = useServerFn(adminGenerateSkus);
 
   useEffect(() => {
     const t = setTimeout(() => setSearchTerm(query.trim().toLowerCase()), 250);
@@ -226,14 +235,24 @@ function ProductsInner() {
     setOrdersToday(ordersTodayCount);
   }, []);
 
+  const loadSummary = useCallback(async () => {
+    try {
+      const s = await fetchSummary();
+      setSummary(s as CatalogSummary);
+    } catch {
+      /* non-fatal: intelligence panels fall back to client-derived values */
+    }
+  }, [fetchSummary]);
+
   const reloadAll = useCallback(() => {
     setPulse(true);
     setTimeout(() => setPulse(false), 1000);
     loadProducts();
     loadStats();
-  }, [loadProducts, loadStats]);
+    loadSummary();
+  }, [loadProducts, loadStats, loadSummary]);
 
-  useEffect(() => { loadProducts(); loadCategories(); loadStats(); }, [loadProducts, loadCategories, loadStats]);
+  useEffect(() => { loadProducts(); loadCategories(); loadStats(); loadSummary(); }, [loadProducts, loadCategories, loadStats, loadSummary]);
 
   // Realtime catalog + order sync
   useEffect(() => {
@@ -428,6 +447,38 @@ function ProductsInner() {
     };
   }, [products]);
 
+  // ---- SKU Operations (prefer server summary, fall back to client) ----
+  const skuStats = useMemo(() => {
+    const list = (products ?? []).filter((p) => !p.deleted_at);
+    const total = summary?.counts.total ?? list.length;
+    const missing = summary?.counts.missingSku ?? list.filter((p) => !(p.sku && p.sku.trim())).length;
+    const seen = new Map<string, number>();
+    for (const p of list) {
+      const k = (p.sku ?? "").trim().toLowerCase();
+      if (k) seen.set(k, (seen.get(k) ?? 0) + 1);
+    }
+    const duplicateSku = [...seen.values()].filter((n) => n > 1).reduce((s, n) => s + n, 0);
+    const coverage = total > 0 ? Math.round(((total - missing) / total) * 100) : 100;
+    return { total, missing, duplicateSku, coverage };
+  }, [products, summary]);
+
+  // ---- Duplicate Product Review (server-detected groups, enriched client-side) ----
+  const duplicateReview = useMemo(() => {
+    const groups = summary?.duplicateGroups ?? [];
+    const bySlug = new Map((products ?? []).map((p) => [p.slug, p]));
+    return groups.slice(0, 12).map((g) => ({
+      name: g.name,
+      count: g.count,
+      items: g.slugs
+        .map((slug) => bySlug.get(slug))
+        .filter((p): p is Product => !!p)
+        .map((p) => ({
+          id: p.id, slug: p.slug, image: p.image,
+          stock: p.stock_quantity, created_at: p.created_at,
+        })),
+    }));
+  }, [summary, products]);
+
 
   const topSellers = useMemo(() => {
     return [...(products ?? [])]
@@ -452,6 +503,42 @@ function ProductsInner() {
     const a = document.createElement("a");
     a.href = url; a.download = `products-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function downloadCsv(rows: Record<string, unknown>[], filename: string) {
+    if (!rows.length) { toast.info("Nothing to export"); return; }
+    const headers = Object.keys(rows[0]);
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [headers.join(","), ...rows.map((r) => headers.map((h) => esc(r[h])).join(","))].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportSkuReport() {
+    const rows = (products ?? []).filter((p) => !p.deleted_at).map((p) => ({
+      id: p.id, slug: p.slug, name: p.name, sku: p.sku ?? "",
+      has_sku: !!(p.sku && p.sku.trim()), category: p.category, stock: p.stock_quantity,
+    }));
+    downloadCsv(rows, `sku-report-${new Date().toISOString().slice(0, 10)}.csv`);
+  }
+
+  async function handleGenerateSkus() {
+    if (skuBusy) return;
+    const missing = summary?.counts.missingSku ?? 0;
+    if (missing === 0) { toast.info("Every product already has a SKU"); return; }
+    if (!confirm(`Generate FOM-###### SKUs for ${missing} product(s) missing one? Existing SKUs are never overwritten.`)) return;
+    setSkuBusy(true);
+    try {
+      const res = await generateSkus({ data: {} });
+      toast.success(`Generated ${res.generated} SKU${res.generated === 1 ? "" : "s"}`);
+      reloadAll();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "SKU generation failed");
+    } finally {
+      setSkuBusy(false);
+    }
   }
 
   if (products === null) {
@@ -676,7 +763,88 @@ function ProductsInner() {
             <AlertTriangle className="size-3" /> {catalogHealth.duplicates} possible duplicate products (same name)
           </p>
         )}
+
+        {/* SKU Operations Center */}
+        <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Tag className="size-4 text-accent" />
+            <h3 className="text-sm font-display">SKU Operations Center</h3>
+            <span className="ml-auto text-[10px] font-mono uppercase tracking-widest text-muted-foreground">FOM-000001</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5">
+            <IntelStat label="Missing SKU" value={String(skuStats.missing)} accent={skuStats.missing > 0} />
+            <IntelStat label="Duplicate SKU" value={String(skuStats.duplicateSku)} accent={skuStats.duplicateSku > 0} />
+            <IntelStat label="Coverage" value={`${skuStats.coverage}%`} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            <button onClick={handleGenerateSkus} disabled={skuBusy || skuStats.missing === 0}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-accent text-accent-foreground font-semibold px-3 py-2 text-[10px] uppercase tracking-widest hover:brightness-110 disabled:opacity-40">
+              {skuBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />} Generate Missing SKUs
+            </button>
+            <button onClick={() => { setTag("missing_sku"); }}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-white/5">
+              <Eye className="size-3.5" /> Review Missing SKUs
+            </button>
+            <button onClick={exportSkuReport}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-white/5">
+              <Download className="size-3.5" /> Export SKU Report
+            </button>
+          </div>
+        </div>
       </CollapsibleModule>
+
+      {/* 5b. Duplicate Product Review — detection only, never auto-merge/delete */}
+      {duplicateReview.length > 0 && (
+        <CollapsibleModule
+          eyebrow="Operations"
+          title="Duplicate Product Review"
+          sectionId="products-duplicate-review"
+          defaultOpen={false}
+          badge={
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 px-2.5 py-1 text-[10px] font-mono">
+              <AlertTriangle className="size-3" /> {duplicateReview.length} group{duplicateReview.length === 1 ? "" : "s"}
+            </span>
+          }
+        >
+          <div className="space-y-3">
+            {duplicateReview.map((g) => (
+              <div key={g.name} className="rounded-2xl border border-white/10 bg-white/[0.02] p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-sm font-medium truncate">{g.name}</p>
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-amber-400">{g.count} copies</span>
+                  <button onClick={() => { setQuery(g.name); setView("active"); }}
+                    className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-2.5 py-1.5 text-[9px] font-mono uppercase tracking-widest hover:bg-white/5">
+                    <Search className="size-3" /> Review
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {g.items.map((it) => (
+                    <div key={it.id} className="flex items-center gap-2.5 rounded-xl border border-white/10 p-2">
+                      <div className="size-10 rounded-lg overflow-hidden bg-white/5 shrink-0">
+                        <img src={resolveImage(it.image)} alt="" loading="lazy" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-mono text-muted-foreground truncate">ID {it.id.slice(0, 8)}…</p>
+                        <p className="text-[9px] font-mono text-muted-foreground/70">
+                          Stock {it.stock} · {new Date(it.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button onClick={() => navigate({ to: "/admin-product/$slug", params: { slug: it.slug } })}
+                        title="Open product"
+                        className="size-7 grid place-items-center rounded-full border border-white/10 hover:bg-white/5 text-muted-foreground hover:text-foreground shrink-0">
+                        <ExternalLink className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <p className="text-[9px] font-mono text-muted-foreground flex items-center gap-1.5">
+              <ShieldCheck className="size-3" /> Detection only — products are never auto-merged or deleted.
+            </p>
+          </div>
+        </CollapsibleModule>
+      )}
 
       {/* 6. Product Analytics — collapsible, bottom */}
       <CollapsibleModule eyebrow="Insights" title="Product Analytics" sectionId="products-analytics" defaultOpen={false}>
@@ -720,10 +888,23 @@ function ProductsInner() {
               <h3 className="text-sm font-display">Inventory intelligence</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <IntelStat label="Units on hand" value={(products.reduce((s, p) => s + p.stock_quantity, 0)).toLocaleString()} />
-              <IntelStat label="Reserved" value={(products.reduce((s, p) => s + (p.reserved_quantity ?? 0), 0)).toLocaleString()} />
-              <IntelStat label="Stock value" value={inr(products.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0))} />
-              <IntelStat label="At cost" value={inr(products.reduce((s, p) => s + Number(p.cost) * p.stock_quantity, 0))} accent />
+              <IntelStat
+                label="Units on hand"
+                value={(summary?.valuation.unitsOnHand ?? products.reduce((s, p) => s + p.stock_quantity, 0)).toLocaleString()}
+              />
+              <IntelStat
+                label="Reserved"
+                value={(summary?.valuation.reserved ?? products.reduce((s, p) => s + (p.reserved_quantity ?? 0), 0)).toLocaleString()}
+              />
+              <IntelStat
+                label="Stock value"
+                value={inr(summary?.valuation.stockValue ?? products.reduce((s, p) => s + priceOf(p) * p.stock_quantity, 0))}
+              />
+              <IntelStat
+                label="At cost"
+                value={inr(summary?.valuation.costValue ?? products.reduce((s, p) => s + costOf(p) * p.stock_quantity, 0))}
+                accent
+              />
             </div>
             <Link to="/admin-inventory" className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-accent hover:underline">
               <Layers className="size-3" /> Full inventory console
