@@ -53,7 +53,7 @@ function DetailsPage() {
         keywords: (r.meta_keywords ?? []).join(", "),
         rating: Number(r.rating) || 0,
         reviews: Number(r.reviews) || 0,
-        rating_source: r.rating_source ?? "manual",
+        rating_source: r.rating_source ?? "imported_supplier",
       })}
       toPatch={(f) => ({
         name: f.name.trim(),
