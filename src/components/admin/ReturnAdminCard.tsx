@@ -85,6 +85,13 @@ export function ReturnAdminCard({
   const withinWindow =
     daysSinceDelivery != null && windowDays != null ? daysSinceDelivery <= windowDays : null;
 
+  const resolution = r.resolution_type === "refund" ? "refund" : "replacement";
+  const isApproved = ["approved", "received", "completed"].includes(r.status);
+  // Refund is only eligible when the request is approved, the product qualifies,
+  // it's within the return window, and admin has chosen refund (replacement unavailable).
+  const refundEligible =
+    resolution === "refund" && isApproved && eligible !== false && withinWindow !== false;
+
   return (
     <div className="card-premium rounded-2xl p-4 sm:p-5">
       {/* Header */}
