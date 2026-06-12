@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   User, Mail, Phone, MapPin, Check, X, Package, ImageOff, Images,
   CalendarClock, ShieldCheck, ShieldX, Receipt, Truck, CreditCard,
-  Wallet, RotateCcw, Clock, ChevronDown,
+  Wallet, RotateCcw, Clock, ChevronDown, Repeat, AlertTriangle,
 } from "lucide-react";
 import type { AdminReturnRow } from "@/lib/returns-admin.functions";
 import type { Product } from "@/lib/products";
@@ -10,6 +10,7 @@ import { ImageLightbox } from "@/components/site/ImageLightbox";
 
 const RETURN_STATUSES = ["requested", "approved", "received", "completed", "rejected"] as const;
 const REFUND_STATUSES = ["pending", "issued", "failed"] as const;
+const REPLACEMENT_STATUSES = ["pending", "approved", "processing", "shipped", "delivered"] as const;
 
 const STATUS_TONE: Record<string, string> = {
   requested: "text-amber-400 border-amber-400/30 bg-amber-400/10",
