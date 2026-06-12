@@ -1151,115 +1151,39 @@ function CompactSupportCard({
   return <Link to={to!} className={cls}>{inner}</Link>;
 }
 
-function ContinueShopping({ items, format }: { items: Product[]; format: (n: number) => string }) {
+function ContinueShopping({ items }: { items: Product[] }) {
   return (
-    <div className="-mx-4 sm:mx-0">
-      <div className="flex gap-3.5 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-px-4 px-4 sm:px-0 pb-3 [-webkit-overflow-scrolling:touch] scroll-smooth">
-        {items.map((p, i) => (
-          <motion.div
-            key={p.slug}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4, ease, delay: Math.min(i * 0.05, 0.3) }}
-            className="snap-start shrink-0 w-[58%] xs:w-[52%] sm:w-[40%] lg:w-[28%] max-w-[260px]"
-          >
-            <ContinueShoppingCard product={p} format={format} />
-          </motion.div>
+    <>
+      {/* Mobile — same snap-rail sizing as ProductRail */}
+      <div className="sm:hidden -mx-4">
+        <div
+          className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-4 pb-3 pt-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          style={{
+            scrollPaddingLeft: "1rem",
+            scrollPaddingRight: "1rem",
+            WebkitOverflowScrolling: "touch",
+            overscrollBehaviorX: "contain",
+          }}
+        >
+          {items.map((p) => (
+            <div
+              key={p.slug}
+              className="snap-start shrink-0 w-[76%] min-[420px]:w-[66%]"
+            >
+              <ProductCard product={p} />
+            </div>
+          ))}
+          <div aria-hidden className="shrink-0 w-1" />
+        </div>
+      </div>
+
+      {/* Desktop — 2-4 column grid matching ProductCollection density */}
+      <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        {items.map((p) => (
+          <ProductCard key={p.slug} product={p} />
         ))}
       </div>
-    </div>
-  );
-}
-
-function ContinueShoppingCard({ product: p, format }: { product: Product; format: (n: number) => string }) {
-  const { add } = useCart();
-  const { priceOf, compareOf } = useRegion();
-  const { has, toggle } = useWishlist();
-  const [justAdded, setJustAdded] = useState(false);
-  const saved = has(p.slug);
-
-  const price = priceOf(p);
-  const original = compareOf(p) ?? (p.discount ? price * (1 + p.discount / 100) : null);
-  const discount = discountPercent(price, original) ?? 0;
-
-  const handleAdd = () => {
-    add(p.slug);
-    setJustAdded(true);
-    window.setTimeout(() => setJustAdded(false), 900);
-  };
-
-  return (
-    <div className="group h-full flex flex-col rounded-[22px] border border-accent/15 bg-card/50 backdrop-blur-xl overflow-hidden shadow-[0_8px_30px_-14px_oklch(0_0_0/0.7)] transition-[transform,box-shadow,border-color] duration-400 active:scale-[0.99] sm:hover:-translate-y-1 sm:hover:border-accent/35 sm:hover:shadow-[0_24px_60px_-22px_oklch(0.74_0.19_49/0.5)]">
-      <Link to="/products/$slug" params={{ slug: p.slug }} className="relative block">
-        <div className="relative aspect-[4/5] overflow-hidden bg-black/40">
-          <img
-            src={p.image}
-            alt={p.name}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.07]"
-          />
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-80" />
-          {discount > 0 && (
-            <span className="absolute left-2.5 top-2.5 rounded-full bg-accent px-2 py-1 text-[10px] font-bold leading-none text-accent-foreground shadow-sm">
-              {discount}% OFF
-            </span>
-          )}
-          <button
-            onClick={(e) => { e.preventDefault(); toggle(p.slug); }}
-            aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
-            className={`absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-full border backdrop-blur-xl shadow-lg shadow-black/40 transition-all duration-300 active:scale-90 ${
-              saved
-                ? "border-accent bg-accent/25 text-accent scale-105"
-                : "border-white/25 bg-white/10 text-white hover:border-accent hover:text-accent"
-            }`}
-          >
-            <Heart className={`size-4 transition-all ${saved ? "fill-accent" : ""}`} />
-          </button>
-        </div>
-      </Link>
-
-      <div className="flex flex-1 flex-col px-3 pt-3 pb-3">
-        <Link to="/products/$slug" params={{ slug: p.slug }}>
-          <h4 className="line-clamp-2 min-h-[2.5em] text-[13px] sm:text-sm font-medium leading-snug tracking-[-0.01em] text-foreground/95 group-hover:text-accent transition-colors">
-            {p.name}
-          </h4>
-        </Link>
-
-        <div className="mt-1.5 flex h-[16px] items-center gap-1.5">
-          {typeof p.rating === "number" && p.rating > 0 ? (
-            <>
-              <Star className="size-3.5 fill-amber-400 text-amber-400" />
-              <span className="text-[12px] font-semibold tabular-nums text-foreground">{p.rating.toFixed(1)}</span>
-              {p.reviews > 0 && (
-                <span className="text-[10px] text-muted-foreground/70">({p.reviews.toLocaleString()})</span>
-              )}
-            </>
-          ) : (
-            <span className="text-[11px] font-medium text-accent/90">New</span>
-          )}
-        </div>
-
-        <div className="mt-1.5 flex items-baseline gap-2">
-          <span className="font-display font-bold text-[17px] leading-none tabular-nums text-foreground">{format(price)}</span>
-          {original && discount > 0 && (
-            <span className="font-mono text-[11px] tabular-nums text-muted-foreground/55 line-through">{format(original)}</span>
-          )}
-        </div>
-
-        <button
-          onClick={handleAdd}
-          aria-label={`Add ${p.name} to cart`}
-          className={`mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full text-[13px] font-semibold tracking-[-0.01em] transition-all duration-200 active:scale-[0.97] ${
-            justAdded
-              ? "bg-emerald-500 text-black"
-              : "bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] text-black shadow-[var(--shadow-ember)] hover:brightness-[1.05]"
-          }`}
-        >
-          {justAdded ? (<><CheckCircle2 className="size-4" /> Added</>) : (<><Plus className="size-4" strokeWidth={2.5} /> Add to Cart</>)}
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
 
