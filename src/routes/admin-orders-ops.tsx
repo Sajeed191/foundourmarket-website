@@ -145,27 +145,26 @@ function ExportMenu({ data }: { data: OrderOps }) {
 
 function OrderRow({ o, onClick }: { o: EnrichedOrder; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="w-full text-left grid grid-cols-[auto_1fr_auto] gap-3 items-center p-3 rounded-xl hover:bg-muted/40 transition-colors border border-transparent hover:border-border">
-      <Avatar name={o.full_name} url={o.avatar_url} />
+    <button onClick={onClick} className="w-full text-left grid grid-cols-[auto_1fr_auto] gap-3 sm:gap-4 items-center p-3 sm:p-3.5 rounded-xl hover:bg-muted/30 transition-colors border border-transparent hover:border-border/70 active:bg-muted/40">
+      <Avatar name={o.full_name} url={o.avatar_url} size={40} />
       <div className="min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium truncate">{o.full_name ?? o.contact_email ?? "Guest"}</span>
-          <span className="text-[10px] font-mono text-muted-foreground">#{o.id.slice(0, 8)}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-sm font-semibold truncate">{o.full_name ?? o.contact_email ?? "Guest"}</span>
           <RiskBadge score={o.riskScore} />
         </div>
-        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-          {o.tags.slice(0, 4).map((t) => <TagPill key={t} t={t} />)}
-        </div>
         <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-          <StatusPill s={o.status} />
-          <span>{o.units} item{o.units !== 1 ? "s" : ""}</span>
-          <span>·</span>
+          <span className="font-mono">#{o.id.slice(0, 8)}</span>
+          <span className="text-border">·</span>
           <span>{timeAgo(o.created_at)}</span>
         </div>
+        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+          <StatusPill s={o.status} />
+          {o.tags.slice(0, 2).map((t) => <TagPill key={t} t={t} />)}
+        </div>
       </div>
-      <div className="text-right">
+      <div className="text-right shrink-0">
         <div className="text-sm font-semibold tabular-nums">{inr(o.total)}</div>
-        <div className={`text-[11px] tabular-nums ${o.profit < 0 ? "text-destructive" : "text-emerald-400"}`}>{o.profit < 0 ? "−" : "+"}{inr(Math.abs(o.profit))}</div>
+        <div className={`text-[11px] tabular-nums mt-0.5 ${o.profit < 0 ? "text-destructive" : "text-emerald-400"}`}>{o.profit < 0 ? "−" : "+"}{inr(Math.abs(o.profit))}</div>
       </div>
     </button>
   );
