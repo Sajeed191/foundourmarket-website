@@ -256,9 +256,9 @@ function OrderDrawer({ o, onClose, onRefresh }: { o: EnrichedOrder; onClose: () 
   const tags = o.tags.filter((t) => t !== "vip");
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
-      <div className="relative w-full max-w-md h-full overflow-y-auto bg-card border-l border-border" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[90] flex justify-end" onClick={onClose}>
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
+      <div className="relative w-full max-w-md h-full overflow-y-auto overscroll-contain bg-card border-l border-border shadow-2xl" onClick={(e) => e.stopPropagation()}>
 
         {/* ---- Header ---- */}
         <div className="sticky top-0 z-10 bg-card/95 backdrop-blur border-b border-border px-5 pt-5 pb-4">
