@@ -1031,9 +1031,13 @@ function ReturnTimeline({ ret, format }: { ret: Return; format: (n: number) => s
             <p className="text-sm font-medium mt-0.5 truncate">Order #{ret.order_id.slice(0, 8)}</p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{rejected ? "Status" : "Refund"}</p>
-            <p className="text-sm font-display font-semibold text-accent">
-              {rejected ? "Rejected" : ret.refund_amount ? format(Number(ret.refund_amount)) : "—"}
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{rejected ? "Status" : isReplacement ? "Replacement" : "Refund"}</p>
+            <p className="text-sm font-display font-semibold text-accent capitalize">
+              {rejected
+                ? "Rejected"
+                : isReplacement
+                  ? (replacement || "pending")
+                  : ret.refund_amount ? format(Number(ret.refund_amount)) : "—"}
             </p>
           </div>
         </div>
