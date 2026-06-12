@@ -34,6 +34,9 @@ export function OrderIntegrityMonitor() {
   const refresh = useCallback(async () => {
     try {
       setErr(null);
+      // Ensure a session exists so the bearer token is attached to the server fn.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setLoading(false); return; }
       const res = (await load()) as Integrity;
       setData(res);
     } catch (e) {
@@ -43,7 +46,14 @@ export function OrderIntegrityMonitor() {
     }
   }, [load]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") void refresh();
+    });
+    return () => subscription.unsubscribe();
+  }, [refresh]);
+
 
   const runScan = async () => {
     setScanning(true);
