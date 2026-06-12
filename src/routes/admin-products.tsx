@@ -860,7 +860,7 @@ function ProductsInner() {
       {/* 5. Inventory Health Center — collapsible, below catalog */}
       <CollapsibleModule
         eyebrow="Operations"
-        title="Inventory Health Center"
+        title="Inventory Operations Center"
         sectionId="products-inventory-health"
         defaultOpen={false}
         badge={
