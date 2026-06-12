@@ -296,6 +296,18 @@ export function SectionEditor<T extends Record<string, any>>({
   const validationError = form ? validate?.(form) ?? null : null;
   useUnsavedGuard(dirty);
 
+  // Raise floating controls (support orb, toolbars) above the sticky action bar.
+  useEffect(() => {
+    const el = document.documentElement;
+    const prev = el.style.getPropertyValue("--floating-bottom-offset");
+    el.style.setProperty("--floating-bottom-offset", "calc(var(--app-bottom-nav-height) + 8rem)");
+    return () => {
+      if (prev) el.style.setProperty("--floating-bottom-offset", prev);
+      else el.style.removeProperty("--floating-bottom-offset");
+    };
+  }, []);
+
+
   const set = (patch: Partial<T>) => setForm((f) => (f ? { ...f, ...patch } : f));
 
   const doSave = useCallback(
