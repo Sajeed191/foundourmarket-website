@@ -106,7 +106,7 @@ function AccountPage() {
     const loadReturns = () =>
       supabase
         .from("returns")
-        .select("id,order_id,status,refund_status,refund_amount,created_at")
+        .select("id,order_id,status,refund_status,refund_amount,resolution_type,replacement_status,created_at")
         .order("created_at", { ascending: false })
         .limit(20)
         .then(({ data }) => setReturns((data as Return[]) ?? []));
