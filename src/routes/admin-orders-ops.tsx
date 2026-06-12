@@ -721,11 +721,11 @@ function OrderOpsPage() {
   ];
 
   const pipeline: { label: string; value: number; icon: React.ReactNode; orders: EnrichedOrder[] }[] = [
-    { label: "Pending", value: k.pending, icon: <Clock className="size-3.5" />, orders: ords.filter((o) => /pending|process/i.test(o.status ?? "")) },
+    { label: "Pending", value: pendingOrders.length, icon: <Clock className="size-3.5" />, orders: pendingOrders },
     { label: "Packed", value: packedOrders.length, icon: <Package className="size-3.5" />, orders: packedOrders },
-    { label: "Shipped", value: k.shipped, icon: <Truck className="size-3.5" />, orders: ords.filter((o) => o.shipped_at && !o.delivered_at) },
+    { label: "Shipped", value: shippedOrders.length, icon: <Truck className="size-3.5" />, orders: shippedOrders },
     { label: "Out for Delivery", value: ofdOrders.length, icon: <MapPin className="size-3.5" />, orders: ofdOrders },
-    { label: "Delivered", value: k.delivered, icon: <Check className="size-3.5" />, orders: ords.filter((o) => o.delivered_at) },
+    { label: "Delivered", value: deliveredOrders.length, icon: <Check className="size-3.5" />, orders: deliveredOrders },
   ];
 
   const focusOrders = (label: string, list: EnrichedOrder[]) => {
