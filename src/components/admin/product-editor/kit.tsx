@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Save, Package, Check, AlertTriangle, RotateCcw, Eye } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Package, Check, AlertTriangle, RotateCcw, Eye, MoreVertical, Copy, Archive, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { resolveImage } from "@/lib/products";
 import { invalidateProducts } from "@/lib/use-products";
 import { useUnsavedGuard } from "@/hooks/use-unsaved-guard";
-import { SaveStateBadge } from "@/components/admin/SaveStateBadge";
 import { writeLocalDraft, readLocalDraft, clearLocalDraft, type SaveState } from "@/lib/drafts";
 import { COMPLETION_COLS, COMPLETION_SECTIONS, computeCompletion, type SectionCompletion, type SectionKey } from "@/lib/product-completion";
 
@@ -258,7 +257,7 @@ export function SectionEditor<T extends Record<string, any>>({
   const [form, setForm] = useState<T | null>(null);
   const baseline = useRef<string>("");
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [, setLastSavedAt] = useState<Date | null>(null);
   const [justSaved, setJustSaved] = useState(false);
   const savedFlash = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigate = useNavigate();
@@ -367,6 +366,50 @@ export function SectionEditor<T extends Record<string, any>>({
     setRecovery(null);
   };
 
+  // More Actions menu + product-level operations.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [actionBusy, setActionBusy] = useState(false);
+
+  async function duplicateProduct() {
+    setActionBusy(true);
+    try {
+      const { data, error } = await supabase.from("products").select("*").eq("slug", slug).maybeSingle();
+      if (error || !data) throw new Error(error?.message || "Product not found");
+      const copy: Record<string, any> = { ...data };
+      delete copy.id; delete copy.created_at; delete copy.updated_at;
+      const suffix = Math.random().toString(36).slice(2, 6);
+      copy.slug = `${data.slug}-copy-${suffix}`;
+      copy.sku = data.sku ? `${data.sku}-COPY-${suffix.toUpperCase()}` : null;
+      copy.name = `${data.name ?? "Product"} (Copy)`;
+      copy.status = "draft";
+      const { error: insErr } = await supabase.from("products").insert(copy);
+      if (insErr) throw new Error(insErr.message);
+      await invalidateProducts();
+      logActivity("product_duplicated", "product", row?.id, { from: slug, to: copy.slug });
+      toast.success("Product duplicated as a draft");
+      setMenuOpen(false);
+      navigate({ to: "/admin-product/$slug/details", params: { slug: copy.slug } });
+    } catch (e) {
+      toast.error("Duplicate failed", { description: e instanceof Error ? e.message : "Try again." });
+    } finally { setActionBusy(false); }
+  }
+
+  async function archiveProduct() {
+    setActionBusy(true);
+    try {
+      const { error } = await supabase.from("products").update({ status: "archived", updated_at: new Date().toISOString() }).eq("slug", slug);
+      if (error) throw new Error(error.message);
+      await invalidateProducts();
+      logActivity("product_archived", "product", row?.id, { slug });
+      toast.success("Product archived");
+      setMenuOpen(false);
+      navigate({ to: "/admin-products" });
+    } catch (e) {
+      toast.error("Archive failed", { description: e instanceof Error ? e.message : "Try again." });
+    } finally { setActionBusy(false); }
+  }
+
+
   const header: ProductHeaderInfo | null = row
     ? { id: row.id, slug: row.slug, name: row.name, image: row.image, sku: row.sku, status: row.status, category: row.category }
     : null;
@@ -391,7 +434,7 @@ export function SectionEditor<T extends Record<string, any>>({
           <div className="grid place-items-center py-24"><Loader2 className="size-5 animate-spin text-accent" /></div>
         )
       ) : (
-        <div className="space-y-5 pb-[calc(var(--mobile-nav-clearance)+7.5rem)] lg:pb-32">
+        <div className="space-y-5 pb-[calc(var(--mobile-nav-clearance)+5.5rem)] lg:pb-24">
           <ProductHeaderStrip h={header} active={sectionKey} />
 
           {recovery && (
@@ -425,52 +468,105 @@ export function SectionEditor<T extends Record<string, any>>({
             {children(form, set, row!)}
           </motion.div>
 
-          {/* Sticky bottom action bar */}
+          {/* Flush bottom action bar — edge-to-edge, no floating card */}
           <div
-            className="fixed bottom-[var(--mobile-nav-clearance)] lg:bottom-0 inset-x-0 lg:left-[17.5rem] z-[75] border-t border-border bg-background/95 backdrop-blur-xl"
-            style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
+            className="fixed bottom-0 inset-x-0 lg:left-[17.5rem] z-[75] border-t border-border bg-background/95 backdrop-blur-xl"
+            style={{ paddingBottom: "calc(var(--mobile-nav-clearance) + max(0.5rem, env(safe-area-inset-bottom)))" }}
           >
-            <div className="mx-auto flex max-w-3xl flex-col gap-2 px-4 pt-2.5">
-              <div className="flex items-center justify-center">
-                <SaveStateBadge state={saveState} lastSavedAt={lastSavedAt} />
+            <div className="mx-auto flex max-w-3xl items-center gap-2 px-3 pt-2.5 pb-1">
+              {/* More Actions */}
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  aria-label="More actions"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((o) => !o)}
+                  className="grid size-11 place-items-center rounded-lg border border-white/12 bg-white/[0.03] text-muted-foreground transition-all hover:text-foreground hover:border-white/25 active:scale-95"
+                >
+                  <MoreVertical className="size-4" />
+                </button>
+                {menuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-[-1]" onClick={() => setMenuOpen(false)} />
+                    <div
+                      role="menu"
+                      className="absolute bottom-[calc(100%+0.5rem)] left-0 w-52 overflow-hidden rounded-xl border border-white/10 bg-background/95 shadow-xl backdrop-blur-xl"
+                    >
+                      <MenuItem
+                        icon={<FileText className="size-4" />}
+                        label="Save Draft"
+                        disabled={!dirty || saveState === "saving" || !!validationError}
+                        onClick={() => { setMenuOpen(false); void doSave(false); }}
+                      />
+                      <MenuItem
+                        icon={<Copy className="size-4" />}
+                        label="Duplicate Product"
+                        disabled={actionBusy}
+                        onClick={() => void duplicateProduct()}
+                      />
+                      <MenuItem
+                        icon={<Archive className="size-4" />}
+                        label="Archive Product"
+                        disabled={actionBusy}
+                        danger
+                        onClick={() => void archiveProduct()}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => void doSave(false)}
-                  disabled={!dirty || saveState === "saving" || !!validationError}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white/[0.03] px-3 py-2.5 text-xs font-medium text-muted-foreground transition-all hover:text-foreground hover:border-white/25 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Save className="size-3.5" /> Save Draft
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/admin-product/$slug/preview", params: { slug } })}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-accent/35 bg-accent/10 px-3 py-2.5 text-xs font-semibold text-accent transition-all hover:bg-accent/20 active:scale-[0.97]"
-                >
-                  <Eye className="size-3.5" /> Preview
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void doSave(false)}
-                  disabled={(!dirty && !justSaved) || saveState === "saving" || !!validationError}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed ${justSaved ? "bg-emerald-500 text-white" : "bg-accent text-accent-foreground hover:brightness-110"}`}
-                >
-                  {saveState === "saving" ? (
-                    <><Loader2 className="size-3.5 animate-spin" /> Saving…</>
-                  ) : justSaved ? (
-                    <><Check className="size-3.5" /> Changes Saved</>
-                  ) : (
-                    <><Save className="size-3.5" /> Save Changes{dirty ? ` (${changedKeys.length})` : ""}</>
-                  )}
-                </button>
-              </div>
+
+              {/* Preview — secondary CTA (35%) */}
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/admin-product/$slug/preview", params: { slug } })}
+                className="inline-flex h-11 basis-[35%] grow-0 items-center justify-center gap-1.5 rounded-lg border border-accent/35 bg-accent/10 px-3 text-xs font-semibold text-accent transition-all hover:bg-accent/20 active:scale-[0.98]"
+              >
+                <Eye className="size-4" /> Preview
+              </button>
+
+              {/* Save Changes — primary CTA (65%) */}
+              <button
+                type="button"
+                onClick={() => void doSave(false)}
+                disabled={(!dirty && !justSaved) || saveState === "saving" || !!validationError}
+                className={`inline-flex h-11 basis-[65%] grow items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${justSaved ? "bg-emerald-500 text-white" : "bg-accent text-accent-foreground hover:brightness-110"}`}
+              >
+                {saveState === "saving" ? (
+                  <><Loader2 className="size-4 animate-spin" /> Saving…</>
+                ) : justSaved ? (
+                  <><Check className="size-4" /> Changes Saved</>
+                ) : (
+                  <><Save className="size-4" /> Save Changes{dirty ? ` (${changedKeys.length})` : ""}</>
+                )}
+              </button>
             </div>
           </div>
+
 
         </div>
       )}
     </AdminShell>
+  );
+}
+
+function MenuItem({ icon, label, onClick, disabled, danger }: {
+  icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex w-full items-center gap-2.5 px-3.5 py-3 text-left text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+        danger ? "text-destructive hover:bg-destructive/10" : "text-foreground hover:bg-white/5"
+      }`}
+    >
+      <span className={danger ? "text-destructive" : "text-muted-foreground"}>{icon}</span>
+      {label}
+    </button>
   );
 }
 
