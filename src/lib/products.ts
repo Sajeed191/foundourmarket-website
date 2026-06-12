@@ -23,6 +23,12 @@ export type Product = {
   discount?: number;
   featured: boolean;
   sku?: string | null;
+  // SEO (auto-generated, manual edits preserved)
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  metaKeywords?: string[];
+  brand?: string | null;
+  productType?: string | null;
   stockQuantity: number;
   lowStockThreshold: number;
   viewsCount: number;
