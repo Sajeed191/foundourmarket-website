@@ -22,6 +22,7 @@ const COLS = [
   "features", "specifications", "attributes", "video_url",
   "seo_title", "seo_description", "meta_keywords",
   "price", "price_inr", "stock_quantity",
+  "rating", "reviews", "rating_source",
 ];
 
 type Form = {
@@ -32,6 +33,7 @@ type Form = {
   attrs: KV[];
   video_url: string;
   seo_title: string; seo_description: string; keywords: string;
+  rating: number; reviews: number; rating_source: string;
 };
 
 function DetailsPage() {
