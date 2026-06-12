@@ -210,7 +210,7 @@ function RatingManager({ f, set }: {
       <div className="flex flex-wrap gap-1.5">
         {[5, 4.5, 4, 3.5, 0].map((preset) => (
           <button key={preset} type="button"
-            onClick={() => set({ rating: preset, rating_source: "manual" })}
+            onClick={() => set({ rating: preset })}
             className="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-all hover:text-foreground active:scale-95">
             {preset === 0 ? "Reset" : `${preset}★`}
           </button>
