@@ -131,9 +131,9 @@ export function ReturnAdminCard({
     resolution === "refund" && isApproved && eligible !== false && withinWindow !== false;
 
   return (
-    <div className="card-premium rounded-2xl p-4 sm:p-5">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-3 mb-4">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[11px] text-muted-foreground break-words">
             Return #{r.id.slice(0, 8)} · Order #{r.order_id.slice(0, 8)}
@@ -148,70 +148,39 @@ export function ReturnAdminCard({
         </div>
       </div>
 
-      {/* Timeline */}
+      {/* Compact progress tracker */}
       {r.status !== "rejected" ? (
-        <div className="mb-6">
-          {/* Vertical timeline (mobile, < md) */}
-          <ol className="md:hidden space-y-0">
-            {TIMELINE.map((step, i) => {
+        <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+          <div className="flex items-center">
+            {COMPACT_STEPS.map((label, i) => {
               const done = i <= activeIdx;
               const current = i === activeIdx;
-              const isLast = i === TIMELINE.length - 1;
               return (
-                <li key={step.key} className="flex gap-3">
-                  <div className="flex flex-col items-center">
+                <div key={label} className="flex items-center flex-1 last:flex-none">
+                  <div className="flex flex-col items-center gap-1.5 shrink-0">
                     <div
-                      className={`grid place-items-center size-7 rounded-full border text-[11px] shrink-0 transition-colors ${
+                      className={`grid place-items-center size-6 rounded-full border text-[10px] transition-colors ${
                         done
                           ? "bg-accent/20 border-accent text-accent"
                           : "bg-background border-border text-muted-foreground"
                       } ${current ? "ring-2 ring-accent/40" : ""}`}
                     >
-                      {done ? <Check className="size-3.5" /> : i + 1}
+                      {done ? <Check className="size-3" /> : i + 1}
                     </div>
-                    {!isLast && <div className={`w-px flex-1 my-1 ${i < activeIdx ? "bg-accent" : "bg-border"}`} />}
+                    <span className={`text-[8px] sm:text-[9px] font-mono uppercase tracking-wide text-center leading-tight w-11 sm:w-14 ${current ? "text-accent font-semibold" : done ? "text-foreground" : "text-muted-foreground"}`}>
+                      {label}
+                    </span>
                   </div>
-                  <span className={`text-xs font-mono uppercase tracking-wider leading-7 pb-2 ${done ? "text-foreground" : "text-muted-foreground"}`}>
-                    {step.label}
-                  </span>
-                </li>
+                  {i < COMPACT_STEPS.length - 1 && (
+                    <div className={`h-px flex-1 mx-0.5 mb-4 ${i < activeIdx ? "bg-accent" : "bg-border"}`} />
+                  )}
+                </div>
               );
             })}
-          </ol>
-
-          {/* Horizontal timeline (>= md) */}
-          <div className="hidden md:block overflow-x-auto">
-            <div className="flex items-center">
-              {TIMELINE.map((step, i) => {
-                const done = i <= activeIdx;
-                const current = i === activeIdx;
-                return (
-                  <div key={step.key} className="flex items-center flex-1 last:flex-none">
-                    <div className="flex flex-col items-center gap-1.5 shrink-0">
-                      <div
-                        className={`grid place-items-center size-7 rounded-full border text-[11px] transition-colors ${
-                          done
-                            ? "bg-accent/20 border-accent text-accent"
-                            : "bg-background border-border text-muted-foreground"
-                        } ${current ? "ring-2 ring-accent/40" : ""}`}
-                      >
-                        {done ? <Check className="size-3.5" /> : i + 1}
-                      </div>
-                      <span className={`text-[9px] font-mono uppercase tracking-wider text-center leading-tight w-16 ${done ? "text-foreground" : "text-muted-foreground"}`}>
-                        {step.label}
-                      </span>
-                    </div>
-                    {i < TIMELINE.length - 1 && (
-                      <div className={`h-px flex-1 mx-1 mb-5 ${i < activeIdx ? "bg-accent" : "bg-border"}`} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
       ) : (
-        <div className="mb-6 flex items-center gap-2 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs text-rose-400">
+        <div className="flex items-center gap-2 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs text-rose-400">
           <ShieldX className="size-4 shrink-0" /> This return was rejected.
         </div>
       )}
