@@ -309,6 +309,38 @@ function OrderDrawer({ o, onClose, onRefresh }: { o: EnrichedOrder; onClose: () 
             onDone={() => { setBump((b) => b + 1); onRefresh(); }}
           />
 
+          <button
+            onClick={() => openInvoice({
+              orderId: o.id,
+              createdAt: o.created_at,
+              currency: cur,
+              total: pay?.amount ?? o.total,
+              customerName: detail?.profile?.full_name ?? o.full_name,
+              customerEmail: o.contact_email,
+              customerPhone: detail?.profile?.phone ?? o.phone ?? (a.phone as string | undefined),
+              paymentMethod: pay?.method ?? o.payment_method,
+              paymentStatus: o.payment_status,
+              recipient,
+              recipientPhone: a.phone as string | undefined,
+              addressLines: [a.line1, a.line2, a.landmark, a.area].filter(Boolean) as string[],
+              city: (a.city ?? a.district) as string | undefined,
+              state: (a.state ?? a.region) as string | undefined,
+              country: a.country as string | undefined,
+              pin: (a.postal_code ?? a.postal) as string | undefined,
+              items: o.items.map((it) => ({
+                name: it.name,
+                quantity: it.quantity,
+                unit_price: it.unit_price,
+                line_total: it.line_total,
+              })),
+            })}
+            className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-medium px-4 py-2.5 rounded-xl border border-accent/40 bg-accent/[0.06] text-accent hover:bg-accent/10 transition-colors"
+          >
+            <Download className="size-4" /> Download Invoice
+          </button>
+
+
+
           {/* ---- Order Information ---- */}
           <Section title="Order Information" icon={<ShoppingBag className="size-3.5" />}>
             <Row k="Status" v={<StatusPill s={o.status} />} />
