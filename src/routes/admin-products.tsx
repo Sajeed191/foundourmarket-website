@@ -172,9 +172,15 @@ const CATALOG_TABS: { key: CatalogTab; label: string }[] = [
   { key: "draft", label: "Draft" },
 ];
 
+const CATALOG_STATE_KEY = "fom_catalog_state_v1";
+function readCatalogState(): Record<string, any> {
+  if (typeof sessionStorage === "undefined") return {};
+  try { return JSON.parse(sessionStorage.getItem(CATALOG_STATE_KEY) || "{}") || {}; }
+  catch { return {}; }
+}
+
 function ProductsInner() {
-
-
+  const saved = readCatalogState();
 
   const [products, setProducts] = useState<Product[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -182,21 +188,21 @@ function ProductsInner() {
   const [revenueToday, setRevenueToday] = useState(0);
   const [ordersToday, setOrdersToday] = useState(0);
   const [pulse, setPulse] = useState(false);
-  const [query, setQuery] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [cat, setCat] = useState("all");
-  const [stock, setStock] = useState<StockFilter>("all");
-  const [state, setState] = useState<StateFilter>("all");
-  const [sort, setSort] = useState<SortKey>("newest");
+  const [query, setQuery] = useState<string>(saved.query ?? "");
+  const [searchTerm, setSearchTerm] = useState<string>(saved.query ?? "");
+  const [cat, setCat] = useState<string>(saved.cat ?? "all");
+  const [stock, setStock] = useState<StockFilter>(saved.stock ?? "all");
+  const [state, setState] = useState<StateFilter>(saved.state ?? "all");
+  const [sort, setSort] = useState<SortKey>(saved.sort ?? "newest");
   const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [view, setView] = useState<"active" | "recycle">("active");
-  const [tag, setTag] = useState<TagFilter>("all");
-  const [catalogTab, setCatalogTab] = useState<CatalogTab>("all");
+  const [view, setView] = useState<"active" | "recycle">(saved.view ?? "active");
+  const [tag, setTag] = useState<TagFilter>(saved.tag ?? "all");
+  const [catalogTab, setCatalogTab] = useState<CatalogTab>(saved.catalogTab ?? "all");
   const [editing, setEditing] = useState<Product | "new" | null>(null);
   const navigate = useNavigate();
   const [busy, setBusy] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState<number>(saved.page ?? 1);
   const PAGE_SIZE = 24;
   const [summary, setSummary] = useState<CatalogSummary | null>(null);
   const [skuBusy, setSkuBusy] = useState(false);
@@ -487,6 +493,18 @@ function ProductsInner() {
 
   // Reset to first page whenever the filtered set changes
   useEffect(() => { setPage(1); }, [cat, state, stock, tag, searchTerm, sort, view, catalogTab]);
+
+  // Persist catalog filters/search/pagination so returning from a product preserves context.
+  useEffect(() => {
+    if (typeof sessionStorage === "undefined") return;
+    try {
+      sessionStorage.setItem(CATALOG_STATE_KEY, JSON.stringify({
+        query, cat, stock, state, sort, view, tag, catalogTab, page,
+      }));
+    } catch { /* noop */ }
+  }, [query, cat, stock, state, sort, view, tag, catalogTab, page]);
+
+
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
