@@ -162,7 +162,17 @@ function matchesTag(p: Product, tag: TagFilter): boolean {
   }
 }
 
-function ProductsInner() {
+type CatalogTab = "all" | "india" | "international" | "bestsellers" | "low_stock" | "draft";
+const CATALOG_TABS: { key: CatalogTab; label: string }[] = [
+  { key: "all", label: "All Products" },
+  { key: "india", label: "India 🇮🇳" },
+  { key: "international", label: "International 🌍" },
+  { key: "bestsellers", label: "Best Sellers ⭐" },
+  { key: "low_stock", label: "Low Stock ⚠️" },
+  { key: "draft", label: "Draft" },
+];
+
+
   const [products, setProducts] = useState<Product[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [stats, setStats] = useState<Record<string, Stat>>({});
