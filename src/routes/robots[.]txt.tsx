@@ -11,6 +11,8 @@ export const Route = createFileRoute("/robots.txt")({
           // Internal / gated surfaces — never index (prevents Google "Deceptive Pages" flags on thin login walls)
           "Disallow: /admin",
           "Disallow: /builder",
+          // Internal search results — crawlable links but no thin/duplicate index
+          "Disallow: /search",
           "Disallow: /account",
           "Disallow: /checkout",
           "Disallow: /cart",
