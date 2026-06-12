@@ -613,6 +613,8 @@
   /* When the mobile hamburger sidebar is open, clear every floating mobile UI
      element out of the way so the menu reads as a full-screen navigation. */
   body[data-menu-open] [data-app-bottom-nav],
+  body[data-order-drawer-open] [data-app-bottom-nav],
+  body[data-order-drawer-open] [data-floating-control],
   body[data-menu-open] [data-floating-control] {
     opacity: 0 !important;
     pointer-events: none !important;
