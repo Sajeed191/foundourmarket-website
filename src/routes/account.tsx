@@ -349,7 +349,7 @@ function AccountPage() {
             <ActionCard to="/account/payments" icon={CreditCard} title="Payments" subtitle="Saved methods" />
             <ActionCard to="/account/profile" icon={UserIcon} title="Profile" subtitle="Your details" />
             <ActionCard to="/account/security" icon={Shield} title="Security" subtitle="Account safety" />
-            <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Requests & status" badge={returns?.length ?? 0} />
+            <ActionCard to="/account/returns" icon={RotateCcw} title="Returns" subtitle="Requests & status" badge={activeReturns} />
             <ActionCard to="/deals" icon={Gift} title="Offers" subtitle="Deals & promos" />
             <ActionCard to="/search" icon={Tag} title="Categories" subtitle="Browse all" />
           </div>
