@@ -510,7 +510,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
             {([
               ["basic", "Basic Information"],
               ["merch", "Merchandising"],
-              ["seo", "SEO"],
+              ["seo", "SEO & FAQs"],
               ["related", "Related"],
               ["analytics", "Analytics"],
               ["preview", "Preview"],
