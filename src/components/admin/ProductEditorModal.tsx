@@ -742,8 +742,8 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         <CollapsibleModule eyebrow="Step 1c" title="Specifications" badge={<Layers className="size-3.5 text-accent" />} defaultOpen={false}>
           <p className="mb-2 text-[11px] text-muted-foreground">Technical key/value details — shown as a spec table to customers.</p>
           <KeyValueBuilder
-            rows={kvToArray(textToKv(form.specifications))}
-            onChange={(rows) => set({ specifications: kvToText(arrayToKv(rows)) })}
+            rows={specsRows}
+            onChange={setSpecsRows}
             keyPlaceholder="e.g. Material"
             valuePlaceholder="e.g. Aluminium alloy"
             addLabel="Add Specification"
@@ -754,8 +754,8 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         <CollapsibleModule eyebrow="Step 1d" title="Attributes" badge={<Tag className="size-3.5 text-accent" />} defaultOpen={false}>
           <p className="mb-2 text-[11px] text-muted-foreground">Variant &amp; buyer-facing attributes (e.g. Color, Size).</p>
           <KeyValueBuilder
-            rows={kvToArray(textToKv(form.attributes))}
-            onChange={(rows) => set({ attributes: kvToText(arrayToKv(rows)) })}
+            rows={attrsRows}
+            onChange={setAttrsRows}
             keyPlaceholder="e.g. Color"
             valuePlaceholder="e.g. Matte Black"
             addLabel="Add Attribute"
