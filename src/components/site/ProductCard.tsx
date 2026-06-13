@@ -73,7 +73,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               {labels.map((b) => (
                 <span
                   key={b.key}
-                  className={`inline-flex animate-[fade-in_0.4s_ease-out] items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[7px] font-semibold uppercase leading-none tracking-wide shadow-sm shadow-black/30 backdrop-blur-sm ${b.className}`}
+                  className={`inline-flex animate-[fade-in_0.4s_ease-out] items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[7px] font-semibold uppercase leading-none tracking-wide shadow-sm shadow-black/30 ${b.className}`}
                 >
                   <span aria-hidden className="text-[8px]">{b.emoji}</span>
                   {b.label}
