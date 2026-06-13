@@ -473,15 +473,18 @@ function AdminShipmentsPage() {
   const health = useMemo(() => computeHealthScore(shipments, delayById), [shipments, delayById]);
   const couriers = useMemo(() => computeCourierPerf(shipments, delayById), [shipments, delayById]);
 
-  const enriched = useMemo(() => {
+  const allPairs = useMemo<ShipmentPair[]>(() => {
     if (!orders) return [];
-    const term = q.trim().toLowerCase();
     const shipmentsByOrder = new Map(shipments.map((s) => [s.order_id, s]));
-    return orders
-      .map((o) => ({ order: o, ship: shipmentsByOrder.get(o.id) ?? null }))
+    return orders.map((o) => ({ order: o, ship: shipmentsByOrder.get(o.id) ?? null }));
+  }, [orders, shipments]);
+
+  const enriched = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    return allPairs
       .filter((pair) => pairMatchesQueue(pair, queue, delayById))
       .filter((pair) => pairMatchesSearch(pair, term));
-  }, [orders, shipments, q, queue, delayById]);
+  }, [allPairs, q, queue, delayById]);
 
   const customerImpact = useMemo(() => {
     const ordersById = new Map((orders ?? []).map((o) => [o.id, o]));
@@ -534,7 +537,7 @@ function AdminShipmentsPage() {
     } else if (scope === "filtered") {
       pairs = enriched;
     } else {
-      pairs = (orders ?? []).map((o) => ({ order: o, ship: shipments.find((s) => s.order_id === o.id) ?? null }));
+      pairs = allPairs;
     }
     return pairs.map(({ order, ship }) => buildExportRow(order, ship));
   };
