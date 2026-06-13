@@ -489,22 +489,23 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         </div>
 
         {tab === "basic" && (<>
-        {/* Image */}
-        <div className="flex gap-3 items-start">
-          <div className="size-20 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0 grid place-items-center">
-            {form.image ? <img src={form.image} alt="" className="w-full h-full object-cover" /> : <Package className="size-5 text-muted-foreground" />}
-          </div>
-          <div className="flex-1 space-y-2">
-            <input value={form.image} onChange={(e) => set({ image: e.target.value })} placeholder="Image URL or upload"
-              className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 text-[10px] font-mono uppercase tracking-widest hover:bg-white/5 disabled:opacity-50">
-              {uploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />} {uploading ? "Uploading…" : "Upload"}
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); }} />
-          </div>
-        </div>
+        {/* Images — multiple, drag to reorder, first = primary */}
+        <CollapsibleModule eyebrow="Step 0" title="Product Images" badge={<Sparkles className="size-3.5 text-accent" />}>
+          {mediaSlug ? (
+            <ProductMediaGallery
+              slug={mediaSlug}
+              name={form.name}
+              primaryUrl={form.image || null}
+              onPrimaryChange={(url) => set({ image: url })}
+            />
+          ) : (
+            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-3 text-xs text-amber-300">
+              Enter a product name first — images are organised under the product's slug.
+            </p>
+          )}
+        </CollapsibleModule>
         </>)}
+
 
         {tab === "preview" && (<>
         {/* Live Storefront Preview */}
