@@ -432,6 +432,7 @@ function RootComponent() {
                             <Toaster position="bottom-center" richColors />
                             <ShareDialog />
                           </div>
+                          </BadgeEngineProvider>
                         </LayoutMetricsProvider>
                       </CommandCenterProvider>
                     </AdminModeProvider>
