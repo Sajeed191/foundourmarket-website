@@ -207,6 +207,9 @@ type Row = {
   seo_title?: string | null; seo_description?: string | null;
   meta_keywords?: string[] | null; brand?: string | null; product_type?: string | null;
   video_url?: string | null;
+  features?: string[] | null;
+  specifications?: Record<string, string> | null;
+  attributes?: Record<string, string> | null;
 };
 
 const num = (v: number | string | null | undefined): number | null =>
