@@ -336,6 +336,9 @@ function ProductPage() {
   })();
   const galleryImages = galleryMedia.filter((m) => m.id !== "video");
   const activeMedia = galleryMedia[activeImg] ?? galleryMedia[0];
+  const hasVideoFirst = galleryMedia[0]?.id === "video";
+  const lightboxIndex = hasVideoFirst ? Math.max(0, activeImg - 1) : activeImg;
+  const handleLightboxIndexChange = (i: number) => setActiveImg(hasVideoFirst ? i + 1 : i);
 
   const selectedVariant = variants.find((v) => v.id === variantId) ?? null;
   const basePrice = priceOf(product);
