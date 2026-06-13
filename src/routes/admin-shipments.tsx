@@ -558,30 +558,19 @@ function AdminShipmentsPage() {
           pending={kpis.awaitingShipment + kpis.pending} health={health}
         />
 
-        {/* Executive KPI bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-          <Kpi label="Total" value={kpis.total} icon={<Package className="size-4" />} />
-          <Kpi label="Awaiting" value={kpis.awaitingShipment} icon={<CalendarClock className="size-4" />} />
-          <Kpi label="Pending" value={kpis.pending} />
-          <Kpi label="Packed" value={kpis.packed} />
-          <Kpi label="In Transit" value={kpis.inTransit} icon={<Truck className="size-4" />} />
-          <Kpi label="Out for Delivery" value={kpis.outForDelivery} />
-          <Kpi label="Delivered Today" value={kpis.deliveredToday} icon={<CheckCircle2 className="size-4" />} tone="emerald" />
-          <Kpi label="Delayed" value={kpis.delayed} icon={<Clock className="size-4" />} tone={kpis.delayed ? "amber" : undefined} />
-          <Kpi label="Failed" value={kpis.failed} tone={kpis.failed ? "destructive" : undefined} />
-          <Kpi label="Returned" value={kpis.returned} tone={kpis.returned ? "orange" : undefined} />
-          <Kpi label="Cancelled" value={kpis.cancelled} />
-          <div className="group relative overflow-hidden card-premium rounded-2xl p-4 hover:border-accent/40 transition-colors">
-            <div className="absolute -top-16 -right-16 size-32 rounded-full bg-accent/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative">
-              <div className="flex items-center justify-between text-muted-foreground mb-1">
-                <span className="text-[10px] uppercase tracking-widest">Health</span><Gauge className="size-4" />
-              </div>
-              <div className={`text-2xl font-semibold tabular-nums ${HEALTH_CLS[health.tier]}`}>{health.score}</div>
-              <div className={`text-[10px] font-medium ${HEALTH_CLS[health.tier]}`}>{HEALTH_LABEL[health.tier]}</div>
-            </div>
+        {/* Compact KPI strip — horizontally scrollable, operations-first */}
+        <div className="-mx-1 px-1 overflow-x-auto scrollbar-none">
+          <div className="flex gap-2 min-w-max sm:min-w-0 sm:grid sm:grid-cols-4 lg:grid-cols-7">
+            <StatChip label="Total" value={kpis.total} icon={<Package className="size-3.5" />} />
+            <StatChip label="Awaiting" value={kpis.awaitingShipment} icon={<CalendarClock className="size-3.5" />} tone={kpis.awaitingShipment ? "amber" : undefined} />
+            <StatChip label="In Transit" value={kpis.inTransit} icon={<Truck className="size-3.5" />} />
+            <StatChip label="Out" value={kpis.outForDelivery} icon={<MapPin className="size-3.5" />} />
+            <StatChip label="Delivered" value={kpis.deliveredToday} icon={<CheckCircle2 className="size-3.5" />} tone="emerald" />
+            <StatChip label="Delayed" value={kpis.delayed} icon={<Clock className="size-3.5" />} tone={kpis.delayed ? "amber" : undefined} />
+            <StatChip label="Failed" value={kpis.failed} icon={<Ban className="size-3.5" />} tone={kpis.failed ? "destructive" : undefined} />
           </div>
         </div>
+
 
 
         {/* Section tabs */}
