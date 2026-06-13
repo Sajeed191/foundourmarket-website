@@ -730,7 +730,35 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
             </div>
           </div>
         </CollapsibleModule>
+
+        {/* Rating Management */}
+        <CollapsibleModule eyebrow="Step 5b" title="Rating Management" badge={<Star className="size-3.5 text-accent" />} defaultOpen={false}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2 flex flex-wrap items-center gap-1">
+              {[1, 2, 3, 4, 5].map((s) => {
+                const r = Number(form.rating) || 0;
+                return (
+                  <button key={s} type="button" onClick={() => set({ rating: String(s) })} aria-label={`${s} stars`}
+                    className="p-0.5">
+                    <Star className={`size-6 transition-colors ${s <= Math.round(r) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40"}`} />
+                  </button>
+                );
+              })}
+              <span className="ml-2 text-sm text-muted-foreground">{form.rating ? `${Number(form.rating).toFixed(1)} / 5` : "No rating"}</span>
+            </div>
+            <EField label="Rating (0-5)" type="number" value={form.rating} onChange={(v) => set({ rating: v })} />
+            <EField label="Reviews count" type="number" value={form.reviews} onChange={(v) => set({ reviews: v })} />
+            <EField label="Initial / seed rating" type="number" value={form.initial_rating} onChange={(v) => set({ initial_rating: v })} />
+            <div>
+              <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Rating Source</label>
+              <select value={form.rating_source} onChange={(e) => set({ rating_source: e.target.value })} className="filter-select w-full">
+                {RATING_SOURCES.map((r) => <option key={r.value} value={r.value} className="bg-background">{r.label}</option>)}
+              </select>
+            </div>
+          </div>
+        </CollapsibleModule>
         </>)}
+
 
         {tab === "merch" && (<>
         {/* Visibility & Merchandising */}
