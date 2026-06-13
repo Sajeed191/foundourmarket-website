@@ -508,16 +508,22 @@ function ProductPage() {
             </div>
 
 
-            {galleryImages.length > 1 && (
+            {galleryMedia.length > 1 && (
               <div className="mt-2.5 grid grid-cols-6 gap-2 sm:gap-2.5">
-                {galleryImages.map((img, i) => (
+                {galleryMedia.map((item, i) => (
                   <button
-                    key={img.id}
+                    key={item.id}
                     onClick={() => setActiveImg(i)}
-                    aria-label={`View image ${i + 1}`}
-                    className={`aspect-square rounded-xl overflow-hidden border transition-all bg-card ${i === activeImg ? "border-accent/70 ring-2 ring-accent/40 shadow-[0_6px_20px_-6px_oklch(0.74_0.19_49/0.55)]" : "border-white/10 opacity-55 hover:opacity-100 hover:border-accent/40"}`}
+                    aria-label={item.id === "video" ? "Play video" : `View image ${i + 1}`}
+                    className={`relative aspect-square rounded-xl overflow-hidden border transition-all bg-card ${i === activeImg ? "border-accent/70 ring-2 ring-accent/40 shadow-[0_6px_20px_-6px_oklch(0.74_0.19_49/0.55)]" : "border-white/10 opacity-55 hover:opacity-100 hover:border-accent/40"}`}
                   >
-                    <img src={img.url} alt={img.alt || `${product.name} — view ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                    {item.id === "video" ? (
+                      <div className="w-full h-full bg-black grid place-items-center">
+                        <Play className="size-6 text-white/80" />
+                      </div>
+                    ) : (
+                      <img src={item.url} alt={item.alt || `${product.name} — view ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                    )}
                   </button>
                 ))}
               </div>
