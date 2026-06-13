@@ -970,7 +970,8 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         {/* Advanced */}
         <CollapsibleModule eyebrow="Optional" title="Advanced (SEO & specs)" badge={<Sparkles className="size-3.5 text-accent" />} defaultOpen={false}>
           <div className="grid grid-cols-1 gap-3">
-            <EField label="SEO title" value={form.seo_title} onChange={(v) => set({ seo_title: v })} />
+            <p className="text-[10px] text-muted-foreground">SEO title, description and keywords are generated automatically from the product name, brand and tags when left blank.</p>
+            <EField label="SEO title (auto if blank)" value={form.seo_title} onChange={(v) => set({ seo_title: v })} />
             <div>
               <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">SEO description</label>
               <textarea value={form.seo_description} onChange={(e) => set({ seo_description: e.target.value })} rows={2}
