@@ -7,7 +7,12 @@ import { safeInternalPath } from "@/lib/safe-redirect";
 import { completeOAuthReturn } from "@/lib/oauth-return";
 
 export const Route = createFileRoute("/auth/callback")({
-  head: () => ({ meta: [{ title: "Signing you in… — FoundOurMarket™" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Signing you in… — FoundOurMarket™" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: AuthCallback,
 });
 
@@ -85,10 +90,18 @@ function AuthCallback() {
   }, [nav]);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden" style={{ background: "#050816" }}>
+    <div
+      className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden"
+      style={{ background: "#050816" }}
+    >
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[600px] h-[50vh] rounded-full opacity-25"
-          style={{ background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)", filter: "blur(110px)" }} />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[600px] h-[50vh] rounded-full opacity-25"
+          style={{
+            background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)",
+            filter: "blur(110px)",
+          }}
+        />
       </div>
 
       <motion.div
@@ -123,13 +136,18 @@ function AuthCallback() {
           )}
         </div>
 
-        <p className="text-[10px] font-mono uppercase tracking-[0.35em] mb-2" style={{ color: "#FF9F43" }}>
+        <p
+          className="text-[10px] font-mono uppercase tracking-[0.35em] mb-2"
+          style={{ color: "#FF9F43" }}
+        >
           FoundOurMarket™
         </p>
 
         {status === "loading" && (
           <>
-            <h1 className="text-xl font-display font-semibold text-white mb-1.5">Signing you in…</h1>
+            <h1 className="text-xl font-display font-semibold text-white mb-1.5">
+              Signing you in…
+            </h1>
             <p className="text-sm text-white/55">Securing your session</p>
             <ShimmerBar />
           </>
@@ -142,7 +160,9 @@ function AuthCallback() {
         )}
         {status === "error" && (
           <>
-            <h1 className="text-xl font-display font-semibold text-white mb-1.5">Something went wrong</h1>
+            <h1 className="text-xl font-display font-semibold text-white mb-1.5">
+              Something went wrong
+            </h1>
             <p className="text-sm text-white/55 mb-6">Please try signing in again.</p>
             <button
               onClick={() => nav({ to: "/auth" })}
@@ -165,7 +185,10 @@ function AuthCallback() {
 
 function ShimmerBar() {
   return (
-    <div className="relative mt-6 mx-auto h-0.5 w-44 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+    <div
+      className="relative mt-6 mx-auto h-0.5 w-44 rounded-full overflow-hidden"
+      style={{ background: "rgba(255,255,255,0.06)" }}
+    >
       <motion.div
         className="absolute inset-y-0 w-1/3 rounded-full"
         style={{ background: "linear-gradient(90deg, transparent, #FF7A00, transparent)" }}

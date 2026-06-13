@@ -54,7 +54,10 @@ export async function completeOAuthReturn(): Promise<{ completed: boolean; error
   const code = params.get("code");
 
   if (accessToken && refreshToken) {
-    const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
     stripAuthParamsFromUrl();
     return error ? { completed: false, error: error.message } : { completed: true };
   }
