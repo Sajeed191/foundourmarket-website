@@ -29,6 +29,7 @@ import { trackPageView } from "@/lib/analytics";
 import { loadProducts } from "@/lib/use-products";
 import { captureAttribution } from "@/lib/marketing-tracking";
 import { LayoutMetricsProvider } from "@/lib/layout-metrics";
+import { BadgeEngineProvider } from "@/lib/badge-visibility";
 import { Toaster } from "@/components/ui/sonner";
 import { ShareDialog } from "@/components/site/ShareDialog";
 import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
