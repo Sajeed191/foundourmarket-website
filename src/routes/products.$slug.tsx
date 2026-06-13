@@ -448,10 +448,10 @@ function ProductPage() {
                 <span className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[9px] font-mono uppercase tracking-widest text-white/80 backdrop-blur-md opacity-0 transition-opacity group-hover:opacity-100">
                   Tap to view all
                 </span>
-                {/* Image counter (1/5) */}
-                {galleryImages.length > 1 && (
+                {/* Media counter */}
+                {galleryMedia.length > 1 && (
                   <span className="pointer-events-none absolute bottom-4 right-4 z-10 rounded-full border border-white/15 bg-black/50 px-2.5 py-1 text-[10px] font-mono tabular-nums text-white/90 backdrop-blur-md">
-                    {activeImg + 1}/{galleryImages.length}
+                    {activeImg + 1}/{galleryMedia.length}
                   </span>
                 )}
                 {/* premium glass overlay gradient */}
