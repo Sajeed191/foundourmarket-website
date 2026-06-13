@@ -10,3 +10,4 @@ Disallow: /checkout
 Disallow: /search
 
 Sitemap: https://foundourmarket.com/sitemap.xml
+Sitemap: https://foundourmarket.com/product-feed.xml
