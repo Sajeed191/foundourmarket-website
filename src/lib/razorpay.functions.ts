@@ -75,7 +75,7 @@ export type RegionResolution = {
  *
  * The client never supplies the region used for billing.
  */
-async function resolveRegion(
+export async function resolveRegion(
   supabase: any,
   userId: string,
 ): Promise<RegionResolution> {
