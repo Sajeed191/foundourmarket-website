@@ -12,6 +12,7 @@ import { resolveImage } from "@/lib/products";
 import { SectionEditor, Field, parseList, useNavigate } from "@/components/admin/product-editor/kit";
 import { ProductMediaGallery, ProductVideoUploader } from "@/components/admin/product-editor/media-fields";
 import { CategorySelector } from "@/components/admin/product-editor/category-selector";
+import { ProductFaqManager } from "@/components/admin/ProductFaqManager";
 import {
   FeaturesBuilder, KeyValueBuilder, RichTextEditor, kvToArray, arrayToKv, type KV,
 } from "@/components/admin/product-editor/field-builders";
