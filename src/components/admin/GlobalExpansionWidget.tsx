@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Globe, Users, MapPin, Package } from "lucide-react";
+import { Users, MapPin, Package } from "lucide-react";
 import { CollapsibleModule } from "@/components/admin/CollapsibleModule";
 import { getGlobalExpansionStats } from "@/lib/global-beta.functions";
 
