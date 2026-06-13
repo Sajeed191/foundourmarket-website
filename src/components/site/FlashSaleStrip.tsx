@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/lib/use-products";
 import { Price } from "@/components/site/Price";
+import { useRegion } from "@/lib/region";
 import { AdminProductOverlay } from "@/components/admin/AdminProductOverlay";
 
 type FlashSale = {
@@ -37,6 +38,7 @@ function pad(n: number) {
 export function FlashSaleStrip() {
   const [sale, setSale] = useState<FlashSale | null>(null);
   const { products } = useProducts();
+  const { priceOf } = useRegion();
   
   const countdown = useCountdown(sale?.ends_at ?? null);
 
