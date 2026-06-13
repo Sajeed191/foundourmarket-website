@@ -98,7 +98,47 @@ export function CategorySelector({
     }
   }
 
-  if (loading) {
+  async function createSub() {
+    const parent = parents.find((p) => p.id === mainId);
+    if (!parent) return;
+    const name = newSubName.trim();
+    if (!name) return;
+    const slug = slugify(name);
+    if (!slug) {
+      setCreateError("Enter a valid subcategory name.");
+      return;
+    }
+    // Already exists? Just select it.
+    const existing = cats.find((c) => c.slug === slug);
+    if (existing) {
+      addSlug(existing.slug);
+      setNewSubName("");
+      return;
+    }
+    setCreating(true);
+    setCreateError(null);
+    const maxSort = subs.reduce((m, s) => Math.max(m, s.sort_order ?? 0), 0);
+    const { data, error } = await supabase
+      .from("categories")
+      .insert({
+        name,
+        slug,
+        parent_id: parent.id,
+        status: "published",
+        homepage_visible: false,
+        sort_order: maxSort + 1,
+      })
+      .select("id,name,slug,parent_id,status,sort_order")
+      .single();
+    setCreating(false);
+    if (error) {
+      setCreateError(error.message);
+      return;
+    }
+    setCats((prev) => [...prev, data as Cat]);
+    addSlug((data as Cat).slug);
+    setNewSubName("");
+  }
     return (
       <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3 text-xs text-muted-foreground">
         <Loader2 className="size-4 animate-spin" /> Loading live categories…
