@@ -1098,23 +1098,8 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
                 className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
             </div>
             <EField label="Meta keywords (comma separated)" value={form.meta_keywords} onChange={(v) => set({ meta_keywords: v })} />
-            <div>
-              <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Feature highlights (one per line)</label>
-              <textarea value={form.features} onChange={(e) => set({ features: e.target.value })} rows={3}
-                className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Specifications (key: value)</label>
-                <textarea value={form.specifications} onChange={(e) => set({ specifications: e.target.value })} rows={4}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
-              </div>
-              <div>
-                <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Custom attributes (key: value)</label>
-                <textarea value={form.attributes} onChange={(e) => set({ attributes: e.target.value })} rows={4}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
-              </div>
-            </div>
+            <p className="text-[10px] text-muted-foreground">Features, specifications &amp; attributes are now edited in the Basics tab.</p>
+
           </div>
         </CollapsibleModule>
         </>)}
