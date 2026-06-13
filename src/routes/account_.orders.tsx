@@ -131,6 +131,8 @@ function isSucceeded(o: { payment_status: string | null; status: string }) {
 type DisplayStatus = { key: string; label: string; badge: string; step: number };
 // Status colors per spec: Pending=Yellow, Processing=Blue, Shipped=Orange, Delivered=Green, Refunded=Purple, Failed=Red
 function displayStatus(o: Order): DisplayStatus {
+  if ((o.payment_status ?? "").toLowerCase() === "demo")
+    return { key: "demo", label: "Demo Payment", badge: "bg-sky-500/10 text-sky-300 border-sky-500/30", step: 15 };
   if (o.failed) return { key: "failed", label: "Payment Failed", badge: "bg-rose-500/10 text-rose-300 border-rose-500/30", step: 0 };
   const s = (o.status ?? "").toLowerCase();
 

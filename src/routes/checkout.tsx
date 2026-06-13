@@ -29,6 +29,7 @@ import { syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
 import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpay-loader";
 import { validatePincode, type ServiceabilityResult } from "@/lib/serviceability.functions";
 import { usePaymentGateways } from "@/lib/use-payment-gateways";
+import { GlobalCheckoutBeta } from "@/components/site/GlobalCheckoutBeta";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -88,7 +89,7 @@ function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [addingAddress, setAddingAddress] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [payMethod, setPayMethod] = useState<"razorpay" | "cod">("razorpay");
+  const [payMethod, setPayMethod] = useState<"razorpay" | "cod" | "demo">("razorpay");
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [reserveLeft, setReserveLeft] = useState(15 * 60);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -543,7 +544,30 @@ function CheckoutPage() {
       <h1 className="text-fluid-2xl font-display font-semibold mb-4 sm:mb-6 tracking-tight">Almost yours</h1>
 
       {!isIndia ? (
-        <InternationalSoon live={internationalLive} loading={gatewaysLoading} />
+        gatewaysLoading || internationalLive ? (
+          <InternationalSoon live={internationalLive} loading={gatewaysLoading} />
+        ) : (
+          <GlobalCheckoutBeta
+            user={user}
+            addresses={addresses}
+            addrLoading={addrLoading}
+            selectedAddressId={selectedAddressId}
+            setSelectedAddressId={setSelectedAddressId}
+            createAddress={createAddress}
+            updateAddress={updateAddress}
+            removeAddress={removeAddress}
+            setDefaultShipping={setDefaultShipping}
+            detailed={detailed}
+            fmt={fmt}
+            subtotal={subtotalINR}
+            shipping={shippingINR}
+            total={totalINR}
+            itemsCount={itemsCount}
+            eta={eta}
+            clear={clear}
+            onDemoPlaced={(orderId) => { setPayMethod("demo"); setPlacedOrderId(orderId); setStage("success"); }}
+          />
+        )
       ) : (
         <>
           <div className="sticky top-2 z-30 mb-5 sm:mb-7 rounded-2xl glass border border-white/10 px-3 py-2.5 sm:px-5 sm:py-3.5">
@@ -1015,7 +1039,7 @@ function InternationalSoon({ live, loading }: { live: boolean; loading: boolean 
 
 function SuccessScreen({ orderId, totalINR, market, method, eta, nav }: {
   orderId: string | null; totalINR: number; market: "india" | "international";
-  method: "razorpay" | "cod"; eta: string;
+  method: "razorpay" | "cod" | "demo"; eta: string;
   nav: ReturnType<typeof useNavigate>;
 }) {
   const inrFmt = (n: number) => formatMoney(market, n);
@@ -1030,15 +1054,17 @@ function SuccessScreen({ orderId, totalINR, market, method, eta, nav }: {
           <CheckCircle2 className="size-7 text-emerald-400" />
         </motion.div>
         <h1 className="text-2xl font-display font-semibold mb-1.5">
-          {method === "cod" ? "Order confirmed" : "Payment successful"}
+          {method === "demo" ? "Demo order received" : method === "cod" ? "Order confirmed" : "Payment successful"}
         </h1>
         <p className="text-sm text-muted-foreground mb-6">
-          {method === "cod" ? "Pay in cash when your order arrives." : "Your payment has been verified and your order is being prepared."}
+          {method === "demo"
+            ? "Your demo order has been recorded. We'll notify you when global payments launch."
+            : method === "cod" ? "Pay in cash when your order arrives." : "Your payment has been verified and your order is being prepared."}
         </p>
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-left space-y-2 mb-6">
           <Row label="Order" value={orderId ? `#${orderId.slice(0, 8)}` : "—"} />
           <Row label="Amount" value={inrFmt(totalINR)} />
-          <Row label="Method" value={method === "cod" ? "Cash on Delivery" : "Razorpay"} />
+          <Row label="Method" value={method === "demo" ? "Global Beta (Demo)" : method === "cod" ? "Cash on Delivery" : "Razorpay"} />
           <Row label="Est. delivery" value={eta} />
         </div>
         <div className="flex flex-col gap-2">

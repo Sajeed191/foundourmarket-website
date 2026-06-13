@@ -1884,6 +1884,36 @@ export type Database = {
         }
         Relationships: []
       }
+      international_waitlist: {
+        Row: {
+          country: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          product_slug: string | null
+          user_id: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          product_slug?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          product_slug?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       inventory_logs: {
         Row: {
           actor_id: string | null

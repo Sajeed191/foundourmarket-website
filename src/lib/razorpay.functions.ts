@@ -75,7 +75,7 @@ export type RegionResolution = {
  *
  * The client never supplies the region used for billing.
  */
-async function resolveRegion(
+export async function resolveRegion(
   supabase: any,
   userId: string,
 ): Promise<RegionResolution> {
@@ -113,7 +113,7 @@ async function resolveRegion(
  * Prices are read from the admin-configured region columns (price_inr for
  * India, price_usd for International) — NO hardcoded currency conversion.
  */
-async function repriceFromDb(
+export async function repriceFromDb(
   supabase: any,
   region: Region,
   items: { slug: string; qty: number }[],

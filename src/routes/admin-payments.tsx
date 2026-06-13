@@ -32,10 +32,12 @@ function StatusPill({ status }: { status: string | null }) {
     pending: "text-amber-400 border-amber-500/30 bg-amber-500/10",
     failed: "text-destructive border-destructive/30 bg-destructive/10",
     refunded: "text-sky-400 border-sky-500/30 bg-sky-500/10",
+    demo: "text-sky-400 border-sky-500/40 bg-sky-500/10",
   };
+  const label = s === "demo" ? "Demo Payment" : s;
   return (
     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest ${map[s] ?? "text-muted-foreground border-white/10 bg-white/5"}`}>
-      {s}
+      {label}
     </span>
   );
 }
@@ -70,6 +72,7 @@ function PaymentsInner() {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | "succeeded" | "pending" | "failed">("all");
+  const [method, setMethod] = useState<"all" | "razorpay" | "cod" | "demo">("all");
   const [page, setPage] = useState(0);
   const [rows, setRows] = useState<PaymentRow[]>([]);
   const [kpis, setKpis] = useState<PaymentCenterKpis | null>(null);
@@ -117,6 +120,10 @@ function PaymentsInner() {
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const kpiCards = useMemo(() => kpis, [kpis]);
+  const viewRows = useMemo(
+    () => (method === "all" ? rows : rows.filter((r) => (r.method ?? "").toLowerCase() === method)),
+    [rows, method],
+  );
 
   return (
     <div className="space-y-5">
@@ -149,6 +156,10 @@ function PaymentsInner() {
         <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)}
           className="bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent/40">
           {["all", "succeeded", "pending", "failed"].map((s) => <option key={s} value={s} className="bg-background">{s}</option>)}
+        </select>
+        <select value={method} onChange={(e) => setMethod(e.target.value as typeof method)}
+          className="bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent/40">
+          {[["all", "All Payments"], ["razorpay", "Razorpay"], ["cod", "COD"], ["demo", "Demo Payment"]].map(([v, l]) => <option key={v} value={v} className="bg-background">{l}</option>)}
         </select>
       </div>
 
