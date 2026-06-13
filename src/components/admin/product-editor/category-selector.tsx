@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, FolderTree, Loader2, Plus, RefreshCw, Star, X } from "lucide-react";
+import { ChevronDown, FolderTree, Loader2, Plus, RefreshCw, Sparkles, Star, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 type Cat = {
   id: string;
