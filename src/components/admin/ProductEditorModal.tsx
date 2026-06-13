@@ -735,10 +735,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         {/* Features */}
         <CollapsibleModule eyebrow="Step 1b" title="Features" badge={<ListChecks className="size-3.5 text-accent" />} defaultOpen={false}>
           <p className="mb-2 text-[11px] text-muted-foreground">Key selling points buyers care about — shown on the product page.</p>
-          <FeaturesBuilder
-            value={parseList(form.features)}
-            onChange={(v) => set({ features: v.join("\n") })}
-          />
+          <FeaturesBuilder value={featuresList} onChange={setFeaturesList} />
         </CollapsibleModule>
 
         {/* Specifications */}
