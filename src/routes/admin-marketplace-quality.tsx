@@ -75,7 +75,7 @@ function MarketplaceQualityPage() {
   async function load() {
     setRefreshing(true);
     const [{ data: prods }, { data: imgs }] = await Promise.all([
-      supabase.from("products").select(PRODUCT_COLS).order("sort_order", { ascending: true }).limit(20000),
+      supabase.from("products").select(PRODUCT_COLS).is("deleted_at", null).order("sort_order", { ascending: true }).limit(20000),
       supabase.from("product_images").select("product_slug,url,alt").limit(50000),
     ]);
     setProducts((prods as QualityProduct[]) ?? []);
