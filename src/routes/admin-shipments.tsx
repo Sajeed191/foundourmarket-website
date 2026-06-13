@@ -576,6 +576,21 @@ function AdminShipmentsPage() {
     return { waitingToday, delayedCustomers, failed, returns, pendingRefunds, needsIntervention, ordersById };
   }, [shipments, orders, delayById]);
 
+  // ── Revenue operations (real orders) ───────────────────────────────────────
+  const revenueOps = useMemo<RevenueOps>(() => {
+    const list = orders ?? [];
+    const today = new Date();
+    const sameDay = (s: string | null) => !!s && new Date(s).toDateString() === today.toDateString();
+    const isPaid = (o: Order) => ["paid", "succeeded", "captured"].includes((o.payment_status ?? "").toLowerCase());
+    const isCod = (o: Order) => /cod|cash/i.test(o.payment_method ?? "");
+    const revenueToday = list.filter((o) => sameDay(o.created_at) && isPaid(o) && o.status !== "cancelled").reduce((a, o) => a + (o.total || 0), 0);
+    const ordersToday = list.filter((o) => sameDay(o.created_at)).length;
+    const pendingPayments = list.filter((o) => !isPaid(o) && !isCod(o) && !["cancelled"].includes(o.status)).length;
+    const codOrders = list.filter((o) => isCod(o) && !["delivered", "cancelled", "returned"].includes(o.status)).length;
+    const refundRequests = list.filter((o) => ["returned", "cancelled"].includes(o.status) && isPaid(o)).length;
+    return { revenueToday, ordersToday, pendingPayments, codOrders, refundRequests, currency: list[0]?.currency ?? "INR" };
+  }, [orders]);
+
   // ── Bulk actions ───────────────────────────────────────────────────────────
   const selectedShipments = useMemo(() => shipments.filter((s) => selected.has(s.id)), [shipments, selected]);
   function toggleSelect(id: string) {
