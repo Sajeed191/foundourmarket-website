@@ -104,6 +104,10 @@ export type Product = {
   revenue: number;
   // Media
   videoUrl: string | null;
+  // Rich content shown to customers
+  features: string[];
+  specifications: Record<string, string>;
+  attributes: Record<string, string>;
 };
 
 export type ProductStatus =
