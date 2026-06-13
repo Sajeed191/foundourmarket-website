@@ -16,6 +16,10 @@ import { createFaq } from "@/lib/product-faqs";
 import { useStoreSettings } from "@/lib/use-store-settings";
 import { computeBadges, DEFAULT_BADGE_SETTINGS, MAX_CARD_BADGES } from "@/lib/badges";
 import { ProductMediaGallery, ProductVideoUploader } from "@/components/admin/product-editor/media-fields";
+import {
+  FeaturesBuilder, KeyValueBuilder, RichTextEditor, kvToArray, arrayToKv,
+} from "@/components/admin/product-editor/field-builders";
+import { ListChecks, Layers } from "lucide-react";
 import type { Product } from "@/lib/products";
 
 const RATING_SOURCES = [
@@ -715,12 +719,45 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
             <EField label="Product Type" value={form.product_type} onChange={(v) => set({ product_type: v })} />
             <EField label="Product Tags (comma separated)" value={form.tags} onChange={(v) => set({ tags: v })} className="col-span-2" />
             <div className="col-span-2">
-              <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Description</label>
-              <textarea value={form.description} onChange={(e) => set({ description: e.target.value })} rows={3}
-                className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
+              <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Description — rich text (headings, bold & lists)</label>
+              <RichTextEditor value={form.description} onChange={(v) => set({ description: v })} rows={5} />
             </div>
           </div>
         </CollapsibleModule>
+
+        {/* Features */}
+        <CollapsibleModule eyebrow="Step 1b" title="Features" badge={<ListChecks className="size-3.5 text-accent" />} defaultOpen={false}>
+          <p className="mb-2 text-[11px] text-muted-foreground">Key selling points buyers care about — shown on the product page.</p>
+          <FeaturesBuilder
+            value={parseList(form.features)}
+            onChange={(v) => set({ features: v.join("\n") })}
+          />
+        </CollapsibleModule>
+
+        {/* Specifications */}
+        <CollapsibleModule eyebrow="Step 1c" title="Specifications" badge={<Layers className="size-3.5 text-accent" />} defaultOpen={false}>
+          <p className="mb-2 text-[11px] text-muted-foreground">Technical key/value details — shown as a spec table to customers.</p>
+          <KeyValueBuilder
+            rows={kvToArray(textToKv(form.specifications))}
+            onChange={(rows) => set({ specifications: kvToText(arrayToKv(rows)) })}
+            keyPlaceholder="e.g. Material"
+            valuePlaceholder="e.g. Aluminium alloy"
+            addLabel="Add Specification"
+          />
+        </CollapsibleModule>
+
+        {/* Attributes */}
+        <CollapsibleModule eyebrow="Step 1d" title="Attributes" badge={<Tag className="size-3.5 text-accent" />} defaultOpen={false}>
+          <p className="mb-2 text-[11px] text-muted-foreground">Variant &amp; buyer-facing attributes (e.g. Color, Size).</p>
+          <KeyValueBuilder
+            rows={kvToArray(textToKv(form.attributes))}
+            onChange={(rows) => set({ attributes: kvToText(arrayToKv(rows)) })}
+            keyPlaceholder="e.g. Color"
+            valuePlaceholder="e.g. Matte Black"
+            addLabel="Add Attribute"
+          />
+        </CollapsibleModule>
+
 
         {/* Pricing & Margins */}
         <CollapsibleModule eyebrow="Step 2" title="Pricing & Margins" badge={<Percent className="size-3.5 text-accent" />}>
@@ -1061,23 +1098,8 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
                 className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
             </div>
             <EField label="Meta keywords (comma separated)" value={form.meta_keywords} onChange={(v) => set({ meta_keywords: v })} />
-            <div>
-              <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Feature highlights (one per line)</label>
-              <textarea value={form.features} onChange={(e) => set({ features: e.target.value })} rows={3}
-                className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Specifications (key: value)</label>
-                <textarea value={form.specifications} onChange={(e) => set({ specifications: e.target.value })} rows={4}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
-              </div>
-              <div>
-                <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">Custom attributes (key: value)</label>
-                <textarea value={form.attributes} onChange={(e) => set({ attributes: e.target.value })} rows={4}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
-              </div>
-            </div>
+            <p className="text-[10px] text-muted-foreground">Features, specifications &amp; attributes are now edited in the Basics tab.</p>
+
           </div>
         </CollapsibleModule>
         </>)}

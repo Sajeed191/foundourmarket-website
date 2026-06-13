@@ -703,6 +703,49 @@ function ProductPage() {
               <ProductDescription description={product.description} />
             </div>
 
+            {product.features?.length > 0 && (
+              <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4">
+                <h2 className="mb-3 text-sm font-semibold">Key Features</h2>
+                <ul className="space-y-2">
+                  {product.features.map((feat: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <span className="mt-1 size-1.5 shrink-0 rounded-full bg-accent" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4">
+                <h2 className="mb-3 text-sm font-semibold">Specifications</h2>
+                <dl className="divide-y divide-border/60">
+                  {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
+                    <div key={k} className="flex gap-4 py-2 text-sm">
+                      <dt className="w-1/3 shrink-0 text-muted-foreground">{k}</dt>
+                      <dd className="flex-1 text-foreground">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+
+            {product.attributes && Object.keys(product.attributes).length > 0 && (
+              <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4">
+                <h2 className="mb-3 text-sm font-semibold">Details</h2>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(product.attributes as Record<string, string>).map(([k, v]) => (
+                    <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 px-3 py-1 text-xs">
+                      <span className="text-muted-foreground">{k}:</span>
+                      <span className="text-foreground">{v}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+
             {/* Delivery */}
             <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4 flex items-start gap-3">
               <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent shrink-0">
