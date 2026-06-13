@@ -1074,9 +1074,50 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         </CollapsibleModule>
         </>)}
 
-        {row?.slug && tab === "seo" && (
+        {tab === "seo" && (
           <CollapsibleModule eyebrow="Content" title="Product FAQs" badge={<HelpCircle className="size-3.5 text-accent" />} defaultOpen={false}>
-            <ProductFaqManager productSlug={row.slug} />
+            {row?.slug ? (
+              <ProductFaqManager productSlug={row.slug} />
+            ) : (
+              <div className="space-y-3">
+                <p className="text-[11px] text-muted-foreground">
+                  Add buyer FAQs now — they’ll be saved with the product when you create it.
+                </p>
+                <div className="space-y-2">
+                  <input value={faqQ} onChange={(e) => setFaqQ(e.target.value)} placeholder="Question"
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
+                  <textarea value={faqA} onChange={(e) => setFaqA(e.target.value)} placeholder="Answer" rows={2}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent/40" />
+                  <button type="button"
+                    disabled={!faqQ.trim() || !faqA.trim()}
+                    onClick={() => {
+                      setPendingFaqs((p) => [...p, { question: faqQ.trim(), answer: faqA.trim() }]);
+                      setFaqQ(""); setFaqA("");
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-accent/40 bg-accent/10 text-[10px] font-mono uppercase tracking-widest hover:bg-accent/20 disabled:opacity-40">
+                    <Plus className="size-3.5" /> Add FAQ
+                  </button>
+                </div>
+                {pendingFaqs.length > 0 && (
+                  <ul className="space-y-2">
+                    {pendingFaqs.map((faq, i) => (
+                      <li key={i} className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium truncate">{faq.question}</p>
+                            <p className="text-[11px] text-muted-foreground line-clamp-2">{faq.answer}</p>
+                          </div>
+                          <button type="button" onClick={() => setPendingFaqs((p) => p.filter((_, idx) => idx !== i))}
+                            aria-label="Remove FAQ" className="shrink-0 text-muted-foreground hover:text-foreground">
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </CollapsibleModule>
         )}
 
