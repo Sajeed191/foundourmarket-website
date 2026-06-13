@@ -14,6 +14,7 @@ import {
   Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { safeInternalPath } from "@/lib/safe-redirect";
 import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
@@ -51,7 +52,7 @@ const BENEFITS = [
   { icon: ShieldCheck, label: "Safer account recovery" },
 ];
 
-const oauthRedirectUri = () => `${window.location.origin}/auth/callback`;
+const oauthRedirectUri = () => window.location.origin;
 
 function AuthPage() {
   const [mode, setMode] = useState<"oauth" | "email">("oauth");
@@ -173,22 +174,16 @@ function AuthPage() {
       const dest = safeInternalPath(redirect);
       if (dest) localStorage.setItem("post_auth_redirect", dest);
     }
-    const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: oauthRedirectUri(),
-        queryParams: { prompt: "select_account" },
-      },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: oauthRedirectUri(),
+      extraParams: { prompt: "select_account" },
     });
-    if (oauthError) {
+    if (result.error) {
       setError("Couldn't connect to Google. Please try again.");
       setGoogleBusy(false);
       return;
     }
-    if (data.url) {
-      window.location.assign(data.url);
-      return;
-    }
+    if (result.redirected) return;
     window.location.assign(resolveDest());
   };
 
