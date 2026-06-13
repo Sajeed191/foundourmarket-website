@@ -120,6 +120,10 @@ function PaymentsInner() {
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const kpiCards = useMemo(() => kpis, [kpis]);
+  const viewRows = useMemo(
+    () => (method === "all" ? rows : rows.filter((r) => (r.method ?? "").toLowerCase() === method)),
+    [rows, method],
+  );
 
   return (
     <div className="space-y-5">
