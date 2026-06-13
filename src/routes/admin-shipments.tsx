@@ -342,7 +342,7 @@ function AdminShipmentsPage() {
     if (!silent) setRefreshing(true);
     const [{ data: o }, { data: s }, { data: ev }, { data: wh }, { data: nt }] = await Promise.all([
       supabase.from("orders")
-        .select("id,user_id,status,total,currency,contact_email,payment_status,fulfillment_status,tracking_number,carrier,shipping_address,created_at,order_items(quantity)")
+        .select("id,user_id,status,total,currency,contact_email,payment_status,payment_method,fulfillment_status,tracking_number,carrier,shipping_address,created_at,order_items(name,quantity,image,product_slug,unit_price,line_total)")
         .order("created_at", { ascending: false }).limit(1000),
       supabase.from("shipments").select("*").order("created_at", { ascending: false }),
       supabase.from("shipment_events").select("*").order("occurred_at", { ascending: false }).limit(120),
@@ -461,17 +461,19 @@ function AdminShipmentsPage() {
   const enriched = useMemo(() => {
     if (!orders) return [];
     const term = q.trim().toLowerCase();
+    const shipmentsByOrder = new Map(shipments.map((s) => [s.order_id, s]));
     return orders
-      .map((o) => ({ order: o, ship: shipments.find((s) => s.order_id === o.id) ?? null }))
+      .map((o) => ({ order: o, ship: shipmentsByOrder.get(o.id) ?? null }))
       .filter(({ order, ship }) => {
         if (queue === "all") return true;
-        if (!ship) return false;
+        if (!ship) return queue === "pending" && !["cancelled", "delivered", "returned"].includes(order.status);
         return matchQueue(queue, ship, delayById.get(ship.id) ?? computeDelay(ship, null));
       })
       .filter(({ order, ship }) => {
         if (!term) return true;
         const addr = order.shipping_address;
-        return [order.id, ship?.tracking_number, order.tracking_number, addr?.full_name, order.contact_email, addr?.phone, ship?.carrier, order.carrier]
+        const itemText = order.order_items?.map((it) => `${it.name} ${it.product_slug ?? ""}`).join(" ") ?? "";
+        return [order.id, ship?.tracking_number, order.tracking_number, addr?.full_name, addr?.city, addr?.state, order.contact_email, addr?.phone, ship?.carrier, order.carrier, order.payment_method, itemText]
           .some((v) => (v ?? "").toString().toLowerCase().includes(term));
       });
   }, [orders, shipments, q, queue, delayById]);
