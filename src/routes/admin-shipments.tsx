@@ -558,30 +558,19 @@ function AdminShipmentsPage() {
           pending={kpis.awaitingShipment + kpis.pending} health={health}
         />
 
-        {/* Executive KPI bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-          <Kpi label="Total" value={kpis.total} icon={<Package className="size-4" />} />
-          <Kpi label="Awaiting" value={kpis.awaitingShipment} icon={<CalendarClock className="size-4" />} />
-          <Kpi label="Pending" value={kpis.pending} />
-          <Kpi label="Packed" value={kpis.packed} />
-          <Kpi label="In Transit" value={kpis.inTransit} icon={<Truck className="size-4" />} />
-          <Kpi label="Out for Delivery" value={kpis.outForDelivery} />
-          <Kpi label="Delivered Today" value={kpis.deliveredToday} icon={<CheckCircle2 className="size-4" />} tone="emerald" />
-          <Kpi label="Delayed" value={kpis.delayed} icon={<Clock className="size-4" />} tone={kpis.delayed ? "amber" : undefined} />
-          <Kpi label="Failed" value={kpis.failed} tone={kpis.failed ? "destructive" : undefined} />
-          <Kpi label="Returned" value={kpis.returned} tone={kpis.returned ? "orange" : undefined} />
-          <Kpi label="Cancelled" value={kpis.cancelled} />
-          <div className="group relative overflow-hidden card-premium rounded-2xl p-4 hover:border-accent/40 transition-colors">
-            <div className="absolute -top-16 -right-16 size-32 rounded-full bg-accent/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative">
-              <div className="flex items-center justify-between text-muted-foreground mb-1">
-                <span className="text-[10px] uppercase tracking-widest">Health</span><Gauge className="size-4" />
-              </div>
-              <div className={`text-2xl font-semibold tabular-nums ${HEALTH_CLS[health.tier]}`}>{health.score}</div>
-              <div className={`text-[10px] font-medium ${HEALTH_CLS[health.tier]}`}>{HEALTH_LABEL[health.tier]}</div>
-            </div>
+        {/* Compact KPI strip — horizontally scrollable, operations-first */}
+        <div className="-mx-1 px-1 overflow-x-auto scrollbar-none">
+          <div className="flex gap-2 min-w-max sm:min-w-0 sm:grid sm:grid-cols-4 lg:grid-cols-7">
+            <StatChip label="Total" value={kpis.total} icon={<Package className="size-3.5" />} />
+            <StatChip label="Awaiting" value={kpis.awaitingShipment} icon={<CalendarClock className="size-3.5" />} tone={kpis.awaitingShipment ? "amber" : undefined} />
+            <StatChip label="In Transit" value={kpis.inTransit} icon={<Truck className="size-3.5" />} />
+            <StatChip label="Out" value={kpis.outForDelivery} icon={<MapPin className="size-3.5" />} />
+            <StatChip label="Delivered" value={kpis.deliveredToday} icon={<CheckCircle2 className="size-3.5" />} tone="emerald" />
+            <StatChip label="Delayed" value={kpis.delayed} icon={<Clock className="size-3.5" />} tone={kpis.delayed ? "amber" : undefined} />
+            <StatChip label="Failed" value={kpis.failed} icon={<Ban className="size-3.5" />} tone={kpis.failed ? "destructive" : undefined} />
           </div>
         </div>
+
 
 
         {/* Section tabs */}
@@ -657,8 +646,9 @@ function OperationsView(props: {
         </div>
       )}
 
-      {/* Search + export */}
-      <div className="card-premium rounded-2xl p-3 space-y-3">
+      {/* Search + filters — sticky operations bar */}
+      <div className="card-premium rounded-2xl p-3 space-y-3 sticky top-2 z-20">
+
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
@@ -671,24 +661,34 @@ function OperationsView(props: {
             <Download className="size-3.5" /> CSV
           </button>
         </div>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="-mx-1 px-1 flex gap-1.5 overflow-x-auto scrollbar-none">
           {QUEUES.map((key) => (
             <button key={key} onClick={() => { setQueue(key); setVisible(PAGE); }}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
                 queue === key ? "border-accent/50 bg-accent/15 text-accent" : "border-border/60 text-muted-foreground hover:text-foreground"
               }`}>
               {QUEUE_LABEL[key]} <span className="opacity-60 tabular-nums">{queueCount(key)}</span>
             </button>
           ))}
         </div>
+
       </div>
 
       {enriched.length === 0 ? (
-        <div className="card-premium rounded-2xl py-16 text-center">
-          <Package className="size-8 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-sm font-semibold">No shipments in this queue</p>
-          <p className="text-xs text-muted-foreground mt-1">Try a different search or queue.</p>
+        <div className="card-premium rounded-2xl py-8 px-5 text-center">
+          <Package className="size-7 mx-auto mb-2 text-muted-foreground" />
+          <p className="text-sm font-semibold">Nothing in the “{QUEUE_LABEL[queue]}” queue</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {shipments.length > 0 ? `You have ${shipments.length} shipment${shipments.length !== 1 ? "s" : ""} in other queues.` : "Shipments will appear here as orders are placed."}
+          </p>
+          {(queue !== "all" || q) && (
+            <button onClick={() => { setQueue("all"); setQ(""); setVisible(PAGE); }}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3.5 py-1.5 text-xs font-medium text-accent hover:bg-accent/20">
+              <Package className="size-3.5" /> View all shipments
+            </button>
+          )}
         </div>
+
       ) : (
         <div className="space-y-3">
           {enriched.slice(0, visible).map(({ order, ship }) => (
@@ -804,6 +804,19 @@ function WarRoomView({ feed }: { feed: FeedItem[] }) {
 }
 
 // ── Shared small components ───────────────────────────────────────────────────
+function StatChip({ label, value, icon, tone }: { label: string; value: number; icon?: React.ReactNode; tone?: "emerald" | "amber" | "orange" | "destructive" }) {
+  const toneCls = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "orange" ? "text-orange-400" : tone === "destructive" ? "text-destructive" : "text-foreground";
+  return (
+    <div className="card-premium rounded-xl px-3 py-2 flex items-center gap-2.5 shrink-0 w-[7.5rem] sm:w-auto">
+      <span className={tone ? toneCls : "text-accent/70"}>{icon}</span>
+      <div className="min-w-0">
+        <div className={`text-lg font-semibold tabular-nums leading-none ${toneCls}`}><AnimatedCounter to={value} duration={1} /></div>
+        <div className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1 truncate">{label}</div>
+      </div>
+    </div>
+  );
+}
+
 function Kpi({ label, value, icon, tone }: { label: string; value: number; icon?: React.ReactNode; tone?: "emerald" | "amber" | "orange" | "destructive" }) {
   const toneCls = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "orange" ? "text-orange-400" : tone === "destructive" ? "text-destructive" : "";
   return (
