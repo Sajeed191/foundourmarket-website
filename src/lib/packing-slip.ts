@@ -363,3 +363,49 @@ export function exportShipmentsPdf(rows: ShipmentExportRow[]) {
 
   doc.save(`FoundOurMarket-ShipmentDetails-${stamp()}.pdf`);
 }
+
+/** Compact 4x6 shipping label PDF (courier, address, tracking + QR). */
+export async function generateShippingLabelPdf(d: PackingData) {
+  const doc = new jsPDF({ unit: "pt", format: [288, 432] }); // 4x6 inches
+  const W = doc.internal.pageSize.getWidth();
+  const M = 18;
+  let y = 30;
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(...ink);
+  doc.text(BRAND, M, y);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...accent);
+  doc.text((courierLabel(d.carrier) ?? "UNASSIGNED").toUpperCase(), W - M, y, { align: "right" });
+  y += 12;
+  doc.setDrawColor(...ink); doc.setLineWidth(1); doc.line(M, y, W - M, y); y += 20;
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(...muted);
+  doc.text("DELIVER TO", M, y); y += 14;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(...ink);
+  for (const line of fmtAddr(d.address)) { doc.text(line, M, y); y += 15; }
+  if (d.address?.phone) { doc.text(`Ph: ${d.address.phone}`, M, y); y += 15; }
+
+  y += 8;
+  doc.setDrawColor(220, 220, 224); doc.setLineWidth(0.5); doc.line(M, y, W - M, y); y += 18;
+
+  let qr = "";
+  const payload = buildTrackingUrl({ carrier: d.carrier, trackingNumber: d.trackingNumber, trackingUrl: d.trackingUrl }) || `FOM-ORDER:${d.orderId}`;
+  try { qr = await QRCode.toDataURL(payload, { margin: 0, width: 220 }); } catch { /* best effort */ }
+  if (qr) doc.addImage(qr, "PNG", M, y, 96, 96);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...muted);
+  doc.text("ORDER", M + 110, y + 14);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(...ink);
+  doc.text(`#${shortId(d.orderId)}`, M + 110, y + 30);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...muted);
+  doc.text("TRACKING", M + 110, y + 52);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(...ink);
+  doc.text(doc.splitTextToSize(d.trackingNumber ?? "—", W - M - (M + 110)), M + 110, y + 68);
+
+  doc.save(`FoundOurMarket-Label-${shortId(d.orderId)}.pdf`);
+}
+
+export async function downloadShippingLabel(orderId: string): Promise<boolean> {
+  const data = await fetchPackingData(orderId);
+  if (!data) return false;
+  await generateShippingLabelPdf(data);
+  return true;
+}
