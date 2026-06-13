@@ -42,7 +42,7 @@ function AuthCallback() {
       // fails to load after a deploy, stranding the user on this screen.
       setTimeout(() => {
         if (typeof window !== "undefined") window.location.assign(dest());
-        else nav({ to: dest() as any });
+        else nav({ to: "/account" });
       }, 700);
     };
 
