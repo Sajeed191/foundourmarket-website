@@ -25,6 +25,23 @@ export const Route = createFileRoute("/help")({
       { name: "description", content: "Enterprise-grade support: live chat, WhatsApp, order tracking, tickets and instant answers for orders, returns, refunds and shipping." },
       { property: "og:title", content: "Help Center — FoundOurMarket™" },
       { property: "og:description", content: "Live chat, WhatsApp, order tracking, tickets and smart answers — premium support whenever you need help." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://foundourmarket.com/help" },
+    ],
+    links: [{ rel: "canonical", href: "https://foundourmarket.com/help" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      },
     ],
   }),
   component: HelpRouteShell,
