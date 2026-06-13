@@ -415,17 +415,34 @@ function ProductPage() {
               <div aria-hidden className="absolute left-1/2 top-1/2 -z-10 size-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.5), transparent 70%)", filter: "blur(50px)" }} />
               <div data-product-image className="relative aspect-[4/3] sm:aspect-square max-h-[58svh] sm:max-h-none mx-auto w-full card-premium rounded-2xl sm:rounded-3xl overflow-hidden group border border-white/10 shadow-[0_30px_60px_-28px_oklch(0_0_0/0.7)]">
                 <AnimatePresence mode="wait">
-                  <motion.img
-                    key={activeImage?.id}
-                    src={activeImage?.url || product.image}
-                    alt={activeImage?.alt || product.name}
-                    onClick={() => setLightboxOpen(true)}
-                    initial={{ opacity: 0, scale: 1.04 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-transform duration-[900ms] group-hover:scale-110"
-                  />
+                  {activeMedia?.id === "video" ? (
+                    <motion.video
+                      key="video"
+                      src={activeMedia.url}
+                      controls
+                      autoPlay
+                      muted
+                      playsInline
+                      onClick={(e) => e.stopPropagation()}
+                      initial={{ opacity: 0, scale: 1.04 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute inset-0 w-full h-full object-cover bg-black"
+                    />
+                  ) : (
+                    <motion.img
+                      key={activeMedia?.id}
+                      src={activeMedia?.url || product.image}
+                      alt={activeMedia?.alt || product.name}
+                      onClick={() => setLightboxOpen(true)}
+                      initial={{ opacity: 0, scale: 1.04 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-transform duration-[900ms] group-hover:scale-110"
+                    />
+                  )}
                 </AnimatePresence>
                 {/* Tap-to-expand hint */}
                 <span className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[9px] font-mono uppercase tracking-widest text-white/80 backdrop-blur-md opacity-0 transition-opacity group-hover:opacity-100">
