@@ -21,7 +21,7 @@ import {
   type ShipmentExportRow,
 } from "@/lib/packing-slip";
 import { downloadInvoice } from "@/lib/invoice";
-import { SUPPORTED_COURIERS } from "@/lib/courier";
+import { SUPPORTED_COURIERS, courierLabel } from "@/lib/courier";
 import { AnimatedCounter } from "@/components/site/Reveal";
 import { toast } from "sonner";
 
