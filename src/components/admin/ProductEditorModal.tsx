@@ -359,12 +359,14 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
     const reviewsNum = numOrNull(form.reviews);
     const initialRatingNum = numOrNull(form.initial_rating);
     const payload = {
-      slug: form.slug.trim() || slugify(form.name), name: form.name.trim(),
+      slug: finalSlug, name: form.name.trim(),
       tagline: form.tagline.trim() || null, category: effectiveCategory,
       price: Number(form.price) || 0, cost: Number(form.cost) || 0,
       discount: form.discount ? Number(form.discount) : null,
       image: form.image.trim() || null, description: form.description.trim() || null,
-      in_stock: form.in_stock, featured: form.featured, sku: form.sku.trim() || null,
+      in_stock: form.in_stock, featured: form.featured, sku: autoSku,
+      rating: ratingNum, reviews: reviewsNum != null ? Math.round(reviewsNum) : null,
+      initial_rating: initialRatingNum, rating_source: form.rating_source,
       stock_quantity: Number(form.stock_quantity) || 0, low_stock_threshold: Number(form.low_stock_threshold) || 0,
       sort_order: Number(form.sort_order) || 0,
       price_inr: priceInr, compare_price_inr: cmpInr, price_usd: priceUsd, compare_price_usd: cmpUsd,
