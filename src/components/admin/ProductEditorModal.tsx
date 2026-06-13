@@ -365,7 +365,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
       discount: form.discount ? Number(form.discount) : null,
       image: form.image.trim() || null, description: form.description.trim() || null,
       in_stock: form.in_stock, featured: form.featured, sku: autoSku,
-      rating: ratingNum, reviews: reviewsNum != null ? Math.round(reviewsNum) : null,
+      rating: ratingNum ?? undefined, reviews: reviewsNum != null ? Math.round(reviewsNum) : undefined,
       initial_rating: initialRatingNum ?? undefined, rating_source: form.rating_source,
       stock_quantity: Number(form.stock_quantity) || 0, low_stock_threshold: Number(form.low_stock_threshold) || 0,
       sort_order: Number(form.sort_order) || 0,
