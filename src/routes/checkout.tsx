@@ -544,7 +544,30 @@ function CheckoutPage() {
       <h1 className="text-fluid-2xl font-display font-semibold mb-4 sm:mb-6 tracking-tight">Almost yours</h1>
 
       {!isIndia ? (
-        <InternationalSoon live={internationalLive} loading={gatewaysLoading} />
+        gatewaysLoading || internationalLive ? (
+          <InternationalSoon live={internationalLive} loading={gatewaysLoading} />
+        ) : (
+          <GlobalCheckoutBeta
+            user={user}
+            addresses={addresses}
+            addrLoading={addrLoading}
+            selectedAddressId={selectedAddressId}
+            setSelectedAddressId={setSelectedAddressId}
+            createAddress={createAddress}
+            updateAddress={updateAddress}
+            removeAddress={removeAddress}
+            setDefaultShipping={setDefaultShipping}
+            detailed={detailed}
+            fmt={fmt}
+            subtotal={subtotalINR}
+            shipping={shippingINR}
+            total={totalINR}
+            itemsCount={itemsCount}
+            eta={eta}
+            clear={clear}
+            onDemoPlaced={(orderId) => { setPayMethod("demo"); setPlacedOrderId(orderId); setStage("success"); }}
+          />
+        )
       ) : (
         <>
           <div className="sticky top-2 z-30 mb-5 sm:mb-7 rounded-2xl glass border border-white/10 px-3 py-2.5 sm:px-5 sm:py-3.5">
