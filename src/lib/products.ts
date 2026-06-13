@@ -162,7 +162,7 @@ export function discountPercent(
 }
 
 type Row = {
-  slug: string; name: string; tagline: string | null; category: string;
+  slug: string; name: string; tagline: string | null; category: string; categories?: string[] | null;
   price: number | string; rating: number | string; reviews: number; rating_source?: string | null;
   image: string | null; description: string | null; in_stock: boolean;
   discount: number | null; featured?: boolean | null;
