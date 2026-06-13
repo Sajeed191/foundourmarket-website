@@ -672,24 +672,34 @@ function AdminShipmentsPage() {
       }
     >
       <div className="space-y-4">
-        {/* Live operations strip */}
-        <LiveOpsStrip
+        {/* Enterprise system status */}
+        <SystemStatusCard
           online={online} lastUpdated={lastUpdated} courierCount={couriers.length}
           pending={kpis.awaitingShipment + kpis.pending} health={health}
         />
 
-        {/* Compact KPI strip — horizontally scrollable, operations-first */}
-        <div className="-mx-1 px-1 overflow-x-auto scrollbar-none">
-          <div className="flex gap-2 min-w-max sm:min-w-0 sm:grid sm:grid-cols-4 lg:grid-cols-7">
-            <StatChip label="Total" value={allPairs.length} icon={<Package className="size-3.5" />} />
-            <StatChip label="Awaiting" value={kpis.awaitingShipment} icon={<CalendarClock className="size-3.5" />} tone={kpis.awaitingShipment ? "amber" : undefined} />
-            <StatChip label="In Transit" value={kpis.inTransit} icon={<Truck className="size-3.5" />} />
-            <StatChip label="Out" value={kpis.outForDelivery} icon={<MapPin className="size-3.5" />} />
-            <StatChip label="Delivered" value={kpis.deliveredToday} icon={<CheckCircle2 className="size-3.5" />} tone="emerald" />
-            <StatChip label="Delayed" value={kpis.delayed} icon={<Clock className="size-3.5" />} tone={kpis.delayed ? "amber" : undefined} />
-            <StatChip label="Failed" value={kpis.failed} icon={<Ban className="size-3.5" />} tone={kpis.failed ? "destructive" : undefined} />
+        {/* Operation KPIs — priority emphasis on Awaiting & Delayed */}
+        <div>
+          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Operations</h2>
+          <div className="-mx-1 px-1 overflow-x-auto scrollbar-none">
+            <div className="flex gap-2 min-w-max sm:min-w-0 sm:grid sm:grid-cols-3 lg:grid-cols-6">
+              <StatChip label="Orders Today" value={revenueOps.ordersToday} icon={<Package className="size-3.5" />} />
+              <StatChip label="Awaiting Shipment" value={kpis.awaitingShipment} icon={<CalendarClock className="size-3.5" />} tone={kpis.awaitingShipment ? "amber" : undefined} highlight={kpis.awaitingShipment > 0} />
+              <StatChip label="In Transit" value={kpis.inTransit} icon={<Truck className="size-3.5" />} />
+              <StatChip label="Delivered Today" value={kpis.deliveredToday} icon={<CheckCircle2 className="size-3.5" />} tone="emerald" />
+              <StatChip label="Delayed" value={kpis.delayed} icon={<Clock className="size-3.5" />} tone={kpis.delayed ? "destructive" : undefined} highlight={kpis.delayed > 0} />
+              <StatChip label="Returns" value={kpis.returned} icon={<RotateCcw className="size-3.5" />} tone={kpis.returned ? "orange" : undefined} />
+            </div>
           </div>
         </div>
+
+        {/* Revenue operations */}
+        <div>
+          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Revenue Operations</h2>
+          <RevenueStrip ops={revenueOps} />
+        </div>
+
+
 
 
 
