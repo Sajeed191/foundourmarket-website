@@ -892,8 +892,17 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
   onCreate: () => void; onAssign: (patch: Partial<Shipment>) => void; onStatus: (s: ShipStatus) => void;
 }) {
   const addr = order.shipping_address;
+  const primary = order.order_items?.[0] ?? null;
+  const extraItems = Math.max(0, (order.order_items?.length ?? 0) - 1);
   const units = order.order_items?.reduce((a, b) => a + (b.quantity || 0), 0) ?? 0;
   const fullAddr = addr ? [addr.line1, addr.line2, addr.city, addr.state, addr.postal, addr.country].filter(Boolean).join(", ") : "—";
+  const customer = safeText(addr?.full_name, (addr as { name?: string } | null)?.name, order.contact_email, "Guest") ?? "Guest";
+  const cityState = [addr?.city, addr?.state].filter(Boolean).join(", ") || fullAddr;
+  const status = ship?.status ?? (order.fulfillment_status || "pending");
+  const tracking = ship?.tracking_number ?? order.tracking_number;
+  const courier = courierLabel(ship?.carrier ?? order.carrier) ?? ship?.carrier ?? order.carrier ?? "Unassigned";
+  const productName = primary?.name ?? "Order items pending sync";
+  const variant = primary?.product_slug ? primary.product_slug.replace(/-/g, " ") : "—";
   const [docBusy, setDocBusy] = useState<string | null>(null);
 
   const runDoc = async (key: string, fn: () => Promise<boolean>) => {
@@ -913,20 +922,27 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
 
 
   return (
-    <div className={`card-premium rounded-2xl p-4 md:p-5 ${selected ? "border-accent/50" : ""}`}>
-      <div className="grid md:grid-cols-[1.2fr_1fr] gap-4">
-        <div className="space-y-2 min-w-0">
+    <div className={`card-premium rounded-2xl p-3.5 md:p-4 ${selected ? "border-accent/50" : ""}`}>
+      <div className="grid gap-3 lg:grid-cols-[auto_1fr_minmax(16rem,0.62fr)]">
+        <div className="flex gap-3 min-w-0">
+          {ship && (
+            <input type="checkbox" checked={selected} onChange={onToggleSelect}
+              className="mt-1 size-3.5 accent-current text-accent rounded shrink-0" aria-label="Select shipment" />
+          )}
+          <div className="relative size-20 sm:size-24 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-muted">
+            {primary?.image ? (
+              <img src={primary.image} alt={productName} loading="lazy" className="size-full object-cover" />
+            ) : (
+              <div className="size-full grid place-items-center"><Package className="size-7 text-muted-foreground" /></div>
+            )}
+            <span className={`absolute inset-x-0 bottom-0 h-1 ${(STATUS_CLS[status] ?? STATUS_CLS.pending).split(" ").find((c) => c.startsWith("bg-")) ?? "bg-accent"}`} />
+          </div>
+        </div>
+
+        <div className="min-w-0 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            {ship && (
-              <input type="checkbox" checked={selected} onChange={onToggleSelect}
-                className="size-3.5 accent-current text-accent rounded" aria-label="Select shipment" />
-            )}
-            <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
-              <Hash className="size-3" />{order.id.slice(0, 8)}
-            </span>
-            {ship ? <StatusPill status={ship.status} /> : (
-              <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border border-border bg-muted/30 text-muted-foreground">No shipment</span>
-            )}
+            <StatusPill status={status} />
+            <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground"><Hash className="size-3" />ORD-{shortId(order.id)}</span>
             {delay?.delayed && (
               <span className={`inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${SEV_CLS[delay.severity]}`}>
                 <AlertTriangle className="size-3" />{SEVERITY_LABEL[delay.severity]} · {delay.delayDays > 0 ? `${delay.delayDays}d` : `${delay.delayHours}h`}
@@ -934,24 +950,34 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
             )}
             <span className="text-sm font-semibold tabular-nums ml-auto">{money(order.total, order.currency)}</span>
           </div>
+          <div className="min-w-0">
+            <p className="text-sm sm:text-base font-semibold truncate">{productName}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+              Qty {primary?.quantity ?? units || 1} · Variant/SKU {variant}{extraItems ? ` · +${extraItems} more item${extraItems !== 1 ? "s" : ""}` : ""}
+            </p>
+          </div>
           {delay?.delayed && delay.reason && <p className="text-[11px] text-amber-400/90">⚠ {delay.reason}</p>}
-          <div className="space-y-1 text-sm">
-            <p className="flex items-center gap-2 font-medium min-w-0"><User className="size-3.5 shrink-0 text-muted-foreground" /><span className="truncate">{addr?.full_name ?? "Guest"}</span></p>
-            <p className="flex items-center gap-2 text-xs text-muted-foreground min-w-0"><Mail className="size-3.5 shrink-0" /><span className="truncate">{order.contact_email ?? "—"}</span></p>
-            <p className="flex items-center gap-2 text-xs text-muted-foreground"><Phone className="size-3.5 shrink-0" />{addr?.phone ?? "—"}</p>
-            <p className="flex items-start gap-2 text-xs text-muted-foreground"><MapPin className="size-3.5 shrink-0 mt-0.5" /><span className="break-words">{fullAddr}</span></p>
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
+            <InfoLine icon={<User className="size-3.5" />} value={customer} />
+            <InfoLine icon={<MapPin className="size-3.5" />} value={cityState} />
+            <InfoLine icon={<Truck className="size-3.5" />} value={courier} />
+            <InfoLine icon={<Hash className="size-3.5" />} value={tracking ? tracking : "No tracking assigned"} mono />
+            <InfoLine icon={<CalendarClock className="size-3.5" />} value={`ETA ${fmtDate(ship?.estimated_delivery ?? null)}`} />
+            <InfoLine icon={<Receipt className="size-3.5" />} value={paymentLabel(order.payment_method, order.payment_status)} />
           </div>
           <div className="flex items-center gap-3 text-[11px] text-muted-foreground pt-1 flex-wrap">
-            <span className="inline-flex items-center gap-1"><Package className="size-3" />{units} item{units !== 1 ? "s" : ""}</span>
-            <span>Created {fmtDate(order.created_at)}</span>
-            {ship && <span>Updated {fmtDate(ship.updated_at)}</span>}
+            <span>{units} unit{units !== 1 ? "s" : ""}</span>
+            <span>Placed {fmtTime(order.created_at)}</span>
+            {ship && <span>Updated {fmtTime(ship.updated_at)}</span>}
+            {order.contact_email && <span className="inline-flex items-center gap-1 min-w-0"><Mail className="size-3" /><span className="truncate max-w-[14rem]">{order.contact_email}</span></span>}
+            {addr?.phone && <span className="inline-flex items-center gap-1"><Phone className="size-3" />{addr.phone}</span>}
           </div>
         </div>
 
-        <div className="md:border-l md:border-border/40 md:pl-4">
+        <div className="lg:border-l lg:border-border/40 lg:pl-4 min-w-0">
           {!ship ? (
             <button onClick={onCreate} disabled={creating}
-              className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider disabled:opacity-50">
+              className="inline-flex items-center justify-center gap-2 w-full bg-accent text-accent-foreground px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider disabled:opacity-50">
               {creating ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />} Create shipment
             </button>
           ) : (
@@ -963,16 +989,10 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
                 <DateField label="Est. delivery" value={ship.estimated_delivery} onSave={(v) => onAssign({ estimated_delivery: v })} className="col-span-2" />
               </div>
               <div className="pt-1"><MiniTimeline status={ship.status} /></div>
-              <div>
-                <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Status</label>
-                <select value={ship.status} disabled={busy} onChange={(e) => onStatus(e.target.value as ShipStatus)}
-                  className="mt-1 w-full bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent">
-                  {STATUSES.map((st) => <option key={st} value={st}>{STATUS_LABEL[st]}</option>)}
-                </select>
-              </div>
               <div className="flex flex-wrap gap-1.5 pt-0.5">
                 <ActionBtn onClick={() => onStatus("packed")} disabled={busy} icon={<PackageCheck className="size-3" />}>Packed</ActionBtn>
                 <ActionBtn onClick={() => onStatus("shipped")} disabled={busy} icon={<Truck className="size-3" />}>Shipped</ActionBtn>
+                <ActionBtn onClick={() => onStatus("out_for_delivery")} disabled={busy} icon={<MapPin className="size-3" />}>OFD</ActionBtn>
                 <ActionBtn onClick={() => onStatus("delivered")} disabled={busy} icon={<CheckCircle2 className="size-3" />} tone="emerald">Delivered</ActionBtn>
                 <ActionBtn onClick={() => onStatus("returned")} disabled={busy} icon={<RotateCcw className="size-3" />} tone="orange">Returned</ActionBtn>
                 <ActionBtn onClick={() => onStatus("cancelled")} disabled={busy} icon={<Ban className="size-3" />} tone="destructive">Cancel</ActionBtn>
