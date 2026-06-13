@@ -886,6 +886,15 @@ function BulkBtn({ onClick, disabled, icon, children }: { onClick: () => void; d
   );
 }
 
+function InfoLine({ icon, value, mono = false }: { icon: React.ReactNode; value: string; mono?: boolean }) {
+  return (
+    <p className={`flex items-center gap-1.5 min-w-0 text-muted-foreground ${mono ? "font-mono" : ""}`}>
+      <span className="shrink-0 text-accent/70">{icon}</span>
+      <span className="truncate">{value}</span>
+    </p>
+  );
+}
+
 function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, busy, onCreate, onAssign, onStatus }: {
   order: Order; ship: Shipment | null; delay: DelayInfo | null; selected: boolean; onToggleSelect: () => void;
   creating: boolean; busy: boolean;
@@ -953,7 +962,7 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
           <div className="min-w-0">
             <p className="text-sm sm:text-base font-semibold truncate">{productName}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-              Qty {primary?.quantity ?? units || 1} · Variant/SKU {variant}{extraItems ? ` · +${extraItems} more item${extraItems !== 1 ? "s" : ""}` : ""}
+              Qty {primary?.quantity ?? (units || 1)} · Variant/SKU {variant}{extraItems ? ` · +${extraItems} more item${extraItems !== 1 ? "s" : ""}` : ""}
             </p>
           </div>
           {delay?.delayed && delay.reason && <p className="text-[11px] text-amber-400/90">⚠ {delay.reason}</p>}
