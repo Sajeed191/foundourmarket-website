@@ -290,6 +290,7 @@ export function rowToProduct(r: Row): Product {
     metaKeywords: r.meta_keywords ?? [],
     brand: r.brand ?? null,
     productType: r.product_type ?? null,
+    videoUrl: r.video_url ?? null,
   };
 }
 
