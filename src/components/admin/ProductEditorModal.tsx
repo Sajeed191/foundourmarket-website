@@ -366,7 +366,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
       image: form.image.trim() || null, description: form.description.trim() || null,
       in_stock: form.in_stock, featured: form.featured, sku: autoSku,
       rating: ratingNum, reviews: reviewsNum != null ? Math.round(reviewsNum) : null,
-      initial_rating: initialRatingNum, rating_source: form.rating_source,
+      initial_rating: initialRatingNum ?? undefined, rating_source: form.rating_source,
       stock_quantity: Number(form.stock_quantity) || 0, low_stock_threshold: Number(form.low_stock_threshold) || 0,
       sort_order: Number(form.sort_order) || 0,
       price_inr: priceInr, compare_price_inr: cmpInr, price_usd: priceUsd, compare_price_usd: cmpUsd,
