@@ -382,8 +382,8 @@ function OrderDrawer({ o, onClose, onRefresh }: { o: EnrichedOrder; onClose: () 
             <Row k="Payment status" v={<StatusPill s={o.payment_status} />} />
             <Row k="Amount paid" v={<span className="font-semibold">{money(pay?.amount ?? o.total)}</span>} />
             <Row k="Currency" v={cur} />
-            <Row k="Method" v={pay?.method ?? o.payment_method ?? "—"} />
-            <Row k="Gateway" v={detail?.order.payment_provider ?? o.payment_provider ?? "—"} />
+            <Row k="Method" v={<PaymentMethodValue order={o} payMethod={pay?.method} />} />
+            <Row k="Gateway" v={(detail?.order.payment_provider ?? o.payment_provider) === "global_beta" ? "Global Beta (Demo)" : (detail?.order.payment_provider ?? o.payment_provider ?? "—")} />
             {pay && <Row k="Recorded" v={new Date(pay.created_at).toLocaleString()} />}
 
             <details className="group mt-2 rounded-xl border border-border/60 bg-muted/20">
