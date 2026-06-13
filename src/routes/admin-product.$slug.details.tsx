@@ -27,7 +27,7 @@ const COLS = [
 ];
 
 type Form = {
-  name: string; brand: string; product_type: string; category: string; tags: string;
+  name: string; brand: string; product_type: string; category: string; categories: string[]; tags: string;
   description: string;
   features: string[];
   specs: KV[];
