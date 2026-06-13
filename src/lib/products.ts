@@ -200,6 +200,7 @@ type Row = {
   priority_score?: number | null; collections?: string[] | null;
   seo_title?: string | null; seo_description?: string | null;
   meta_keywords?: string[] | null; brand?: string | null; product_type?: string | null;
+  video_url?: string | null;
 };
 
 const num = (v: number | string | null | undefined): number | null =>
