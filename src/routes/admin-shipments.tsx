@@ -26,6 +26,11 @@ import { AnimatedCounter } from "@/components/site/Reveal";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin-shipments")({
+  validateSearch: (search) => ({
+    order: typeof search.order === "string" ? search.order : undefined,
+    shipment: typeof search.shipment === "string" ? search.shipment : undefined,
+    queue: typeof search.queue === "string" ? search.queue : undefined,
+  }),
   head: () => ({ meta: [{ title: "Shipment Command Center — Admin" }] }),
   component: AdminShipmentsPage,
 });
@@ -35,7 +40,15 @@ type ShipAddress = {
   city?: string; state?: string; postal?: string; country?: string;
 } | null;
 
-type Order = OrderRow & { order_items: { quantity: number }[]; shipping_address: ShipAddress };
+type OrderItem = {
+  name: string;
+  quantity: number;
+  image: string | null;
+  product_slug: string | null;
+  unit_price: number | null;
+  line_total: number | null;
+};
+type Order = OrderRow & { payment_method: string | null; order_items: OrderItem[]; shipping_address: ShipAddress };
 type Shipment = ShipRow & { notes: string | null };
 
 const STATUSES = [
@@ -85,6 +98,19 @@ const fmtTime = (s: string) => new Date(s).toLocaleString([], { month: "short", 
 const money = (n: number, c: string | null) =>
   (c === "USD" ? "$" : "₹") + Math.round(n || 0).toLocaleString(c === "USD" ? "en-US" : "en-IN");
 const pct = (n: number) => `${Math.round(n * 100)}%`;
+const shortId = (id: string) => id.slice(0, 8).toUpperCase();
+const safeText = (...values: unknown[]) => values.find((v) => typeof v === "string" && v.trim()) as string | undefined;
+const paymentLabel = (method: string | null | undefined, status: string | null | undefined) => {
+  const raw = (method || status || "").toLowerCase();
+  if (!raw) return "—";
+  if (raw.includes("global_beta") || raw === "demo") return "Demo payment";
+  if (raw.includes("cod") || raw.includes("cash")) return "Cash on delivery";
+  if (raw.includes("upi")) return "UPI";
+  if (raw.includes("card")) return "Card";
+  if (raw.includes("razorpay")) return "Razorpay";
+  if (raw === "paid" || raw === "succeeded" || raw === "captured") return "Online paid";
+  return method ?? status ?? "—";
+};
 
 const SEV_CLS: Record<string, string> = {
   minor: "text-amber-400 border-amber-400/30 bg-amber-400/10",
@@ -96,6 +122,23 @@ const HEALTH_CLS: Record<HealthTier, string> = {
 };
 
 type FeedItem = { id: string; kind: string; label: string; detail: string; at: string; tone: string };
+type ShipmentPair = { order: Order; ship: Shipment | null };
+const OP_QUEUE_KEYS: QueueKey[] = ["all", "pending", "needs_tracking", "packed", "in_transit", "out_for_delivery", "delivered", "delayed", "stuck", "failed_delivery", "returned", "rto", "cancelled"];
+const isQueueKey = (v: string | undefined): v is QueueKey => !!v && OP_QUEUE_KEYS.includes(v as QueueKey);
+
+function pairMatchesSearch({ order, ship }: ShipmentPair, term: string) {
+  if (!term) return true;
+  const addr = order.shipping_address;
+  const itemText = order.order_items?.map((it) => `${it.name} ${it.product_slug ?? ""}`).join(" ") ?? "";
+  return [order.id, ship?.tracking_number, order.tracking_number, addr?.full_name, addr?.city, addr?.state, order.contact_email, addr?.phone, ship?.carrier, order.carrier, order.payment_method, itemText]
+    .some((v) => (v ?? "").toString().toLowerCase().includes(term));
+}
+
+function pairMatchesQueue({ order, ship }: ShipmentPair, queue: QueueKey, delayById: Map<string, DelayInfo>) {
+  if (queue === "all") return true;
+  if (!ship) return queue === "pending" && !["cancelled", "delivered", "returned"].includes(order.status);
+  return matchQueue(queue, ship, delayById.get(ship.id) ?? computeDelay(ship, null));
+}
 
 // ── Export row builder (single source of truth for every export format) ────────
 function buildExportRow(order: Order, ship: Shipment | null): ShipmentExportRow {
@@ -257,6 +300,7 @@ function StatusPill({ status }: { status: string }) {
 type Section = "operations" | "couriers" | "customers" | "warroom";
 
 function AdminShipmentsPage() {
+  const search = Route.useSearch();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -275,6 +319,19 @@ function AdminShipmentsPage() {
   const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { void load(); }, []);
+
+  useEffect(() => {
+    if (search.order || search.shipment) {
+      setSection("operations");
+      setQ(search.order ?? search.shipment ?? "");
+      setQueue("all");
+      setVisible(PAGE);
+    } else if (isQueueKey(search.queue)) {
+      setSection("operations");
+      setQueue(search.queue);
+      setVisible(PAGE);
+    }
+  }, [search.order, search.shipment, search.queue]);
 
   // Realtime: any change to logistics tables refreshes the dashboard (debounced)
   // and pushes a live entry into the War Room feed.
@@ -321,7 +378,7 @@ function AdminShipmentsPage() {
     if (!silent) setRefreshing(true);
     const [{ data: o }, { data: s }, { data: ev }, { data: wh }, { data: nt }] = await Promise.all([
       supabase.from("orders")
-        .select("id,user_id,status,total,currency,contact_email,payment_status,fulfillment_status,tracking_number,carrier,shipping_address,created_at,order_items(quantity)")
+        .select("id,user_id,status,total,currency,contact_email,payment_status,payment_method,fulfillment_status,tracking_number,carrier,shipping_address,created_at,order_items(name,quantity,image,product_slug,unit_price,line_total)")
         .order("created_at", { ascending: false }).limit(1000),
       supabase.from("shipments").select("*").order("created_at", { ascending: false }),
       supabase.from("shipment_events").select("*").order("occurred_at", { ascending: false }).limit(120),
@@ -437,23 +494,18 @@ function AdminShipmentsPage() {
   const health = useMemo(() => computeHealthScore(shipments, delayById), [shipments, delayById]);
   const couriers = useMemo(() => computeCourierPerf(shipments, delayById), [shipments, delayById]);
 
-  const enriched = useMemo(() => {
+  const allPairs = useMemo<ShipmentPair[]>(() => {
     if (!orders) return [];
+    const shipmentsByOrder = new Map(shipments.map((s) => [s.order_id, s]));
+    return orders.map((o) => ({ order: o, ship: shipmentsByOrder.get(o.id) ?? null }));
+  }, [orders, shipments]);
+
+  const enriched = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return orders
-      .map((o) => ({ order: o, ship: shipments.find((s) => s.order_id === o.id) ?? null }))
-      .filter(({ order, ship }) => {
-        if (queue === "all") return true;
-        if (!ship) return false;
-        return matchQueue(queue, ship, delayById.get(ship.id) ?? computeDelay(ship, null));
-      })
-      .filter(({ order, ship }) => {
-        if (!term) return true;
-        const addr = order.shipping_address;
-        return [order.id, ship?.tracking_number, order.tracking_number, addr?.full_name, order.contact_email, addr?.phone, ship?.carrier, order.carrier]
-          .some((v) => (v ?? "").toString().toLowerCase().includes(term));
-      });
-  }, [orders, shipments, q, queue, delayById]);
+    return allPairs
+      .filter((pair) => pairMatchesQueue(pair, queue, delayById))
+      .filter((pair) => pairMatchesSearch(pair, term));
+  }, [allPairs, q, queue, delayById]);
 
   const customerImpact = useMemo(() => {
     const ordersById = new Map((orders ?? []).map((o) => [o.id, o]));
@@ -506,7 +558,7 @@ function AdminShipmentsPage() {
     } else if (scope === "filtered") {
       pairs = enriched;
     } else {
-      pairs = (orders ?? []).map((o) => ({ order: o, ship: shipments.find((s) => s.order_id === o.id) ?? null }));
+      pairs = allPairs;
     }
     return pairs.map(({ order, ship }) => buildExportRow(order, ship));
   };
@@ -561,7 +613,7 @@ function AdminShipmentsPage() {
         {/* Compact KPI strip — horizontally scrollable, operations-first */}
         <div className="-mx-1 px-1 overflow-x-auto scrollbar-none">
           <div className="flex gap-2 min-w-max sm:min-w-0 sm:grid sm:grid-cols-4 lg:grid-cols-7">
-            <StatChip label="Total" value={kpis.total} icon={<Package className="size-3.5" />} />
+            <StatChip label="Total" value={allPairs.length} icon={<Package className="size-3.5" />} />
             <StatChip label="Awaiting" value={kpis.awaitingShipment} icon={<CalendarClock className="size-3.5" />} tone={kpis.awaitingShipment ? "amber" : undefined} />
             <StatChip label="In Transit" value={kpis.inTransit} icon={<Truck className="size-3.5" />} />
             <StatChip label="Out" value={kpis.outForDelivery} icon={<MapPin className="size-3.5" />} />
@@ -589,7 +641,7 @@ function AdminShipmentsPage() {
           <div className="grid place-items-center py-20"><Loader2 className="size-5 animate-spin text-accent" /></div>
         ) : section === "operations" ? (
           <OperationsView
-            enriched={enriched} shipments={shipments} delayById={delayById} queue={queue} setQueue={setQueue}
+            enriched={enriched} allPairs={allPairs} delayById={delayById} queue={queue} setQueue={setQueue}
             q={q} setQ={setQ} visible={visible} setVisible={setVisible}
             selected={selected} toggleSelect={toggleSelect} clearSelection={clearSelection}
             selectedCount={selected.size} bulkBusy={bulkBusy}
@@ -613,7 +665,8 @@ function AdminShipmentsPage() {
 // ── Operations view ──────────────────────────────────────────────────────────
 function OperationsView(props: {
   enriched: { order: Order; ship: Shipment | null }[];
-  shipments: Shipment[]; delayById: Map<string, DelayInfo>;
+  allPairs: ShipmentPair[];
+  delayById: Map<string, DelayInfo>;
   queue: QueueKey; setQueue: (q: QueueKey) => void;
   q: string; setQ: (v: string) => void; visible: number; setVisible: React.Dispatch<React.SetStateAction<number>>;
   selected: Set<string>; toggleSelect: (id: string) => void; clearSelection: () => void;
@@ -623,11 +676,10 @@ function OperationsView(props: {
   creating: string | null; busy: string | null;
   onCreate: (o: Order) => void; onAssign: (s: Shipment, p: Partial<Shipment>) => void; onStatus: (s: Shipment, st: ShipStatus) => void;
 }) {
-  const { enriched, shipments, delayById, queue, setQueue, q, setQ, visible, setVisible } = props;
+  const { enriched, allPairs, delayById, queue, setQueue, q, setQ, visible, setVisible } = props;
+  const searchTerm = q.trim().toLowerCase();
   const queueCount = (key: QueueKey) =>
-    key === "all" ? shipments.length : shipments.filter((s) => matchQueue(key, s, delayById.get(s.id) ?? computeDelay(s, null))).length;
-  const QUEUES: QueueKey[] = ["all", "pending", "needs_tracking", "packed", "in_transit", "out_for_delivery", "delivered", "delayed", "stuck", "failed_delivery", "returned", "rto", "cancelled"];
-
+    allPairs.filter((pair) => pairMatchesQueue(pair, key, delayById) && pairMatchesSearch(pair, searchTerm)).length;
   return (
     <div className="space-y-4">
       {/* Bulk action bar */}
@@ -662,7 +714,7 @@ function OperationsView(props: {
           </button>
         </div>
         <div className="-mx-1 px-1 flex gap-1.5 overflow-x-auto scrollbar-none">
-          {QUEUES.map((key) => (
+          {OP_QUEUE_KEYS.map((key) => (
             <button key={key} onClick={() => { setQueue(key); setVisible(PAGE); }}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
                 queue === key ? "border-accent/50 bg-accent/15 text-accent" : "border-border/60 text-muted-foreground hover:text-foreground"
@@ -677,9 +729,9 @@ function OperationsView(props: {
       {enriched.length === 0 ? (
         <div className="card-premium rounded-2xl py-8 px-5 text-center">
           <Package className="size-7 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm font-semibold">Nothing in the “{QUEUE_LABEL[queue]}” queue</p>
+          <p className="text-sm font-semibold">{allPairs.length ? "No matching shipment records" : "No shipment records yet"}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {shipments.length > 0 ? `You have ${shipments.length} shipment${shipments.length !== 1 ? "s" : ""} in other queues.` : "Shipments will appear here as orders are placed."}
+            {allPairs.length > 0 ? `Clear filters to view ${allPairs.length} real order${allPairs.length !== 1 ? "s" : ""} across shipment queues.` : "Shipments will appear here as real orders are placed."}
           </p>
           {(queue !== "all" || q) && (
             <button onClick={() => { setQueue("all"); setQ(""); setVisible(PAGE); }}
@@ -853,14 +905,32 @@ function BulkBtn({ onClick, disabled, icon, children }: { onClick: () => void; d
   );
 }
 
+function InfoLine({ icon, value, mono = false }: { icon: React.ReactNode; value: string; mono?: boolean }) {
+  return (
+    <p className={`flex items-center gap-1.5 min-w-0 text-muted-foreground ${mono ? "font-mono" : ""}`}>
+      <span className="shrink-0 text-accent/70">{icon}</span>
+      <span className="truncate">{value}</span>
+    </p>
+  );
+}
+
 function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, busy, onCreate, onAssign, onStatus }: {
   order: Order; ship: Shipment | null; delay: DelayInfo | null; selected: boolean; onToggleSelect: () => void;
   creating: boolean; busy: boolean;
   onCreate: () => void; onAssign: (patch: Partial<Shipment>) => void; onStatus: (s: ShipStatus) => void;
 }) {
   const addr = order.shipping_address;
+  const primary = order.order_items?.[0] ?? null;
+  const extraItems = Math.max(0, (order.order_items?.length ?? 0) - 1);
   const units = order.order_items?.reduce((a, b) => a + (b.quantity || 0), 0) ?? 0;
   const fullAddr = addr ? [addr.line1, addr.line2, addr.city, addr.state, addr.postal, addr.country].filter(Boolean).join(", ") : "—";
+  const customer = safeText(addr?.full_name, (addr as { name?: string } | null)?.name, order.contact_email, "Guest") ?? "Guest";
+  const cityState = [addr?.city, addr?.state].filter(Boolean).join(", ") || fullAddr;
+  const status = ship?.status ?? (order.fulfillment_status || "pending");
+  const tracking = ship?.tracking_number ?? order.tracking_number;
+  const courier = courierLabel(ship?.carrier ?? order.carrier) ?? ship?.carrier ?? order.carrier ?? "Unassigned";
+  const productName = primary?.name ?? "Order items pending sync";
+  const variant = primary?.product_slug ? primary.product_slug.replace(/-/g, " ") : "—";
   const [docBusy, setDocBusy] = useState<string | null>(null);
 
   const runDoc = async (key: string, fn: () => Promise<boolean>) => {
@@ -880,20 +950,27 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
 
 
   return (
-    <div className={`card-premium rounded-2xl p-4 md:p-5 ${selected ? "border-accent/50" : ""}`}>
-      <div className="grid md:grid-cols-[1.2fr_1fr] gap-4">
-        <div className="space-y-2 min-w-0">
+    <div className={`card-premium rounded-2xl p-3.5 md:p-4 ${selected ? "border-accent/50" : ""}`}>
+      <div className="grid gap-3 lg:grid-cols-[auto_1fr_minmax(16rem,0.62fr)]">
+        <div className="flex gap-3 min-w-0">
+          {ship && (
+            <input type="checkbox" checked={selected} onChange={onToggleSelect}
+              className="mt-1 size-3.5 accent-current text-accent rounded shrink-0" aria-label="Select shipment" />
+          )}
+          <div className="relative size-20 sm:size-24 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-muted">
+            {primary?.image ? (
+              <img src={primary.image} alt={productName} loading="lazy" className="size-full object-cover" />
+            ) : (
+              <div className="size-full grid place-items-center"><Package className="size-7 text-muted-foreground" /></div>
+            )}
+            <span className={`absolute inset-x-0 bottom-0 h-1 ${(STATUS_CLS[status] ?? STATUS_CLS.pending).split(" ").find((c) => c.startsWith("bg-")) ?? "bg-accent"}`} />
+          </div>
+        </div>
+
+        <div className="min-w-0 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            {ship && (
-              <input type="checkbox" checked={selected} onChange={onToggleSelect}
-                className="size-3.5 accent-current text-accent rounded" aria-label="Select shipment" />
-            )}
-            <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
-              <Hash className="size-3" />{order.id.slice(0, 8)}
-            </span>
-            {ship ? <StatusPill status={ship.status} /> : (
-              <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border border-border bg-muted/30 text-muted-foreground">No shipment</span>
-            )}
+            <StatusPill status={status} />
+            <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground"><Hash className="size-3" />ORD-{shortId(order.id)}</span>
             {delay?.delayed && (
               <span className={`inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${SEV_CLS[delay.severity]}`}>
                 <AlertTriangle className="size-3" />{SEVERITY_LABEL[delay.severity]} · {delay.delayDays > 0 ? `${delay.delayDays}d` : `${delay.delayHours}h`}
@@ -901,24 +978,34 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
             )}
             <span className="text-sm font-semibold tabular-nums ml-auto">{money(order.total, order.currency)}</span>
           </div>
+          <div className="min-w-0">
+            <p className="text-sm sm:text-base font-semibold truncate">{productName}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+              Qty {primary?.quantity ?? (units || 1)} · Variant/SKU {variant}{extraItems ? ` · +${extraItems} more item${extraItems !== 1 ? "s" : ""}` : ""}
+            </p>
+          </div>
           {delay?.delayed && delay.reason && <p className="text-[11px] text-amber-400/90">⚠ {delay.reason}</p>}
-          <div className="space-y-1 text-sm">
-            <p className="flex items-center gap-2 font-medium min-w-0"><User className="size-3.5 shrink-0 text-muted-foreground" /><span className="truncate">{addr?.full_name ?? "Guest"}</span></p>
-            <p className="flex items-center gap-2 text-xs text-muted-foreground min-w-0"><Mail className="size-3.5 shrink-0" /><span className="truncate">{order.contact_email ?? "—"}</span></p>
-            <p className="flex items-center gap-2 text-xs text-muted-foreground"><Phone className="size-3.5 shrink-0" />{addr?.phone ?? "—"}</p>
-            <p className="flex items-start gap-2 text-xs text-muted-foreground"><MapPin className="size-3.5 shrink-0 mt-0.5" /><span className="break-words">{fullAddr}</span></p>
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
+            <InfoLine icon={<User className="size-3.5" />} value={customer} />
+            <InfoLine icon={<MapPin className="size-3.5" />} value={cityState} />
+            <InfoLine icon={<Truck className="size-3.5" />} value={courier} />
+            <InfoLine icon={<Hash className="size-3.5" />} value={tracking ? tracking : "No tracking assigned"} mono />
+            <InfoLine icon={<CalendarClock className="size-3.5" />} value={`ETA ${fmtDate(ship?.estimated_delivery ?? null)}`} />
+            <InfoLine icon={<Receipt className="size-3.5" />} value={paymentLabel(order.payment_method, order.payment_status)} />
           </div>
           <div className="flex items-center gap-3 text-[11px] text-muted-foreground pt-1 flex-wrap">
-            <span className="inline-flex items-center gap-1"><Package className="size-3" />{units} item{units !== 1 ? "s" : ""}</span>
-            <span>Created {fmtDate(order.created_at)}</span>
-            {ship && <span>Updated {fmtDate(ship.updated_at)}</span>}
+            <span>{units} unit{units !== 1 ? "s" : ""}</span>
+            <span>Placed {fmtTime(order.created_at)}</span>
+            {ship && <span>Updated {fmtTime(ship.updated_at)}</span>}
+            {order.contact_email && <span className="inline-flex items-center gap-1 min-w-0"><Mail className="size-3" /><span className="truncate max-w-[14rem]">{order.contact_email}</span></span>}
+            {addr?.phone && <span className="inline-flex items-center gap-1"><Phone className="size-3" />{addr.phone}</span>}
           </div>
         </div>
 
-        <div className="md:border-l md:border-border/40 md:pl-4">
+        <div className="lg:border-l lg:border-border/40 lg:pl-4 min-w-0">
           {!ship ? (
             <button onClick={onCreate} disabled={creating}
-              className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider disabled:opacity-50">
+              className="inline-flex items-center justify-center gap-2 w-full bg-accent text-accent-foreground px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider disabled:opacity-50">
               {creating ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />} Create shipment
             </button>
           ) : (
@@ -930,16 +1017,10 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
                 <DateField label="Est. delivery" value={ship.estimated_delivery} onSave={(v) => onAssign({ estimated_delivery: v })} className="col-span-2" />
               </div>
               <div className="pt-1"><MiniTimeline status={ship.status} /></div>
-              <div>
-                <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Status</label>
-                <select value={ship.status} disabled={busy} onChange={(e) => onStatus(e.target.value as ShipStatus)}
-                  className="mt-1 w-full bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent">
-                  {STATUSES.map((st) => <option key={st} value={st}>{STATUS_LABEL[st]}</option>)}
-                </select>
-              </div>
               <div className="flex flex-wrap gap-1.5 pt-0.5">
                 <ActionBtn onClick={() => onStatus("packed")} disabled={busy} icon={<PackageCheck className="size-3" />}>Packed</ActionBtn>
                 <ActionBtn onClick={() => onStatus("shipped")} disabled={busy} icon={<Truck className="size-3" />}>Shipped</ActionBtn>
+                <ActionBtn onClick={() => onStatus("out_for_delivery")} disabled={busy} icon={<MapPin className="size-3" />}>OFD</ActionBtn>
                 <ActionBtn onClick={() => onStatus("delivered")} disabled={busy} icon={<CheckCircle2 className="size-3" />} tone="emerald">Delivered</ActionBtn>
                 <ActionBtn onClick={() => onStatus("returned")} disabled={busy} icon={<RotateCcw className="size-3" />} tone="orange">Returned</ActionBtn>
                 <ActionBtn onClick={() => onStatus("cancelled")} disabled={busy} icon={<Ban className="size-3" />} tone="destructive">Cancel</ActionBtn>
