@@ -78,6 +78,7 @@ import { Route as AdminEmailDeliveryRouteImport } from './routes/admin-email-del
 import { Route as AdminCustomersRouteImport } from './routes/admin-customers'
 import { Route as AdminCustomerIntelligenceRouteImport } from './routes/admin-customer-intelligence'
 import { Route as AdminCmsRouteImport } from './routes/admin-cms'
+import { Route as AdminCategoriesManageRouteImport } from './routes/admin-categories-manage'
 import { Route as AdminCategoriesRouteImport } from './routes/admin-categories'
 import { Route as AdminBulkBadgesRouteImport } from './routes/admin-bulk-badges'
 import { Route as AdminBadgesBulkRouteImport } from './routes/admin-badges-bulk'
@@ -487,6 +488,11 @@ const AdminCmsRoute = AdminCmsRouteImport.update({
   path: '/admin-cms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCategoriesManageRoute = AdminCategoriesManageRouteImport.update({
+  id: '/admin-categories-manage',
+  path: '/admin-categories-manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/admin-categories',
   path: '/admin-categories',
@@ -814,6 +820,7 @@ export interface FileRoutesByFullPath {
   '/admin-badges-bulk': typeof AdminBadgesBulkRoute
   '/admin-bulk-badges': typeof AdminBulkBadgesRoute
   '/admin-categories': typeof AdminCategoriesRoute
+  '/admin-categories-manage': typeof AdminCategoriesManageRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -945,6 +952,7 @@ export interface FileRoutesByTo {
   '/admin-badges-bulk': typeof AdminBadgesBulkRoute
   '/admin-bulk-badges': typeof AdminBulkBadgesRoute
   '/admin-categories': typeof AdminCategoriesRoute
+  '/admin-categories-manage': typeof AdminCategoriesManageRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -1076,6 +1084,7 @@ export interface FileRoutesById {
   '/admin-badges-bulk': typeof AdminBadgesBulkRoute
   '/admin-bulk-badges': typeof AdminBulkBadgesRoute
   '/admin-categories': typeof AdminCategoriesRoute
+  '/admin-categories-manage': typeof AdminCategoriesManageRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -1209,6 +1218,7 @@ export interface FileRouteTypes {
     | '/admin-badges-bulk'
     | '/admin-bulk-badges'
     | '/admin-categories'
+    | '/admin-categories-manage'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -1340,6 +1350,7 @@ export interface FileRouteTypes {
     | '/admin-badges-bulk'
     | '/admin-bulk-badges'
     | '/admin-categories'
+    | '/admin-categories-manage'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -1470,6 +1481,7 @@ export interface FileRouteTypes {
     | '/admin-badges-bulk'
     | '/admin-bulk-badges'
     | '/admin-categories'
+    | '/admin-categories-manage'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -1602,6 +1614,7 @@ export interface RootRouteChildren {
   AdminBadgesBulkRoute: typeof AdminBadgesBulkRoute
   AdminBulkBadgesRoute: typeof AdminBulkBadgesRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCategoriesManageRoute: typeof AdminCategoriesManageRoute
   AdminCmsRoute: typeof AdminCmsRoute
   AdminCustomerIntelligenceRoute: typeof AdminCustomerIntelligenceRoute
   AdminCustomersRoute: typeof AdminCustomersRouteWithChildren
@@ -2191,6 +2204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-categories-manage': {
+      id: '/admin-categories-manage'
+      path: '/admin-categories-manage'
+      fullPath: '/admin-categories-manage'
+      preLoaderRoute: typeof AdminCategoriesManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-categories': {
       id: '/admin-categories'
       path: '/admin-categories'
@@ -2699,6 +2719,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminBadgesBulkRoute: AdminBadgesBulkRoute,
   AdminBulkBadgesRoute: AdminBulkBadgesRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCategoriesManageRoute: AdminCategoriesManageRoute,
   AdminCmsRoute: AdminCmsRoute,
   AdminCustomerIntelligenceRoute: AdminCustomerIntelligenceRoute,
   AdminCustomersRoute: AdminCustomersRouteWithChildren,
