@@ -268,22 +268,75 @@ function ExportMenu({ selectedCount, onExport, onPackingSlips }: {
   );
 }
 
-// ── Live operations strip ──────────────────────────────────────────────────────
-function LiveOpsStrip({ online, lastUpdated, courierCount, pending, health }: {
+// ── Enterprise system status card ──────────────────────────────────────────────
+function SystemStatusCard({ online, lastUpdated, courierCount, pending, health }: {
   online: boolean; lastUpdated: number; courierCount: number; pending: number; health: { score: number; tier: HealthTier };
 }) {
+  const syncTime = new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const tiles = [
+    {
+      icon: online ? <Wifi className="size-4" /> : <WifiOff className="size-4" />,
+      label: "Realtime Sync",
+      value: online ? "Active" : "Offline",
+      tone: online ? "text-emerald-400" : "text-muted-foreground",
+      dot: online,
+    },
+    { icon: <Truck className="size-4" />, label: "Connected Couriers", value: `${courierCount} courier${courierCount !== 1 ? "s" : ""}`, tone: "text-accent" },
+    { icon: <Clock className="size-4" />, label: "Last Sync", value: syncTime, tone: "text-sky-400" },
+    { icon: <Gauge className="size-4" />, label: "Health Score", value: `${health.score}%`, tone: HEALTH_CLS[health.tier] },
+  ];
   return (
-    <div className="card-premium rounded-2xl px-4 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-      <span className={`inline-flex items-center gap-1.5 font-semibold ${online ? "text-emerald-400" : "text-muted-foreground"}`}>
-        {online ? <Wifi className="size-3.5" /> : <WifiOff className="size-3.5" />}
-        {online ? "Realtime synced" : "Offline"}
-      </span>
-      <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Truck className="size-3.5 text-accent" />{courierCount} active courier{courierCount !== 1 ? "s" : ""}</span>
-      <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Gauge className={`size-3.5 ${HEALTH_CLS[health.tier]}`} />Health {health.score}</span>
-      {pending > 0 && (
-        <span className="inline-flex items-center gap-1.5 text-amber-400"><AlertTriangle className="size-3.5" />{pending} awaiting action</span>
-      )}
-      <span className="inline-flex items-center gap-1.5 text-muted-foreground ml-auto"><Clock className="size-3.5" />Updated {fmtTime(new Date(lastUpdated).toISOString())}</span>
+    <div className="card-premium rounded-2xl p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="relative flex size-2">
+          <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 ${online ? "bg-emerald-400 animate-ping" : "bg-muted-foreground"}`} />
+          <span className={`relative inline-flex rounded-full size-2 ${online ? "bg-emerald-400" : "bg-muted-foreground"}`} />
+        </span>
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">System Status</h2>
+        {pending > 0 && (
+          <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400">
+            <AlertTriangle className="size-3.5" />{pending} awaiting action
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        {tiles.map((t) => (
+          <div key={t.label} className="rounded-xl border border-border/50 bg-background/40 p-3">
+            <div className="flex items-center justify-between">
+              <span className={t.tone}>{t.icon}</span>
+              {"dot" in t && t.dot && (
+                <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_color-mix(in_oklab,var(--accent)_60%,transparent)]" />
+              )}
+            </div>
+            <div className={`mt-2 text-base font-bold leading-none ${t.tone}`}>{t.value}</div>
+            <div className="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">{t.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Revenue operations strip ────────────────────────────────────────────────────
+type RevenueOps = { revenueToday: number; ordersToday: number; pendingPayments: number; codOrders: number; refundRequests: number; currency: string | null };
+function RevenueStrip({ ops }: { ops: RevenueOps }) {
+  const cards = [
+    { label: "Revenue Today", value: money(ops.revenueToday, ops.currency), icon: <TrendingUp className="size-3.5" />, tone: "text-emerald-400" },
+    { label: "Pending Payments", value: String(ops.pendingPayments), icon: <Clock className="size-3.5" />, tone: ops.pendingPayments ? "text-amber-400" : "text-foreground" },
+    { label: "COD Orders", value: String(ops.codOrders), icon: <Receipt className="size-3.5" />, tone: "text-foreground" },
+    { label: "Refund Requests", value: String(ops.refundRequests), icon: <RotateCcw className="size-3.5" />, tone: ops.refundRequests ? "text-orange-400" : "text-foreground" },
+  ];
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      {cards.map((c) => (
+        <div key={c.label} className="card-premium rounded-xl px-3 py-2.5">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-[9px] uppercase tracking-widest">{c.label}</span>
+            <span className={c.tone}>{c.icon}</span>
+          </div>
+          <div className={`mt-1.5 text-base font-bold tabular-nums leading-none ${c.tone}`}>{c.value}</div>
+        </div>
+      ))}
     </div>
   );
 }
