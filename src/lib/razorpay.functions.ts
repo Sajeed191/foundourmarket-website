@@ -44,16 +44,7 @@ const verifySchema = z.object({
   razorpaySignature: z.string().min(1).max(256),
 });
 
-/** Read the edge geo country from trusted request headers (server-only). */
-function edgeCountry(): string | null {
-  const c = (
-    getRequestHeader("cf-ipcountry") ||
-    getRequestHeader("x-vercel-ip-country") ||
-    getRequestHeader("x-country") ||
-    ""
-  ).toUpperCase();
-  return c || null;
-}
+
 
 export type RegionResolution = {
   region: Region;
