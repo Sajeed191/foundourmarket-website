@@ -19,7 +19,7 @@ import {
 export const Route = createFileRoute("/admin-product/$slug/details")({ component: DetailsPage });
 
 const COLS = [
-  "name", "slug", "description", "image", "brand", "product_type", "category", "tags",
+  "name", "slug", "description", "image", "brand", "product_type", "category", "categories", "tags",
   "features", "specifications", "attributes", "video_url",
   "seo_title", "seo_description", "meta_keywords",
   "price", "price_inr", "stock_quantity",
