@@ -35,6 +35,7 @@ import {
   supportCustomerTemplate,
   supportAdminTemplate,
 } from './support-emails'
+import { demoOrderReceivedTemplate } from './demo-order'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'test-email': testEmailTemplate,
