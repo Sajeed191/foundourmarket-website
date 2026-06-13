@@ -185,6 +185,9 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const fileRef = useRef<HTMLInputElement>(null);
   // Pending badge assignments for a not-yet-saved product (flushed after insert).
   const [pendingBadges, setPendingBadges] = useState<string[]>([]);
+  const [pendingFaqs, setPendingFaqs] = useState<{ question: string; answer: string }[]>([]);
+  const [faqQ, setFaqQ] = useState("");
+  const [faqA, setFaqA] = useState("");
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
   const [tab, setTab] = useState<"basic" | "merch" | "seo" | "related" | "analytics" | "preview">("basic");
 
