@@ -613,7 +613,7 @@ function AdminShipmentsPage() {
         {/* Compact KPI strip — horizontally scrollable, operations-first */}
         <div className="-mx-1 px-1 overflow-x-auto scrollbar-none">
           <div className="flex gap-2 min-w-max sm:min-w-0 sm:grid sm:grid-cols-4 lg:grid-cols-7">
-            <StatChip label="Total" value={kpis.total} icon={<Package className="size-3.5" />} />
+            <StatChip label="Total" value={allPairs.length} icon={<Package className="size-3.5" />} />
             <StatChip label="Awaiting" value={kpis.awaitingShipment} icon={<CalendarClock className="size-3.5" />} tone={kpis.awaitingShipment ? "amber" : undefined} />
             <StatChip label="In Transit" value={kpis.inTransit} icon={<Truck className="size-3.5" />} />
             <StatChip label="Out" value={kpis.outForDelivery} icon={<MapPin className="size-3.5" />} />
@@ -641,7 +641,7 @@ function AdminShipmentsPage() {
           <div className="grid place-items-center py-20"><Loader2 className="size-5 animate-spin text-accent" /></div>
         ) : section === "operations" ? (
           <OperationsView
-            enriched={enriched} allPairs={allPairs} shipments={shipments} delayById={delayById} queue={queue} setQueue={setQueue}
+            enriched={enriched} allPairs={allPairs} delayById={delayById} queue={queue} setQueue={setQueue}
             q={q} setQ={setQ} visible={visible} setVisible={setVisible}
             selected={selected} toggleSelect={toggleSelect} clearSelection={clearSelection}
             selectedCount={selected.size} bulkBusy={bulkBusy}
@@ -666,7 +666,7 @@ function AdminShipmentsPage() {
 function OperationsView(props: {
   enriched: { order: Order; ship: Shipment | null }[];
   allPairs: ShipmentPair[];
-  shipments: Shipment[]; delayById: Map<string, DelayInfo>;
+  delayById: Map<string, DelayInfo>;
   queue: QueueKey; setQueue: (q: QueueKey) => void;
   q: string; setQ: (v: string) => void; visible: number; setVisible: React.Dispatch<React.SetStateAction<number>>;
   selected: Set<string>; toggleSelect: (id: string) => void; clearSelection: () => void;
@@ -676,12 +676,10 @@ function OperationsView(props: {
   creating: string | null; busy: string | null;
   onCreate: (o: Order) => void; onAssign: (s: Shipment, p: Partial<Shipment>) => void; onStatus: (s: Shipment, st: ShipStatus) => void;
 }) {
-  const { enriched, allPairs, shipments, delayById, queue, setQueue, q, setQ, visible, setVisible } = props;
+  const { enriched, allPairs, delayById, queue, setQueue, q, setQ, visible, setVisible } = props;
   const searchTerm = q.trim().toLowerCase();
   const queueCount = (key: QueueKey) =>
     allPairs.filter((pair) => pairMatchesQueue(pair, key, delayById) && pairMatchesSearch(pair, searchTerm)).length;
-  const QUEUES: QueueKey[] = ["all", "pending", "needs_tracking", "packed", "in_transit", "out_for_delivery", "delivered", "delayed", "stuck", "failed_delivery", "returned", "rto", "cancelled"];
-
   return (
     <div className="space-y-4">
       {/* Bulk action bar */}
@@ -716,7 +714,7 @@ function OperationsView(props: {
           </button>
         </div>
         <div className="-mx-1 px-1 flex gap-1.5 overflow-x-auto scrollbar-none">
-          {QUEUES.map((key) => (
+          {OP_QUEUE_KEYS.map((key) => (
             <button key={key} onClick={() => { setQueue(key); setVisible(PAGE); }}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
                 queue === key ? "border-accent/50 bg-accent/15 text-accent" : "border-border/60 text-muted-foreground hover:text-foreground"
