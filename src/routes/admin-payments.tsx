@@ -72,6 +72,7 @@ function PaymentsInner() {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | "succeeded" | "pending" | "failed">("all");
+  const [method, setMethod] = useState<"all" | "razorpay" | "cod" | "demo">("all");
   const [page, setPage] = useState(0);
   const [rows, setRows] = useState<PaymentRow[]>([]);
   const [kpis, setKpis] = useState<PaymentCenterKpis | null>(null);
