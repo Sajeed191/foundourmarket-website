@@ -407,6 +407,12 @@ function CommandCenter({ slug, f, set, row }: {
           keyPlaceholder="e.g. Color" valuePlaceholder="e.g. Black" addLabel="Add Attribute" />
       </Collapsible>
 
+      {/* FAQs */}
+      <Collapsible title="Product FAQs" icon={<HelpCircle className="size-4" />} defaultOpen={false}
+        desc="Add, edit, reorder & toggle buyer FAQs">
+        <ProductFaqManager productSlug={slug} />
+      </Collapsible>
+
       {/* Rating management */}
       <Collapsible title="Rating Management" icon={<Star className="size-4" />}
         desc="Star rating, review count & source"
