@@ -344,6 +344,20 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
     if (!mainCat) { setError("Select a main category."); return; }
     if (subs.length > 0 && !subCat) { setError("This category has subcategories — selecting a subcategory is required."); return; }
     setSaving(true); setError(null);
+    const finalSlug = form.slug.trim() || slugify(form.name);
+    // Auto SKU / SEO — generated automatically when left blank.
+    const autoSku = form.sku.trim() || makeSku(form.name, effectiveCategory);
+    const autoSeoTitle = form.seo_title.trim() || makeSeoTitle(form.name, form.brand);
+    const autoSeoDesc =
+      form.seo_description.trim() ||
+      (form.description.trim() || form.tagline.trim() || form.name.trim()).slice(0, 160);
+    const autoKeywords =
+      form.meta_keywords.trim()
+        ? parseList(form.meta_keywords)
+        : makeKeywords(form.name, form.brand, effectiveCategory, form.tags);
+    const ratingNum = numOrNull(form.rating);
+    const reviewsNum = numOrNull(form.reviews);
+    const initialRatingNum = numOrNull(form.initial_rating);
     const payload = {
       slug: form.slug.trim() || slugify(form.name), name: form.name.trim(),
       tagline: form.tagline.trim() || null, category: effectiveCategory,
