@@ -166,10 +166,12 @@ export function NotificationBell() {
                   <NotifCard
                     key={n.id}
                     n={n}
+                    isAdmin={isAdmin}
                     onRead={markRead}
                     onRemove={remove}
                     onClose={() => setOpen(false)}
                   />
+
                 ))}
               </ul>
             )}
