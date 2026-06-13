@@ -15,7 +15,9 @@ export const Route = createFileRoute("/about")({
       { property: "og:title", content: "About FoundOurMarket™ — Everything You Need, All in One Place" },
       { property: "og:description", content: "Discover our mission, values and the global marketplace built for trust, quality and customer success." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://foundourmarket.com/about" },
     ],
+    links: [{ rel: "canonical", href: "https://foundourmarket.com/about" }],
   }),
   component: AboutPage,
 });
