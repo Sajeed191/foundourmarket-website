@@ -37,12 +37,11 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
   const discount = discountPercent(price, originalPrice);
   const shippingFee = shippingFeeOf(product);
   const freeShipping = shippingFee <= 0;
-  // In a dedicated section (Trending, Best Sellers, New Arrivals, Premium) show
-  // ONLY that section's badge to avoid badge overload. Elsewhere show the full
-  // computed set.
-  const labels = forceBadge
-    ? [singleBadge(forceBadge)]
-    : computeBadges(product, DEFAULT_BADGE_SETTINGS, MAX_BADGES);
+  // Surface-aware badge visibility: each section applies its own policy (max 3
+  // badges, Best Seller/Trending priority, 24h-rotating extra badge, Flash/Hot
+  // hidden unless the product is in the active rotation). A forced badge shows
+  // only that single section badge.
+  const labels = useVisibleBadges(product, context, forceBadge);
   const isPremium = labels.some((b) => b.key === "premium");
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
 
