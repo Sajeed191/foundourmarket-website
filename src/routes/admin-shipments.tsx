@@ -117,6 +117,21 @@ const HEALTH_CLS: Record<HealthTier, string> = {
 };
 
 type FeedItem = { id: string; kind: string; label: string; detail: string; at: string; tone: string };
+type ShipmentPair = { order: Order; ship: Shipment | null };
+
+function pairMatchesSearch({ order, ship }: ShipmentPair, term: string) {
+  if (!term) return true;
+  const addr = order.shipping_address;
+  const itemText = order.order_items?.map((it) => `${it.name} ${it.product_slug ?? ""}`).join(" ") ?? "";
+  return [order.id, ship?.tracking_number, order.tracking_number, addr?.full_name, addr?.city, addr?.state, order.contact_email, addr?.phone, ship?.carrier, order.carrier, order.payment_method, itemText]
+    .some((v) => (v ?? "").toString().toLowerCase().includes(term));
+}
+
+function pairMatchesQueue({ order, ship }: ShipmentPair, queue: QueueKey, delayById: Map<string, DelayInfo>) {
+  if (queue === "all") return true;
+  if (!ship) return queue === "pending" && !["cancelled", "delivered", "returned"].includes(order.status);
+  return matchQueue(queue, ship, delayById.get(ship.id) ?? computeDelay(ship, null));
+}
 
 // ── Export row builder (single source of truth for every export format) ────────
 function buildExportRow(order: Order, ship: Shipment | null): ShipmentExportRow {
