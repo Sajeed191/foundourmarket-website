@@ -59,6 +59,29 @@ const usd = (v: number) =>
 function slugify(name: string) {
   return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
+/** Auto-generate a readable SKU from name + category, e.g. ELE-WIRELESS-EARB-4821. */
+function makeSku(name: string, category: string): string {
+  const cat = (category || "GEN").replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase() || "GEN";
+  const base = name.trim().replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toUpperCase().slice(0, 14) || "ITEM";
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `${cat}-${base}-${rand}`;
+}
+/** Auto SEO title from brand + name, trimmed to a search-friendly length. */
+function makeSeoTitle(name: string, brand: string): string {
+  const b = brand.trim();
+  const n = name.trim();
+  const title = b && !n.toLowerCase().includes(b.toLowerCase()) ? `${n} — ${b}` : n;
+  return title.slice(0, 60);
+}
+/** Auto SEO keywords from name, brand, category and tags. */
+function makeKeywords(name: string, brand: string, category: string, tags: string): string[] {
+  const words = name.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2);
+  const out = new Set<string>([...words]);
+  if (brand.trim()) out.add(brand.trim().toLowerCase());
+  if (category.trim()) out.add(category.replace(/-/g, " ").trim().toLowerCase());
+  for (const t of parseList(tags)) out.add(t.toLowerCase());
+  return Array.from(out).slice(0, 12);
+}
 function parseList(text: string): string[] {
   return text.split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
 }
