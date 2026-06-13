@@ -287,6 +287,7 @@ function RootComponent() {
   useEffect(() => {
     trackPageView(pathname);
     void captureAttribution();
+    import("@/lib/ga4").then((m) => m.ga4PageView(pathname)).catch(() => {});
   }, [pathname]);
 
   const isAuthRoute = pathname.startsWith("/auth");
