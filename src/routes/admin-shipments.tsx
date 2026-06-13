@@ -793,6 +793,19 @@ function WarRoomView({ feed }: { feed: FeedItem[] }) {
 }
 
 // ── Shared small components ───────────────────────────────────────────────────
+function StatChip({ label, value, icon, tone }: { label: string; value: number; icon?: React.ReactNode; tone?: "emerald" | "amber" | "orange" | "destructive" }) {
+  const toneCls = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "orange" ? "text-orange-400" : tone === "destructive" ? "text-destructive" : "text-foreground";
+  return (
+    <div className="card-premium rounded-xl px-3 py-2 flex items-center gap-2.5 shrink-0 w-[7.5rem] sm:w-auto">
+      <span className={tone ? toneCls : "text-accent/70"}>{icon}</span>
+      <div className="min-w-0">
+        <div className={`text-lg font-semibold tabular-nums leading-none ${toneCls}`}><AnimatedCounter to={value} duration={1} /></div>
+        <div className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1 truncate">{label}</div>
+      </div>
+    </div>
+  );
+}
+
 function Kpi({ label, value, icon, tone }: { label: string; value: number; icon?: React.ReactNode; tone?: "emerald" | "amber" | "orange" | "destructive" }) {
   const toneCls = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "orange" ? "text-orange-400" : tone === "destructive" ? "text-destructive" : "";
   return (
