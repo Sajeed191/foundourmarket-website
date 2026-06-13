@@ -308,8 +308,8 @@ function AdminShipmentsPage() {
         if (!/ship|order|deliver/i.test(`${n.type} ${n.title}`)) return;
         pushFeed({ id: `nt-${n.id}`, kind: "notify", label: "Customer Notified", detail: n.title, at: n.created_at, tone: "delivered" });
       })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); if (reloadTimer.current) clearTimeout(reloadTimer.current); };
+      .subscribe((status) => setOnline(status === "SUBSCRIBED"));
+    return () => { setOnline(false); supabase.removeChannel(ch); if (reloadTimer.current) clearTimeout(reloadTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
