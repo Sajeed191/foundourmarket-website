@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
-import { useRotationSeed, seededShuffle } from "@/lib/rotation";
+import { useOrderRotationSeed, seededShuffle } from "@/lib/rotation";
 import { useRotationNonce } from "@/lib/use-rotation-nonce";
 import { ProductCard } from "@/components/site/ProductCard";
 import type { BadgeKey } from "@/lib/badges";
@@ -43,7 +43,7 @@ export function ProductCollection({
   forceBadge?: BadgeKey | null;
 }) {
   const { products, loading } = useProducts();
-  const rotationSeed = useRotationSeed();
+  const rotationSeed = useOrderRotationSeed();
   const rotationNonce = useRotationNonce();
 
   const items = useMemo(() => {
