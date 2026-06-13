@@ -430,6 +430,19 @@ function CheckoutPage() {
       setError(service?.message ?? "This address isn't serviceable yet.");
       return;
     }
+    purchaseItemsRef.current = detailed;
+    import("@/lib/ga4").then((m) => m.ga4BeginCheckout(
+      detailed.map((i) => ({
+        item_id: i.product.sku || i.product.slug,
+        item_name: i.product.name,
+        price: priceOf(i.product),
+        quantity: i.qty,
+        item_category: i.product.category ?? undefined,
+        item_brand: i.product.brand ?? undefined,
+      })),
+      market === "india" ? "INR" : "USD",
+      totalINR,
+    )).catch(() => {});
     import("@/lib/visitor").then((m) => {
       m.trackEvent("checkout_start", { value: totalINR, metadata: { pay_method: payMethod } });
       m.trackEvent("order_attempted", { value: totalINR, metadata: { pay_method: payMethod } });
