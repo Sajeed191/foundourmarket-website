@@ -5,6 +5,7 @@ import {
   MapPin, Mail, Phone, User, CalendarClock, Hash, RefreshCw, AlertTriangle,
   Activity, Gauge, Users, Radio, Download, Send, TrendingUp,
   ShieldAlert, Clock, PackageCheck, FileText, FileSpreadsheet, Printer, Wifi, WifiOff,
+  Copy, Receipt, ChevronDown,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +21,7 @@ import {
   type ShipmentExportRow,
 } from "@/lib/packing-slip";
 import { downloadInvoice } from "@/lib/invoice";
-import { SUPPORTED_COURIERS } from "@/lib/courier";
+import { SUPPORTED_COURIERS, courierLabel } from "@/lib/courier";
 import { AnimatedCounter } from "@/components/site/Reveal";
 import { toast } from "sonner";
 
@@ -96,6 +97,155 @@ const HEALTH_CLS: Record<HealthTier, string> = {
 
 type FeedItem = { id: string; kind: string; label: string; detail: string; at: string; tone: string };
 
+// ── Export row builder (single source of truth for every export format) ────────
+function buildExportRow(order: Order, ship: Shipment | null): ShipmentExportRow {
+  const addr = order.shipping_address;
+  const units = order.order_items?.reduce((a, b) => a + (b.quantity || 0), 0) ?? 0;
+  return {
+    orderId: order.id,
+    trackingNumber: ship?.tracking_number ?? order.tracking_number ?? "",
+    courier: courierLabel(ship?.carrier ?? order.carrier) ?? "",
+    status: ship?.status ?? order.fulfillment_status ?? "pending",
+    customer: addr?.full_name ?? "",
+    email: order.contact_email ?? "",
+    phone: addr?.phone ?? "",
+    city: addr?.city ?? "",
+    state: addr?.state ?? "",
+    total: order.total,
+    currency: order.currency,
+    units,
+    estimatedDelivery: ship?.estimated_delivery ?? null,
+    shippedAt: ship?.shipped_at ?? null,
+    deliveredAt: ship?.delivered_at ?? null,
+    createdAt: order.created_at,
+  };
+}
+
+// ── Mini shipment timeline ─────────────────────────────────────────────────────
+const TIMELINE_STAGES = [
+  { key: "pending", label: "Pending" },
+  { key: "packed", label: "Packed" },
+  { key: "shipped", label: "Pickup" },
+  { key: "in_transit", label: "In Transit" },
+  { key: "out_for_delivery", label: "Out" },
+  { key: "delivered", label: "Delivered" },
+] as const;
+
+const STAGE_INDEX: Record<string, number> = {
+  pending: 0, packed: 1, shipped: 2, in_transit: 3, out_for_delivery: 4, delivered: 5,
+};
+
+function MiniTimeline({ status }: { status: string }) {
+  const terminal = status === "cancelled" || status === "returned" || status === "failed_delivery";
+  const active = STAGE_INDEX[status] ?? 0;
+  return (
+    <div className="flex items-center gap-1 w-full">
+      {TIMELINE_STAGES.map((stage, i) => {
+        const done = !terminal && i <= active;
+        return (
+          <div key={stage.key} className="flex-1 flex flex-col items-center gap-1 min-w-0">
+            <div className="flex items-center w-full">
+              <span className={`size-2 rounded-full shrink-0 transition-colors duration-300 ${done ? "bg-accent shadow-[0_0_8px_color-mix(in_oklab,var(--accent)_60%,transparent)]" : "bg-border"}`} />
+              {i < TIMELINE_STAGES.length - 1 && (
+                <span className={`h-px flex-1 transition-colors duration-300 ${!terminal && i < active ? "bg-accent" : "bg-border"}`} />
+              )}
+            </div>
+            <span className={`text-[8px] uppercase tracking-wide truncate w-full text-center ${done ? "text-accent" : "text-muted-foreground"}`}>{stage.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Searchable courier dropdown (native datalist — lightweight, accessible) ─────
+function CourierSelect({ value, onSave }: { value: string; onSave: (v: string) => void }) {
+  return (
+    <div>
+      <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Courier</label>
+      <input
+        list="courier-options"
+        defaultValue={courierLabel(value) ?? value}
+        placeholder="Search courier…"
+        onBlur={(e) => { const v = e.target.value.trim(); if (v !== value) onSave(v); }}
+        className="mt-1 w-full bg-background border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent"
+      />
+      <datalist id="courier-options">
+        {SUPPORTED_COURIERS.map((c) => <option key={c.key} value={c.label} />)}
+      </datalist>
+    </div>
+  );
+}
+
+// ── Export menu (CSV / Excel / PDF / Packing slips, with scope) ────────────────
+type ExportScope = "selected" | "filtered" | "all";
+function ExportMenu({ selectedCount, onExport, onPackingSlips }: {
+  selectedCount: number;
+  onExport: (format: "csv" | "excel" | "pdf", scope: ExportScope) => void;
+  onPackingSlips: (scope: ExportScope) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+  const scope: ExportScope = selectedCount > 0 ? "selected" : "filtered";
+  const scopeLabel = selectedCount > 0 ? `${selectedCount} selected` : "filtered view";
+  const items: { label: string; icon: React.ReactNode; run: () => void }[] = [
+    { label: "Export CSV", icon: <FileText className="size-3.5" />, run: () => onExport("csv", scope) },
+    { label: "Export Excel", icon: <FileSpreadsheet className="size-3.5" />, run: () => onExport("excel", scope) },
+    { label: "Export PDF", icon: <FileText className="size-3.5" />, run: () => onExport("pdf", scope) },
+    { label: "Download Packing Slips", icon: <Printer className="size-3.5" />, run: () => onPackingSlips(scope) },
+  ];
+  return (
+    <div className="relative" ref={ref}>
+      <button onClick={() => setOpen((o) => !o)}
+        className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-border hover:border-accent/40">
+        <Download className="size-3.5" /> Export <ChevronDown className={`size-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute right-0 z-30 mt-1.5 w-56 rounded-xl border border-border bg-background/95 backdrop-blur-xl p-1.5 shadow-xl">
+          <div className="px-2.5 py-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">Scope · {scopeLabel}</div>
+          {items.map((it) => (
+            <button key={it.label} onClick={() => { it.run(); setOpen(false); }}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs hover:bg-accent/10 hover:text-accent">
+              {it.icon}{it.label}
+            </button>
+          ))}
+          <div className="my-1 h-px bg-border/60" />
+          <button onClick={() => { onExport("csv", "all"); setOpen(false); }}
+            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-muted-foreground hover:bg-accent/10 hover:text-accent">
+            <Download className="size-3.5" /> Export ALL as CSV
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Live operations strip ──────────────────────────────────────────────────────
+function LiveOpsStrip({ online, lastUpdated, courierCount, pending, health }: {
+  online: boolean; lastUpdated: number; courierCount: number; pending: number; health: { score: number; tier: HealthTier };
+}) {
+  return (
+    <div className="card-premium rounded-2xl px-4 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+      <span className={`inline-flex items-center gap-1.5 font-semibold ${online ? "text-emerald-400" : "text-muted-foreground"}`}>
+        {online ? <Wifi className="size-3.5" /> : <WifiOff className="size-3.5" />}
+        {online ? "Realtime synced" : "Offline"}
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Truck className="size-3.5 text-accent" />{courierCount} active courier{courierCount !== 1 ? "s" : ""}</span>
+      <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Gauge className={`size-3.5 ${HEALTH_CLS[health.tier]}`} />Health {health.score}</span>
+      {pending > 0 && (
+        <span className="inline-flex items-center gap-1.5 text-amber-400"><AlertTriangle className="size-3.5" />{pending} awaiting action</span>
+      )}
+      <span className="inline-flex items-center gap-1.5 text-muted-foreground ml-auto"><Clock className="size-3.5" />Updated {fmtTime(new Date(lastUpdated).toISOString())}</span>
+    </div>
+  );
+}
+
+
 function StatusPill({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border ${STATUS_CLS[status] ?? STATUS_CLS.pending}`}>
@@ -120,6 +270,8 @@ function AdminShipmentsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [online, setOnline] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
   const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { void load(); }, []);
@@ -156,8 +308,8 @@ function AdminShipmentsPage() {
         if (!/ship|order|deliver/i.test(`${n.type} ${n.title}`)) return;
         pushFeed({ id: `nt-${n.id}`, kind: "notify", label: "Customer Notified", detail: n.title, at: n.created_at, tone: "delivered" });
       })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); if (reloadTimer.current) clearTimeout(reloadTimer.current); };
+      .subscribe((status) => setOnline(status === "SUBSCRIBED"));
+    return () => { setOnline(false); supabase.removeChannel(ch); if (reloadTimer.current) clearTimeout(reloadTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -194,6 +346,7 @@ function AdminShipmentsPage() {
       .filter((n) => /ship|order|deliver/i.test(`${n.type} ${n.title}`))
       .map((n) => ({ id: `nt-${n.id}`, kind: "notify", label: "Customer Notified", detail: n.title, at: n.created_at, tone: "delivered" }));
     setFeed([...evFeed, ...whFeed, ...ntFeed].sort((a, b) => +new Date(b.at) - +new Date(a.at)).slice(0, 80));
+    setLastUpdated(Date.now());
     if (!silent) setRefreshing(false);
   }
 
@@ -345,16 +498,36 @@ function AdminShipmentsPage() {
     for (const s of selectedShipments) await notifyCustomer(s.user_id, s.order_id, s.status);
     setBulkBusy(false); toast.success("Customers notified");
   }
-  function bulkExportCsv() {
-    const rows = (selectedShipments.length ? selectedShipments : shipments);
-    const header = ["shipment_id", "order_id", "carrier", "tracking_number", "status", "estimated_delivery", "shipped_at", "delivered_at"];
-    const csv = [header.join(",")].concat(rows.map((s) =>
-      [s.id, s.order_id, s.carrier ?? "", s.tracking_number ?? "", s.status, s.estimated_delivery ?? "", s.shipped_at ?? "", s.delivered_at ?? ""]
-        .map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))).join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    const a = document.createElement("a"); a.href = url; a.download = `shipments-${Date.now()}.csv`; a.click(); URL.revokeObjectURL(url);
-    toast.success(`Exported ${rows.length} rows`);
+  // ── Unified export system ───────────────────────────────────────────────────
+  const exportRowsFor = (scope: ExportScope): ShipmentExportRow[] => {
+    let pairs: { order: Order; ship: Shipment | null }[];
+    if (scope === "selected") {
+      pairs = enriched.filter(({ ship }) => ship && selected.has(ship.id));
+    } else if (scope === "filtered") {
+      pairs = enriched;
+    } else {
+      pairs = (orders ?? []).map((o) => ({ order: o, ship: shipments.find((s) => s.order_id === o.id) ?? null }));
+    }
+    return pairs.map(({ order, ship }) => buildExportRow(order, ship));
+  };
+
+  function runExport(format: "csv" | "excel" | "pdf", scope: ExportScope) {
+    const rows = exportRowsFor(scope);
+    if (!rows.length) { toast.error("Nothing to export"); return; }
+    if (format === "csv") exportShipmentsCsv(rows);
+    else if (format === "excel") exportShipmentsExcel(rows);
+    else exportShipmentsPdf(rows);
+    toast.success(`Exported ${rows.length} shipment(s)`);
   }
+
+  async function exportPackingSlips(scope: ExportScope) {
+    const rows = exportRowsFor(scope);
+    if (!rows.length) { toast.error("Nothing to export"); return; }
+    toast.message(`Generating ${rows.length} packing slip(s)…`);
+    for (const r of rows) await downloadPackingSlip(r.orderId);
+    toast.success("Packing slips downloaded");
+  }
+
 
   const SECTIONS: { key: Section; label: string; icon: React.ReactNode }[] = [
     { key: "operations", label: "Operations", icon: <Activity className="size-3.5" /> },
@@ -369,13 +542,22 @@ function AdminShipmentsPage() {
       subtitle="Live logistics operations — KPIs, delay detection, courier performance and exception management. All metrics computed from real records."
       allow={["admin", "super_admin", "manager", "fulfillment", "warehouse_staff"]}
       actions={
-        <button onClick={() => void load()} disabled={refreshing}
-          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border hover:border-accent/40 disabled:opacity-50">
-          {refreshing ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />} Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <ExportMenu selectedCount={selected.size} onExport={runExport} onPackingSlips={exportPackingSlips} />
+          <button onClick={() => void load()} disabled={refreshing}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-border hover:border-accent/40 disabled:opacity-50">
+            {refreshing ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />} Refresh
+          </button>
+        </div>
       }
     >
       <div className="space-y-4">
+        {/* Live operations strip */}
+        <LiveOpsStrip
+          online={online} lastUpdated={lastUpdated} courierCount={couriers.length}
+          pending={kpis.awaitingShipment + kpis.pending} health={health}
+        />
+
         {/* Executive KPI bar */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
           <Kpi label="Total" value={kpis.total} icon={<Package className="size-4" />} />
@@ -389,14 +571,18 @@ function AdminShipmentsPage() {
           <Kpi label="Failed" value={kpis.failed} tone={kpis.failed ? "destructive" : undefined} />
           <Kpi label="Returned" value={kpis.returned} tone={kpis.returned ? "orange" : undefined} />
           <Kpi label="Cancelled" value={kpis.cancelled} />
-          <div className="card-premium rounded-2xl p-4">
-            <div className="flex items-center justify-between text-muted-foreground mb-1">
-              <span className="text-[10px] uppercase tracking-widest">Health</span><Gauge className="size-4" />
+          <div className="group relative overflow-hidden card-premium rounded-2xl p-4 hover:border-accent/40 transition-colors">
+            <div className="absolute -top-16 -right-16 size-32 rounded-full bg-accent/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative">
+              <div className="flex items-center justify-between text-muted-foreground mb-1">
+                <span className="text-[10px] uppercase tracking-widest">Health</span><Gauge className="size-4" />
+              </div>
+              <div className={`text-2xl font-semibold tabular-nums ${HEALTH_CLS[health.tier]}`}>{health.score}</div>
+              <div className={`text-[10px] font-medium ${HEALTH_CLS[health.tier]}`}>{HEALTH_LABEL[health.tier]}</div>
             </div>
-            <div className={`text-2xl font-semibold tabular-nums ${HEALTH_CLS[health.tier]}`}>{health.score}</div>
-            <div className={`text-[10px] font-medium ${HEALTH_CLS[health.tier]}`}>{HEALTH_LABEL[health.tier]}</div>
           </div>
         </div>
+
 
         {/* Section tabs */}
         <div className="flex flex-wrap gap-1.5">
@@ -418,7 +604,8 @@ function AdminShipmentsPage() {
             q={q} setQ={setQ} visible={visible} setVisible={setVisible}
             selected={selected} toggleSelect={toggleSelect} clearSelection={clearSelection}
             selectedCount={selected.size} bulkBusy={bulkBusy}
-            onBulkStatus={bulkStatus} onBulkCourier={bulkAssignCourier} onBulkNotify={bulkNotify} onBulkExport={bulkExportCsv}
+            onBulkStatus={bulkStatus} onBulkCourier={bulkAssignCourier} onBulkNotify={bulkNotify}
+            onExport={runExport} onPackingSlips={exportPackingSlips}
             creating={creating} busy={busy}
             onCreate={createShipment} onAssign={assignTracking} onStatus={setStatus}
           />
@@ -442,7 +629,8 @@ function OperationsView(props: {
   q: string; setQ: (v: string) => void; visible: number; setVisible: React.Dispatch<React.SetStateAction<number>>;
   selected: Set<string>; toggleSelect: (id: string) => void; clearSelection: () => void;
   selectedCount: number; bulkBusy: boolean;
-  onBulkStatus: (s: ShipStatus) => void; onBulkCourier: () => void; onBulkNotify: () => void; onBulkExport: () => void;
+  onBulkStatus: (s: ShipStatus) => void; onBulkCourier: () => void; onBulkNotify: () => void;
+  onExport: (format: "csv" | "excel" | "pdf", scope: ExportScope) => void; onPackingSlips: (scope: ExportScope) => void;
   creating: string | null; busy: string | null;
   onCreate: (o: Order) => void; onAssign: (s: Shipment, p: Partial<Shipment>) => void; onStatus: (s: Shipment, st: ShipStatus) => void;
 }) {
@@ -461,7 +649,10 @@ function OperationsView(props: {
           <BulkBtn onClick={props.onBulkCourier} disabled={props.bulkBusy} icon={<Truck className="size-3" />}>Assign Courier</BulkBtn>
           <BulkBtn onClick={() => props.onBulkStatus("out_for_delivery")} disabled={props.bulkBusy} icon={<RotateCcw className="size-3" />}>Retry Delivery</BulkBtn>
           <BulkBtn onClick={props.onBulkNotify} disabled={props.bulkBusy} icon={<Send className="size-3" />}>Notify</BulkBtn>
-          <BulkBtn onClick={props.onBulkExport} disabled={props.bulkBusy} icon={<Download className="size-3" />}>Export CSV</BulkBtn>
+          <BulkBtn onClick={() => props.onExport("csv", "selected")} disabled={props.bulkBusy} icon={<FileText className="size-3" />}>CSV</BulkBtn>
+          <BulkBtn onClick={() => props.onExport("excel", "selected")} disabled={props.bulkBusy} icon={<FileSpreadsheet className="size-3" />}>Excel</BulkBtn>
+          <BulkBtn onClick={() => props.onExport("pdf", "selected")} disabled={props.bulkBusy} icon={<FileText className="size-3" />}>PDF</BulkBtn>
+          <BulkBtn onClick={() => props.onPackingSlips("selected")} disabled={props.bulkBusy} icon={<Printer className="size-3" />}>Packing Slips</BulkBtn>
           <button onClick={props.clearSelection} className="ml-auto text-xs text-muted-foreground hover:text-foreground">Clear</button>
         </div>
       )}
@@ -476,7 +667,7 @@ function OperationsView(props: {
               className="w-full rounded-xl border border-border bg-background/60 pl-9 pr-9 py-2 text-sm outline-none focus:border-accent/50" />
             {q && <button onClick={() => setQ("")} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="size-4 text-muted-foreground" /></button>}
           </div>
-          <button onClick={props.onBulkExport} className="inline-flex items-center gap-1.5 text-xs px-3 rounded-xl border border-border hover:border-accent/40">
+          <button onClick={() => props.onExport("csv", "filtered")} className="inline-flex items-center gap-1.5 text-xs px-3 rounded-xl border border-border hover:border-accent/40">
             <Download className="size-3.5" /> CSV
           </button>
         </div>
@@ -616,14 +807,19 @@ function WarRoomView({ feed }: { feed: FeedItem[] }) {
 function Kpi({ label, value, icon, tone }: { label: string; value: number; icon?: React.ReactNode; tone?: "emerald" | "amber" | "orange" | "destructive" }) {
   const toneCls = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "orange" ? "text-orange-400" : tone === "destructive" ? "text-destructive" : "";
   return (
-    <div className="card-premium rounded-2xl p-4">
-      <div className="flex items-center justify-between text-muted-foreground mb-1">
-        <span className="text-[10px] uppercase tracking-widest leading-tight">{label}</span>{icon}
+    <div className="group relative overflow-hidden card-premium rounded-2xl p-4 hover:border-accent/40 transition-colors">
+      <div className="absolute -top-16 -right-16 size-32 rounded-full bg-accent/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="relative">
+        <div className="flex items-center justify-between text-muted-foreground mb-1">
+          <span className="text-[10px] uppercase tracking-widest leading-tight">{label}</span>
+          <span className={tone ? toneCls : "text-accent/70"}>{icon}</span>
+        </div>
+        <div className={`text-2xl font-semibold tabular-nums ${toneCls}`}><AnimatedCounter to={value} duration={1} /></div>
       </div>
-      <div className={`text-2xl font-semibold tabular-nums ${toneCls}`}>{value.toLocaleString("en-IN")}</div>
     </div>
   );
 }
+
 
 function Metric({ label, value, tone }: { label: string; value: string; tone?: "emerald" | "amber" | "orange" | "destructive" }) {
   const toneCls = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "orange" ? "text-orange-400" : tone === "destructive" ? "text-destructive" : "";
@@ -652,6 +848,23 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
   const addr = order.shipping_address;
   const units = order.order_items?.reduce((a, b) => a + (b.quantity || 0), 0) ?? 0;
   const fullAddr = addr ? [addr.line1, addr.line2, addr.city, addr.state, addr.postal, addr.country].filter(Boolean).join(", ") : "—";
+  const [docBusy, setDocBusy] = useState<string | null>(null);
+
+  const runDoc = async (key: string, fn: () => Promise<boolean>) => {
+    setDocBusy(key);
+    try {
+      const ok = await fn();
+      if (!ok) toast.error("Could not generate document");
+    } catch { toast.error("Document generation failed"); }
+    finally { setDocBusy(null); }
+  };
+  const copyTracking = async () => {
+    const tn = ship?.tracking_number ?? order.tracking_number;
+    if (!tn) { toast.error("No tracking number"); return; }
+    try { await navigator.clipboard.writeText(tn); toast.success("Tracking ID copied"); }
+    catch { toast.error("Copy failed"); }
+  };
+
 
   return (
     <div className={`card-premium rounded-2xl p-4 md:p-5 ${selected ? "border-accent/50" : ""}`}>
@@ -698,11 +911,12 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
           ) : (
             <div className="space-y-2.5">
               <div className="grid grid-cols-2 gap-2">
-                <Field label="Courier" value={ship.carrier ?? ""} onSave={(v) => onAssign({ carrier: v })} placeholder="e.g. Delhivery" />
+                <CourierSelect value={ship.carrier ?? ""} onSave={(v) => onAssign({ carrier: v })} />
                 <Field label="Tracking #" value={ship.tracking_number ?? ""} onSave={(v) => onAssign({ tracking_number: v })} placeholder="AWB number" mono />
                 <Field label="Tracking URL" value={ship.tracking_url ?? ""} onSave={(v) => onAssign({ tracking_url: v })} placeholder="https://…" className="col-span-2" />
                 <DateField label="Est. delivery" value={ship.estimated_delivery} onSave={(v) => onAssign({ estimated_delivery: v })} className="col-span-2" />
               </div>
+              <div className="pt-1"><MiniTimeline status={ship.status} /></div>
               <div>
                 <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Status</label>
                 <select value={ship.status} disabled={busy} onChange={(e) => onStatus(e.target.value as ShipStatus)}
@@ -717,9 +931,16 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
                 <ActionBtn onClick={() => onStatus("returned")} disabled={busy} icon={<RotateCcw className="size-3" />} tone="orange">Returned</ActionBtn>
                 <ActionBtn onClick={() => onStatus("cancelled")} disabled={busy} icon={<Ban className="size-3" />} tone="destructive">Cancel</ActionBtn>
               </div>
+              <div className="flex flex-wrap gap-1.5 border-t border-border/40 pt-2">
+                <ActionBtn onClick={() => runDoc("slip", () => downloadPackingSlip(order.id))} disabled={docBusy === "slip"} icon={<FileText className="size-3" />}>Packing Slip</ActionBtn>
+                <ActionBtn onClick={() => runDoc("inv", () => downloadInvoice(order.id))} disabled={docBusy === "inv"} icon={<Receipt className="size-3" />}>Invoice</ActionBtn>
+                <ActionBtn onClick={() => runDoc("label", () => downloadShippingLabel(order.id))} disabled={docBusy === "label"} icon={<Printer className="size-3" />}>Print Label</ActionBtn>
+                <ActionBtn onClick={copyTracking} icon={<Copy className="size-3" />}>Copy Tracking</ActionBtn>
+              </div>
             </div>
           )}
         </div>
+
       </div>
     </div>
   );
