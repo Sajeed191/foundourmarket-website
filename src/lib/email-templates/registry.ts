@@ -50,4 +50,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'password-reset': passwordResetTemplate,
   'support-customer-update': supportCustomerTemplate,
   'support-admin-alert': supportAdminTemplate,
+  'demo-order-received': demoOrderReceivedTemplate,
 }
