@@ -75,6 +75,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-merchandising", label: "Merchandising Center", icon: Images, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-performance", label: "Performance", icon: Trophy, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-quality", label: "Quality Scanner", icon: ShieldCheck, roles: ["admin", "super_admin", "manager", "editor"] },
+      { to: "/admin-marketplace-quality", label: "Marketplace Quality", icon: Gauge, roles: ["admin", "super_admin", "manager", "editor"] },
       { to: "/admin-badges", label: "Badge Manager", icon: Gem, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-badges-bulk", label: "Bulk Badges", icon: Gem, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-badges-analytics", label: "Badge Analytics", icon: BarChart3, roles: ["admin", "super_admin", "manager"] },
