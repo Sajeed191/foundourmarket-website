@@ -656,8 +656,9 @@ function OperationsView(props: {
   onCreate: (o: Order) => void; onAssign: (s: Shipment, p: Partial<Shipment>) => void; onStatus: (s: Shipment, st: ShipStatus) => void;
 }) {
   const { enriched, allPairs, shipments, delayById, queue, setQueue, q, setQ, visible, setVisible } = props;
+  const searchTerm = q.trim().toLowerCase();
   const queueCount = (key: QueueKey) =>
-    key === "all" ? allPairs.length : allPairs.filter((pair) => pairMatchesQueue(pair, key, delayById)).length;
+    allPairs.filter((pair) => pairMatchesQueue(pair, key, delayById) && pairMatchesSearch(pair, searchTerm)).length;
   const QUEUES: QueueKey[] = ["all", "pending", "needs_tracking", "packed", "in_transit", "out_for_delivery", "delivered", "delayed", "stuck", "failed_delivery", "returned", "rto", "cancelled"];
 
   return (
@@ -709,9 +710,9 @@ function OperationsView(props: {
       {enriched.length === 0 ? (
         <div className="card-premium rounded-2xl py-8 px-5 text-center">
           <Package className="size-7 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm font-semibold">Nothing in the “{QUEUE_LABEL[queue]}” queue</p>
+          <p className="text-sm font-semibold">{allPairs.length ? "No matching shipment records" : "No shipment records yet"}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {shipments.length > 0 ? `You have ${shipments.length} shipment${shipments.length !== 1 ? "s" : ""} in other queues.` : "Shipments will appear here as orders are placed."}
+            {allPairs.length > 0 ? `Clear filters to view ${allPairs.length} real order${allPairs.length !== 1 ? "s" : ""} across shipment queues.` : "Shipments will appear here as real orders are placed."}
           </p>
           {(queue !== "all" || q) && (
             <button onClick={() => { setQueue("all"); setQ(""); setVisible(PAGE); }}
