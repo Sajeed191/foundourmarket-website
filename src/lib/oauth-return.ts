@@ -39,7 +39,23 @@ export function hasOAuthReturnParams() {
   return AUTH_KEYS.some((key) => params.has(key));
 }
 
-export async function completeOAuthReturn(): Promise<{ completed: boolean; error?: string }> {
+async function withOAuthTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("OAuth session exchange timed out")), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+export async function completeOAuthReturn(
+  timeoutMs = 12_000,
+): Promise<{ completed: boolean; error?: string }> {
   if (typeof window === "undefined") return { completed: false };
 
   const params = mergedAuthParams();
@@ -54,16 +70,22 @@ export async function completeOAuthReturn(): Promise<{ completed: boolean; error
   const code = params.get("code");
 
   if (accessToken && refreshToken) {
-    const { error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+    const { error } = await withOAuthTimeout(
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      }),
+      timeoutMs,
+    ).catch((err: unknown) => ({ error: err instanceof Error ? err : new Error(String(err)) }));
     stripAuthParamsFromUrl();
     return error ? { completed: false, error: error.message } : { completed: true };
   }
 
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await withOAuthTimeout(
+      supabase.auth.exchangeCodeForSession(code),
+      timeoutMs,
+    ).catch((err: unknown) => ({ error: err instanceof Error ? err : new Error(String(err)) }));
     stripAuthParamsFromUrl();
     return error ? { completed: false, error: error.message } : { completed: true };
   }
