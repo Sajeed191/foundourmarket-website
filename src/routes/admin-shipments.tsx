@@ -270,6 +270,8 @@ function AdminShipmentsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [online, setOnline] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
   const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { void load(); }, []);
