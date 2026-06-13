@@ -667,7 +667,7 @@ function OperationsView(props: {
               className="w-full rounded-xl border border-border bg-background/60 pl-9 pr-9 py-2 text-sm outline-none focus:border-accent/50" />
             {q && <button onClick={() => setQ("")} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="size-4 text-muted-foreground" /></button>}
           </div>
-          <button onClick={props.onBulkExport} className="inline-flex items-center gap-1.5 text-xs px-3 rounded-xl border border-border hover:border-accent/40">
+          <button onClick={() => props.onExport("csv", "filtered")} className="inline-flex items-center gap-1.5 text-xs px-3 rounded-xl border border-border hover:border-accent/40">
             <Download className="size-3.5" /> CSV
           </button>
         </div>
