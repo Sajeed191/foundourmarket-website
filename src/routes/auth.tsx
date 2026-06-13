@@ -14,7 +14,6 @@ import {
   Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { safeInternalPath } from "@/lib/safe-redirect";
 import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
@@ -174,19 +173,22 @@ function AuthPage() {
       const dest = safeInternalPath(redirect);
       if (dest) localStorage.setItem("post_auth_redirect", dest);
     }
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: oauthRedirectUri(),
-      extraParams: { prompt: "select_account" },
+    const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: oauthRedirectUri(),
+        queryParams: { prompt: "select_account" },
+      },
     });
-    if (result.error) {
+    if (oauthError) {
       setError("Couldn't connect to Google. Please try again.");
       setGoogleBusy(false);
       return;
     }
-    if (result.redirected) return;
-    // Tokens received and session set by the lovable auth lib. Use a hard
-    // redirect so the destination loads fresh and reliably reads the persisted
-    // session (SPA nav can no-op if a route chunk fails to load).
+    if (data.url) {
+      window.location.assign(data.url);
+      return;
+    }
     window.location.assign(resolveDest());
   };
 
