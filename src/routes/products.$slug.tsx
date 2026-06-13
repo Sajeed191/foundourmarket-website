@@ -721,7 +721,7 @@ function ProductPage() {
               <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4">
                 <h2 className="mb-3 text-sm font-semibold">Specifications</h2>
                 <dl className="divide-y divide-border/60">
-                  {Object.entries(product.specifications).map(([k, v]) => (
+                  {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
                     <div key={k} className="flex gap-4 py-2 text-sm">
                       <dt className="w-1/3 shrink-0 text-muted-foreground">{k}</dt>
                       <dd className="flex-1 text-foreground">{v}</dd>
