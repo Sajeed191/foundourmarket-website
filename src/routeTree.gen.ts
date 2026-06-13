@@ -14,7 +14,6 @@ import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as ProductFeedDotxmlRouteImport } from './routes/product-feed[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as ShippingPolicyRouteImport } from './routes/shipping-policy'
@@ -169,11 +168,6 @@ const TermsRoute = TermsRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductFeedDotxmlRoute = ProductFeedDotxmlRouteImport.update({
-  id: '/product-feed.xml',
-  path: '/product-feed.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -927,7 +921,6 @@ export interface FileRoutesByFullPath {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/product-feed.xml': typeof ProductFeedDotxmlRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -1065,7 +1058,6 @@ export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/product-feed.xml': typeof ProductFeedDotxmlRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -1203,7 +1195,6 @@ export interface FileRoutesById {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/product-feed.xml': typeof ProductFeedDotxmlRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -1343,7 +1334,6 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/sitemap.xml'
-    | '/product-feed.xml'
     | '/terms'
     | '/track'
     | '/unsubscribe'
@@ -1481,7 +1471,6 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/sitemap.xml'
-    | '/product-feed.xml'
     | '/terms'
     | '/track'
     | '/unsubscribe'
@@ -1618,7 +1607,6 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/sitemap.xml'
-    | '/product-feed.xml'
     | '/terms'
     | '/track'
     | '/unsubscribe'
@@ -1757,7 +1745,6 @@ export interface RootRouteChildren {
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  ProductFeedDotxmlRoute: typeof ProductFeedDotxmlRoute
   TermsRoute: typeof TermsRoute
   TrackRoute: typeof TrackRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
@@ -1832,13 +1819,6 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/product-feed.xml': {
-      id: '/product-feed.xml'
-      path: '/product-feed.xml'
-      fullPath: '/product-feed.xml'
-      preLoaderRoute: typeof ProductFeedDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -2910,7 +2890,6 @@ const rootRouteChildren: RootRouteChildren = {
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  ProductFeedDotxmlRoute: ProductFeedDotxmlRoute,
   TermsRoute: TermsRoute,
   TrackRoute: TrackRoute,
   UnsubscribeRoute: UnsubscribeRoute,
