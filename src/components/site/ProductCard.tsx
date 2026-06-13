@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { memo, useState } from "react";
 import { Heart, Plus, Check, Star, Minus, Eye } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
-import { computeBadges, singleBadge, DEFAULT_BADGE_SETTINGS, type BadgeKey } from "@/lib/badges";
+import { type BadgeKey } from "@/lib/badges";
+import { useVisibleBadges, type BadgeContext } from "@/lib/badge-visibility";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
@@ -12,10 +13,8 @@ import { ProductImage } from "@/components/site/ProductImage";
 import { QuickViewDialog } from "@/components/site/QuickViewDialog";
 import { formatSold } from "@/lib/format-sold";
 
-/** Premium card: show at most two badges for a luxury marketplace feel. */
-const MAX_BADGES = 2;
 
-function ProductCardImpl({ product, forceBadge }: { product: Product; compact?: boolean; forceBadge?: BadgeKey | null }) {
+function ProductCardImpl({ product, context = "default", forceBadge }: { product: Product; compact?: boolean; context?: BadgeContext; forceBadge?: BadgeKey | null }) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const { add, setQty, items } = useCart();
   const { has, toggle } = useWishlist();
@@ -38,12 +37,11 @@ function ProductCardImpl({ product, forceBadge }: { product: Product; compact?: 
   const discount = discountPercent(price, originalPrice);
   const shippingFee = shippingFeeOf(product);
   const freeShipping = shippingFee <= 0;
-  // In a dedicated section (Trending, Best Sellers, New Arrivals, Premium) show
-  // ONLY that section's badge to avoid badge overload. Elsewhere show the full
-  // computed set.
-  const labels = forceBadge
-    ? [singleBadge(forceBadge)]
-    : computeBadges(product, DEFAULT_BADGE_SETTINGS, MAX_BADGES);
+  // Surface-aware badge visibility: each section applies its own policy (max 3
+  // badges, Best Seller/Trending priority, 24h-rotating extra badge, Flash/Hot
+  // hidden unless the product is in the active rotation). A forced badge shows
+  // only that single section badge.
+  const labels = useVisibleBadges(product, context, forceBadge);
   const isPremium = labels.some((b) => b.key === "premium");
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
 

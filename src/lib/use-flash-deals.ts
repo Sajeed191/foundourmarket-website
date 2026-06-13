@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/lib/use-products";
 import type { Product } from "@/lib/products";
 import { useRotationNonce } from "@/lib/use-rotation-nonce";
+import { flashWindowSeed, orderWindowSeed, seededShuffle } from "@/lib/rotation-windows";
+
+/** Maximum products visibly promoted as Flash Deals at any one time. */
+const FLASH_VISIBLE_MAX = 10;
 
 /** A row from the dedicated flash_deals table (optional flash pricing + window). */
 export type DealRow = {
@@ -42,39 +46,8 @@ function useNow(intervalMs = 1000) {
   return now;
 }
 
-/**
- * Returns the timestamp (ms) of the most recent rotation boundary. Flash deals
- * reshuffle every day at 12:00 AM and 12:00 PM. The returned value stays fixed
- * between boundaries so the display order is stable until the next rotation.
- */
-export function currentRotationSeed(nowMs: number): number {
-  const d = new Date(nowMs);
-  const boundary = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours() < 12 ? 0 : 12, 0, 0, 0);
-  return boundary.getTime();
-}
 
-/** Deterministic PRNG (mulberry32) so every surface computes the same order. */
-function mulberry32(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
-/** Seeded Fisher–Yates shuffle — same seed always yields the same order. */
-function seededShuffle<T>(arr: T[], seed: number): T[] {
-  const rng = mulberry32(seed);
-  const out = arr.slice();
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
 
 /**
  * Single shared source of truth for Flash Deal products. Used by the homepage
@@ -121,10 +94,11 @@ export function useFlashDeals() {
     return map;
   }, [deals, now]);
 
-  // Rotation boundary (12:00 AM / 12:00 PM). Stays fixed between boundaries so
-  // the randomized order is stable until the next rotation. The manual reshuffle
-  // nonce lets admins re-randomize the lineup instantly on demand.
-  const rotationSeed = currentRotationSeed(now) + rotationNonce;
+  // Which products are eligible to show as Flash Deals rotates every 6 hours
+  // (12AM / 6AM / 12PM / 6PM IST). The visible order inside that set reshuffles
+  // every 2 hours. The manual reshuffle nonce lets admins re-randomize instantly.
+  const flashSeed = flashWindowSeed(now) + rotationNonce;
+  const orderSeed = orderWindowSeed(now) + rotationNonce;
 
 
 
@@ -152,23 +126,21 @@ export function useFlashDeals() {
       });
     }
 
-    // Reshuffle every rotation window using a deterministic seed so the homepage,
-    // Offers page and Deals page all compute the exact same randomized order.
-    const ordered = seededShuffle(active, rotationSeed);
+    // Pick the eligible subset for this 6h window (max 10), then reshuffle that
+    // subset's display order every 2h. Excluded eligible products keep their
+    // Flash/Hot badges in the database but are hidden publicly until selected.
+    const selected = seededShuffle(active, flashSeed).slice(0, FLASH_VISIBLE_MAX);
+    const ordered = seededShuffle(selected, orderSeed);
 
     if (typeof window !== "undefined") {
       // eslint-disable-next-line no-console
-      console.info(`[FlashDeals] total Flash Deal products found: ${totalFlagged}`);
-      // eslint-disable-next-line no-console
-      console.info(`[FlashDeals] active Flash Deal products: ${ordered.length} | excluded (inactive/unavailable): ${excludedUnavailable}`);
-      // eslint-disable-next-line no-console
-      console.info(`[FlashDeals] current rotation timestamp: ${new Date(rotationSeed).toISOString()}`);
+      console.info(`[FlashDeals] eligible: ${active.length} | visible this window: ${ordered.length} | excluded unavailable: ${excludedUnavailable} | flagged: ${totalFlagged}`);
       // eslint-disable-next-line no-console
       console.info("[FlashDeals] current display order:", ordered.map((i) => i.product.slug));
     }
 
     return ordered;
-  }, [products, liveDealByProductId, rotationSeed]);
+  }, [products, liveDealByProductId, flashSeed, orderSeed, now]);
 
 
   return { items, loading, now, products };

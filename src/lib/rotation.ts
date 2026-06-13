@@ -1,4 +1,19 @@
 import { useEffect, useState } from "react";
+import { orderWindowSeed } from "@/lib/rotation-windows";
+
+/**
+ * Like {@link useRotationSeed} but reshuffles every 2 hours (IST-aligned),
+ * used by the Trending / Best Sellers / collection grids so their order feels
+ * continuously fresh without churning between boundaries.
+ */
+export function useOrderRotationSeed(): number {
+  const [seed, setSeed] = useState(() => orderWindowSeed(Date.now()));
+  useEffect(() => {
+    const id = setInterval(() => setSeed(orderWindowSeed(Date.now())), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  return seed;
+}
 
 /**
  * Returns the timestamp (ms) of the most recent rotation boundary. Collections
