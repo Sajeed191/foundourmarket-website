@@ -319,6 +319,12 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   });
 
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
+
+  // Dedicated state for structured builders so empty/partial rows persist while
+  // editing (deriving them from text on every keystroke dropped new rows).
+  const [featuresList, setFeaturesList] = useState<string[]>(row?.features ?? []);
+  const [specsRows, setSpecsRows] = useState<KV[]>(kvToArray(row?.specifications));
+  const [attrsRows, setAttrsRows] = useState<KV[]>(kvToArray(row?.attributes));
   // Stable slug used to group media (images/video) before the row is saved.
   const mediaSlug = form.slug.trim() || slugify(form.name);
 
