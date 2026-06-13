@@ -516,7 +516,12 @@ export const placeCodOrder = createServerFn({ method: "POST" })
       claims?: { email?: string };
     };
 
-    const codResolution = await resolveRegion(supabase, userId);
+    const edgeCountry =
+      getRequestHeader("cf-ipcountry") ||
+      getRequestHeader("x-vercel-ip-country") ||
+      getRequestHeader("x-country") ||
+      null;
+    const codResolution = await resolveRegion(supabase, userId, edgeCountry);
     const region = codResolution.region;
     console.log("[razorpay.placeCod] region resolved", {
       user_id: userId,
