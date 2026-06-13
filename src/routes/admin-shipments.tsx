@@ -268,22 +268,75 @@ function ExportMenu({ selectedCount, onExport, onPackingSlips }: {
   );
 }
 
-// ── Live operations strip ──────────────────────────────────────────────────────
-function LiveOpsStrip({ online, lastUpdated, courierCount, pending, health }: {
+// ── Enterprise system status card ──────────────────────────────────────────────
+function SystemStatusCard({ online, lastUpdated, courierCount, pending, health }: {
   online: boolean; lastUpdated: number; courierCount: number; pending: number; health: { score: number; tier: HealthTier };
 }) {
+  const syncTime = new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const tiles = [
+    {
+      icon: online ? <Wifi className="size-4" /> : <WifiOff className="size-4" />,
+      label: "Realtime Sync",
+      value: online ? "Active" : "Offline",
+      tone: online ? "text-emerald-400" : "text-muted-foreground",
+      dot: online,
+    },
+    { icon: <Truck className="size-4" />, label: "Connected Couriers", value: `${courierCount} courier${courierCount !== 1 ? "s" : ""}`, tone: "text-accent" },
+    { icon: <Clock className="size-4" />, label: "Last Sync", value: syncTime, tone: "text-sky-400" },
+    { icon: <Gauge className="size-4" />, label: "Health Score", value: `${health.score}%`, tone: HEALTH_CLS[health.tier] },
+  ];
   return (
-    <div className="card-premium rounded-2xl px-4 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-      <span className={`inline-flex items-center gap-1.5 font-semibold ${online ? "text-emerald-400" : "text-muted-foreground"}`}>
-        {online ? <Wifi className="size-3.5" /> : <WifiOff className="size-3.5" />}
-        {online ? "Realtime synced" : "Offline"}
-      </span>
-      <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Truck className="size-3.5 text-accent" />{courierCount} active courier{courierCount !== 1 ? "s" : ""}</span>
-      <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Gauge className={`size-3.5 ${HEALTH_CLS[health.tier]}`} />Health {health.score}</span>
-      {pending > 0 && (
-        <span className="inline-flex items-center gap-1.5 text-amber-400"><AlertTriangle className="size-3.5" />{pending} awaiting action</span>
-      )}
-      <span className="inline-flex items-center gap-1.5 text-muted-foreground ml-auto"><Clock className="size-3.5" />Updated {fmtTime(new Date(lastUpdated).toISOString())}</span>
+    <div className="card-premium rounded-2xl p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="relative flex size-2">
+          <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 ${online ? "bg-emerald-400 animate-ping" : "bg-muted-foreground"}`} />
+          <span className={`relative inline-flex rounded-full size-2 ${online ? "bg-emerald-400" : "bg-muted-foreground"}`} />
+        </span>
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">System Status</h2>
+        {pending > 0 && (
+          <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400">
+            <AlertTriangle className="size-3.5" />{pending} awaiting action
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        {tiles.map((t) => (
+          <div key={t.label} className="rounded-xl border border-border/50 bg-background/40 p-3">
+            <div className="flex items-center justify-between">
+              <span className={t.tone}>{t.icon}</span>
+              {"dot" in t && t.dot && (
+                <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_color-mix(in_oklab,var(--accent)_60%,transparent)]" />
+              )}
+            </div>
+            <div className={`mt-2 text-base font-bold leading-none ${t.tone}`}>{t.value}</div>
+            <div className="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">{t.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Revenue operations strip ────────────────────────────────────────────────────
+type RevenueOps = { revenueToday: number; ordersToday: number; pendingPayments: number; codOrders: number; refundRequests: number; currency: string | null };
+function RevenueStrip({ ops }: { ops: RevenueOps }) {
+  const cards = [
+    { label: "Revenue Today", value: money(ops.revenueToday, ops.currency), icon: <TrendingUp className="size-3.5" />, tone: "text-emerald-400" },
+    { label: "Pending Payments", value: String(ops.pendingPayments), icon: <Clock className="size-3.5" />, tone: ops.pendingPayments ? "text-amber-400" : "text-foreground" },
+    { label: "COD Orders", value: String(ops.codOrders), icon: <Receipt className="size-3.5" />, tone: "text-foreground" },
+    { label: "Refund Requests", value: String(ops.refundRequests), icon: <RotateCcw className="size-3.5" />, tone: ops.refundRequests ? "text-orange-400" : "text-foreground" },
+  ];
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      {cards.map((c) => (
+        <div key={c.label} className="card-premium rounded-xl px-3 py-2.5">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-[9px] uppercase tracking-widest">{c.label}</span>
+            <span className={c.tone}>{c.icon}</span>
+          </div>
+          <div className={`mt-1.5 text-base font-bold tabular-nums leading-none ${c.tone}`}>{c.value}</div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -523,6 +576,21 @@ function AdminShipmentsPage() {
     return { waitingToday, delayedCustomers, failed, returns, pendingRefunds, needsIntervention, ordersById };
   }, [shipments, orders, delayById]);
 
+  // ── Revenue operations (real orders) ───────────────────────────────────────
+  const revenueOps = useMemo<RevenueOps>(() => {
+    const list = orders ?? [];
+    const today = new Date();
+    const sameDay = (s: string | null) => !!s && new Date(s).toDateString() === today.toDateString();
+    const isPaid = (o: Order) => ["paid", "succeeded", "captured"].includes((o.payment_status ?? "").toLowerCase());
+    const isCod = (o: Order) => /cod|cash/i.test(o.payment_method ?? "");
+    const revenueToday = list.filter((o) => sameDay(o.created_at) && isPaid(o) && o.status !== "cancelled").reduce((a, o) => a + (o.total || 0), 0);
+    const ordersToday = list.filter((o) => sameDay(o.created_at)).length;
+    const pendingPayments = list.filter((o) => !isPaid(o) && !isCod(o) && !["cancelled"].includes(o.status)).length;
+    const codOrders = list.filter((o) => isCod(o) && !["delivered", "cancelled", "returned"].includes(o.status)).length;
+    const refundRequests = list.filter((o) => ["returned", "cancelled"].includes(o.status) && isPaid(o)).length;
+    return { revenueToday, ordersToday, pendingPayments, codOrders, refundRequests, currency: list[0]?.currency ?? "INR" };
+  }, [orders]);
+
   // ── Bulk actions ───────────────────────────────────────────────────────────
   const selectedShipments = useMemo(() => shipments.filter((s) => selected.has(s.id)), [shipments, selected]);
   function toggleSelect(id: string) {
@@ -604,24 +672,34 @@ function AdminShipmentsPage() {
       }
     >
       <div className="space-y-4">
-        {/* Live operations strip */}
-        <LiveOpsStrip
+        {/* Enterprise system status */}
+        <SystemStatusCard
           online={online} lastUpdated={lastUpdated} courierCount={couriers.length}
           pending={kpis.awaitingShipment + kpis.pending} health={health}
         />
 
-        {/* Compact KPI strip — horizontally scrollable, operations-first */}
-        <div className="-mx-1 px-1 overflow-x-auto scrollbar-none">
-          <div className="flex gap-2 min-w-max sm:min-w-0 sm:grid sm:grid-cols-4 lg:grid-cols-7">
-            <StatChip label="Total" value={allPairs.length} icon={<Package className="size-3.5" />} />
-            <StatChip label="Awaiting" value={kpis.awaitingShipment} icon={<CalendarClock className="size-3.5" />} tone={kpis.awaitingShipment ? "amber" : undefined} />
-            <StatChip label="In Transit" value={kpis.inTransit} icon={<Truck className="size-3.5" />} />
-            <StatChip label="Out" value={kpis.outForDelivery} icon={<MapPin className="size-3.5" />} />
-            <StatChip label="Delivered" value={kpis.deliveredToday} icon={<CheckCircle2 className="size-3.5" />} tone="emerald" />
-            <StatChip label="Delayed" value={kpis.delayed} icon={<Clock className="size-3.5" />} tone={kpis.delayed ? "amber" : undefined} />
-            <StatChip label="Failed" value={kpis.failed} icon={<Ban className="size-3.5" />} tone={kpis.failed ? "destructive" : undefined} />
+        {/* Operation KPIs — priority emphasis on Awaiting & Delayed */}
+        <div>
+          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Operations</h2>
+          <div className="-mx-1 px-1 overflow-x-auto scrollbar-none">
+            <div className="flex gap-2 min-w-max sm:min-w-0 sm:grid sm:grid-cols-3 lg:grid-cols-6">
+              <StatChip label="Orders Today" value={revenueOps.ordersToday} icon={<Package className="size-3.5" />} />
+              <StatChip label="Awaiting Shipment" value={kpis.awaitingShipment} icon={<CalendarClock className="size-3.5" />} tone={kpis.awaitingShipment ? "amber" : undefined} highlight={kpis.awaitingShipment > 0} />
+              <StatChip label="In Transit" value={kpis.inTransit} icon={<Truck className="size-3.5" />} />
+              <StatChip label="Delivered Today" value={kpis.deliveredToday} icon={<CheckCircle2 className="size-3.5" />} tone="emerald" />
+              <StatChip label="Delayed" value={kpis.delayed} icon={<Clock className="size-3.5" />} tone={kpis.delayed ? "destructive" : undefined} highlight={kpis.delayed > 0} />
+              <StatChip label="Returns" value={kpis.returned} icon={<RotateCcw className="size-3.5" />} tone={kpis.returned ? "orange" : undefined} />
+            </div>
           </div>
         </div>
+
+        {/* Revenue operations */}
+        <div>
+          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Revenue Operations</h2>
+          <RevenueStrip ops={revenueOps} />
+        </div>
+
+
 
 
 
@@ -856,10 +934,10 @@ function WarRoomView({ feed }: { feed: FeedItem[] }) {
 }
 
 // ── Shared small components ───────────────────────────────────────────────────
-function StatChip({ label, value, icon, tone }: { label: string; value: number; icon?: React.ReactNode; tone?: "emerald" | "amber" | "orange" | "destructive" }) {
+function StatChip({ label, value, icon, tone, highlight }: { label: string; value: number; icon?: React.ReactNode; tone?: "emerald" | "amber" | "orange" | "destructive"; highlight?: boolean }) {
   const toneCls = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "orange" ? "text-orange-400" : tone === "destructive" ? "text-destructive" : "text-foreground";
   return (
-    <div className="card-premium rounded-xl px-3 py-2 flex items-center gap-2.5 shrink-0 w-[7.5rem] sm:w-auto">
+    <div className={`card-premium rounded-xl px-3 py-2 flex items-center gap-2.5 shrink-0 w-[7.5rem] sm:w-auto ${highlight ? "ring-1 ring-accent/40 border-accent/40" : ""}`}>
       <span className={tone ? toneCls : "text-accent/70"}>{icon}</span>
       <div className="min-w-0">
         <div className={`text-lg font-semibold tabular-nums leading-none ${toneCls}`}><AnimatedCounter to={value} duration={1} /></div>
