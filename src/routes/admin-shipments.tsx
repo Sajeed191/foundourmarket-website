@@ -620,7 +620,7 @@ function AdminShipmentsPage() {
           <div className="grid place-items-center py-20"><Loader2 className="size-5 animate-spin text-accent" /></div>
         ) : section === "operations" ? (
           <OperationsView
-            enriched={enriched} shipments={shipments} delayById={delayById} queue={queue} setQueue={setQueue}
+            enriched={enriched} allPairs={allPairs} shipments={shipments} delayById={delayById} queue={queue} setQueue={setQueue}
             q={q} setQ={setQ} visible={visible} setVisible={setVisible}
             selected={selected} toggleSelect={toggleSelect} clearSelection={clearSelection}
             selectedCount={selected.size} bulkBusy={bulkBusy}
@@ -644,6 +644,7 @@ function AdminShipmentsPage() {
 // ── Operations view ──────────────────────────────────────────────────────────
 function OperationsView(props: {
   enriched: { order: Order; ship: Shipment | null }[];
+  allPairs: ShipmentPair[];
   shipments: Shipment[]; delayById: Map<string, DelayInfo>;
   queue: QueueKey; setQueue: (q: QueueKey) => void;
   q: string; setQ: (v: string) => void; visible: number; setVisible: React.Dispatch<React.SetStateAction<number>>;
@@ -654,9 +655,9 @@ function OperationsView(props: {
   creating: string | null; busy: string | null;
   onCreate: (o: Order) => void; onAssign: (s: Shipment, p: Partial<Shipment>) => void; onStatus: (s: Shipment, st: ShipStatus) => void;
 }) {
-  const { enriched, shipments, delayById, queue, setQueue, q, setQ, visible, setVisible } = props;
+  const { enriched, allPairs, shipments, delayById, queue, setQueue, q, setQ, visible, setVisible } = props;
   const queueCount = (key: QueueKey) =>
-    key === "all" ? shipments.length : shipments.filter((s) => matchQueue(key, s, delayById.get(s.id) ?? computeDelay(s, null))).length;
+    key === "all" ? allPairs.length : allPairs.filter((pair) => pairMatchesQueue(pair, key, delayById)).length;
   const QUEUES: QueueKey[] = ["all", "pending", "needs_tracking", "packed", "in_transit", "out_for_delivery", "delivered", "delayed", "stuck", "failed_delivery", "returned", "rto", "cancelled"];
 
   return (
