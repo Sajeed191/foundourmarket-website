@@ -111,7 +111,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               setQuickOpen(true);
             }}
             aria-label={`Quick view ${product.name}`}
-            className="absolute bottom-3 right-3 grid size-7 place-items-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-accent hover:text-accent active:scale-90 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+            className="absolute bottom-3 right-3 grid size-7 place-items-center rounded-full border border-white/25 bg-black/65 text-white shadow-lg shadow-black/40 transition-all duration-300 hover:border-accent hover:text-accent active:scale-90 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
           >
             <Eye className="size-3.5" />
           </button>
