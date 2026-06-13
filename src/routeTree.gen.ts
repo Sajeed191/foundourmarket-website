@@ -16,12 +16,15 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as ShippingPolicyRouteImport } from './routes/shipping-policy'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ReturnsRouteImport } from './routes/returns'
+import { Route as ReturnPolicyRouteImport } from './routes/return-policy'
 import { Route as ReturnRouteImport } from './routes/return'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecentlyViewedRouteImport } from './routes/recently-viewed'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HelpRouteImport } from './routes/help'
@@ -176,6 +179,11 @@ const SigninRoute = SigninRouteImport.update({
   path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShippingPolicyRoute = ShippingPolicyRouteImport.update({
+  id: '/shipping-policy',
+  path: '/shipping-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -191,6 +199,11 @@ const ReturnsRoute = ReturnsRouteImport.update({
   path: '/returns',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReturnPolicyRoute = ReturnPolicyRouteImport.update({
+  id: '/return-policy',
+  path: '/return-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReturnRoute = ReturnRouteImport.update({
   id: '/return',
   path: '/return',
@@ -204,6 +217,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const RecentlyViewedRoute = RecentlyViewedRouteImport.update({
   id: '/recently-viewed',
   path: '/recently-viewed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -884,12 +902,15 @@ export interface FileRoutesByFullPath {
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/recently-viewed': typeof RecentlyViewedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
+  '/return-policy': typeof ReturnPolicyRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -1017,12 +1038,15 @@ export interface FileRoutesByTo {
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/recently-viewed': typeof RecentlyViewedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
+  '/return-policy': typeof ReturnPolicyRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -1150,12 +1174,15 @@ export interface FileRoutesById {
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/recently-viewed': typeof RecentlyViewedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/return': typeof ReturnRoute
+  '/return-policy': typeof ReturnPolicyRoute
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/search': typeof SearchRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -1285,12 +1312,15 @@ export interface FileRouteTypes {
     | '/help'
     | '/login'
     | '/privacy'
+    | '/privacy-policy'
     | '/recently-viewed'
     | '/reset-password'
     | '/return'
+    | '/return-policy'
     | '/returns'
     | '/robots.txt'
     | '/search'
+    | '/shipping-policy'
     | '/signin'
     | '/signup'
     | '/sitemap.xml'
@@ -1418,12 +1448,15 @@ export interface FileRouteTypes {
     | '/help'
     | '/login'
     | '/privacy'
+    | '/privacy-policy'
     | '/recently-viewed'
     | '/reset-password'
     | '/return'
+    | '/return-policy'
     | '/returns'
     | '/robots.txt'
     | '/search'
+    | '/shipping-policy'
     | '/signin'
     | '/signup'
     | '/sitemap.xml'
@@ -1550,12 +1583,15 @@ export interface FileRouteTypes {
     | '/help'
     | '/login'
     | '/privacy'
+    | '/privacy-policy'
     | '/recently-viewed'
     | '/reset-password'
     | '/return'
+    | '/return-policy'
     | '/returns'
     | '/robots.txt'
     | '/search'
+    | '/shipping-policy'
     | '/signin'
     | '/signup'
     | '/sitemap.xml'
@@ -1684,12 +1720,15 @@ export interface RootRouteChildren {
   HelpRoute: typeof HelpRouteWithChildren
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   RecentlyViewedRoute: typeof RecentlyViewedRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReturnRoute: typeof ReturnRoute
+  ReturnPolicyRoute: typeof ReturnPolicyRoute
   ReturnsRoute: typeof ReturnsRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
+  ShippingPolicyRoute: typeof ShippingPolicyRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -1783,6 +1822,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shipping-policy': {
+      id: '/shipping-policy'
+      path: '/shipping-policy'
+      fullPath: '/shipping-policy'
+      preLoaderRoute: typeof ShippingPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -1804,6 +1850,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReturnsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/return-policy': {
+      id: '/return-policy'
+      path: '/return-policy'
+      fullPath: '/return-policy'
+      preLoaderRoute: typeof ReturnPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/return': {
       id: '/return'
       path: '/return'
@@ -1823,6 +1876,13 @@ declare module '@tanstack/react-router' {
       path: '/recently-viewed'
       fullPath: '/recently-viewed'
       preLoaderRoute: typeof RecentlyViewedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -2797,12 +2857,15 @@ const rootRouteChildren: RootRouteChildren = {
   HelpRoute: HelpRouteWithChildren,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   RecentlyViewedRoute: RecentlyViewedRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ReturnRoute: ReturnRoute,
+  ReturnPolicyRoute: ReturnPolicyRoute,
   ReturnsRoute: ReturnsRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
+  ShippingPolicyRoute: ShippingPolicyRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
