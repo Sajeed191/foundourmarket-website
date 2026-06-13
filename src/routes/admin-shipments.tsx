@@ -629,7 +629,8 @@ function OperationsView(props: {
   q: string; setQ: (v: string) => void; visible: number; setVisible: React.Dispatch<React.SetStateAction<number>>;
   selected: Set<string>; toggleSelect: (id: string) => void; clearSelection: () => void;
   selectedCount: number; bulkBusy: boolean;
-  onBulkStatus: (s: ShipStatus) => void; onBulkCourier: () => void; onBulkNotify: () => void; onBulkExport: () => void;
+  onBulkStatus: (s: ShipStatus) => void; onBulkCourier: () => void; onBulkNotify: () => void;
+  onExport: (format: "csv" | "excel" | "pdf", scope: ExportScope) => void; onPackingSlips: (scope: ExportScope) => void;
   creating: string | null; busy: string | null;
   onCreate: (o: Order) => void; onAssign: (s: Shipment, p: Partial<Shipment>) => void; onStatus: (s: Shipment, st: ShipStatus) => void;
 }) {
