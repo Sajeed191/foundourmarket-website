@@ -13,6 +13,7 @@ export type Product = {
   name: string;
   tagline: string;
   category: string;
+  categories: string[];
   price: number;
   rating: number;
   reviews: number;
@@ -161,7 +162,7 @@ export function discountPercent(
 }
 
 type Row = {
-  slug: string; name: string; tagline: string | null; category: string;
+  slug: string; name: string; tagline: string | null; category: string; categories?: string[] | null;
   price: number | string; rating: number | string; reviews: number; rating_source?: string | null;
   image: string | null; description: string | null; in_stock: boolean;
   discount: number | null; featured?: boolean | null;
@@ -208,6 +209,7 @@ export function rowToProduct(r: Row): Product {
     name: r.name,
     tagline: r.tagline ?? "",
     category: r.category,
+    categories: (r.categories ?? (r.category ? [r.category] : [])) as string[],
     price: Number(r.price),
     rating: Number(r.rating),
     reviews: r.reviews,
@@ -290,7 +292,7 @@ export function rowToProduct(r: Row): Product {
 
 // Public catalog columns only — sensitive fields (cost, cost prices, barcode,
 // warehouse_location, admin_notes) are NOT exposed via the products_public view.
-const SELECT_COLS = "slug,name,tagline,category,price,rating,reviews,rating_source,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,sold_count,wishlist_count,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty,status,shipping_fee_inr,shipping_fee_usd,razorpay_enabled,stripe_enabled,paypal_enabled,cod_enabled,return_eligible,replacement_eligible,return_window_days,pickup_supported,international_shipping,fragile,customs_info,restock_eta,preorder,reserved_quantity,scheduled_publish_at,scheduled_expiry_at,trending,bestseller,new_arrival,hot_deal,flash_deal,staff_pick,recommended,homepage_hero,gift_idea,homepage_section,is_category_banner,hide_from_search,hide_from_recommendations,homepage_position,category_position,featured_until,related_products,cross_sell_products,upsell_products,premium,fast_selling,editors_choice,priority_score,collections,seo_title,seo_description,meta_keywords,brand,product_type";
+const SELECT_COLS = "slug,name,tagline,category,categories,price,rating,reviews,rating_source,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,sold_count,wishlist_count,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty,status,shipping_fee_inr,shipping_fee_usd,razorpay_enabled,stripe_enabled,paypal_enabled,cod_enabled,return_eligible,replacement_eligible,return_window_days,pickup_supported,international_shipping,fragile,customs_info,restock_eta,preorder,reserved_quantity,scheduled_publish_at,scheduled_expiry_at,trending,bestseller,new_arrival,hot_deal,flash_deal,staff_pick,recommended,homepage_hero,gift_idea,homepage_section,is_category_banner,hide_from_search,hide_from_recommendations,homepage_position,category_position,featured_until,related_products,cross_sell_products,upsell_products,premium,fast_selling,editors_choice,priority_score,collections,seo_title,seo_description,meta_keywords,brand,product_type";
 
 
 export async function fetchProducts(): Promise<Product[]> {

@@ -204,6 +204,18 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const subs = mainObj ? categories.filter((c) => c.parent_id === mainObj.id) : [];
   const effectiveCategory = subCat || mainCat;
 
+  // ---- Additional categories (a product can live in several categories) ----
+  const initialExtra = ((row as any)?.categories as string[] | undefined ?? []).filter(
+    (s) => s && s !== (row?.category ?? ""),
+  );
+  const [extraCategories, setExtraCategories] = useState<string[]>(initialExtra);
+  const [extraPick, setExtraPick] = useState("");
+  const allCategorySlugs = useMemo(() => {
+    const set = new Set<string>([effectiveCategory, ...extraCategories].filter(Boolean));
+    return [...set];
+  }, [effectiveCategory, extraCategories]);
+  const catName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
+
   const [form, setForm] = useState({
     slug: row?.slug ?? "", name: row?.name ?? "", tagline: row?.tagline ?? "",
     category: row?.category ?? categories[0]?.slug ?? "",
@@ -386,6 +398,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
     const payload = {
       slug: finalSlug, name: form.name.trim(),
       tagline: form.tagline.trim() || null, category: effectiveCategory,
+      categories: allCategorySlugs,
       price: Number(form.price) || 0, cost: Number(form.cost) || 0,
       discount: form.discount ? Number(form.discount) : null,
       image: form.image.trim() || null, description: form.description.trim() || null,
@@ -627,6 +640,43 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
                 </select>
               </div>
             )}
+            <div className="col-span-2">
+              <label className="block text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+                Additional Categories
+              </label>
+              <div className="flex gap-2">
+                <select value={extraPick} onChange={(e) => setExtraPick(e.target.value)} className="filter-select flex-1">
+                  <option value="" className="bg-background">Select a category to add…</option>
+                  {categories
+                    .filter((c) => !allCategorySlugs.includes(c.slug))
+                    .map((c) => (
+                      <option key={c.slug} value={c.slug} className="bg-background">
+                        {c.parent_id ? `— ${c.name}` : c.name}
+                      </option>
+                    ))}
+                </select>
+                <button type="button"
+                  disabled={!extraPick}
+                  onClick={() => { if (extraPick) { setExtraCategories((p) => [...new Set([...p, extraPick])]); setExtraPick(""); } }}
+                  className="self-end mb-0.5 px-3 py-2 rounded-lg border border-accent/40 bg-accent/10 text-[10px] font-mono uppercase tracking-widest hover:bg-accent/20 disabled:opacity-40">
+                  Add
+                </button>
+              </div>
+              {allCategorySlugs.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {allCategorySlugs.map((slug, i) => (
+                    <span key={slug}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${i === 0 ? "border-accent/40 bg-accent/10" : "border-white/10 bg-white/[0.03] text-muted-foreground"}`}>
+                      <span className="capitalize">{catName(slug)}{i === 0 ? " · primary" : ""}</span>
+                      {i !== 0 && (
+                        <button type="button" onClick={() => setExtraCategories((p) => p.filter((s) => s !== slug))}
+                          aria-label={`Remove ${slug}`} className="opacity-60 hover:opacity-100">×</button>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             <EField label="SKU (auto if blank)" value={form.sku} onChange={(v) => set({ sku: v })} />
             <EField label="Brand" value={form.brand} onChange={(v) => set({ brand: v })} />
             <EField label="Product Type" value={form.product_type} onChange={(v) => set({ product_type: v })} />

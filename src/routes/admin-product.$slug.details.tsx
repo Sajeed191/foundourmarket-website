@@ -19,7 +19,7 @@ import {
 export const Route = createFileRoute("/admin-product/$slug/details")({ component: DetailsPage });
 
 const COLS = [
-  "name", "slug", "description", "image", "brand", "product_type", "category", "tags",
+  "name", "slug", "description", "image", "brand", "product_type", "category", "categories", "tags",
   "features", "specifications", "attributes", "video_url",
   "seo_title", "seo_description", "meta_keywords",
   "price", "price_inr", "stock_quantity",
@@ -27,7 +27,7 @@ const COLS = [
 ];
 
 type Form = {
-  name: string; brand: string; product_type: string; category: string; tags: string;
+  name: string; brand: string; product_type: string; category: string; categories: string[]; tags: string;
   description: string;
   features: string[];
   specs: KV[];
@@ -44,7 +44,11 @@ function DetailsPage() {
       slug={slug} sectionKey="details" title="Product Details" icon={<FileText className="size-4" />} cols={COLS}
       toForm={(r) => ({
         name: r.name ?? "", brand: r.brand ?? "", product_type: r.product_type ?? "",
-        category: r.category ?? "", tags: (r.tags ?? []).join(", "),
+        category: r.category ?? "",
+        categories: ((r.categories ?? []) as string[]).length
+          ? ((r.categories ?? []) as string[])
+          : (r.category ? [r.category] : []),
+        tags: (r.tags ?? []).join(", "),
         description: r.description ?? "",
         features: (r.features ?? []) as string[],
         specs: kvToArray(r.specifications), attrs: kvToArray(r.attributes),
@@ -59,7 +63,8 @@ function DetailsPage() {
         name: f.name.trim(),
         brand: f.brand.trim() || null,
         product_type: f.product_type.trim() || null,
-        category: f.category.trim() || null,
+        category: (f.categories[0] ?? f.category.trim()) || null,
+        categories: f.categories,
         tags: parseList(f.tags),
         description: f.description.trim() || null,
         features: f.features.map((x) => x.trim()).filter(Boolean),
@@ -374,7 +379,7 @@ function CommandCenter({ slug, f, set, row }: {
             <Field label="Brand" value={f.brand} onChange={(v) => set({ brand: v })} />
             <Field label="Product Type" value={f.product_type} onChange={(v) => set({ product_type: v })} />
           </div>
-          <CategorySelector value={f.category} onChange={(v) => set({ category: v })} />
+          <CategorySelector value={f.categories} onChange={(v) => set({ categories: v, category: v[0] ?? "" })} />
           <Field label="Tags (comma separated)" value={f.tags} onChange={(v) => set({ tags: v })} />
         </div>
       </Collapsible>

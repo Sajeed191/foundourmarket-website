@@ -3028,6 +3028,7 @@ export type Database = {
           barcode: string | null
           bestseller: boolean
           brand: string | null
+          categories: string[]
           category: string
           category_position: number | null
           cod_enabled: boolean
@@ -3135,6 +3136,7 @@ export type Database = {
           barcode?: string | null
           bestseller?: boolean
           brand?: string | null
+          categories?: string[]
           category: string
           category_position?: number | null
           cod_enabled?: boolean
@@ -3242,6 +3244,7 @@ export type Database = {
           barcode?: string | null
           bestseller?: boolean
           brand?: string | null
+          categories?: string[]
           category?: string
           category_position?: number | null
           cod_enabled?: boolean
@@ -5536,6 +5539,7 @@ export type Database = {
           attributes: Json | null
           bestseller: boolean | null
           brand: string | null
+          categories: string[] | null
           category: string | null
           category_position: number | null
           cod_enabled: boolean | null
@@ -5624,6 +5628,7 @@ export type Database = {
           attributes?: Json | null
           bestseller?: boolean | null
           brand?: string | null
+          categories?: string[] | null
           category?: string | null
           category_position?: number | null
           cod_enabled?: boolean | null
@@ -5712,6 +5717,7 @@ export type Database = {
           attributes?: Json | null
           bestseller?: boolean | null
           brand?: string | null
+          categories?: string[] | null
           category?: string | null
           category_position?: number | null
           cod_enabled?: boolean | null
@@ -6159,6 +6165,7 @@ export type Database = {
           barcode: string | null
           bestseller: boolean
           brand: string | null
+          categories: string[]
           category: string
           category_position: number | null
           cod_enabled: boolean
