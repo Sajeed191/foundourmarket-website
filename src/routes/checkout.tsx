@@ -1031,15 +1031,17 @@ function SuccessScreen({ orderId, totalINR, market, method, eta, nav }: {
           <CheckCircle2 className="size-7 text-emerald-400" />
         </motion.div>
         <h1 className="text-2xl font-display font-semibold mb-1.5">
-          {method === "cod" ? "Order confirmed" : "Payment successful"}
+          {method === "demo" ? "Demo order received" : method === "cod" ? "Order confirmed" : "Payment successful"}
         </h1>
         <p className="text-sm text-muted-foreground mb-6">
-          {method === "cod" ? "Pay in cash when your order arrives." : "Your payment has been verified and your order is being prepared."}
+          {method === "demo"
+            ? "Your demo order has been recorded. We'll notify you when global payments launch."
+            : method === "cod" ? "Pay in cash when your order arrives." : "Your payment has been verified and your order is being prepared."}
         </p>
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-left space-y-2 mb-6">
           <Row label="Order" value={orderId ? `#${orderId.slice(0, 8)}` : "—"} />
           <Row label="Amount" value={inrFmt(totalINR)} />
-          <Row label="Method" value={method === "cod" ? "Cash on Delivery" : "Razorpay"} />
+          <Row label="Method" value={method === "demo" ? "Global Beta (Demo)" : method === "cod" ? "Cash on Delivery" : "Razorpay"} />
           <Row label="Est. delivery" value={eta} />
         </div>
         <div className="flex flex-col gap-2">
