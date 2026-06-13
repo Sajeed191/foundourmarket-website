@@ -848,6 +848,23 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
   const addr = order.shipping_address;
   const units = order.order_items?.reduce((a, b) => a + (b.quantity || 0), 0) ?? 0;
   const fullAddr = addr ? [addr.line1, addr.line2, addr.city, addr.state, addr.postal, addr.country].filter(Boolean).join(", ") : "—";
+  const [docBusy, setDocBusy] = useState<string | null>(null);
+
+  const runDoc = async (key: string, fn: () => Promise<boolean>) => {
+    setDocBusy(key);
+    try {
+      const ok = await fn();
+      if (!ok) toast.error("Could not generate document");
+    } catch { toast.error("Document generation failed"); }
+    finally { setDocBusy(null); }
+  };
+  const copyTracking = async () => {
+    const tn = ship?.tracking_number ?? order.tracking_number;
+    if (!tn) { toast.error("No tracking number"); return; }
+    try { await navigator.clipboard.writeText(tn); toast.success("Tracking ID copied"); }
+    catch { toast.error("Copy failed"); }
+  };
+
 
   return (
     <div className={`card-premium rounded-2xl p-4 md:p-5 ${selected ? "border-accent/50" : ""}`}>
