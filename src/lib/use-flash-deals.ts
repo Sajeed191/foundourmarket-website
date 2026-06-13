@@ -94,10 +94,11 @@ export function useFlashDeals() {
     return map;
   }, [deals, now]);
 
-  // Rotation boundary (12:00 AM / 12:00 PM). Stays fixed between boundaries so
-  // the randomized order is stable until the next rotation. The manual reshuffle
-  // nonce lets admins re-randomize the lineup instantly on demand.
-  const rotationSeed = currentRotationSeed(now) + rotationNonce;
+  // Which products are eligible to show as Flash Deals rotates every 6 hours
+  // (12AM / 6AM / 12PM / 6PM IST). The visible order inside that set reshuffles
+  // every 2 hours. The manual reshuffle nonce lets admins re-randomize instantly.
+  const flashSeed = flashWindowSeed(now) + rotationNonce;
+  const orderSeed = orderWindowSeed(now) + rotationNonce;
 
 
 
