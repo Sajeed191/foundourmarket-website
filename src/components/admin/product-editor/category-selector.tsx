@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, FolderTree, Loader2, Plus, RefreshCw, Star, X } from "lucide-react";
+import { ChevronDown, FolderTree, Loader2, Plus, RefreshCw, Sparkles, Star, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 type Cat = {
   id: string;
@@ -31,6 +39,9 @@ export function CategorySelector({
   const [error, setError] = useState<string | null>(null);
   const [mainId, setMainId] = useState<string | null>(null);
   const [subSlug, setSubSlug] = useState<string>("");
+  const [newSubName, setNewSubName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const selected = Array.isArray(value) ? value : [];
 
@@ -85,6 +96,48 @@ export function CategorySelector({
       addSlug(slug);
       setSubSlug("");
     }
+  }
+
+  async function createSub() {
+    const parent = parents.find((p) => p.id === mainId);
+    if (!parent) return;
+    const name = newSubName.trim();
+    if (!name) return;
+    const slug = slugify(name);
+    if (!slug) {
+      setCreateError("Enter a valid subcategory name.");
+      return;
+    }
+    // Already exists? Just select it.
+    const existing = cats.find((c) => c.slug === slug);
+    if (existing) {
+      addSlug(existing.slug);
+      setNewSubName("");
+      return;
+    }
+    setCreating(true);
+    setCreateError(null);
+    const maxSort = subs.reduce((m, s) => Math.max(m, s.sort_order ?? 0), 0);
+    const { data, error } = await supabase
+      .from("categories")
+      .insert({
+        name,
+        slug,
+        parent_id: parent.id,
+        status: "published",
+        homepage_visible: false,
+        sort_order: maxSort + 1,
+      })
+      .select("id,name,slug,parent_id,status,sort_order")
+      .single();
+    setCreating(false);
+    if (error) {
+      setCreateError(error.message);
+      return;
+    }
+    setCats((prev) => [...prev, data as Cat]);
+    addSlug((data as Cat).slug);
+    setNewSubName("");
   }
 
   if (loading) {
@@ -201,7 +254,31 @@ export function CategorySelector({
             <Plus className="size-3.5" /> Add
           </button>
         </div>
+
+        {/* Create a brand-new subcategory under the chosen main category */}
+        <div className="mt-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newSubName}
+              disabled={!mainId || creating}
+              placeholder={!mainId ? "Pick a main category to add a new sub" : "New subcategory name…"}
+              onChange={(e) => { setNewSubName(e.target.value); setCreateError(null); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); createSub(); } }}
+              className="w-full flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/40 focus:outline-none disabled:opacity-50"
+            />
+            <button type="button" onClick={createSub} disabled={!mainId || !newSubName.trim() || creating}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent/10 px-3 py-2.5 text-xs font-medium text-foreground transition-all hover:bg-accent/20 active:scale-95 disabled:opacity-40">
+              {creating ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+              Create
+            </button>
+          </div>
+          {createError && (
+            <p className="mt-1 text-[11px] text-destructive">{createError}</p>
+          )}
+        </div>
       </div>
+
 
       {/* Resolved value */}
       <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
