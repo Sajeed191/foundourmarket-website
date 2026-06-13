@@ -682,11 +682,9 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
               <div className="grid grid-cols-2 gap-2">
                 <select value={extraMain} onChange={(e) => { setExtraMain(e.target.value); setExtraSub(""); }} className="filter-select">
                   <option value="" className="bg-background">Main category…</option>
-                  {mains
-                    .filter((c) => c.slug !== mainCat)
-                    .map((c) => (
-                      <option key={c.slug} value={c.slug} className="bg-background">{c.name}</option>
-                    ))}
+                  {mains.map((c) => (
+                    <option key={c.slug} value={c.slug} className="bg-background">{c.name}</option>
+                  ))}
                 </select>
                 <select value={extraSub} disabled={!extraMain} onChange={(e) => setExtraSub(e.target.value)} className="filter-select disabled:opacity-50">
                   <option value="" className="bg-background">
