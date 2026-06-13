@@ -350,6 +350,20 @@ function RootComponent() {
   useEffect(() => {
     preloadCrisp();
   }, []);
+  // Bootstrap Google Analytics off the critical path (on idle / after paint) so
+  // gtag.js never competes with hydration on the main thread during load.
+  useEffect(() => {
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+    };
+    const start = () => import("@/lib/ga4").then((m) => m.loadGa4()).catch(() => {});
+    if (w.requestIdleCallback) {
+      w.requestIdleCallback(start, { timeout: 4000 });
+    } else {
+      const t = setTimeout(start, 2500);
+      return () => clearTimeout(t);
+    }
+  }, []);
   // Warm the global products cache immediately on hydration so route components
   // (home, search, category, product) render with data already in memory instead
   // of each kicking off its own fetch on mount.
