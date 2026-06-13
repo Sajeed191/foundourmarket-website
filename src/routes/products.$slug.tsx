@@ -324,12 +324,18 @@ function ProductPage() {
     );
   }
 
-  const galleryImages = (() => {
+  const galleryMedia = (() => {
+    const items: ProductImage[] = [];
+    if (product.videoUrl) {
+      items.push({ id: "video", url: product.videoUrl, alt: `${product.name} — video`, sortOrder: -2 });
+    }
     const main = { id: "main", url: product.image, alt: product.name, sortOrder: -1 };
     const extras = images.filter((img) => img.url && img.url !== product.image);
-    return [main, ...extras];
+    items.push(main, ...extras);
+    return items;
   })();
-  const activeImage = galleryImages[activeImg] ?? galleryImages[0];
+  const galleryImages = galleryMedia.filter((m) => m.id !== "video");
+  const activeMedia = galleryMedia[activeImg] ?? galleryMedia[0];
 
   const selectedVariant = variants.find((v) => v.id === variantId) ?? null;
   const basePrice = priceOf(product);
