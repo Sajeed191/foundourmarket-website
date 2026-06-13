@@ -460,6 +460,15 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         for (const id of pendingBadges) await assignBadge(payload.slug, id);
       } catch { /* non-fatal: product is saved, badges can be retried in editor */ }
     }
+    // Flush pending FAQs for a newly created product (in display order).
+    if (!row?.id && pendingFaqs.length) {
+      try {
+        let i = 0;
+        for (const faq of pendingFaqs) {
+          await createFaq({ productSlug: payload.slug, question: faq.question, answer: faq.answer, sortOrder: i++ });
+        }
+      } catch { /* non-fatal: product is saved, FAQs can be added in editor */ }
+    }
     setSaving(false);
     logActivity(row?.id ? "product_updated" : "product_created", "product", row?.id, { slug: payload.slug });
     toast.success(row?.id ? "Product updated" : "Product created");
