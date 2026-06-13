@@ -77,8 +77,8 @@ export const Route = createFileRoute("/products/$slug")({
     const url = `https://foundourmarket.com/products/${params.slug}`;
     // Prefer stored, auto-generated SEO fields; never overwrite — only fall back.
     const title = p
-      ? (p.seoTitle?.trim() || `${p.name} | FoundOurMarket`)
-      : `${params.slug} | FoundOurMarket`;
+      ? (p.seoTitle?.trim() || `Buy ${p.name} Online | FoundOurMarket™`)
+      : `FoundOurMarket™ | Premium Global Marketplace`;
     const description = p
       ? (p.seoDescription?.trim()
           || p.description?.slice(0, 160)
