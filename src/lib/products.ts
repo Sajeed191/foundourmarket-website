@@ -101,6 +101,8 @@ export type Product = {
   // Analytics
   ordersCount: number;
   revenue: number;
+  // Media
+  videoUrl: string | null;
 };
 
 export type ProductStatus =
