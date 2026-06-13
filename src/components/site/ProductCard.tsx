@@ -47,7 +47,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
 
   return (
     <div
-      className={`group relative flex h-full flex-col overflow-hidden rounded-[22px] border bg-card/40 backdrop-blur-xl transition-[transform,box-shadow,border-color] duration-300 will-change-transform active:scale-[0.99] sm:hover:scale-[1.02] ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-[22px] border bg-card transition-[transform,box-shadow,border-color] duration-300 active:scale-[0.99] sm:hover:scale-[1.02] ${
         isPremium
           ? "border-accent/45 shadow-[0_8px_30px_-12px_oklch(0.72_0.18_55/0.45)] sm:group-hover:shadow-[0_16px_44px_-12px_oklch(0.72_0.18_55/0.6)]"
           : "border-accent/15 shadow-[0_4px_24px_-14px_oklch(0_0_0/0.7)] sm:group-hover:border-accent/35 sm:group-hover:shadow-[0_14px_40px_-14px_oklch(0.72_0.18_55/0.4)]"
