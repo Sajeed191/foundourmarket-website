@@ -254,7 +254,31 @@ export function CategorySelector({
             <Plus className="size-3.5" /> Add
           </button>
         </div>
+
+        {/* Create a brand-new subcategory under the chosen main category */}
+        <div className="mt-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newSubName}
+              disabled={!mainId || creating}
+              placeholder={!mainId ? "Pick a main category to add a new sub" : "New subcategory name…"}
+              onChange={(e) => { setNewSubName(e.target.value); setCreateError(null); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); createSub(); } }}
+              className="w-full flex-1 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/40 focus:outline-none disabled:opacity-50"
+            />
+            <button type="button" onClick={createSub} disabled={!mainId || !newSubName.trim() || creating}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent/40 bg-accent/10 px-3 py-2.5 text-xs font-medium text-foreground transition-all hover:bg-accent/20 active:scale-95 disabled:opacity-40">
+              {creating ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+              Create
+            </button>
+          </div>
+          {createError && (
+            <p className="mt-1 text-[11px] text-destructive">{createError}</p>
+          )}
+        </div>
       </div>
+
 
       {/* Resolved value */}
       <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
