@@ -158,7 +158,10 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    nav({ to: "/auth/callback" });
+    // Tokens received and session set by the lovable auth lib. Use a hard
+    // redirect so the destination loads fresh and reliably reads the persisted
+    // session (SPA nav can no-op if a route chunk fails to load).
+    window.location.assign(resolveDest());
   };
 
 
