@@ -12,7 +12,10 @@ export const Route = createFileRoute("/categories")({
       { name: "description", content: "Browse every department on FoundOurMarket — home, kitchen, gaming, electronics, beauty, toys, pet & vehicle accessories, delivered worldwide." },
       { property: "og:title", content: "All Categories — FoundOurMarket™" },
       { property: "og:description", content: "Browse every department on FoundOurMarket — curated products delivered worldwide." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://foundourmarket.com/categories" },
     ],
+    links: [{ rel: "canonical", href: "https://foundourmarket.com/categories" }],
   }),
   component: CategoriesPage,
 });

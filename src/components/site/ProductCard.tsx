@@ -124,9 +124,9 @@ function ProductCardImpl({ product, forceBadge }: { product: Product; compact?: 
       <div className="relative flex flex-1 flex-col px-3 pb-3 pt-2">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
           {/* Title — max 2 lines */}
-          <h4 className="line-clamp-2 h-[2.6em] text-[15px] font-semibold leading-[1.3] tracking-[-0.01em] text-foreground/95 transition-colors group-hover:text-accent">
+          <h3 className="line-clamp-2 h-[2.6em] text-[15px] font-semibold leading-[1.3] tracking-[-0.01em] text-foreground/95 transition-colors group-hover:text-accent">
             {product.name}
-          </h4>
+          </h3>
         </Link>
 
         {/* Rating + social proof */}
