@@ -132,6 +132,14 @@ function ProfileInner() {
   const noteAddFn = useServerFn(addCustomerNoteFn);
   const noteDelFn = useServerFn(deleteCustomerNoteFn);
   const emailsFn = useServerFn(listCustomerEmailsFn);
+  const tagsListFn = useServerFn(listCustomerTagsFn);
+  const tagAddFn = useServerFn(addCustomerTagFn);
+  const tagRemoveFn = useServerFn(removeCustomerTagFn);
+  const timelineFn = useServerFn(getCustomerTimelineFn);
+  const statusFn = useServerFn(setCustomerStatusFn);
+  const restoreFn = useServerFn(restoreCustomerFn);
+  const notifyFn = useServerFn(sendCustomerNotificationFn);
+  const resetPwFn = useServerFn(resetCustomerPasswordFn);
 
   const [data, setData] = useState<CustomerProfile | null>(null);
   const [risk, setRisk] = useState<Risk | null>(null);
@@ -140,6 +148,9 @@ function ProfileInner() {
   const [notes, setNotes] = useState<CustomerNote[]>([]);
   const [emails, setEmails] = useState<CustomerEmail[]>([]);
   const [emailFilter, setEmailFilter] = useState<string>("all");
+  const [tags, setTags] = useState<string[]>([]);
+  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
+  const [tlFilter, setTlFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [pulse, setPulse] = useState(false);
   const [showTicket, setShowTicket] = useState(false);
@@ -159,6 +170,20 @@ function ProfileInner() {
       setEmails(res.emails ?? []);
     } catch { /* ignore */ }
   }, [emailsFn, customerId]);
+
+  const loadTags = useCallback(async () => {
+    try {
+      const res = await tagsListFn({ data: { customerId } });
+      setTags(res.tags ?? []);
+    } catch { /* ignore */ }
+  }, [tagsListFn, customerId]);
+
+  const loadTimeline = useCallback(async () => {
+    try {
+      const res = await timelineFn({ data: { customerId } });
+      setTimeline(res.events ?? []);
+    } catch { /* ignore */ }
+  }, [timelineFn, customerId]);
 
   const load = useCallback(async () => {
     const id = ++reqId.current;
