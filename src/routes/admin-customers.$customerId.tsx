@@ -523,6 +523,59 @@ function ProfileInner() {
         )}
       </Section>
 
+      {/* SECTION 9b — Email History */}
+      <Section icon={Mail} title="Email History" count={emails.length} id="email-history">
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {(["all", "sent", "delivered", "failed", "bounced", "suppressed"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setEmailFilter(f)}
+              className={`rounded-full border px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider transition-colors ${
+                emailFilter === f
+                  ? "border-accent/50 bg-accent/15 text-accent"
+                  : "border-white/10 bg-white/[0.02] text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+        {(() => {
+          const eStatus = (e: CustomerEmail) =>
+            e.delivered_at ? "delivered" : (e.status ?? "sent");
+          const matches = (e: CustomerEmail) => {
+            if (emailFilter === "all") return true;
+            const s = eStatus(e);
+            if (emailFilter === "failed") return s === "failed" || s === "dlq";
+            if (emailFilter === "bounced") return s === "bounced" || s === "complained";
+            return s === emailFilter;
+          };
+          const shown = emails.filter(matches);
+          if (shown.length === 0) return <Empty label="No emails for this filter." />;
+          return (
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+              {shown.map((e) => (
+                <div key={e.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-2.5 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium truncate">{e.subject || e.template || "Email"}</span>
+                    <StatusPill status={eStatus(e)} />
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
+                    {e.template && <span className="font-mono">{e.template}</span>}
+                    <span className="inline-flex items-center gap-1"><Clock className="size-3" />Sent {when(e.sent_at)}</span>
+                    {e.delivered_at && <span>Delivered {when(e.delivered_at)}</span>}
+                    {e.trigger_source && <span>via {e.trigger_source}</span>}
+                  </div>
+                  {e.error && <p className="text-[10px] text-destructive mt-1 line-clamp-2">{e.error}</p>}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+      </Section>
+
+
+
       {/* SECTION 10 — Fraud Intelligence */}
       <Section icon={ShieldAlert} title="Fraud Intelligence" count={data.fraud.length}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
