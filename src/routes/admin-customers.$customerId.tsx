@@ -141,6 +141,13 @@ function ProfileInner() {
     } catch { /* ignore */ }
   }, [notesListFn, customerId]);
 
+  const loadEmails = useCallback(async () => {
+    try {
+      const res = await emailsFn({ data: { customerId } });
+      setEmails(res.emails ?? []);
+    } catch { /* ignore */ }
+  }, [emailsFn, customerId]);
+
   const load = useCallback(async () => {
     const id = ++reqId.current;
     setLoading(true);
