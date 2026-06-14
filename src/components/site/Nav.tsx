@@ -195,8 +195,8 @@ export function Nav() {
         }}
         className="sticky top-0 z-50 px-[max(0.75rem,var(--mobile-safe-left))] sm:px-4 pt-[calc(var(--mobile-safe-top)+0.75rem)] sm:pt-[calc(var(--mobile-safe-top)+1rem)]"
       >
-        <nav className="max-w-7xl mx-auto rounded-2xl glass-strong shadow-[var(--shadow-float)] ring-1 ring-white/10">
-          <div className="flex items-center justify-start px-2 sm:px-5 py-2 sm:py-2.5 gap-1 sm:gap-2">
+        <nav className="max-w-7xl lg:max-w-[1480px] mx-auto rounded-2xl glass-strong shadow-[var(--shadow-float)] ring-1 ring-white/10 lg:ring-white/15 lg:shadow-[var(--shadow-float),0_0_50px_-22px_oklch(0.74_0.19_49/0.45)] lg:backdrop-blur-2xl transition-all">
+          <div className="flex items-center justify-start px-2 sm:px-5 lg:px-7 py-2 sm:py-2.5 lg:py-3.5 gap-1 sm:gap-2 lg:gap-3">
             {/* Zone 1 — Hamburger (mobile only) */}
             <button
               onClick={() => setOpen(!open)}
@@ -211,11 +211,11 @@ export function Nav() {
               to="/"
               className="min-w-0 flex-1 md:flex-none flex items-center gap-2 sm:gap-2.5 -ml-0.5 md:ml-0 font-display tracking-tight font-semibold"
             >
-              <span className="shrink-0 relative inline-grid place-items-center size-8 sm:size-11 rounded-2xl bg-black/40 ring-1 ring-accent/30 overflow-hidden shadow-[0_0_20px_-4px_var(--color-accent)]">
+              <span className="shrink-0 relative inline-grid place-items-center size-8 sm:size-11 lg:size-12 rounded-2xl bg-black/40 ring-1 ring-accent/30 overflow-hidden shadow-[0_0_20px_-4px_var(--color-accent)]">
                 <img src={logoSrc} alt="FoundOurMarket logo" className="size-full object-cover" />
               </span>
               <span className="flex min-w-0 flex-col leading-none">
-                <span className="truncate text-[15px] sm:text-xl font-semibold tracking-tight">
+                <span className="truncate text-[15px] sm:text-xl lg:text-[22px] font-semibold tracking-tight">
                   FoundOurMarket<span className="text-accent">™</span>
                 </span>
                 <span className="mt-0.5 text-[8px] sm:text-[10px] font-mono uppercase tracking-[0.2em] text-accent/80 truncate">
@@ -225,14 +225,14 @@ export function Nav() {
             </Link>
 
             {/* Desktop nav links — centered */}
-            <div className="hidden md:flex flex-1 justify-center items-center gap-1 text-[13px] font-medium text-muted-foreground">
+            <div className="hidden md:flex flex-1 justify-center items-center gap-1 lg:gap-2 text-[13px] lg:text-[14px] font-medium text-muted-foreground">
               {navLinks.map((l) => (
                 <Link
                   key={l.label}
                   to={l.to}
                   params={"params" in l ? l.params : undefined as never}
                   activeProps={{ className: "text-foreground bg-white/5" }}
-                  className="px-3.5 py-1.5 rounded-full hover:text-foreground hover:bg-white/5 transition-all whitespace-nowrap"
+                  className="px-3.5 py-1.5 lg:px-4 lg:py-2 rounded-full hover:text-foreground hover:bg-white/5 lg:hover:ring-1 lg:hover:ring-white/10 transition-all duration-200 whitespace-nowrap"
                 >
                   {l.label}
                 </Link>
