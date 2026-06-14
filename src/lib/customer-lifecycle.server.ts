@@ -198,7 +198,7 @@ export async function fireLifecycleEvent(opts: {
           payload: {
             message_id: messageId,
             to: email,
-            from: FROM,
+            from: await enforceSender(FROM, { recipient: email, template: event, context: 'lifecycle email' }),
             reply_to: `support@${FROM_DOMAIN}`,
             sender_domain: SENDER_DOMAIN,
             subject,
