@@ -194,15 +194,6 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
     ? items.filter((it) => it.question.toLowerCase().includes(query) || (it.answer ?? "").toLowerCase().includes(query))
     : items;
 
-  const POPULAR_TOPICS = [
-    { topic: "Shipping", a: "Most orders ship within 24–48 hours with full international tracking provided." },
-    { topic: "Warranty", a: "Every product is covered by our marketplace warranty and quality guarantee." },
-    { topic: "Returns", a: "Hassle-free returns are accepted within the protection window after delivery." },
-    { topic: "Compatibility", a: "Check the Specifications tab — compatibility details are listed per product." },
-    { topic: "Sizing", a: "Refer to the size guide on the product gallery for precise measurements." },
-    { topic: "Materials", a: "Material composition is listed in the product Description and Specs." },
-  ];
-
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16 border-t border-border">
       <div className="flex items-end justify-between flex-wrap gap-3 mb-8">
@@ -240,18 +231,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
         </div>
       </form>
 
-      {/* Frequently asked topics */}
-      <div className="mb-8">
-        <h3 className="mb-4 text-sm font-display tracking-tight">Frequently Asked Questions</h3>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {POPULAR_TOPICS.map((t) => (
-            <div key={t.topic} className="rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-4">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-accent mb-1.5">{t.topic}</p>
-              <p className="text-[13px] text-muted-foreground leading-relaxed">{t.a}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       {/* Search */}
       {items.length > 0 && (
