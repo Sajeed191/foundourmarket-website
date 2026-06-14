@@ -157,6 +157,18 @@ function ProfileInner() {
 
   useEffect(() => { load(); loadNotes(); }, [load, loadNotes]);
 
+  // Scroll to the section referenced by the URL hash once data is rendered
+  // (e.g. /admin-customers/:id#orders or #addresses from the actions menu).
+  useEffect(() => {
+    if (loading || !data) return;
+    const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [loading, data]);
+
+
+
 
   // Realtime only for this active profile.
   useEffect(() => {
