@@ -188,6 +188,8 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       claims?: { email?: string };
     };
     const { keyId } = getRazorpayCreds();
+    const { assertCustomerAllowed } = await import("./customer-restrictions.server");
+    await assertCustomerAllowed(userId, "order");
 
     const edgeCountry =
       getRequestHeader("cf-ipcountry") ||
@@ -340,6 +342,8 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
   .inputValidator((input) => verifySchema.parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context as { userId: string };
+    const { assertCustomerAllowed } = await import("./customer-restrictions.server");
+    await assertCustomerAllowed(userId, "payment");
 
     // Fetch the order via admin and confirm ownership
     const { data: order, error: oErr } = await supabaseAdmin
@@ -515,6 +519,8 @@ export const placeCodOrder = createServerFn({ method: "POST" })
       userId: string;
       claims?: { email?: string };
     };
+    const { assertCustomerAllowed } = await import("./customer-restrictions.server");
+    await assertCustomerAllowed(userId, "order");
 
     const edgeCountry =
       getRequestHeader("cf-ipcountry") ||
