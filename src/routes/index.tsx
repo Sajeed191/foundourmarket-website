@@ -456,7 +456,7 @@ function Home() {
               className="hero-rise hero-rise-2 max-w-2xl mx-auto lg:mx-0 relative group"
               onSubmit={(e) => { e.preventDefault(); nav({ to: "/search", search: { q: query } }); }}
             >
-              <div className={`relative glass-strong rounded-full ring-1 transition-all duration-300 ${searchFocused ? "ring-accent/50 lg:shadow-[0_0_0_4px_oklch(0.74_0.19_49/0.12),var(--shadow-float)]" : "ring-white/10 lg:shadow-[var(--shadow-float)]"}`}>
+              <div className={`relative glass-strong rounded-full ring-1 transition-all duration-300 lg:shadow-[inset_0_1px_0_oklch(1_0_0/0.06)] ${searchFocused ? "ring-accent/35 lg:shadow-[0_0_0_3px_oklch(0.74_0.19_49/0.08),var(--shadow-float)]" : "ring-white/10 lg:shadow-[var(--shadow-float)]"}`}>
                 <Search className={`absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 size-5 transition-colors ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
                 <input
                   type="text"
