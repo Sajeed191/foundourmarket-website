@@ -114,14 +114,25 @@ export const refundActionFn = createServerFn({ method: "POST" })
     const amountLabel = `${refund.currency === "USD" ? "$" : "₹"}${Math.round(
       Number(refund.amount) || 0,
     ).toLocaleString()}`;
-    if (input.action === "approve")
-      await notifyCustomer(customer, "refund_update", "Refund approved", `Your refund of ${amountLabel} has been approved and is being processed.`, "high");
-    else if (input.action === "complete")
-      await notifyCustomer(customer, "refund_update", "Refund completed", `Your refund of ${amountLabel} has been completed.`, "normal");
-    else if (input.action === "reject")
-      await notifyCustomer(customer, "refund_update", "Refund update", `We've reviewed your refund request. ${input.note ?? "Please contact support for details."}`, "normal");
-    else if (input.action === "request_evidence")
-      await notifyCustomer(customer, "refund_update", "Information needed for your refund", input.note ?? "Please reply with supporting evidence (photos / details) so we can process your refund.", "high");
+    const { notifyCustomer: notify, returnLink } = await import("./customer-notify.server");
+    const refundDeep = returnLink("", refund.order_id).replace("return=&", "");
+    const fireRefund = (title: string, body: string, priority: "low" | "normal" | "high") =>
+      notify({
+        userId: customer, category: "refund", type: "refund_update",
+        title, body, link: refundDeep, priority,
+        data: { order_id: refund.order_id, refund_id: refund.id }, actorId: userId,
+      });
+    if (input.action === "approve") {
+      await fireRefund("Refund initiated", `Your refund of ${amountLabel} has been approved and is being processed.`, "high");
+      await enqueueReturnEmail(refund.order_id, "refund-initiated", { refundAmount: Number(refund.amount) || 0, refundCurrency: refund.currency }, `refund-${refund.id}-initiated`);
+    } else if (input.action === "complete") {
+      await fireRefund("Refund completed", `Your refund of ${amountLabel} has been completed.`, "normal");
+      await enqueueReturnEmail(refund.order_id, "refund-completed", { refundAmount: Number(refund.amount) || 0, refundCurrency: refund.currency }, `refund-${refund.id}-completed`);
+    } else if (input.action === "reject") {
+      await fireRefund("Refund update", `We've reviewed your refund request. ${input.note ?? "Please contact support for details."}`, "normal");
+    } else if (input.action === "request_evidence") {
+      await fireRefund("Information needed for your refund", input.note ?? "Please reply with supporting evidence (photos / details) so we can process your refund.", "high");
+    }
 
     await logSecurity({
       actorId: userId,
