@@ -231,18 +231,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
         </div>
       </form>
 
-      {/* Frequently asked topics */}
-      <div className="mb-8">
-        <h3 className="mb-4 text-sm font-display tracking-tight">Frequently Asked Questions</h3>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {POPULAR_TOPICS.map((t) => (
-            <div key={t.topic} className="rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-4">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-accent mb-1.5">{t.topic}</p>
-              <p className="text-[13px] text-muted-foreground leading-relaxed">{t.a}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       {/* Search */}
       {items.length > 0 && (
