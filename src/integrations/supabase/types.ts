@@ -5985,6 +5985,10 @@ export type Database = {
         Args: { _order_id: string; _user_id: string }
         Returns: Json
       }
+      customer_restriction_message: {
+        Args: { _operation: string; _user_id: string }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
