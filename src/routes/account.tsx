@@ -58,6 +58,10 @@ type Profile = {
   full_name: string | null;
   phone: string | null;
   avatar_url: string | null;
+  account_status?: string | null;
+  ordering_blocked?: boolean | null;
+  reviews_disabled?: boolean | null;
+  ban_reason?: string | null;
 };
 
 const ease = [0.16, 1, 0.3, 1] as const;
