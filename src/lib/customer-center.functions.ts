@@ -77,6 +77,21 @@ export const getCustomerCenterFn = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
 
+    const result = data as CustomerCenterResult;
+    const rows = result.rows ?? [];
+
+    // Enrich roster rows with profile avatars in a single query.
+    const ids = rows.map((r) => r.id);
+    if (ids.length) {
+      const { data: profiles } = await supabaseAdmin
+        .from("profiles")
+        .select("id,avatar_url")
+        .in("id", ids);
+      const avatarMap = new Map<string, string | null>();
+      for (const pr of profiles ?? []) avatarMap.set(pr.id as string, (pr.avatar_url as string | null) ?? null);
+      for (const r of rows) r.avatar_url = avatarMap.get(r.id) ?? null;
+    }
+
     await logSecurity({
       actorId: userId,
       actorRole: primaryRole,
@@ -85,7 +100,7 @@ export const getCustomerCenterFn = createServerFn({ method: "POST" })
       detail: { search: input.search ?? null, page },
     });
 
-    return data as CustomerCenterResult;
+    return result;
   });
 
 export type AdminCustomer = {
