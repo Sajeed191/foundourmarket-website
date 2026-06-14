@@ -36,6 +36,13 @@ import {
   supportAdminTemplate,
 } from './support-emails'
 import { demoOrderReceivedTemplate } from './demo-order'
+import {
+  suspendedTemplate,
+  bannedTemplate,
+  orderingBlockedTemplate,
+  reviewsDisabledTemplate,
+  accountDeletedTemplate,
+} from './lifecycle-emails'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'test-email': testEmailTemplate,
