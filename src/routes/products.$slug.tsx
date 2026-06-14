@@ -887,6 +887,10 @@ function ProductPage() {
           <RelatedProducts product={product} />
         </div>
       </LazyMount>
+      <LazyMount minHeight={320}>
+        <ProductComparison product={product} />
+      </LazyMount>
+
       <LazyMount minHeight={260}>
         <ProductHighlights />
       </LazyMount>
