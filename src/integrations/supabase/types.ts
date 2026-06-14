@@ -3391,6 +3391,9 @@ export type Database = {
           account_status: string
           alt_phone: string | null
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          banned_by: string | null
           birth_date: string | null
           country: string | null
           country_code: string | null
@@ -3407,6 +3410,8 @@ export type Database = {
           phone: string | null
           region_locked_at: string | null
           reviews_disabled: boolean
+          suspended_at: string | null
+          suspended_by: string | null
           timezone: string | null
           updated_at: string
         }
@@ -3414,6 +3419,9 @@ export type Database = {
           account_status?: string
           alt_phone?: string | null
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           birth_date?: string | null
           country?: string | null
           country_code?: string | null
@@ -3430,6 +3438,8 @@ export type Database = {
           phone?: string | null
           region_locked_at?: string | null
           reviews_disabled?: boolean
+          suspended_at?: string | null
+          suspended_by?: string | null
           timezone?: string | null
           updated_at?: string
         }
@@ -3437,6 +3447,9 @@ export type Database = {
           account_status?: string
           alt_phone?: string | null
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           birth_date?: string | null
           country?: string | null
           country_code?: string | null
@@ -3453,6 +3466,8 @@ export type Database = {
           phone?: string | null
           region_locked_at?: string | null
           reviews_disabled?: boolean
+          suspended_at?: string | null
+          suspended_by?: string | null
           timezone?: string | null
           updated_at?: string
         }

@@ -18,6 +18,9 @@ import { openInvoice } from "@/lib/order-invoice";
 
 export const Route = createFileRoute("/admin-orders-ops")({
   head: () => ({ meta: [{ title: "Order Operations Center — Admin" }] }),
+  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
+    q: typeof search.q === "string" ? search.q : undefined,
+  }),
   component: OrderOpsPage,
 });
 
@@ -645,8 +648,9 @@ function MiniStat({ label, value, icon, tone }: { label: string; value: string; 
 
 function OrderOpsPage() {
   const { data, staffPerf, loading, refreshing, error, refresh } = useOrderOperations();
+  const { q: qParam } = Route.useSearch();
   const [sel, setSel] = useState<EnrichedOrder | null>(null);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(qParam ?? "");
   const [actionFilter, setActionFilter] = useState<{ label: string; ids: Set<string> } | null>(null);
 
   const filtered = useMemo(() => {

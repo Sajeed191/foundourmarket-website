@@ -73,9 +73,9 @@ function CopyBtn({ value, label }: { value: string | null | undefined; label?: s
   );
 }
 
-function Section({ icon: Icon, title, count, children }: { icon: typeof User; title: string; count?: number; children: React.ReactNode }) {
+function Section({ icon: Icon, title, count, children, id }: { icon: typeof User; title: string; count?: number; children: React.ReactNode; id?: string }) {
   return (
-    <div className="glass border border-white/10 rounded-2xl p-4">
+    <div id={id} className="glass border border-white/10 rounded-2xl p-4 scroll-mt-24">
       <div className="flex items-center gap-2 mb-3">
         <Icon className="size-4 text-accent" />
         <h2 className="text-sm font-semibold">{title}</h2>
@@ -156,6 +156,18 @@ function ProfileInner() {
   }, [profileFn, riskFn, extrasFn, customerId]);
 
   useEffect(() => { load(); loadNotes(); }, [load, loadNotes]);
+
+  // Scroll to the section referenced by the URL hash once data is rendered
+  // (e.g. /admin-customers/:id#orders or #addresses from the actions menu).
+  useEffect(() => {
+    if (loading || !data) return;
+    const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [loading, data]);
+
+
 
 
   // Realtime only for this active profile.
@@ -332,7 +344,7 @@ function ProfileInner() {
       </Section>
 
       {/* SECTION 3 — Orders Timeline */}
-      <Section icon={ShoppingBag} title="Orders Timeline" count={data.orders.length}>
+      <Section id="orders" icon={ShoppingBag} title="Orders Timeline" count={data.orders.length}>
         {data.orders.length === 0 ? <Empty /> : (
           <div className="space-y-2">
             {data.orders.map((o) => (
@@ -383,7 +395,7 @@ function ProfileInner() {
       </Section>
 
       {/* SECTION 5 — Address Intelligence */}
-      <Section icon={MapPin} title="Address Intelligence" count={data.addresses.length}>
+      <Section id="addresses" icon={MapPin} title="Address Intelligence" count={data.addresses.length}>
         {data.addresses.length === 0 ? <Empty /> : (
           <div className="grid sm:grid-cols-2 gap-3">
             {data.addresses.map((a) => {
