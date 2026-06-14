@@ -819,17 +819,7 @@ function ProductPage() {
 
 
 
-            {/* Specs */}
-            <Accordion title="Specifications" icon={Package} defaultOpen>
-              <dl className="glass rounded-2xl px-4 sm:px-5 py-1 divide-y divide-border/50">
-                <SpecRow k="Category" v={product.category} />
-                <SpecRow k="SKU" v={effectiveSku || "—"} />
-                <SpecRow k="Rating" v={`${product.rating} / 5`} />
-                <SpecRow k="Reviews" v={String(product.reviews)} />
-                <SpecRow k="Availability" v={isOOS ? "Out of stock" : `${effectiveStock} in stock`} />
-                <SpecRow k="Warranty" v={product.warranty || "12 months"} />
-              </dl>
-            </Accordion>
+
 
             <Accordion title="Shipping & returns" icon={Truck}>
               <ul className="text-sm text-muted-foreground space-y-2 leading-relaxed">
@@ -1049,14 +1039,6 @@ function ProductPageSkeleton() {
 }
 
 
-function SpecRow({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-2.5">
-      <dt className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/70">{k}</dt>
-      <dd className="text-sm font-medium text-foreground truncate text-right">{v}</dd>
-    </div>
-  );
-}
 
 function Accordion({ title, icon: Icon, defaultOpen = false, children }: { title: string; icon: typeof Package; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
