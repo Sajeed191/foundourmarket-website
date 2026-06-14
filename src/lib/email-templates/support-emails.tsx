@@ -257,6 +257,7 @@ export const supportCustomerTemplate: TemplateEntry = {
       case 'created': return `We received your support request${t}`
       case 'resolved': return `Your support ticket is resolved${t}`
       case 'closed': return `Your support ticket is closed${t}`
+      case 'escalated': return `Your support ticket has been escalated${t}`
       default: return `New reply to your support ticket${t}`
     }
   },
