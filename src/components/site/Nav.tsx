@@ -14,6 +14,7 @@ const SearchCommand = lazy(() =>
 );
 import { NotificationBell } from "@/components/site/NotificationBell";
 import { CurrencySwitcher } from "@/components/site/CurrencySwitcher";
+import { MegaMenu } from "@/components/site/MegaMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { loadCategories, type Category } from "@/lib/use-categories";
 import {
