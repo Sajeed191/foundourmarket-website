@@ -523,7 +523,52 @@ function ProfileInner() {
         )}
       </Section>
 
-      {showTicket && (
+      {/* SECTION 11 — Admin Notes */}
+      <Section icon={StickyNote} title="Admin Notes" count={notes.length}>
+        <NotesPanel
+          notes={notes}
+          onAdd={async (note) => { await noteAddFn({ data: { customerId, note } }); await loadNotes(); }}
+          onDelete={async (noteId) => { await noteDelFn({ data: { customerId, noteId } }); await loadNotes(); }}
+        />
+      </Section>
+
+      {/* SECTION 12 — Reviews */}
+      <Section icon={Star} title="Reviews" count={reviews.length}>
+        {reviews.length === 0 ? <Empty label="No reviews." /> : (
+          <div className="space-y-2">
+            {reviews.map((r) => (
+              <div key={r.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-2.5 text-xs">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1 text-amber-300">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className={`size-3 ${i < r.rating ? "fill-amber-300" : "opacity-30"}`} />
+                    ))}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{dateOnly(r.created_at)}</span>
+                </div>
+                {r.title && <p className="mt-1 font-medium truncate">{r.title}</p>}
+                {r.body && <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{r.body}</p>}
+                <p className="text-[10px] text-muted-foreground mt-1 font-mono truncate">{r.product_slug}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* SECTION 13 — Wishlist */}
+      <Section icon={Heart} title="Wishlist" count={wishlist.length}>
+        {wishlist.length === 0 ? <Empty label="No saved items." /> : (
+          <div className="flex flex-wrap gap-2">
+            {wishlist.map((w) => (
+              <span key={w.id} className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-[11px]">
+                <Heart className="size-3 text-accent" /> {w.product_slug}
+              </span>
+            ))}
+          </div>
+        )}
+      </Section>
+
+
         <TicketModal
           onClose={() => setShowTicket(false)}
           onCreate={async (subject, priority) => {
