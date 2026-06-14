@@ -8,7 +8,7 @@
 // Import only from server code (queue processor / *.server.ts handlers).
 import {
   FALLBACK_SENDER,
-  PRIMARY_SENDER,
+  REPLY_TO_ADDRESS,
   formatSender,
 } from '@/lib/email-sender-policy'
 
