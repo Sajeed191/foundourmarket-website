@@ -280,21 +280,34 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
           <p className="text-base font-display mb-1">Be the first to ask</p>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">No questions yet — start the conversation and get answers from our team.</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <p className="py-10 text-center text-sm text-muted-foreground">No questions match “{search}”.</p>
       ) : (
         <ul className="space-y-4">
-          {items.map((q) => {
+          {filtered.map((q) => {
             const canDelete = isAdmin || q.is_mine;
             const canAnswer = isAdmin && !q.answer;
             const canEditQuestion = q.is_mine;
             const name = q.author_name || "Anonymous";
             return (
-              <li key={q.id} className="bg-card border border-border rounded-2xl p-5">
-                <div className="flex items-start gap-3">
-                  <div className="size-8 shrink-0 rounded-full bg-muted overflow-hidden grid place-items-center font-mono text-xs font-bold ring-1 ring-white/10">
+              <li key={q.id} className="bg-card border border-border rounded-2xl p-5 sm:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="size-11 shrink-0 rounded-full bg-muted overflow-hidden grid place-items-center font-display text-sm font-bold ring-1 ring-white/10">
                     {q.author_avatar ? <img src={q.author_avatar} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-display truncate">{name}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-display truncate">{name}</p>
+                      {q.answer ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-emerald-400">
+                          <CheckCircle2 className="size-2.5" /> Answered
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-amber-400">
+                          <Clock className="size-2.5" /> Pending
+                        </span>
+                      )}
+                    </div>
                     {editingQuestionId === q.id ? (
                       <div className="mt-2">
                         <textarea
