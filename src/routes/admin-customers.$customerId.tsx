@@ -119,6 +119,7 @@ function ProfileInner() {
   const notesListFn = useServerFn(listCustomerNotesFn);
   const noteAddFn = useServerFn(addCustomerNoteFn);
   const noteDelFn = useServerFn(deleteCustomerNoteFn);
+  const emailsFn = useServerFn(listCustomerEmailsFn);
 
   const [data, setData] = useState<CustomerProfile | null>(null);
   const [risk, setRisk] = useState<Risk | null>(null);
