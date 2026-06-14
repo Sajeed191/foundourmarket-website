@@ -321,6 +321,59 @@ export const softDeleteCustomerFn = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Restore / reactivate a customer from ANY restricted state (suspended, banned,
+ * deleted, ordering-blocked, reviews-disabled). Clears every restriction field,
+ * lifts the auth ban so they can sign in, sends a branded "Account Restored"
+ * email + in-app notification, and writes an audit log.
+ */
+export const restoreCustomerFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ customerId: z.string().uuid(), reason: z.string().trim().max(500).optional() }).parse(input),
+  )
+  .handler(async ({ data: input, context }) => {
+    const { userId } = context as { userId: string };
+    const { primaryRole } = await requireStaff(userId, CUST_STAFF, "customers.restore", input.customerId);
+
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({
+        account_status: "active",
+        ban_reason: null,
+        banned_at: null,
+        banned_by: null,
+        suspended_at: null,
+        suspended_by: null,
+        ordering_blocked: false,
+        reviews_disabled: false,
+        deleted_at: null,
+        deleted_by: null,
+      } as never)
+      .eq("id", input.customerId);
+    if (error) throw new Error(error.message);
+
+    // Lift any auth ban so the customer can sign in again.
+    try {
+      await supabaseAdmin.auth.admin.updateUserById(input.customerId, { ban_duration: "none" });
+    } catch (e) {
+      console.error("[customers.restore] ban clear failed", String(e));
+    }
+
+    // Branded restored email + in-app notification.
+    await fireLifecycleEvent({ customerId: input.customerId, event: "account-restored", reason: input.reason });
+
+    await logSecurity({
+      actorId: userId,
+      actorRole: primaryRole,
+      action: "customers.restore",
+      target: input.customerId,
+      success: true,
+      detail: { reason: input.reason ?? null },
+    });
+    return { ok: true };
+  });
+
 /** Toggle an ordering / reviews control flag for a customer. */
 export const setCustomerFlagFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
