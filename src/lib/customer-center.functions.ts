@@ -392,3 +392,137 @@ export const createCustomerTicketFn = createServerFn({ method: "POST" })
 
     return { id: ticket.id as string };
   });
+
+// ============================================================
+// Admin private notes for a customer (customer_notes table)
+// ============================================================
+
+export type CustomerNote = {
+  id: string;
+  note: string;
+  pinned: boolean;
+  author_id: string | null;
+  created_at: string;
+};
+
+/** List private admin notes for a customer (most recent / pinned first). */
+export const listCustomerNotesFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ customerId: z.string().uuid() }).parse(input))
+  .handler(async ({ data: input, context }) => {
+    const { userId } = context as { userId: string };
+    await requireStaff(userId, CUST_STAFF, "customers.notes.list", input.customerId);
+
+    const { data, error } = await supabaseAdmin
+      .from("customer_notes")
+      .select("id,note,pinned,author_id,created_at")
+      .eq("customer_id", input.customerId)
+      .order("pinned", { ascending: false })
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return { notes: (data ?? []) as CustomerNote[] };
+  });
+
+/** Add a private admin note to a customer. */
+export const addCustomerNoteFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        customerId: z.string().uuid(),
+        note: z.string().trim().min(1).max(2000),
+        pinned: z.boolean().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data: input, context }) => {
+    const { userId } = context as { userId: string };
+    const { primaryRole } = await requireStaff(userId, CUST_STAFF, "customers.notes.create", input.customerId);
+
+    const { data, error } = await supabaseAdmin
+      .from("customer_notes")
+      .insert({
+        customer_id: input.customerId,
+        note: input.note,
+        pinned: input.pinned ?? false,
+        author_id: userId,
+      })
+      .select("id,note,pinned,author_id,created_at")
+      .single();
+    if (error) throw new Error(error.message);
+
+    await logSecurity({
+      actorId: userId,
+      actorRole: primaryRole,
+      action: "customers.notes.create",
+      target: input.customerId,
+      success: true,
+    });
+    return { note: data as CustomerNote };
+  });
+
+/** Delete a private admin note. */
+export const deleteCustomerNoteFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ customerId: z.string().uuid(), noteId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data: input, context }) => {
+    const { userId } = context as { userId: string };
+    await requireStaff(userId, CUST_STAFF, "customers.notes.delete", input.customerId);
+
+    const { error } = await supabaseAdmin
+      .from("customer_notes")
+      .delete()
+      .eq("id", input.noteId)
+      .eq("customer_id", input.customerId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ============================================================
+// Reviews + wishlist for the customer 360 profile
+// ============================================================
+
+export type CustomerReview = {
+  id: string;
+  product_slug: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  created_at: string;
+};
+
+export type CustomerWishlistItem = {
+  id: string;
+  product_slug: string;
+  created_at: string;
+};
+
+export const getCustomerExtrasFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ customerId: z.string().uuid() }).parse(input))
+  .handler(async ({ data: input, context }) => {
+    const { userId } = context as { userId: string };
+    await requireStaff(userId, CUST_STAFF, "customers.extras.view", input.customerId);
+
+    const [{ data: reviews }, { data: wishlist }] = await Promise.all([
+      supabaseAdmin
+        .from("product_reviews")
+        .select("id,product_slug,rating,title,body,created_at")
+        .eq("user_id", input.customerId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabaseAdmin
+        .from("wishlist")
+        .select("id,product_slug,created_at")
+        .eq("user_id", input.customerId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+
+    return {
+      reviews: (reviews ?? []) as CustomerReview[],
+      wishlist: (wishlist ?? []) as CustomerWishlistItem[],
+    };
+  });
