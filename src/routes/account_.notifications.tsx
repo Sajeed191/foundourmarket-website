@@ -186,6 +186,8 @@ function Row({
   const cat = categoryOf(n);
   const { Icon, tone, dot } = CAT_META[cat];
   const unread = !n.read_at;
+  // Always route clicks through the centralized resolver (consistent, future-proof, no dead links).
+  const dest = resolveNotificationLink(n, false);
 
   const content = (
     <div className="flex items-start gap-3 p-4 sm:p-5">
