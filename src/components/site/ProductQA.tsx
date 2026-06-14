@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { MessageCircleQuestion, Loader2, Send, Trash2, CheckCircle2, Pencil } from "lucide-react";
+import { MessageCircleQuestion, Loader2, Send, Trash2, CheckCircle2, Pencil, Search, Clock, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -36,6 +36,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [questionDraft, setQuestionDraft] = useState("");
+  const [search, setSearch] = useState("");
   // Synchronous guard against rapid double taps (state updates are async).
   const submittingRef = useRef(false);
 
@@ -187,6 +188,21 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
   }
 
 
+  const answeredCount = items.filter((q) => q.answer).length;
+  const query = search.trim().toLowerCase();
+  const filtered = query
+    ? items.filter((it) => it.question.toLowerCase().includes(query) || (it.answer ?? "").toLowerCase().includes(query))
+    : items;
+
+  const POPULAR_TOPICS = [
+    { topic: "Shipping", a: "Most orders ship within 24–48 hours with full international tracking provided." },
+    { topic: "Warranty", a: "Every product is covered by our marketplace warranty and quality guarantee." },
+    { topic: "Returns", a: "Hassle-free returns are accepted within the protection window after delivery." },
+    { topic: "Compatibility", a: "Check the Specifications tab — compatibility details are listed per product." },
+    { topic: "Sizing", a: "Refer to the size guide on the product gallery for precise measurements." },
+    { topic: "Materials", a: "Material composition is listed in the product Description and Specs." },
+  ];
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16 border-t border-border">
       <div className="flex items-end justify-between flex-wrap gap-3 mb-8">
@@ -196,7 +212,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
             <MessageCircleQuestion className="size-6 text-accent" /> Questions & Answers
           </h2>
         </div>
-        <span className="text-xs font-mono text-muted-foreground">{items.length} {items.length === 1 ? "question" : "questions"}</span>
+        <span className="text-xs font-mono text-muted-foreground">{items.length} {items.length === 1 ? "question" : "questions"} · {answeredCount} answered</span>
       </div>
 
       <form onSubmit={submit} className="bg-card border border-border rounded-2xl p-4 sm:p-5 mb-8">
@@ -224,6 +240,32 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
         </div>
       </form>
 
+      {/* Frequently asked topics */}
+      <div className="mb-8">
+        <h3 className="mb-4 text-sm font-display tracking-tight">Frequently Asked Questions</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {POPULAR_TOPICS.map((t) => (
+            <div key={t.topic} className="rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-4">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-accent mb-1.5">{t.topic}</p>
+              <p className="text-[13px] text-muted-foreground leading-relaxed">{t.a}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Search */}
+      {items.length > 0 && (
+        <div className="relative mb-6">
+          <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search questions…"
+            className="w-full bg-card border border-border rounded-full pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-accent"
+          />
+        </div>
+      )}
+
 
       {loading ? (
         <div className="py-12 grid place-items-center"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
@@ -238,21 +280,34 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
           <p className="text-base font-display mb-1">Be the first to ask</p>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">No questions yet — start the conversation and get answers from our team.</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <p className="py-10 text-center text-sm text-muted-foreground">No questions match “{search}”.</p>
       ) : (
         <ul className="space-y-4">
-          {items.map((q) => {
+          {filtered.map((q) => {
             const canDelete = isAdmin || q.is_mine;
             const canAnswer = isAdmin && !q.answer;
             const canEditQuestion = q.is_mine;
             const name = q.author_name || "Anonymous";
             return (
-              <li key={q.id} className="bg-card border border-border rounded-2xl p-5">
-                <div className="flex items-start gap-3">
-                  <div className="size-8 shrink-0 rounded-full bg-muted overflow-hidden grid place-items-center font-mono text-xs font-bold ring-1 ring-white/10">
+              <li key={q.id} className="bg-card border border-border rounded-2xl p-5 sm:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="size-11 shrink-0 rounded-full bg-muted overflow-hidden grid place-items-center font-display text-sm font-bold ring-1 ring-white/10">
                     {q.author_avatar ? <img src={q.author_avatar} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-display truncate">{name}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-display truncate">{name}</p>
+                      {q.answer ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-emerald-400">
+                          <CheckCircle2 className="size-2.5" /> Answered
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-amber-400">
+                          <Clock className="size-2.5" /> Pending
+                        </span>
+                      )}
+                    </div>
                     {editingQuestionId === q.id ? (
                       <div className="mt-2">
                         <textarea
@@ -281,7 +336,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
                       <p className="text-sm leading-relaxed mt-1 break-words whitespace-pre-wrap">{q.question}</p>
                     )}
                     <p className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                      {new Date(q.created_at).toLocaleDateString()}
+                      {new Date(q.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -305,15 +360,23 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
 
 
                 {q.answer && editingId !== q.id ? (
-                  <div className="mt-4 ml-11 flex items-start gap-3 p-4 bg-accent/5 border border-accent/20 rounded-xl">
-                    <span className="size-8 shrink-0 rounded-full overflow-hidden grid place-items-center ring-1 ring-accent/30 bg-card">
+                  <div className="mt-4 ml-[3.75rem] flex items-start gap-3 p-4 sm:p-5 bg-accent/[0.07] border border-accent/25 rounded-2xl shadow-[0_16px_40px_-30px_oklch(0_0_0/0.9)]">
+                    <span className="size-10 shrink-0 rounded-full overflow-hidden grid place-items-center ring-1 ring-accent/40 bg-card">
                       <img src={brandLogo} alt="FoundOurMarket" className="w-full h-full object-cover" />
                     </span>
-                    <div className="flex-1">
-                      <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-accent mb-1">
-                        <CheckCircle2 className="size-3" /> FoundOurMarket · Official answer
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span className="text-sm font-display">FoundOurMarket Official</span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-accent">
+                          <BadgeCheck className="size-2.5" /> Verified Staff
+                        </span>
                       </div>
                       <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{q.answer}</p>
+                      {q.answered_at && (
+                        <p className="mt-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground/70">
+                          Answered {new Date(q.answered_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                        </p>
+                      )}
                     </div>
                     {isAdmin && (
                       <button
@@ -329,7 +392,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
                     )}
                   </div>
                 ) : canAnswer || (isAdmin && editingId === q.id) ? (
-                  <div className="mt-4 ml-11 flex gap-2">
+                  <div className="mt-4 ml-[3.75rem] flex gap-2">
                     <input
                       value={answerDrafts[q.id] ?? ""}
                       onChange={(e) => setAnswerDrafts((d) => ({ ...d, [q.id]: e.target.value }))}
@@ -355,7 +418,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
                     )}
                   </div>
                 ) : (
-                  <p className="mt-3 ml-11 text-[11px] font-mono text-muted-foreground italic">Awaiting reply…</p>
+                  <p className="mt-3 ml-[3.75rem] text-[11px] font-mono text-muted-foreground italic">Awaiting reply…</p>
                 )}
               </li>
             );
