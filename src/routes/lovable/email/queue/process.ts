@@ -61,6 +61,85 @@ async function moveToDlq(
   }
 }
 
+/**
+ * Governed last-resort delivery via the approved Gmail backup identity.
+ * Called ONLY after the primary provider is unavailable (403 config failure,
+ * TTL expiry, or retries exhausted). On success the email is logged as `sent`
+ * and removed from the queue; on failure it falls through to the DLQ.
+ * Every attempt is recorded in security_audit_log. Reply-To is always the
+ * official support mailbox (enforced inside sendViaFallback).
+ */
+async function attemptGovernedFallback(
+  supabase: SupabaseClient<any, any>,
+  queue: string,
+  msg: { msg_id: number; message: Record<string, any> },
+  reason: string
+): Promise<boolean> {
+  const payload = msg.message
+
+  await supabase.from('security_audit_log').insert({
+    action: 'email.delivery.primary_exhausted',
+    target: String(payload.to ?? ''),
+    success: false,
+    detail: {
+      queue,
+      message_id: payload.message_id ?? null,
+      template: payload.label ?? null,
+      reason: reason.slice(0, 500),
+    },
+  })
+
+  const result = await sendViaFallback({
+    to: payload.to,
+    subject: payload.subject,
+    html: payload.html,
+    text: payload.text,
+  })
+
+  if (result.ok) {
+    await supabase.from('email_send_log').insert({
+      message_id: payload.message_id,
+      template_name: payload.label || queue,
+      recipient_email: payload.to,
+      status: 'sent',
+      error_message: `governed_gmail_fallback (primary failed: ${reason.slice(0, 200)})`,
+    })
+    await supabase.from('security_audit_log').insert({
+      action: 'email.sender.fallback_success',
+      target: String(payload.to ?? ''),
+      success: true,
+      detail: {
+        queue,
+        message_id: payload.message_id ?? null,
+        template: payload.label ?? null,
+        provider_message_id: result.providerMessageId ?? null,
+      },
+    })
+    const { error: delError } = await supabase.rpc('delete_email', {
+      queue_name: queue,
+      message_id: msg.msg_id,
+    })
+    if (delError) {
+      console.error('Failed to delete fallback-sent message from queue', { queue, msg_id: msg.msg_id, error: delError })
+    }
+    return true
+  }
+
+  await supabase.from('security_audit_log').insert({
+    action: 'email.sender.fallback_failed',
+    target: String(payload.to ?? ''),
+    success: false,
+    detail: {
+      queue,
+      message_id: payload.message_id ?? null,
+      template: payload.label ?? null,
+      error: (result.error ?? 'unknown').slice(0, 500),
+    },
+  })
+  await moveToDlq(supabase, queue, msg, `${reason} | fallback failed: ${result.error ?? 'unknown'}`)
+  return false
+}
+
 export const Route = createFileRoute("/lovable/email/queue/process")({
   server: {
     handlers: {
