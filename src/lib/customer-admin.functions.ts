@@ -204,9 +204,11 @@ export const updateCustomerFn = createServerFn({ method: "POST" })
 
 const GMAIL_GW = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
-function encodeRawEmail(to: string, subject: string, body: string): string {
+function encodeRawEmail(from: string, to: string, subject: string, body: string): string {
   const msg = [
+    `From: ${from}`,
     `To: ${to}`,
+    `Reply-To: ${PRIMARY_SENDER.email}`,
     `Subject: ${subject}`,
     'Content-Type: text/plain; charset="UTF-8"',
     "",
