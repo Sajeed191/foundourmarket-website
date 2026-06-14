@@ -203,7 +203,60 @@ function ProfileInner() {
     }
   }, [profileFn, riskFn, extrasFn, customerId]);
 
-  useEffect(() => { load(); loadNotes(); loadEmails(); }, [load, loadNotes, loadEmails]);
+  useEffect(() => { load(); loadNotes(); loadEmails(); loadTags(); loadTimeline(); }, [load, loadNotes, loadEmails, loadTags, loadTimeline]);
+
+  // Quick-action handlers — each re-verifies staff server-side.
+  const doStatus = useCallback(async (status: "suspended" | "banned") => {
+    const reason = window.prompt(`Reason for ${status === "banned" ? "ban" : "suspension"} (optional):`) ?? undefined;
+    try {
+      await statusFn({ data: { customerId, status, reason } });
+      toast.success(`Customer ${status}`);
+      load();
+    } catch (e: any) { toast.error(e?.message ?? "Action failed"); }
+  }, [statusFn, customerId, load]);
+
+  const doRestore = useCallback(async () => {
+    try {
+      await restoreFn({ data: { customerId } });
+      toast.success("Customer restored");
+      load();
+    } catch (e: any) { toast.error(e?.message ?? "Action failed"); }
+  }, [restoreFn, customerId, load]);
+
+  const doResetPw = useCallback(async () => {
+    if (!window.confirm("Send a password-reset email to this customer?")) return;
+    try {
+      await resetPwFn({ data: { customerId } });
+      toast.success("Password reset email sent");
+      loadEmails();
+    } catch (e: any) { toast.error(e?.message ?? "Action failed"); }
+  }, [resetPwFn, customerId, loadEmails]);
+
+  const doNotify = useCallback(async () => {
+    const title = window.prompt("Notification title:")?.trim();
+    if (!title) return;
+    const body = window.prompt("Notification message:")?.trim();
+    if (!body) return;
+    try {
+      await notifyFn({ data: { customerId, title, body } });
+      toast.success("Notification sent");
+      loadTimeline();
+    } catch (e: any) { toast.error(e?.message ?? "Action failed"); }
+  }, [notifyFn, customerId, loadTimeline]);
+
+  const addTag = useCallback(async (tag: string) => {
+    try {
+      const res = await tagAddFn({ data: { customerId, tag: tag as (typeof CUSTOMER_TAGS)[number] } });
+      setTags(res.tags ?? []);
+    } catch (e: any) { toast.error(e?.message ?? "Could not add tag"); }
+  }, [tagAddFn, customerId]);
+
+  const removeTag = useCallback(async (tag: string) => {
+    try {
+      const res = await tagRemoveFn({ data: { customerId, tag } });
+      setTags(res.tags ?? []);
+    } catch (e: any) { toast.error(e?.message ?? "Could not remove tag"); }
+  }, [tagRemoveFn, customerId]);
 
   // Scroll to the section referenced by the URL hash once data is rendered
   // (e.g. /admin-customers/:id#orders or #addresses from the actions menu).
