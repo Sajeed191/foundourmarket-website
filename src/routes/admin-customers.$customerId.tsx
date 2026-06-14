@@ -332,7 +332,7 @@ function ProfileInner() {
       </Section>
 
       {/* SECTION 3 — Orders Timeline */}
-      <Section icon={ShoppingBag} title="Orders Timeline" count={data.orders.length}>
+      <Section id="orders" icon={ShoppingBag} title="Orders Timeline" count={data.orders.length}>
         {data.orders.length === 0 ? <Empty /> : (
           <div className="space-y-2">
             {data.orders.map((o) => (
