@@ -187,18 +187,23 @@ export const returnActionFn = createServerFn({ method: "POST" })
     let label: string | null = null;
     let title = "";
     let body = "";
+    let category: "return" | "refund" = "return";
+    let emailEvent: import("./return-emails.server").ReturnEmailEvent | null = null;
+    let refundAmt: number | undefined;
 
     switch (input.action) {
       case "approve":
         patch.status = "approved";
         title = "Return approved";
         body = "Your return request has been approved. A return label will follow shortly.";
+        emailEvent = "return-approved";
         break;
       case "reject":
         patch.status = "rejected";
         patch.resolved_at = new Date().toISOString();
         title = "Return update";
         body = input.note ?? "We were unable to approve this return. Please contact support for details.";
+        emailEvent = "return-rejected";
         break;
       case "generate_label":
         patch.status = "approved";
@@ -217,8 +222,11 @@ export const returnActionFn = createServerFn({ method: "POST" })
         patch.resolved_at = new Date().toISOString();
         if (input.refundAmount != null) patch.refund_amount = input.refundAmount;
         const amt = input.refundAmount ?? (Number(ret.refund_amount) || 0);
+        refundAmt = amt || undefined;
+        category = "refund";
         title = "Return refunded";
         body = `Your return has been refunded${amt ? ` (₹${Math.round(amt).toLocaleString()})` : ""}.`;
+        emailEvent = "refund-completed";
         break;
       }
     }
@@ -232,7 +240,30 @@ export const returnActionFn = createServerFn({ method: "POST" })
       .eq("id", input.returnId);
     if (uErr) throw new Error(uErr.message);
 
-    await notifyCustomer(ret.user_id ?? (await orderUserId(ret.order_id)), "return_update", title, body, input.action === "generate_label" ? "high" : "normal");
+    // Centralized notification (in-app + audit + timeline), preference-aware.
+    const customerId = ret.user_id ?? (await orderUserId(ret.order_id));
+    const { notifyCustomer: notify } = await import("./customer-notify.server");
+    await notify({
+      userId: customerId,
+      category,
+      type: category === "refund" ? "refund_update" : "return_update",
+      title,
+      body,
+      link: `/account/returns?return=${input.returnId}&order=${ret.order_id}`,
+      priority: input.action === "generate_label" ? "high" : "normal",
+      data: { return_id: input.returnId, order_id: ret.order_id },
+      actorId: userId,
+    });
+
+    // Branded email for the lifecycle stages that warrant one.
+    if (emailEvent) {
+      await enqueueReturnEmail(
+        ret.order_id,
+        emailEvent,
+        { refundAmount: refundAmt, reason: input.action === "reject" ? input.note ?? null : null },
+        `return-${input.returnId}-${emailEvent}`,
+      );
+    }
 
     await logSecurity({
       actorId: userId,
