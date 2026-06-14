@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+import heroProductImg from "@/assets/hero-product.jpg";
 import { ProductCard } from "@/components/site/ProductCard";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
