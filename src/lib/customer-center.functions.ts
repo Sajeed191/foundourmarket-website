@@ -739,7 +739,7 @@ export type SecurityAuditRow = {
   target: string | null;
   source_ip: string | null;
   success: boolean;
-  detail: Record<string, unknown>;
+  detail: Record<string, any>;
   created_at: string;
 };
 
