@@ -561,16 +561,17 @@ function Home() {
             </div>
 
             {/* live activity pill */}
-            <div className="absolute -top-1 right-6 inline-flex items-center gap-2 rounded-full glass-strong ring-1 ring-white/10 px-4 py-2 shadow-[var(--shadow-float)]">
+            <div className="absolute z-20 -top-3 right-4 inline-flex items-center gap-2 rounded-full glass-strong ring-1 ring-white/10 px-4 py-2 shadow-[var(--shadow-float)]">
               <span className="size-1.5 rounded-full bg-accent animate-glow" />
               <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">142 shopping now</span>
             </div>
 
             {/* glowing verified chip */}
-            <div className="absolute bottom-2 left-2 inline-flex items-center gap-2 rounded-full glass-strong ring-1 ring-accent/30 px-4 py-2 shadow-[0_0_40px_-10px_oklch(0.74_0.19_49/0.6)]">
+            <div className="absolute z-20 -bottom-3 left-2 inline-flex items-center gap-2 rounded-full glass-strong ring-1 ring-accent/30 px-4 py-2 shadow-[0_0_40px_-10px_oklch(0.74_0.19_49/0.6)]">
               <BadgeCheck className="size-4 text-accent" />
               <span className="text-[11px] font-semibold text-foreground">Verified Suppliers</span>
             </div>
+
           </div>
         </div>
       </section>
