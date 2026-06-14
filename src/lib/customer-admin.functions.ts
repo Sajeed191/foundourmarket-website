@@ -28,6 +28,14 @@ export const setCustomerStatusFn = createServerFn({ method: "POST" })
     const { userId } = context as { userId: string };
     const { primaryRole } = await requireStaff(userId, CUST_STAFF, "customers.status.set", input.customerId);
 
+    // Capture prior state so we can fire the right restoration event when lifting.
+    const { data: prior } = await supabaseAdmin
+      .from("profiles")
+      .select("account_status")
+      .eq("id", input.customerId)
+      .maybeSingle();
+    const wasBanned = (prior as { account_status?: string } | null)?.account_status === "banned";
+
     const now = new Date().toISOString();
     const patch: Record<string, unknown> = {
       account_status: input.status,
