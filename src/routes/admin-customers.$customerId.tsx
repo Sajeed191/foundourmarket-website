@@ -12,6 +12,7 @@ import {
   getCustomerProfileFn, getCustomerRiskFn, createCustomerTicketFn, type CustomerProfile,
   getCustomerExtrasFn, type CustomerReview, type CustomerWishlistItem,
   listCustomerNotesFn, addCustomerNoteFn, deleteCustomerNoteFn, type CustomerNote,
+  listCustomerEmailsFn, type CustomerEmail,
 } from "@/lib/customer-center.functions";
 import { computeTier, computeHealth, initialsOf, type TierMeta } from "@/lib/customer-tiers";
 
