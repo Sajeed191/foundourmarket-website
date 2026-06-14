@@ -28,24 +28,8 @@ async function orderUserId(orderId: string): Promise<string | null> {
   return data?.user_id ?? null;
 }
 
-async function notifyCustomer(
-  userId: string | null,
-  type: string,
-  title: string,
-  body: string,
-  priority: "low" | "normal" | "high" = "normal",
-) {
-  if (!userId) return;
-  await supabaseAdmin.from("notifications").insert({
-    user_id: userId,
-    type,
-    title,
-    body,
-    link: "/account/orders",
-    priority,
-    data: {} as never,
-  });
-}
+
+
 
 /* ------------------------------ Refund actions ---------------------------- */
 
