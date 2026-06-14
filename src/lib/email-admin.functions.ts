@@ -531,6 +531,32 @@ export const getEmailDiagnostics = createServerFn({ method: "POST" })
     const queueDepth = queues.reduce((a, q) => a + Number(q.queued ?? 0) + Number(q.in_flight ?? 0), 0);
     const dlqCount = queues.reduce((a, q) => a + Number(q.dlq ?? 0), 0);
 
+    // ── Delivery routing (primary vs governed Gmail fallback) ────────────────
+    const isFallbackRow = (r: any) =>
+      (r.metadata && r.metadata.delivery_method === "fallback") ||
+      (typeof r.error_message === "string" && r.error_message.startsWith("governed_gmail_fallback"));
+    const sentRows = latest.filter((r) => r.status === "sent" || r.status === "delivered");
+    const fallbackDeliveries = sentRows.filter(isFallbackRow).length;
+    const primaryDeliveries = sentRows.length - fallbackDeliveries;
+
+    const auditRows = (auditRes.data as { action: string }[] | null) ?? [];
+    const fallbackSuccess = auditRows.filter((a) => a.action === "email.sender.fallback_success").length;
+    const fallbackFailed = auditRows.filter((a) => a.action === "email.sender.fallback_failed").length;
+    const fallbackAttempts = fallbackSuccess + fallbackFailed;
+    const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 1000) / 10 : 0);
+
+    const routing = {
+      primaryDeliveries,
+      fallbackDeliveries,
+      primaryExhausted: auditRows.filter((a) => a.action === "email.delivery.primary_exhausted").length,
+      fallbackAttempts,
+      fallbackSuccess,
+      fallbackFailed,
+      fallbackSuccessRate: pct(fallbackSuccess, fallbackAttempts),
+      fallbackFailureRate: pct(fallbackFailed, fallbackAttempts),
+      primaryShare: pct(primaryDeliveries, sentRows.length),
+    };
+
     return {
       range: data.range,
       fetchedAt: new Date().toISOString(),
@@ -547,6 +573,7 @@ export const getEmailDiagnostics = createServerFn({ method: "POST" })
         dlqCount,
         suppressionCount: suppressions.length,
       },
+      routing,
       lastSuccessful,
       lastFailed,
       recentFailures,
