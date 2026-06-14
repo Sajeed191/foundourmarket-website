@@ -407,7 +407,23 @@ function Home() {
               maskImage: "radial-gradient(ellipse at center, black 30%, transparent 70%)",
             }}
           />
+          {/* Desktop-only cinematic ambient depth */}
+          <div
+            className="hidden lg:block absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(60% 50% at 78% 35%, oklch(0.74 0.19 49 / 0.10), transparent 70%), radial-gradient(50% 50% at 12% 70%, oklch(0.74 0.19 49 / 0.06), transparent 70%)",
+            }}
+          />
+          <div
+            className="hidden lg:block absolute inset-0 opacity-[0.025] mix-blend-soft-light"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+            }}
+          />
         </div>
+
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div
