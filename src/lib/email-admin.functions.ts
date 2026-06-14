@@ -462,10 +462,10 @@ export const getEmailDiagnostics = createServerFn({ method: "POST" })
     const ms = data.range === "24h" ? 864e5 : data.range === "30d" ? 30 * 864e5 : 7 * 864e5;
     const since = new Date(Date.now() - ms).toISOString();
 
-    const [logRes, supRes, queueRes] = await Promise.all([
+    const [logRes, supRes, queueRes, auditRes] = await Promise.all([
       supabaseAdmin
         .from("email_send_log")
-        .select("id, message_id, template_name, recipient_email, status, error_message, created_at")
+        .select("id, message_id, template_name, recipient_email, status, error_message, metadata, created_at")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(5000),
@@ -475,6 +475,12 @@ export const getEmailDiagnostics = createServerFn({ method: "POST" })
         .order("created_at", { ascending: false })
         .limit(2000),
       supabaseAdmin.rpc("email_queue_status"),
+      supabaseAdmin
+        .from("security_audit_log")
+        .select("action, created_at")
+        .in("action", ["email.sender.fallback_success", "email.sender.fallback_failed", "email.delivery.primary_exhausted"])
+        .gte("created_at", since)
+        .limit(5000),
     ]);
 
     if (logRes.error) throw new Error(logRes.error.message);
@@ -525,6 +531,32 @@ export const getEmailDiagnostics = createServerFn({ method: "POST" })
     const queueDepth = queues.reduce((a, q) => a + Number(q.queued ?? 0) + Number(q.in_flight ?? 0), 0);
     const dlqCount = queues.reduce((a, q) => a + Number(q.dlq ?? 0), 0);
 
+    // ── Delivery routing (primary vs governed Gmail fallback) ────────────────
+    const isFallbackRow = (r: any) =>
+      (r.metadata && r.metadata.delivery_method === "fallback") ||
+      (typeof r.error_message === "string" && r.error_message.startsWith("governed_gmail_fallback"));
+    const sentRows = latest.filter((r) => r.status === "sent" || r.status === "delivered");
+    const fallbackDeliveries = sentRows.filter(isFallbackRow).length;
+    const primaryDeliveries = sentRows.length - fallbackDeliveries;
+
+    const auditRows = (auditRes.data as { action: string }[] | null) ?? [];
+    const fallbackSuccess = auditRows.filter((a) => a.action === "email.sender.fallback_success").length;
+    const fallbackFailed = auditRows.filter((a) => a.action === "email.sender.fallback_failed").length;
+    const fallbackAttempts = fallbackSuccess + fallbackFailed;
+    const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 1000) / 10 : 0);
+
+    const routing = {
+      primaryDeliveries,
+      fallbackDeliveries,
+      primaryExhausted: auditRows.filter((a) => a.action === "email.delivery.primary_exhausted").length,
+      fallbackAttempts,
+      fallbackSuccess,
+      fallbackFailed,
+      fallbackSuccessRate: pct(fallbackSuccess, fallbackAttempts),
+      fallbackFailureRate: pct(fallbackFailed, fallbackAttempts),
+      primaryShare: pct(primaryDeliveries, sentRows.length),
+    };
+
     return {
       range: data.range,
       fetchedAt: new Date().toISOString(),
@@ -541,6 +573,7 @@ export const getEmailDiagnostics = createServerFn({ method: "POST" })
         dlqCount,
         suppressionCount: suppressions.length,
       },
+      routing,
       lastSuccessful,
       lastFailed,
       recentFailures,
