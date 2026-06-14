@@ -73,9 +73,9 @@ function CopyBtn({ value, label }: { value: string | null | undefined; label?: s
   );
 }
 
-function Section({ icon: Icon, title, count, children }: { icon: typeof User; title: string; count?: number; children: React.ReactNode }) {
+function Section({ icon: Icon, title, count, children, id }: { icon: typeof User; title: string; count?: number; children: React.ReactNode; id?: string }) {
   return (
-    <div className="glass border border-white/10 rounded-2xl p-4">
+    <div id={id} className="glass border border-white/10 rounded-2xl p-4 scroll-mt-24">
       <div className="flex items-center gap-2 mb-3">
         <Icon className="size-4 text-accent" />
         <h2 className="text-sm font-semibold">{title}</h2>
