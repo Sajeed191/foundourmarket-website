@@ -166,6 +166,36 @@ function DiagnosticsInner() {
         <StatCard label="Suppressions" value={counts.suppressionCount ?? 0} icon={ShieldBan} />
       </div>
 
+      {/* Delivery routing: primary vs governed Gmail fallback */}
+      {(() => {
+        const rt = data?.routing ?? {};
+        const totalDeliv = (rt.primaryDeliveries ?? 0) + (rt.fallbackDeliveries ?? 0);
+        const primaryShare = rt.primaryShare ?? 0;
+        return (
+          <div className="glass border border-white/10 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="size-4 text-accent" />
+              <h2 className="text-sm font-semibold">Delivery Routing</h2>
+              <span className="text-[10px] font-mono text-muted-foreground">({totalDeliv} delivered)</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatCard label="Primary (support@)" value={rt.primaryDeliveries ?? 0} sub="support@foundourmarket.com" icon={CheckCircle2} tone="text-emerald-400" />
+              <StatCard label="Fallback (gmail)" value={rt.fallbackDeliveries ?? 0} sub="foundourmarket@gmail.com" icon={MailWarning} tone={rt.fallbackDeliveries ? "text-amber-400" : undefined} />
+              <StatCard label="Fallback success" value={`${rt.fallbackSuccessRate ?? 0}%`} sub={`${rt.fallbackSuccess ?? 0}/${rt.fallbackAttempts ?? 0} attempts`} icon={CheckCircle2} tone="text-emerald-400" />
+              <StatCard label="Fallback failure" value={`${rt.fallbackFailureRate ?? 0}%`} sub={`${rt.fallbackFailed ?? 0} failed`} icon={XCircle} tone={rt.fallbackFailed ? "text-destructive" : undefined} />
+            </div>
+            <div className="mt-3 h-2 w-full rounded-full bg-amber-400/20 overflow-hidden flex">
+              <div className="h-full bg-emerald-400 transition-all" style={{ width: `${primaryShare}%` }} title={`Primary ${primaryShare}%`} />
+            </div>
+            <p className="mt-2 text-[10px] text-muted-foreground">
+              {primaryShare}% delivered via primary sender · {(rt.primaryExhausted ?? 0)} primary exhaustion events triggered fallback.
+              Fallback is reserved for primary-provider outages only.
+            </p>
+          </div>
+        );
+      })()}
+
+
       {/* Last successful / failed */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="glass border border-white/10 rounded-2xl p-4">
