@@ -201,22 +201,33 @@ export function CustomerActionsMenu({ c, onChanged }: Props) {
 }
 
 function Shell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; document.removeEventListener("keydown", onKey); };
+  }, [onClose]);
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] grid place-items-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[130] flex items-stretch sm:items-center sm:justify-center bg-black/60 backdrop-blur-sm sm:p-4 animate-in fade-in duration-200"
       onClick={(e) => { e.stopPropagation(); onClose(); }}
     >
       <div
-        className="w-full max-w-md rounded-2xl border border-white/10 bg-[oklch(0.16_0.01_260)] p-5 shadow-2xl"
+        className="flex w-full flex-col h-[100dvh] sm:h-auto sm:max-w-md sm:max-h-[90vh] border border-white/10 bg-[oklch(0.16_0.01_260)] shadow-2xl rounded-none sm:rounded-2xl animate-in slide-in-from-bottom sm:zoom-in-95 sm:slide-in-from-bottom-0 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold">{title}</h3>
-          <button onClick={onClose} className="rounded-full p-1 text-muted-foreground hover:bg-white/10"><X className="size-4" /></button>
+        <div className="flex items-center justify-between gap-2 px-5 py-4 border-b border-white/10 pt-[max(1rem,env(safe-area-inset-top))]">
+          <h3 className="text-sm font-semibold truncate">{title}</h3>
+          <button onClick={onClose} className="rounded-full p-1 shrink-0 text-muted-foreground hover:bg-white/10"><X className="size-4" /></button>
         </div>
-        {children}
+        <div className="flex-1 overflow-y-auto px-5 py-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          {children}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
