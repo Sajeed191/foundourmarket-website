@@ -1,6 +1,8 @@
 import { sendLovableEmail } from '@lovable.dev/email-js'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
+import { sendViaFallback } from '@/lib/email-fallback.server'
+import { FALLBACK_FROM, PRIMARY_SENDER } from '@/lib/email-sender-policy'
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
