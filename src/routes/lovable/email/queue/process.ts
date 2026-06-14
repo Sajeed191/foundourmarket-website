@@ -144,6 +144,9 @@ async function tryFallbackDelivery(
   return true
 }
 
+export const Route = createFileRoute("/lovable/email/queue/process")({
+
+
 
   server: {
     handlers: {
