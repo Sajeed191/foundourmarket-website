@@ -18,6 +18,9 @@ import { openInvoice } from "@/lib/order-invoice";
 
 export const Route = createFileRoute("/admin-orders-ops")({
   head: () => ({ meta: [{ title: "Order Operations Center — Admin" }] }),
+  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
+    q: typeof search.q === "string" ? search.q : undefined,
+  }),
   component: OrderOpsPage,
 });
 
