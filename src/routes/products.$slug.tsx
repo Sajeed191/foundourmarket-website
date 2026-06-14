@@ -38,6 +38,7 @@ import { ImageLightbox } from "@/components/site/ImageLightbox";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductDescription } from "@/components/site/ProductDescription";
 import { ProductHighlights, LiveActivity, TrustGuarantee } from "@/components/site/ProductTrustBlocks";
+import { SellerTrustCard, ProductComparison } from "@/components/site/ProductSellerTrust";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/products/$slug")({
@@ -817,6 +818,9 @@ function ProductPage() {
               ))}
             </div>
 
+            <SellerTrustCard product={product} />
+
+
 
 
 
@@ -883,6 +887,10 @@ function ProductPage() {
           <RelatedProducts product={product} />
         </div>
       </LazyMount>
+      <LazyMount minHeight={320}>
+        <ProductComparison product={product} />
+      </LazyMount>
+
       <LazyMount minHeight={260}>
         <ProductHighlights />
       </LazyMount>
