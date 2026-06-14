@@ -28,6 +28,7 @@ export type CustomerRow = {
   full_name: string | null;
   email: string | null;
   phone: string | null;
+  avatar_url: string | null;
   country: string | null;
   total_orders: number;
   lifetime_spend: number;
