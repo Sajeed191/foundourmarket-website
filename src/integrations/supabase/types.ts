@@ -6069,6 +6069,7 @@ export type Database = {
       }
       is_security_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_security_staff: { Args: { _user_id?: string }; Returns: boolean }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id?: string }; Returns: boolean }
       log_admin_activity: {
         Args: {
