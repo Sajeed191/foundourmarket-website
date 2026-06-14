@@ -189,9 +189,9 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
 
 
   const answeredCount = items.filter((q) => q.answer).length;
-  const q = search.trim().toLowerCase();
-  const filtered = q
-    ? items.filter((it) => it.question.toLowerCase().includes(q) || (it.answer ?? "").toLowerCase().includes(q))
+  const query = search.trim().toLowerCase();
+  const filtered = query
+    ? items.filter((it) => it.question.toLowerCase().includes(query) || (it.answer ?? "").toLowerCase().includes(query))
     : items;
 
   const POPULAR_TOPICS = [
