@@ -234,7 +234,34 @@ export const sendCustomerEmailFn = createServerFn({ method: "POST" })
       },
       body: JSON.stringify({ raw }),
     });
-    if (!res.ok) {
+    const sentOk = res.ok;
+    let providerMsgId: string | null = null;
+    if (sentOk) {
+      try {
+        const j = (await res.clone().json().catch(() => null)) as { id?: string } | null;
+        providerMsgId = j?.id ?? null;
+      } catch {
+        /* ignore */
+      }
+    }
+
+    // PRIORITY 5 — persist email history (subject, body, sender, recipient, status).
+    try {
+      await supabaseAdmin.from("email_logs").insert({
+        user_id: input.customerId,
+        recipient: input.to,
+        template: "admin-direct",
+        subject: input.subject,
+        status: sentOk ? "sent" : "failed",
+        provider: "gmail",
+        provider_message_id: providerMsgId,
+        payload: { body: input.body, sender: "support@foundourmarket.com" } as never,
+      });
+    } catch (e) {
+      console.error("[customers.email.send] email_logs insert failed", String(e));
+    }
+
+    if (!sentOk) {
       const detail = await res.text().catch(() => "");
       throw new Error(`Failed to send email (${res.status}). ${detail.slice(0, 200)}`);
     }
