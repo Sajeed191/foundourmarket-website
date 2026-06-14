@@ -208,7 +208,7 @@ function encodeRawEmail(from: string, to: string, subject: string, body: string)
   const msg = [
     `From: ${from}`,
     `To: ${to}`,
-    `Reply-To: ${PRIMARY_SENDER.email}`,
+    `Reply-To: ${REPLY_TO_ADDRESS}`,
     `Subject: ${subject}`,
     'Content-Type: text/plain; charset="UTF-8"',
     "",
