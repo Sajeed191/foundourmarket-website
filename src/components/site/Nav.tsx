@@ -14,6 +14,7 @@ const SearchCommand = lazy(() =>
 );
 import { NotificationBell } from "@/components/site/NotificationBell";
 import { CurrencySwitcher } from "@/components/site/CurrencySwitcher";
+import { MegaMenu } from "@/components/site/MegaMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { loadCategories, type Category } from "@/lib/use-categories";
 import {
@@ -105,15 +106,8 @@ export function Nav() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const navLinks = [
-    { to: "/", label: "Shop" },
-    { to: "/category/$slug", params: { slug: "electronics" }, label: "Electronics" },
-    
-    { to: "/category/$slug", params: { slug: "home" }, label: "Home" },
-    { to: "/category/$slug", params: { slug: "beauty" }, label: "Beauty" },
-    { to: "/category/$slug", params: { slug: "pet-supplies" }, label: "Pet Supplies" },
-    { to: "/deals", label: "Deals" },
-  ] as const;
+
+
 
   // Lazily-loaded merchandising data — only fetched the first time the drawer
   // opens, so non-shopping pages never pay for it (and we reuse cached data).
@@ -224,20 +218,8 @@ export function Nav() {
               </span>
             </Link>
 
-            {/* Desktop nav links — centered */}
-            <div className="hidden md:flex flex-1 justify-center items-center gap-1 lg:gap-2 text-[13px] lg:text-[14px] font-medium text-muted-foreground">
-              {navLinks.map((l) => (
-                <Link
-                  key={l.label}
-                  to={l.to}
-                  params={"params" in l ? l.params : undefined as never}
-                  activeProps={{ className: "text-foreground bg-white/5" }}
-                  className="px-3.5 py-1.5 lg:px-4 lg:py-2 rounded-full hover:text-foreground hover:bg-white/5 lg:hover:ring-1 lg:hover:ring-white/10 transition-all duration-200 whitespace-nowrap"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
+            {/* Desktop nav links — premium mega menu (centered) */}
+            <MegaMenu />
 
             {/* Zone 3 — Search • Notifications • Cart */}
             <div className="shrink-0 ml-auto flex items-center gap-0.5 sm:gap-1">
