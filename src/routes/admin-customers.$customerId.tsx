@@ -568,7 +568,7 @@ function ProfileInner() {
         )}
       </Section>
 
-
+      {showTicket && (
         <TicketModal
           onClose={() => setShowTicket(false)}
           onCreate={async (subject, priority) => {
