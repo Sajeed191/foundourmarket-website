@@ -218,8 +218,8 @@ function Row({
         unread ? "border-accent/30 bg-accent/[0.05]" : "border-border"
       }`}
     >
-      {n.link ? (
-        <Link to={n.link} onClick={() => unread && onRead(n.id)}>{content}</Link>
+      {dest ? (
+        <Link to={dest} onClick={() => unread && onRead(n.id)}>{content}</Link>
       ) : (
         <div onClick={() => unread && onRead(n.id)} className={unread ? "cursor-pointer" : ""}>{content}</div>
       )}
