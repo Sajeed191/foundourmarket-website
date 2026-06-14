@@ -360,15 +360,23 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
 
 
                 {q.answer && editingId !== q.id ? (
-                  <div className="mt-4 ml-11 flex items-start gap-3 p-4 bg-accent/5 border border-accent/20 rounded-xl">
-                    <span className="size-8 shrink-0 rounded-full overflow-hidden grid place-items-center ring-1 ring-accent/30 bg-card">
+                  <div className="mt-4 ml-[3.75rem] flex items-start gap-3 p-4 sm:p-5 bg-accent/[0.07] border border-accent/25 rounded-2xl shadow-[0_16px_40px_-30px_oklch(0_0_0/0.9)]">
+                    <span className="size-10 shrink-0 rounded-full overflow-hidden grid place-items-center ring-1 ring-accent/40 bg-card">
                       <img src={brandLogo} alt="FoundOurMarket" className="w-full h-full object-cover" />
                     </span>
-                    <div className="flex-1">
-                      <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-accent mb-1">
-                        <CheckCircle2 className="size-3" /> FoundOurMarket · Official answer
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span className="text-sm font-display">FoundOurMarket Official</span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-accent">
+                          <BadgeCheck className="size-2.5" /> Verified Staff
+                        </span>
                       </div>
                       <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{q.answer}</p>
+                      {q.answered_at && (
+                        <p className="mt-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground/70">
+                          Answered {new Date(q.answered_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                        </p>
+                      )}
                     </div>
                     {isAdmin && (
                       <button
@@ -384,7 +392,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
                     )}
                   </div>
                 ) : canAnswer || (isAdmin && editingId === q.id) ? (
-                  <div className="mt-4 ml-11 flex gap-2">
+                  <div className="mt-4 ml-[3.75rem] flex gap-2">
                     <input
                       value={answerDrafts[q.id] ?? ""}
                       onChange={(e) => setAnswerDrafts((d) => ({ ...d, [q.id]: e.target.value }))}
