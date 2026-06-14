@@ -407,8 +407,51 @@ function ProfileInner() {
         </div>
       </div>
 
+      {/* Quick Actions — full support console without navigating away */}
+      <Section icon={Zap} title="Quick Actions">
+        <div className="flex flex-wrap gap-2">
+          {p.email && (
+            <a href={`mailto:${p.email}`} className="qa-btn"><Mail className="size-3.5" /> Send Email</a>
+          )}
+          <button onClick={doNotify} className="qa-btn"><Send className="size-3.5" /> Send Notification</button>
+          <button onClick={() => setShowTicket(true)} className="qa-btn"><Plus className="size-3.5" /> Add Ticket</button>
+          <button onClick={doResetPw} className="qa-btn"><KeyRound className="size-3.5" /> Reset Password</button>
+          <button onClick={() => doStatus("suspended")} className="qa-btn text-amber-300"><ShieldAlert className="size-3.5" /> Suspend</button>
+          <button onClick={() => doStatus("banned")} className="qa-btn text-destructive"><Ban className="size-3.5" /> Ban</button>
+          <button onClick={doRestore} className="qa-btn text-emerald-300"><ShieldCheck className="size-3.5" /> Restore</button>
+          <Link to="/admin-orders-ops" className="qa-btn"><ShoppingBag className="size-3.5" /> View Orders</Link>
+          <Link to="/admin-shipments" className="qa-btn"><Truck className="size-3.5" /> View Shipments</Link>
+        </div>
+      </Section>
 
-      <Section icon={User} title="Customer Intelligence">
+      {/* Segmentation Tags */}
+      <Section icon={Tag} title="Tags" count={tags.length}>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {tags.length === 0 ? (
+            <span className="text-xs text-muted-foreground">No tags yet.</span>
+          ) : tags.map((t) => (
+            <span key={t} className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 text-accent px-3 py-1 text-[11px] font-medium">
+              {t}
+              <button onClick={() => removeTag(t)} aria-label={`Remove ${t}`} className="hover:text-destructive">
+                <X className="size-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {CUSTOMER_TAGS.filter((t) => !tags.includes(t)).map((t) => (
+            <button
+              key={t}
+              onClick={() => addTag(t)}
+              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:border-accent/40 transition-colors"
+            >
+              <Plus className="size-3" /> {t}
+            </button>
+          ))}
+        </div>
+      </Section>
+
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Stat label="Name" value={p.full_name ?? "—"} />
           <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
