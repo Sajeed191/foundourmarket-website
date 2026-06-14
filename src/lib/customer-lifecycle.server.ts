@@ -20,6 +20,10 @@ export type LifecycleEvent =
   | 'reviews-disabled'
   | 'account-deleted'
   | 'account-restored'
+  | 'account-reactivated'
+  | 'ban-removed'
+  | 'ordering-unblocked'
+  | 'reviews-restored'
   | 'password-reset'
 
 const NOTIFY_COPY: Record<LifecycleEvent, { title: string; body: (reason?: string) => string; link: string }> = {
