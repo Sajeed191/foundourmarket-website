@@ -293,7 +293,12 @@ export const softDeleteCustomerFn = createServerFn({ method: "POST" })
       .eq("id", input.customerId);
     if (error) throw new Error(error.message);
 
-    // Revoke active sessions on deletion.
+    // Block login + revoke active sessions on deletion.
+    try {
+      await supabaseAdmin.auth.admin.updateUserById(input.customerId, { ban_duration: "876600h" });
+    } catch (e) {
+      console.error("[customers.delete.soft] auth block failed", String(e));
+    }
     try {
       await (supabaseAdmin.auth.admin as unknown as {
         signOut: (id: string, scope?: string) => Promise<unknown>;
