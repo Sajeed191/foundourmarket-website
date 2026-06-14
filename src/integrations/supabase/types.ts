@@ -1334,13 +1334,16 @@ export type Database = {
         Row: {
           attempts: number
           created_at: string
+          delivered_at: string | null
           error: string | null
           id: string
+          message_id: string | null
           payload: Json | null
           provider: string
           provider_message_id: string | null
           recipient: string
           related_order_id: string | null
+          sent_at: string | null
           status: string
           subject: string | null
           template: string
@@ -1350,13 +1353,16 @@ export type Database = {
         Insert: {
           attempts?: number
           created_at?: string
+          delivered_at?: string | null
           error?: string | null
           id?: string
+          message_id?: string | null
           payload?: Json | null
           provider?: string
           provider_message_id?: string | null
           recipient: string
           related_order_id?: string | null
+          sent_at?: string | null
           status?: string
           subject?: string | null
           template: string
@@ -1366,13 +1372,16 @@ export type Database = {
         Update: {
           attempts?: number
           created_at?: string
+          delivered_at?: string | null
           error?: string | null
           id?: string
+          message_id?: string | null
           payload?: Json | null
           provider?: string
           provider_message_id?: string | null
           recipient?: string
           related_order_id?: string | null
+          sent_at?: string | null
           status?: string
           subject?: string | null
           template?: string
