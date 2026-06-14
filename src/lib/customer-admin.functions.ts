@@ -281,7 +281,14 @@ export const sendCustomerEmailFn = createServerFn({ method: "POST" })
         status: sentOk ? "sent" : "failed",
         provider: "gmail",
         provider_message_id: providerMsgId,
-        payload: { body: input.body, sender: "support@foundourmarket.com" } as never,
+        payload: { body: input.body, sender: FALLBACK_SENDER.email, sender_tier: "secondary" } as never,
+      });
+      await recordSenderUsage(senderFrom, {
+        recipient: input.to,
+        template: "admin-direct",
+        context: "admin customer message",
+        status: sentOk ? "sent" : "failed",
+        userId,
       });
     } catch (e) {
       console.error("[customers.email.send] email_logs insert failed", String(e));
