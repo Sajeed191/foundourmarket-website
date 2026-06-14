@@ -25,6 +25,10 @@ import {
   outForDeliveryTemplate,
   deliveredTemplate,
   refundProcessedTemplate,
+  paymentFailedTemplate,
+  orderProcessingTemplate,
+  orderPackedTemplate,
+  orderCancelledTemplate,
 } from './order-emails'
 import {
   welcomeTemplate,
@@ -43,7 +47,24 @@ import {
   reviewsDisabledTemplate,
   accountDeletedTemplate,
   accountRestoredTemplate,
+  accountReactivatedTemplate,
+  banRemovedTemplate,
+  orderingUnblockedTemplate,
+  reviewsRestoredTemplate,
 } from './lifecycle-emails'
+import {
+  passwordChangedTemplate,
+  accountRecoveryTemplate,
+  loginNewDeviceTemplate,
+  accountLockedTemplate,
+  suspiciousActivityTemplate,
+} from './security-emails'
+import {
+  returnRequestedTemplate,
+  returnApprovedTemplate,
+  returnRejectedTemplate,
+  refundInitiatedTemplate,
+} from './return-emails'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'test-email': testEmailTemplate,
