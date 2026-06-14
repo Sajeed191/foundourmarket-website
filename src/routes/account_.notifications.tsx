@@ -5,7 +5,7 @@ import {
   Bell, Check, Trash2, ArrowLeft, Settings as SettingsIcon, CheckCheck, Search, ShoppingBag, X,
 } from "lucide-react";
 import {
-  useNotifications, categoryOf, type NotificationCategory, type Notification,
+  useNotifications, categoryOf, resolveNotificationLink, type NotificationCategory, type Notification,
 } from "@/lib/notifications";
 import { CAT_META, CATEGORY_ORDER, timeAgo } from "@/lib/notification-meta";
 
