@@ -336,7 +336,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
                       <p className="text-sm leading-relaxed mt-1 break-words whitespace-pre-wrap">{q.question}</p>
                     )}
                     <p className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                      {new Date(q.created_at).toLocaleDateString()}
+                      {new Date(q.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
