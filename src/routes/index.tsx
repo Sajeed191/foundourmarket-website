@@ -379,6 +379,14 @@ function Home() {
     ? categories.filter((c) => !c.parent_id)
     : categories.slice(0, categoryLimit);
 
+  // Desktop-only hero showcase products (decorative floating cards).
+  const heroShowcase = useMemo(
+    () => (newArrivals.length ? newArrivals : trending).slice(0, 4),
+    [newArrivals, trending],
+  );
+  const trendingChips = ["Wireless earbuds", "Smart watch", "Linen shirt", "Ceramic mug", "Air fryer"];
+
+
   return (
     <>
       {/* Sticky announcement bar — homepage only */}
