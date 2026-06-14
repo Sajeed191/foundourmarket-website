@@ -418,7 +418,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
                     )}
                   </div>
                 ) : (
-                  <p className="mt-3 ml-11 text-[11px] font-mono text-muted-foreground italic">Awaiting reply…</p>
+                  <p className="mt-3 ml-[3.75rem] text-[11px] font-mono text-muted-foreground italic">Awaiting reply…</p>
                 )}
               </li>
             );
