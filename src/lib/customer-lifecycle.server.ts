@@ -7,11 +7,13 @@ import * as React from 'react'
 import { supabaseAdmin } from '@/integrations/supabase/client.server'
 import { TEMPLATES } from '@/lib/email-templates/registry'
 import type { LifecycleEmailProps } from '@/lib/email-templates/lifecycle-emails'
+import { PRIMARY_FROM } from '@/lib/email-sender-policy'
+import { enforceSender } from '@/lib/email-sender-policy.server'
 
 const SITE_NAME = 'FoundOurMarket'
 const SENDER_DOMAIN = 'notify.foundourmarket.com'
 const FROM_DOMAIN = 'foundourmarket.com'
-const FROM = `FoundOurMarket Support <support@${FROM_DOMAIN}>`
+const FROM = PRIMARY_FROM
 
 export type LifecycleEvent =
   | 'account-suspended'
