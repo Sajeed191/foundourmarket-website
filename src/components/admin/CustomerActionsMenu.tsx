@@ -31,6 +31,7 @@ export function CustomerActionsMenu({ c, onChanged }: Props) {
   const resetPw = useServerFn(resetCustomerPasswordFn);
   const updateCustomer = useServerFn(updateCustomerFn);
   const sendEmail = useServerFn(sendCustomerEmailFn);
+  const restore = useServerFn(restoreCustomerFn);
 
   useEffect(() => {
     if (!open) return;
