@@ -648,8 +648,9 @@ function MiniStat({ label, value, icon, tone }: { label: string; value: string; 
 
 function OrderOpsPage() {
   const { data, staffPerf, loading, refreshing, error, refresh } = useOrderOperations();
+  const { q: qParam } = Route.useSearch();
   const [sel, setSel] = useState<EnrichedOrder | null>(null);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(qParam ?? "");
   const [actionFilter, setActionFilter] = useState<{ label: string; ids: Set<string> } | null>(null);
 
   const filtered = useMemo(() => {
