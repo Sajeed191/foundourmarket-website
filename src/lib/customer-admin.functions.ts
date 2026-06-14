@@ -103,7 +103,11 @@ export const setCustomerStatusFn = createServerFn({ method: "POST" })
     return { ok: true, status: input.status };
   });
 
-/** Update a customer's editable profile fields (name, phone, and optionally email). */
+/**
+ * Update a customer's editable profile fields plus admin-controlled state:
+ * name, phone, email, account status, internal notes, tags and tier override.
+ * Every change is persisted and audited.
+ */
 export const updateCustomerFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -113,6 +117,10 @@ export const updateCustomerFn = createServerFn({ method: "POST" })
         full_name: z.string().trim().max(160).optional(),
         phone: z.string().trim().max(40).optional(),
         email: z.string().trim().email().max(254).optional(),
+        account_status: z.enum(["active", "suspended", "banned", "deleted"]).optional(),
+        note: z.string().trim().max(2000).optional(),
+        tags: z.array(z.string().trim().min(1).max(40)).max(30).optional(),
+        tier_override: z.string().trim().max(40).nullable().optional(),
       })
       .parse(input),
   )
@@ -123,6 +131,8 @@ export const updateCustomerFn = createServerFn({ method: "POST" })
     const patch: Record<string, unknown> = {};
     if (input.full_name !== undefined) patch.full_name = input.full_name || null;
     if (input.phone !== undefined) patch.phone = input.phone || null;
+    if (input.account_status !== undefined) patch.account_status = input.account_status;
+    if (input.tier_override !== undefined) patch.tier_override = input.tier_override || null;
     if (Object.keys(patch).length > 0) {
       const { error } = await supabaseAdmin.from("profiles").update(patch as never).eq("id", input.customerId);
       if (error) throw new Error(error.message);
@@ -135,13 +145,43 @@ export const updateCustomerFn = createServerFn({ method: "POST" })
       if (ae) throw new Error(ae.message);
     }
 
+    // Internal note (append a new audited note row).
+    if (input.note && input.note.length > 0) {
+      const { error: ne } = await supabaseAdmin.from("customer_notes").insert({
+        customer_id: input.customerId,
+        note: input.note,
+        pinned: false,
+        author_id: userId,
+      });
+      if (ne) throw new Error(ne.message);
+    }
+
+    // Tags — replace the full set when provided.
+    if (input.tags !== undefined) {
+      await supabaseAdmin.from("customer_tags").delete().eq("customer_id", input.customerId);
+      const clean = Array.from(new Set(input.tags.map((t) => t.trim()).filter(Boolean)));
+      if (clean.length > 0) {
+        const { error: te } = await supabaseAdmin
+          .from("customer_tags")
+          .insert(clean.map((tag) => ({ customer_id: input.customerId, tag })) as never);
+        if (te) throw new Error(te.message);
+      }
+    }
+
     await logSecurity({
       actorId: userId,
       actorRole: primaryRole,
       action: "customers.update",
       target: input.customerId,
       success: true,
-      detail: { fields: Object.keys({ ...patch, ...(input.email ? { email: 1 } : {}) }) },
+      detail: {
+        fields: Object.keys({
+          ...patch,
+          ...(input.email ? { email: 1 } : {}),
+          ...(input.note ? { note: 1 } : {}),
+          ...(input.tags !== undefined ? { tags: 1 } : {}),
+        }),
+      },
     });
     return { ok: true };
   });
