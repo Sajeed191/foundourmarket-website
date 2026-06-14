@@ -57,6 +57,41 @@ export const setCustomerStatusFn = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("profiles").update(patch as never).eq("id", input.customerId);
     if (error) throw new Error(error.message);
 
+    // PRIORITY 3 — Ban session termination: revoke sessions + block re-auth.
+    if (input.status === "banned") {
+      try {
+        await supabaseAdmin.auth.admin.updateUserById(input.customerId, {
+          ban_duration: "876600h", // ~100 years — effectively permanent
+        });
+      } catch (e) {
+        console.error("[customers.status.set] ban auth update failed", String(e));
+      }
+      try {
+        // Revoke all active refresh tokens / sessions for the user.
+        await (supabaseAdmin.auth.admin as unknown as {
+          signOut: (id: string, scope?: string) => Promise<unknown>;
+        }).signOut(input.customerId, "global");
+      } catch (e) {
+        console.error("[customers.status.set] session revoke failed", String(e));
+      }
+    } else {
+      // Lifting suspension/ban — clear any auth ban so the user can sign in.
+      try {
+        await supabaseAdmin.auth.admin.updateUserById(input.customerId, {
+          ban_duration: "none",
+        });
+      } catch (e) {
+        console.error("[customers.status.set] ban clear failed", String(e));
+      }
+    }
+
+    // PRIORITY 1 + 2 — branded email + in-app notification for suspend/ban.
+    if (input.status === "banned") {
+      await fireLifecycleEvent({ customerId: input.customerId, event: "account-banned", reason: input.reason });
+    } else if (input.status === "suspended") {
+      await fireLifecycleEvent({ customerId: input.customerId, event: "account-suspended", reason: input.reason });
+    }
+
     await logSecurity({
       actorId: userId,
       actorRole: primaryRole,
