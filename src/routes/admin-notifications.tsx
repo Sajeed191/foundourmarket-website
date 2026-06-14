@@ -353,6 +353,7 @@ function NotificationsCenter() {
           {filtered.map((n) => (
             <Row key={n.id} n={n} selected={selected.has(n.id)} onToggle={() => toggleSel(n.id)}
               onRead={(r) => markRead([n.id], r)} onArchive={(a) => archive([n.id], a)} onRemove={() => remove([n.id])}
+              onOpen={() => { setDetail(n); if (!n.read_at) markRead([n.id], true); }}
               archivedView={view === "archived"} />
           ))}
         </ul>
