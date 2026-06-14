@@ -24,7 +24,7 @@ const MUTED = '#8a96ad'
 const ACCENT = '#ff8a3d'
 
 export interface SupportCustomerEmailProps {
-  kind?: 'created' | 'reply' | 'resolved' | 'closed'
+  kind?: 'created' | 'reply' | 'resolved' | 'closed' | 'escalated'
   ticketSubject?: string
   ticketShort?: string
   status?: string
@@ -185,6 +185,7 @@ const CUSTOMER_COPY: Record<NonNullable<SupportCustomerEmailProps['kind']>, { ba
   reply: { badge: 'New reply', heading: () => 'Support replied to you', intro: 'Our support team just replied to your ticket. Tap below to read the full message and respond.' },
   resolved: { badge: 'Resolved', heading: () => 'Your ticket is resolved', intro: "We've marked your ticket as resolved. If anything still needs attention, just reply and we'll reopen it." },
   closed: { badge: 'Closed', heading: () => 'Your ticket is closed', intro: 'This ticket is now closed. If you need anything else, open a new ticket and we’ll be happy to help.' },
+  escalated: { badge: 'Escalated', heading: () => 'Your ticket has been escalated', intro: "We've escalated your ticket to a senior specialist for priority handling. We'll be in touch shortly with an update." },
 }
 
 const SupportCustomerEmail = (props: SupportCustomerEmailProps) => {
@@ -256,6 +257,7 @@ export const supportCustomerTemplate: TemplateEntry = {
       case 'created': return `We received your support request${t}`
       case 'resolved': return `Your support ticket is resolved${t}`
       case 'closed': return `Your support ticket is closed${t}`
+      case 'escalated': return `Your support ticket has been escalated${t}`
       default: return `New reply to your support ticket${t}`
     }
   },

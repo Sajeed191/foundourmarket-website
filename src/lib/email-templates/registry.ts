@@ -25,6 +25,10 @@ import {
   outForDeliveryTemplate,
   deliveredTemplate,
   refundProcessedTemplate,
+  paymentFailedTemplate,
+  orderProcessingTemplate,
+  orderPackedTemplate,
+  orderCancelledTemplate,
 } from './order-emails'
 import {
   welcomeTemplate,
@@ -43,7 +47,24 @@ import {
   reviewsDisabledTemplate,
   accountDeletedTemplate,
   accountRestoredTemplate,
+  accountReactivatedTemplate,
+  banRemovedTemplate,
+  orderingUnblockedTemplate,
+  reviewsRestoredTemplate,
 } from './lifecycle-emails'
+import {
+  passwordChangedTemplate,
+  accountRecoveryTemplate,
+  loginNewDeviceTemplate,
+  accountLockedTemplate,
+  suspiciousActivityTemplate,
+} from './security-emails'
+import {
+  returnRequestedTemplate,
+  returnApprovedTemplate,
+  returnRejectedTemplate,
+  refundInitiatedTemplate,
+} from './return-emails'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'test-email': testEmailTemplate,
@@ -65,4 +86,24 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'reviews-disabled': reviewsDisabledTemplate,
   'account-deleted': accountDeletedTemplate,
   'account-restored': accountRestoredTemplate,
+  'account-reactivated': accountReactivatedTemplate,
+  'ban-removed': banRemovedTemplate,
+  'ordering-unblocked': orderingUnblockedTemplate,
+  'reviews-restored': reviewsRestoredTemplate,
+  // Order lifecycle
+  'payment-failed': paymentFailedTemplate,
+  'order-processing': orderProcessingTemplate,
+  'order-packed': orderPackedTemplate,
+  'order-cancelled': orderCancelledTemplate,
+  // Return & refund
+  'return-requested': returnRequestedTemplate,
+  'return-approved': returnApprovedTemplate,
+  'return-rejected': returnRejectedTemplate,
+  'refund-initiated': refundInitiatedTemplate,
+  // Security (highest priority)
+  'password-changed': passwordChangedTemplate,
+  'account-recovery': accountRecoveryTemplate,
+  'login-new-device': loginNewDeviceTemplate,
+  'account-locked': accountLockedTemplate,
+  'suspicious-activity': suspiciousActivityTemplate,
 }

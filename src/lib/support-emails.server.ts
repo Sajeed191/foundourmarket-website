@@ -24,6 +24,7 @@ export type SupportEvent =
   | 'staff_reply'
   | 'resolved'
   | 'closed'
+  | 'escalated'
 
 function deterministicId(seed: string): string {
   const h = createHash('sha256').update(seed).digest('hex')
@@ -37,6 +38,9 @@ async function enqueue(opts: {
   fromUser: string
   props: Record<string, unknown>
   unsub?: { oneClickUrl: string; pageUrl: string } | null
+  /** When set, mirror the send into email_logs for Customer-360 timeline visibility. */
+  timelineUserId?: string | null
+  /** Subject shown on the timeline row (defaults to the rendered subject). */
 }): Promise<boolean> {
   const entry = TEMPLATES[opts.templateName]
   if (!entry) return false
@@ -147,6 +151,24 @@ async function enqueue(opts: {
     return false
   }
 
+  // Customer-360 timeline visibility: mirror into email_logs. Never throw.
+  if (opts.timelineUserId) {
+    try {
+      await supabaseAdmin.from('email_logs').insert({
+        user_id: opts.timelineUserId,
+        recipient: opts.recipient,
+        template: opts.templateName,
+        subject,
+        status: 'sent',
+        provider: 'lovable-queue',
+        provider_message_id: opts.messageId,
+        payload: opts.props as never,
+      })
+    } catch (err) {
+      console.error('[support-emails] email_logs insert failed', { template: opts.templateName, err: String(err) })
+    }
+  }
+
   return true
 }
 
@@ -183,9 +205,13 @@ export async function enqueueSupportEmail(
   const customerEmail = ownerRes?.user?.email?.trim().toLowerCase() ?? null
 
   // ---- Customer-facing events ----
-  if (['created', 'staff_reply', 'resolved', 'closed'].includes(event) && customerEmail) {
+  if (['created', 'staff_reply', 'resolved', 'closed', 'escalated'].includes(event) && customerEmail) {
     const kind: SupportCustomerEmailProps['kind'] =
-      event === 'created' ? 'created' : event === 'staff_reply' ? 'reply' : event === 'resolved' ? 'resolved' : 'closed'
+      event === 'created' ? 'created'
+      : event === 'staff_reply' ? 'reply'
+      : event === 'resolved' ? 'resolved'
+      : event === 'escalated' ? 'escalated'
+      : 'closed'
     const unsub = await buildUnsubscribeLinks(customerEmail)
     const props: SupportCustomerEmailProps = {
       kind,
@@ -196,7 +222,7 @@ export async function enqueueSupportEmail(
       ctaUrl: `${PUBLIC_BASE}/account/support`,
       unsubscribeUrl: unsub?.pageUrl,
     }
-    // Per (ticket,event) for create/resolve/close; per-message for replies.
+    // Per (ticket,event) for create/resolve/close/escalate; per-message for replies.
     const seed =
       event === 'staff_reply'
         ? `support:${ticketId}:staff_reply:${lastMsg?.created_at ?? randomUUID()}`
@@ -208,6 +234,7 @@ export async function enqueueSupportEmail(
       fromUser: 'support',
       props: props as Record<string, unknown>,
       unsub,
+      timelineUserId: ticket.user_id as string,
     })
   }
 

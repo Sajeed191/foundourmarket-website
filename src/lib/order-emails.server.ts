@@ -80,7 +80,7 @@ export async function enqueueOrderEmail(
 
   const { data: order, error } = await supabaseAdmin
     .from('orders')
-    .select('id, contact_email, total, currency, tracking_number, carrier, shipping_address')
+    .select('id, user_id, contact_email, total, currency, tracking_number, carrier, shipping_address')
     .eq('id', orderId)
     .maybeSingle()
 
@@ -199,6 +199,26 @@ export async function enqueueOrderEmail(
       error_message: msg,
     })
     return { ok: false, reason: 'enqueue_threw' }
+  }
+
+  // Customer-360 timeline visibility: mirror the send into `email_logs` (read by
+  // the customer timeline). Resolve user_id from the order. Never throw.
+  try {
+    const userId = (order.user_id as string | null) ?? null
+    if (userId) {
+      await supabaseAdmin.from('email_logs').insert({
+        user_id: userId,
+        recipient,
+        template: event,
+        subject,
+        status: 'sent',
+        provider: 'lovable-queue',
+        provider_message_id: messageId,
+        payload: { event, orderId } as never,
+      })
+    }
+  } catch (err) {
+    console.error('[order-emails] email_logs insert failed', { event, orderId, err: String(err) })
   }
 
   return { ok: true }

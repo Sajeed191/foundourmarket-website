@@ -28,6 +28,14 @@ export const setCustomerStatusFn = createServerFn({ method: "POST" })
     const { userId } = context as { userId: string };
     const { primaryRole } = await requireStaff(userId, CUST_STAFF, "customers.status.set", input.customerId);
 
+    // Capture prior state so we can fire the right restoration event when lifting.
+    const { data: prior } = await supabaseAdmin
+      .from("profiles")
+      .select("account_status")
+      .eq("id", input.customerId)
+      .maybeSingle();
+    const wasBanned = (prior as { account_status?: string } | null)?.account_status === "banned";
+
     const now = new Date().toISOString();
     const patch: Record<string, unknown> = {
       account_status: input.status,
@@ -85,11 +93,17 @@ export const setCustomerStatusFn = createServerFn({ method: "POST" })
       }
     }
 
-    // PRIORITY 1 + 2 — branded email + in-app notification for suspend/ban.
+    // PRIORITY 1 + 2 — branded email + in-app notification for every transition.
     if (input.status === "banned") {
       await fireLifecycleEvent({ customerId: input.customerId, event: "account-banned", reason: input.reason });
     } else if (input.status === "suspended") {
       await fireLifecycleEvent({ customerId: input.customerId, event: "account-suspended", reason: input.reason });
+    } else if (input.status === "active") {
+      await fireLifecycleEvent({
+        customerId: input.customerId,
+        event: wasBanned ? "ban-removed" : "account-reactivated",
+        reason: input.reason,
+      });
     }
 
     await logSecurity({
@@ -396,13 +410,13 @@ export const setCustomerFlagFn = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("profiles").update(patch as never).eq("id", input.customerId);
     if (error) throw new Error(error.message);
 
-    // PRIORITY 1 + 2 — email + notification when a restriction is turned ON.
-    if (input.value) {
-      await fireLifecycleEvent({
-        customerId: input.customerId,
-        event: input.flag === "ordering_blocked" ? "ordering-blocked" : "reviews-disabled",
-      });
-    }
+    // PRIORITY 1 + 2 — email + notification whenever a restriction is toggled.
+    await fireLifecycleEvent({
+      customerId: input.customerId,
+      event: input.flag === "ordering_blocked"
+        ? (input.value ? "ordering-blocked" : "ordering-unblocked")
+        : (input.value ? "reviews-disabled" : "reviews-restored"),
+    });
 
     await logSecurity({
       actorId: userId,
