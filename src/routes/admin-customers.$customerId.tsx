@@ -166,7 +166,7 @@ function ProfileInner() {
     }
   }, [profileFn, riskFn, extrasFn, customerId]);
 
-  useEffect(() => { load(); loadNotes(); }, [load, loadNotes]);
+  useEffect(() => { load(); loadNotes(); loadEmails(); }, [load, loadNotes, loadEmails]);
 
   // Scroll to the section referenced by the URL hash once data is rendered
   // (e.g. /admin-customers/:id#orders or #addresses from the actions menu).
