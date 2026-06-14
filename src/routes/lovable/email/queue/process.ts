@@ -1,7 +1,6 @@
 import { sendLovableEmail } from '@lovable.dev/email-js'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
-import { sendViaFallback } from '@/lib/email-fallback.server'
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
@@ -59,91 +58,6 @@ async function moveToDlq(
   if (error) {
     console.error('Failed to move message to DLQ', { queue, msg_id: msg.msg_id, reason, error })
   }
-}
-
-/**
- * Governed last-resort delivery via the approved Gmail backup identity.
- * Called ONLY after the primary provider is unavailable (403 config failure,
- * TTL expiry, or retries exhausted). On success the email is logged as `sent`
- * and removed from the queue; on failure it falls through to the DLQ.
- * Every attempt is recorded in security_audit_log. Reply-To is always the
- * official support mailbox (enforced inside sendViaFallback).
- */
-async function attemptGovernedFallback(
-  supabase: SupabaseClient<any, any>,
-  queue: string,
-  msg: { msg_id: number; message: Record<string, any> },
-  reason: string
-): Promise<boolean> {
-  const payload = msg.message
-
-  await supabase.from('security_audit_log').insert({
-    action: 'email.delivery.primary_exhausted',
-    target: String(payload.to ?? ''),
-    success: false,
-    detail: {
-      queue,
-      message_id: payload.message_id ?? null,
-      template: payload.label ?? null,
-      reason: reason.slice(0, 500),
-    },
-  })
-
-  const result = await sendViaFallback({
-    to: payload.to,
-    subject: payload.subject,
-    html: payload.html,
-    text: payload.text,
-  })
-
-  if (result.ok) {
-    await supabase.from('email_send_log').insert({
-      message_id: payload.message_id,
-      template_name: payload.label || queue,
-      recipient_email: payload.to,
-      status: 'sent',
-      error_message: `governed_gmail_fallback (primary failed: ${reason.slice(0, 200)})`,
-      metadata: {
-        delivery_method: 'fallback',
-        sender: 'foundourmarket@gmail.com',
-        reply_to: 'support@foundourmarket.com',
-        primary_failure_reason: reason.slice(0, 300),
-      },
-    })
-    await supabase.from('security_audit_log').insert({
-      action: 'email.sender.fallback_success',
-      target: String(payload.to ?? ''),
-      success: true,
-      detail: {
-        queue,
-        message_id: payload.message_id ?? null,
-        template: payload.label ?? null,
-        provider_message_id: result.providerMessageId ?? null,
-      },
-    })
-    const { error: delError } = await supabase.rpc('delete_email', {
-      queue_name: queue,
-      message_id: msg.msg_id,
-    })
-    if (delError) {
-      console.error('Failed to delete fallback-sent message from queue', { queue, msg_id: msg.msg_id, error: delError })
-    }
-    return true
-  }
-
-  await supabase.from('security_audit_log').insert({
-    action: 'email.sender.fallback_failed',
-    target: String(payload.to ?? ''),
-    success: false,
-    detail: {
-      queue,
-      message_id: payload.message_id ?? null,
-      template: payload.label ?? null,
-      error: (result.error ?? 'unknown').slice(0, 500),
-    },
-  })
-  await moveToDlq(supabase, queue, msg, `${reason} | fallback failed: ${result.error ?? 'unknown'}`)
-  return false
 }
 
 export const Route = createFileRoute("/lovable/email/queue/process")({
@@ -269,14 +183,14 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
                   queued_at: queuedAt,
                   ttl_minutes: ttlMinutes[queue],
                 })
-                await attemptGovernedFallback(supabase, queue, msg, `TTL exceeded (${ttlMinutes[queue]} minutes)`)
+                await moveToDlq(supabase, queue, msg, `TTL exceeded (${ttlMinutes[queue]} minutes)`)
                 continue
               }
             }
 
-            // Retries exhausted: try the governed Gmail fallback before the DLQ.
+            // Move to DLQ if max failed send attempts reached.
             if (failedAttempts >= MAX_RETRIES) {
-              await attemptGovernedFallback(supabase, queue, msg, `Max retries (${MAX_RETRIES}) exceeded (attempted ${failedAttempts} times)`)
+              await moveToDlq(supabase, queue, msg, `Max retries (${MAX_RETRIES}) exceeded (attempted ${failedAttempts} times)`)
               continue
             }
 
@@ -331,11 +245,6 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
                 template_name: payload.label || queue,
                 recipient_email: payload.to,
                 status: 'sent',
-                metadata: {
-                  delivery_method: 'primary',
-                  sender: 'support@foundourmarket.com',
-                  reply_to: 'support@foundourmarket.com',
-                },
               })
 
               // Delete from queue
@@ -381,13 +290,11 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
                 return Response.json({ processed: totalProcessed, stopped: 'rate_limited' })
               }
 
-              // 403s are permanent configuration/authorization failures for the
-              // primary provider (e.g. domain_not_verified, no_matching_sender).
-              // Retrying the primary won't help, so route straight to the governed
-              // Gmail fallback; only DLQ if the fallback also fails.
+              // 403s are permanent configuration or authorization failures for this
+              // message, so move straight to DLQ and stop processing the rest of the batch.
               if (isForbidden(error)) {
-                await attemptGovernedFallback(supabase, queue, msg, errorMsg.slice(0, 1000))
-                continue
+                await moveToDlq(supabase, queue, msg, errorMsg.slice(0, 1000))
+                return Response.json({ processed: totalProcessed, stopped: 'forbidden' })
               }
 
               // Log non-429 failures to track real retry attempts.
