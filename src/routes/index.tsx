@@ -301,16 +301,16 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
 
 /**
  * Responsive category count — renders only the cards each breakpoint needs
- * (mobile 6, tablet 7, desktop 9) instead of hiding cards with CSS.
+ * (mobile 5, tablet 7, desktop 7+1 shop-all = 4 + 4) instead of hiding cards with CSS.
  * SSR-safe: reads the real width on mount and updates on resize.
  */
 function useCategoryLimit() {
   const get = () => {
-    if (typeof window === "undefined") return 9;
+    if (typeof window === "undefined") return 7;
     const w = window.innerWidth;
-    if (w >= 1024) return 9;
-    if (w >= 768) return 7;
-    return 5;
+    if (w >= 1024) return 7;   // desktop: 4 + 3 categories, shop-all card fills 8th slot
+    if (w >= 768) return 7;    // tablet: 4 + 3 categories
+    return 5;                  // mobile: 2 rows of 2 + 1 shop-all
   };
   const [limit, setLimit] = useState(get);
   useEffect(() => {
