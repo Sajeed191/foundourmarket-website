@@ -524,7 +524,7 @@ function Home() {
           </div>
 
           {/* RIGHT — cinematic featured showcase (desktop only) */}
-          <div aria-hidden className="hidden lg:block relative h-[580px] xl:h-[640px]">
+          <div aria-hidden className="hidden lg:block relative h-[580px] xl:h-[640px] lg:mt-6">
             {/* ambient cinematic depth */}
             <div className="absolute inset-0 -z-10">
               <div className="orb animate-orb" style={{ width: 600, height: 600, top: "2%", left: "12%", background: "var(--gradient-ember)" }} />
