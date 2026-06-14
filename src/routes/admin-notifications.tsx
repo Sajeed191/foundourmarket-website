@@ -100,6 +100,7 @@ function NotificationsCenter() {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showPrefs, setShowPrefs] = useState(false);
+  const [detail, setDetail] = useState<AdminNotification | null>(null);
 
   // preferences
   const [mode, setMode] = useState<PrefMode>("all");
