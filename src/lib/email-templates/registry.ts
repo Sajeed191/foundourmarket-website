@@ -86,4 +86,24 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'reviews-disabled': reviewsDisabledTemplate,
   'account-deleted': accountDeletedTemplate,
   'account-restored': accountRestoredTemplate,
+  'account-reactivated': accountReactivatedTemplate,
+  'ban-removed': banRemovedTemplate,
+  'ordering-unblocked': orderingUnblockedTemplate,
+  'reviews-restored': reviewsRestoredTemplate,
+  // Order lifecycle
+  'payment-failed': paymentFailedTemplate,
+  'order-processing': orderProcessingTemplate,
+  'order-packed': orderPackedTemplate,
+  'order-cancelled': orderCancelledTemplate,
+  // Return & refund
+  'return-requested': returnRequestedTemplate,
+  'return-approved': returnApprovedTemplate,
+  'return-rejected': returnRejectedTemplate,
+  'refund-initiated': refundInitiatedTemplate,
+  // Security (highest priority)
+  'password-changed': passwordChangedTemplate,
+  'account-recovery': accountRecoveryTemplate,
+  'login-new-device': loginNewDeviceTemplate,
+  'account-locked': accountLockedTemplate,
+  'suspicious-activity': suspiciousActivityTemplate,
 }
