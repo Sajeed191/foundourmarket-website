@@ -437,7 +437,7 @@ function Home() {
             </div>
 
             <h1
-              className="hero-rise-h1 text-fluid-hero lg:text-[clamp(3.25rem,1.5vw+3.25rem,5.25rem)] lg:leading-[0.98] lg:tracking-[-0.035em] font-display font-semibold tracking-tight text-balance mb-5 sm:mb-7"
+              className="hero-rise-h1 text-fluid-hero lg:text-[clamp(3rem,1vw+3rem,4.5rem)] lg:leading-[1.02] lg:tracking-[-0.03em] font-display font-semibold tracking-tight text-balance mb-5 sm:mb-7"
             >
               <span className="sr-only">FoundOurMarket — Premium Global Marketplace. </span>
               <span aria-hidden="true">Whatever you need.</span>
