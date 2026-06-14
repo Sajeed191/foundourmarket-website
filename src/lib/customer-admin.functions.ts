@@ -242,7 +242,15 @@ export const sendCustomerEmailFn = createServerFn({ method: "POST" })
     const key = process.env.GOOGLE_MAIL_API_KEY;
     if (!lov || !key) throw new Error("Email is not available — connect a Gmail mailbox first.");
 
-    const raw = encodeRawEmail(input.to, input.subject, input.body);
+    // The connected Gmail mailbox is the approved FoundOurMarket backup sender.
+    // Enforce the governance policy before composing the message.
+    const senderFrom = await enforceSender(FALLBACK_FROM, {
+      recipient: input.to,
+      template: "admin-direct",
+      context: "admin customer message",
+      userId,
+    });
+    const raw = encodeRawEmail(senderFrom, input.to, input.subject, input.body);
     const res = await fetch(`${GMAIL_GW}/users/me/messages/send`, {
       method: "POST",
       headers: {
