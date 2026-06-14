@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Users, Search, Radio, Loader2, ChevronLeft, ChevronRight,
-  IndianRupee, ShieldAlert, Crown, UserPlus, Activity, ShoppingBag, Mail, Phone, Clock,
+  IndianRupee, ShieldAlert, Crown, Activity, ShoppingBag, Mail, Phone, Clock,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
