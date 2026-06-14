@@ -126,6 +126,8 @@ function ProfileInner() {
   const [reviews, setReviews] = useState<CustomerReview[]>([]);
   const [wishlist, setWishlist] = useState<CustomerWishlistItem[]>([]);
   const [notes, setNotes] = useState<CustomerNote[]>([]);
+  const [emails, setEmails] = useState<CustomerEmail[]>([]);
+  const [emailFilter, setEmailFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [pulse, setPulse] = useState(false);
   const [showTicket, setShowTicket] = useState(false);
