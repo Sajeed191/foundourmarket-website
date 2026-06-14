@@ -212,7 +212,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
             <MessageCircleQuestion className="size-6 text-accent" /> Questions & Answers
           </h2>
         </div>
-        <span className="text-xs font-mono text-muted-foreground">{items.length} {items.length === 1 ? "question" : "questions"}</span>
+        <span className="text-xs font-mono text-muted-foreground">{items.length} {items.length === 1 ? "question" : "questions"} · {answeredCount} answered</span>
       </div>
 
       <form onSubmit={submit} className="bg-card border border-border rounded-2xl p-4 sm:p-5 mb-8">
