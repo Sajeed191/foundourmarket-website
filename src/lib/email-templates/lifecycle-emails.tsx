@@ -308,3 +308,10 @@ export const accountDeletedTemplate = {
   displayName: 'Account closed',
   previewData: { name: 'Alex', reason: 'Requested by customer', timestamp: 'June 14, 2026, 10:00 AM' },
 } satisfies TemplateEntry
+
+export const accountRestoredTemplate = {
+  component: AccountRestoredEmail,
+  subject: 'Your FoundOurMarket™ account has been restored',
+  displayName: 'Account restored',
+  previewData: { name: 'Alex', timestamp: 'June 14, 2026, 10:00 AM' },
+} satisfies TemplateEntry
