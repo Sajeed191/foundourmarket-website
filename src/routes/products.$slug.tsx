@@ -819,17 +819,7 @@ function ProductPage() {
 
 
 
-            {/* Specs */}
-            <Accordion title="Specifications" icon={Package} defaultOpen>
-              <dl className="glass rounded-2xl px-4 sm:px-5 py-1 divide-y divide-border/50">
-                <SpecRow k="Category" v={product.category} />
-                <SpecRow k="SKU" v={effectiveSku || "—"} />
-                <SpecRow k="Rating" v={`${product.rating} / 5`} />
-                <SpecRow k="Reviews" v={String(product.reviews)} />
-                <SpecRow k="Availability" v={isOOS ? "Out of stock" : `${effectiveStock} in stock`} />
-                <SpecRow k="Warranty" v={product.warranty || "12 months"} />
-              </dl>
-            </Accordion>
+
 
             <Accordion title="Shipping & returns" icon={Truck}>
               <ul className="text-sm text-muted-foreground space-y-2 leading-relaxed">
