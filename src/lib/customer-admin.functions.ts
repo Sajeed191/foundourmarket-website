@@ -93,11 +93,17 @@ export const setCustomerStatusFn = createServerFn({ method: "POST" })
       }
     }
 
-    // PRIORITY 1 + 2 — branded email + in-app notification for suspend/ban.
+    // PRIORITY 1 + 2 — branded email + in-app notification for every transition.
     if (input.status === "banned") {
       await fireLifecycleEvent({ customerId: input.customerId, event: "account-banned", reason: input.reason });
     } else if (input.status === "suspended") {
       await fireLifecycleEvent({ customerId: input.customerId, event: "account-suspended", reason: input.reason });
+    } else if (input.status === "active") {
+      await fireLifecycleEvent({
+        customerId: input.customerId,
+        event: wasBanned ? "ban-removed" : "account-reactivated",
+        reason: input.reason,
+      });
     }
 
     await logSecurity({
