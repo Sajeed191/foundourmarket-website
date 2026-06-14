@@ -1,172 +1,135 @@
-# Product Catalog Management Upgrade
+## FoundOurMarket™ Email Infrastructure — Completion Plan
 
-Turn the Product Edit Manager into a full catalog system: visibility flags, placement positions, publishing controls, SEO, analytics, related products, and automatic storefront labels — all filterable, searchable, sortable, and bulk-editable in the admin product manager.
+The backbone already exists: a retry-capable queue (5 attempts, DLQ, TTL), suppression list, branded sender `FoundOurMarket Support <support@foundourmarket.com>` on the now-configured `notify.foundourmarket.com` domain, five admin email dashboards (health, ops, delivery, queue, identity/DNS), audit logging, in-app notifications, and Customer-360 timeline. This plan closes the concrete gaps rather than rebuilding what works.
 
-## 1. Database (migration)
+### Scope being delivered
 
-The `products` table already has: `featured`, `trending`, `bestseller`, `new_arrival`, `hot_deal`, `status`, `scheduled_publish_at`, `scheduled_expiry_at`, `low_stock_threshold`, `seo_title`, `seo_description`, `meta_keywords`, `slug`, `views_count`, `wishlist_count`, `sold_count`, `sort_order`.
+**1. Missing transactional + security templates**
+Add branded React Email templates (dark luxury header, personalization, Privacy/Terms/Contact footer) and register them:
 
-Add the missing columns:
+- Security: `password-changed`, `account-recovery`, `login-new-device` (covers "login alert" + "new device login"), `account-locked`, `suspicious-activity`
+- Order: `payment-failed`, `order-processing`, `order-packed`, `order-cancelled`
+- Return/Refund: `return-requested`, `return-approved`, `return-rejected`, `refund-initiated` (existing `refund-processed` stays as "completed")
+- Support: `ticket-escalated`
 
-- Visibility: `flash_deal`, `staff_pick`, `recommended`, `homepage_hero` (boolean, default false)
-- Placement: `homepage_position`, `category_position`, `trending_position` (integer, nullable)
-- Labels: `premium`, `fast_selling`, `gift_idea` (boolean, default false)
-- Related: `related_products`, `cross_sell_products`, `upsell_products` (text[], default `{}`)
-- Analytics: `orders_count` (integer, default 0), `revenue` (numeric, default 0)
+**2. Missing account-management lifecycle events**
+Extend the `LifecycleEvent` union + `fireLifecycleEvent` + templates for the "removal/restore" side currently absent: `account-reactivated`, `ban-removed`, `ordering-unblocked`, `reviews-restored`. Wire each to its admin action so applying AND lifting every restriction sends email + notification + timeline event + audit log.
 
-`products_public` view will be updated to expose the new public-facing fields (flags, positions, labels, related arrays) — not cost/revenue internals.
+**3. Customer-360 timeline blind spot (high value)**
+Order and support emails write only to `email_send_log`, so they never appear in the customer timeline (which reads `email_logs`). Fix by also writing an `email_logs` row (with `user_id`) whenever an order/support email is enqueued, so every email a customer receives shows in their timeline and Email History — closing "no untracked communications".
 
-## 2. Data layer (`src/lib/products.ts`)
+**4. Reliability hardening**
+Ensure every new send path follows the existing resilient pattern: log attempt before render, never throw, record `failed`/`suppressed`/`sent`. Confirm retry schedule is documented; the queue already retries via pgmq visibility timeout up to 5 attempts then DLQ.
 
-Extend the `Product` type, `Row` type, `rowToProduct`, and `SELECT_COLS` with the new fields so both storefront and admin read them.
+### Technical notes
 
-## 3. Server function (`src/lib/admin-products.functions.ts`)
+- Templates: new `.tsx` files in `src/lib/email-templates/`, each `satisfies TemplateEntry`, registered in `registry.ts`. Reuse the shared dark-luxury layout already used by `lifecycle-emails.tsx`/`order-emails.tsx`.
+- Lifecycle: edit `src/lib/customer-lifecycle.server.ts` (add events to union + `NOTIFY_COPY`) and the call sites in `src/lib/customer-admin.functions.ts` so flag-lift actions fire events.
+- Timeline fix: add an `email_logs` insert helper used by `order-emails.server.ts` and `support-emails.server.ts`, resolving `user_id` from the order/ticket.
+- No DB schema changes are required; `email_logs` and `email_send_log` already exist with the needed columns.
 
-Extend the Zod `updateSchema` + column map in `adminUpdateProduct` to accept all new fields, so inline edit, quick edit, and bulk edit can persist them. A bulk variant already flows through this fn.
+### Platform limits — being upfront (not building)
 
-## 4. Admin editor (`ProductEditorModal.tsx`)
+- **Bulk marketing emails** (promotions, flash deals, recommendations, wishlist price drops, back-in-stock, newsletter): the Lovable email pipeline is for transactional, one-recipient-per-event sends and does not support bulk/marketing campaigns. These should go through a dedicated marketing-email service. I will NOT build these into the transactional queue. (Single triggered emails like a back-in-stock alert to one specific user who opted in can be added later as transactional if you want.)
+- **Open-rate / click-rate tracking**: the current pipeline tracks queued → sent → delivered → failed → bounced → complained, but does not ingest open/click events (no tracking pixel / click-wrap webhook). The admin dashboards will continue to show delivery/bounce/complaint/failure rates. Adding opens/clicks would require an external ESP webhook integration — flagged as a separate follow-up.
 
-Add new collapsible sections:
+### Out of scope / already done
 
-- **Product Visibility & Placement** — 8 toggles (Featured, Trending, New Arrival, Best Seller, Flash Deal, Staff Pick, Recommended, Homepage Hero) + 3 position number inputs (Homepage, Category, Trending).
-- **Publishing** — status selector (Draft / Active / Scheduled / Out of Stock / Archived) + Publish Date + Expiry Date pickers.
-- **Inventory** — Stock Alert Level (maps to `low_stock_threshold`).
-- **SEO** — SEO Title, SEO Description, SEO Keywords, URL Slug.
-- **Product Labels** — 7 toggles (Trending, New, Featured, Premium, Fast Selling, Hot Deal, Gift Idea).
-- **Related Product Management** — multi-select pickers for Related / Cross Sell / Upsell products.
-- **Product Analytics** (read-only card) — Total Views, Wishlist Count, Orders Count, Revenue, Conversion Rate (orders / views).
+- Domain + DNS (SPF/DKIM/DMARC) — handled by the `notify.foundourmarket.com` setup; verifies in Cloud → Emails.
+- Deletion/ban force-logout + session revocation — already implemented.
+- Admin Email Center dashboards — already exist across five routes.
 
-## 5. Bulk + filters (`admin-products.tsx`, `BulkVisibilityPanel.tsx`)
+### Verification
 
-- Add column filters / search facets for status and the new flags (Featured, Flash Deal, Staff Pick, etc.).
-- Add sortable columns for the position fields and analytics counts.
-- Extend the bulk-edit panel to toggle the new visibility/label flags and set status across selected products.
-
-## 6. Storefront labels (`src/lib/badges.ts` + `ProductCard.tsx`)
-
-Add an admin-flag-driven label layer: when a product has `premium`, `gift_idea`, `staff_pick`, `flash_deal`, etc. set, render the corresponding pill on the product card automatically (capped, priority-ordered, alongside the existing computed discount/new badges).
-
-## Technical notes
-
-- Labels overlap with the existing computed badge system; flag-based labels take priority and are merged with the existing `computeBadges` output (deduped, capped at maxBadges).
-- Conversion Rate is derived (`orders_count / views_count`), not stored.
-- Publish/Expiry reuse existing `scheduled_publish_at` / `scheduled_expiry_at`; status "Active" maps to existing `published`.
-- No new libraries; reuse existing toggles, CollapsibleModule, and Calendar/date inputs.
-
-After approval I'll start with the migration, then wire the data layer, server fn, editor, bulk tools, and storefront labels.
+After implementation: typecheck/build passes; send a test through the existing test-email widget; trigger one restriction + one lift and confirm email row in `email_logs`, notification row, timeline entry, and audit log; confirm an order email now appears in the customer timeline.
 
 &nbsp;
 
-&nbsp;
+FINAL EMAIL INFRASTRUCTURE HARDENING
 
-Upgrade the Product Catalog Management system into a true marketplace catalog control center.
+Before considering the FoundOurMarket email system complete, implement the following enterprise-grade additions.
 
-Before implementing, make the following architectural improvements:
+EMAIL PREFERENCE CENTER
 
-1. Keep:
+Allow customers to manage optional email preferences.
 
-- Featured
-- Trending
-- Best Seller
-- New Arrival
-- Flash Deal
-- Staff Pick
-- Recommended
-- Homepage Hero
-- Homepage Position
-- Category Position
-- Related Products
-- Cross Sell Products
-- Upsell Products
-- SEO controls
-- Analytics controls
-- Bulk editing tools
+Mandatory:
 
-2. Remove:
+- Security Emails
+- Order Emails
+- Payment Emails
+- Shipment Emails
 
-- trending_position
-- fast_selling toggle
-- premium toggle
+Optional:
 
-Reason: Fast Selling and Premium should be calculated automatically from analytics and product data instead of being manually controlled.
+- Marketing Emails
+- Price Drop Alerts
+- Wishlist Alerts
+- Back In Stock Alerts
 
-3. Add new fields:
+━━━━━━━━━━━━━━━━━━
 
-Store Placement:
+EMAIL TEMPLATE MANAGEMENT
 
-- homepage_section (Featured, Trending, Best Seller, New Arrival, Flash Deal, Recommended, None)
-- is_category_banner boolean
-- hide_from_search boolean
-- hide_from_recommendations boolean
-- featured_until timestamptz
+Create Email Templates admin module.
 
-4. Product Editor
+Features:
 
-Add a dedicated "Store Placement" module containing:
+- Preview Template
+- Send Test Email
+- Template Version History
+- Last Modified By
+- Last Modified Date
 
-- Homepage Hero
-- Homepage Featured
-- Homepage Section
-- Category Banner
-- Homepage Position
-- Category Position
-- Hide From Search
-- Hide From Recommendations
-- Featured Until
+━━━━━━━━━━━━━━━━━━
 
-5. Analytics
+CUSTOMER EMAIL HISTORY
 
-Show read-only metrics:
+Inside Customer Profile display:
 
-- Views
-- Wishlist Count
-- Orders Count
-- Revenue
-- Conversion Rate
+- Sent
+- Delivered
+- Failed
+- Bounced
+- Complained
 
-Conversion Rate must be calculated dynamically:
+Allow searching and filtering.
 
-orders_count / views_count
+━━━━━━━━━━━━━━━━━━
 
-6. Automatic Labels
+EMAIL FAILURE ALERTING
 
-Do not manually control:
+If delivery repeatedly fails:
 
-- Premium
-- Fast Selling
+- Notify Admin
+- Create Audit Log
+- Create Dashboard Alert
 
-Generate automatically using product analytics and pricing.
+No silent failures.
 
-Keep manual labels:
+━━━━━━━━━━━━━━━━━━
 
-- Staff Pick
-- Flash Deal
-- Gift Idea
+ADMIN ACTIVITY NOTIFICATIONS
 
-7. Bulk Manager
+Generate internal notifications for:
 
-Allow bulk updates for:
+- Customer Ban
+- Customer Restore
+- Customer Delete
+- Password Reset Trigger
+- Ordering Restriction
+- Restriction Removal
 
-- Status
-- Featured
-- Trending
-- Best Seller
-- New Arrival
-- Flash Deal
-- Staff Pick
-- Recommended
-- Homepage Section
-- Category Banner
-- Hide From Search
+━━━━━━━━━━━━━━━━━━
 
-8. Storefront
+FINAL GOAL
 
-Merge admin-driven badges with existing badge logic.
+Every customer email must be:
 
-Priority:
+Tracked Audited Visible Recoverable Deliverable
 
-Flash Deal Staff Pick Gift Idea Trending Best Seller New Arrival
+Every lifecycle action must produce:
 
-Maximum visible badges per product card: 3.
+Database Update Audit Log Notification Timeline Event Email Delivery
 
-Goal: Transform the product manager into a professional marketplace merchandising system capable of controlling homepage placement, category placement, promotions, discovery, visibility, and product performance from one dashboard.
+FoundOurMarket email infrastructure should operate at enterprise ecommerce standards.
