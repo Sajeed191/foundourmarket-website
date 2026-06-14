@@ -102,7 +102,7 @@ async function enqueue(opts: {
       payload: {
         message_id: opts.messageId,
         to: opts.recipient,
-        from: await enforceSender(PRIMARY_FROM, { recipient, template: 'support email', context: 'support email' }),
+        from: await enforceSender(PRIMARY_FROM, { recipient: opts.recipient, template: opts.templateName, context: 'support email' }),
         reply_to: `support@${FROM_DOMAIN}`,
         sender_domain: SENDER_DOMAIN,
         subject,
