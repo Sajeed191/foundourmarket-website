@@ -62,7 +62,89 @@ async function moveToDlq(
   }
 }
 
-export const Route = createFileRoute("/lovable/email/queue/process")({
+// Detect permanent sender/domain configuration failures from the primary
+// provider. Retrying these never helps — they are the signal to route the
+// message through the governed Gmail fallback identity instead.
+function isSenderConfigError(error: unknown): boolean {
+  const msg =
+    error instanceof Error ? error.message : typeof error === 'string' ? error : ''
+  return (
+    msg.includes('sender_domain_mismatch') ||
+    msg.includes('no_matching_sender') ||
+    msg.includes('domain_not_verified')
+  )
+}
+
+/**
+ * Governed emergency delivery via the approved Gmail backup identity.
+ * Used ONLY after the primary provider permanently rejects a message or
+ * exhausts retries. On the Gmail path the visible From is the Gmail backup
+ * mailbox (sender_domain is irrelevant to Gmail), while Reply-To stays the
+ * official support mailbox so customer replies always return to support.
+ * Returns true when the email was accepted by Gmail and removed from the queue.
+ */
+async function tryFallbackDelivery(
+  supabase: SupabaseClient<any, any>,
+  queue: string,
+  msg: { msg_id: number; message: Record<string, any> },
+  primaryFailureReason: string
+): Promise<boolean> {
+  const payload = msg.message
+  const result = await sendViaFallback({
+    to: payload.to,
+    subject: payload.subject,
+    html: payload.html,
+    text: payload.text,
+  })
+
+  if (!result.ok) {
+    console.error('Gmail fallback delivery failed', {
+      queue,
+      msg_id: msg.msg_id,
+      message_id: payload.message_id,
+      error: result.error,
+    })
+    return false
+  }
+
+  // Log success with routing metadata so diagnostics can distinguish
+  // primary vs fallback deliveries.
+  await supabase.from('email_send_log').insert({
+    message_id: payload.message_id,
+    template_name: payload.label || queue,
+    recipient_email: payload.to,
+    status: 'sent',
+    metadata: {
+      delivery_method: 'fallback',
+      sender: FALLBACK_FROM,
+      reply_to: PRIMARY_SENDER.email,
+      provider_message_id: result.providerMessageId ?? null,
+      primary_failure_reason: primaryFailureReason.slice(0, 500),
+    },
+  })
+
+  const { error: delError } = await supabase.rpc('delete_email', {
+    queue_name: queue,
+    message_id: msg.msg_id,
+  })
+  if (delError) {
+    console.error('Failed to delete fallback-sent message from queue', {
+      queue,
+      msg_id: msg.msg_id,
+      error: delError,
+    })
+  }
+
+  console.warn('Email delivered via governed Gmail fallback', {
+    queue,
+    msg_id: msg.msg_id,
+    message_id: payload.message_id,
+    reason: primaryFailureReason.slice(0, 200),
+  })
+  return true
+}
+
+
   server: {
     handlers: {
       POST: async ({ request }) => {
