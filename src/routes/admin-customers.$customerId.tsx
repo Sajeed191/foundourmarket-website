@@ -256,7 +256,45 @@ function ProfileInner() {
         </div>
       </div>
 
-      {/* SECTION 1 — Customer Intelligence */}
+      {/* Identity banner — avatar, tier, health, value, risk */}
+      <div className="glass border border-white/10 rounded-2xl p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            {p.avatar_url ? (
+              <img src={p.avatar_url} alt="" className="size-14 rounded-2xl object-cover border border-white/10" />
+            ) : (
+              <span className="size-14 rounded-2xl grid place-items-center bg-accent/15 text-accent text-lg font-bold border border-accent/20">
+                {initialsOf(p.full_name, p.email)}
+              </span>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base font-bold truncate">{p.full_name || p.email || "Customer"}</h2>
+                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${tier.className}`}>
+                  <span aria-hidden>{tier.emoji}</span> {tier.label}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground truncate mt-0.5">{p.email || p.phone || p.id}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:ml-auto sm:w-auto w-full">
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-center">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground inline-flex items-center gap-1"><HeartPulse className="size-3" /> Health</p>
+              <p className={`text-lg font-bold tabular-nums ${health.className}`}>{health.score}</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-center">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground inline-flex items-center gap-1"><IndianRupee className="size-3" /> Value</p>
+              <p className="text-lg font-bold tabular-nums text-accent">{money(v.lifetime_revenue)}</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-center">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground inline-flex items-center gap-1"><ShieldAlert className="size-3" /> Risk</p>
+              <p className={`text-lg font-bold tabular-nums ${score >= 70 ? "text-destructive" : score >= 35 ? "text-amber-400" : "text-emerald-400"}`}>{score}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <Section icon={User} title="Customer Intelligence">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Stat label="Name" value={p.full_name ?? "—"} />
