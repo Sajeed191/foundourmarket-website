@@ -205,9 +205,13 @@ export async function enqueueSupportEmail(
   const customerEmail = ownerRes?.user?.email?.trim().toLowerCase() ?? null
 
   // ---- Customer-facing events ----
-  if (['created', 'staff_reply', 'resolved', 'closed'].includes(event) && customerEmail) {
+  if (['created', 'staff_reply', 'resolved', 'closed', 'escalated'].includes(event) && customerEmail) {
     const kind: SupportCustomerEmailProps['kind'] =
-      event === 'created' ? 'created' : event === 'staff_reply' ? 'reply' : event === 'resolved' ? 'resolved' : 'closed'
+      event === 'created' ? 'created'
+      : event === 'staff_reply' ? 'reply'
+      : event === 'resolved' ? 'resolved'
+      : event === 'escalated' ? 'escalated'
+      : 'closed'
     const unsub = await buildUnsubscribeLinks(customerEmail)
     const props: SupportCustomerEmailProps = {
       kind,
@@ -218,7 +222,7 @@ export async function enqueueSupportEmail(
       ctaUrl: `${PUBLIC_BASE}/account/support`,
       unsubscribeUrl: unsub?.pageUrl,
     }
-    // Per (ticket,event) for create/resolve/close; per-message for replies.
+    // Per (ticket,event) for create/resolve/close/escalate; per-message for replies.
     const seed =
       event === 'staff_reply'
         ? `support:${ticketId}:staff_reply:${lastMsg?.created_at ?? randomUUID()}`
@@ -230,6 +234,7 @@ export async function enqueueSupportEmail(
       fromUser: 'support',
       props: props as Record<string, unknown>,
       unsub,
+      timelineUserId: ticket.user_id as string,
     })
   }
 
