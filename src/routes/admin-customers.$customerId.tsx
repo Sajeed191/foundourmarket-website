@@ -616,3 +616,68 @@ function TicketModal({ onClose, onCreate }: { onClose: () => void; onCreate: (su
     </div>
   );
 }
+
+function NotesPanel({
+  notes, onAdd, onDelete,
+}: {
+  notes: CustomerNote[];
+  onAdd: (note: string) => Promise<void>;
+  onDelete: (noteId: string) => Promise<void>;
+}) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const QUICK = ["VIP Buyer", "Frequent Customer", "Refund Sensitive", "High Value Buyer"];
+
+  const add = async (note: string) => {
+    if (note.trim().length < 1) return;
+    setBusy(true);
+    try { await onAdd(note.trim()); setText(""); } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-1.5">
+        {QUICK.map((q) => (
+          <button key={q} disabled={busy} onClick={() => add(q)}
+            className="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[11px] hover:bg-white/5 disabled:opacity-40">
+            + {q}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") add(text); }}
+          placeholder="Add a private note…"
+          maxLength={2000}
+          className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-accent/40"
+        />
+        <button
+          disabled={busy || text.trim().length < 1}
+          onClick={() => add(text)}
+          className="rounded-xl bg-accent text-accent-foreground px-3 py-2 text-xs font-medium disabled:opacity-40 inline-flex items-center gap-1"
+        >
+          {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />} Add
+        </button>
+      </div>
+      {notes.length === 0 ? (
+        <Empty label="No notes yet." />
+      ) : (
+        <div className="space-y-2">
+          {notes.map((n) => (
+            <div key={n.id} className="flex items-start justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-2.5 text-xs">
+              <div className="min-w-0">
+                <p className="whitespace-pre-wrap break-words">{n.note}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">{when(n.created_at)}</p>
+              </div>
+              <button onClick={() => onDelete(n.id)} className="shrink-0 text-muted-foreground hover:text-destructive">
+                <Trash2 className="size-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
