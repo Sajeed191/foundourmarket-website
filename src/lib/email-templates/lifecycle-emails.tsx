@@ -315,3 +315,91 @@ export const accountRestoredTemplate = {
   displayName: 'Account restored',
   previewData: { name: 'Alex', timestamp: 'June 14, 2026, 10:00 AM' },
 } satisfies TemplateEntry
+
+/* ---------- Restoration / restriction-lifted events ---------- */
+
+function AccountReactivatedEmail({ name, reason, timestamp }: LifecycleEmailProps) {
+  return (
+    <Shell
+      preview="Your FoundOurMarket™ account has been reactivated"
+      badge="Account Reactivated"
+      badgeColor={SUCCESS}
+      heading="Your account has been reactivated"
+      intro={`${greet(name)}your FoundOurMarket™ account is active again. You can sign in, browse, and place orders as normal.`}
+      reason={reason}
+      timestamp={timestamp}
+      note="If you have any questions, our support team is here to help."
+    />
+  )
+}
+
+function BanRemovedEmail({ name, reason, timestamp }: LifecycleEmailProps) {
+  return (
+    <Shell
+      preview="The ban on your FoundOurMarket™ account has been lifted"
+      badge="Ban Lifted"
+      badgeColor={SUCCESS}
+      heading="The ban on your account has been lifted"
+      intro={`${greet(name)}good news — the ban on your FoundOurMarket™ account has been removed. You can sign in and use the marketplace again.`}
+      reason={reason}
+      timestamp={timestamp}
+      note="Restored access: sign-in, browsing, ordering & checkout."
+    />
+  )
+}
+
+function OrderingUnblockedEmail({ name, reason, timestamp }: LifecycleEmailProps) {
+  return (
+    <Shell
+      preview="Ordering has been re-enabled on your FoundOurMarket™ account"
+      badge="Ordering Restored"
+      badgeColor={SUCCESS}
+      heading="Ordering has been re-enabled"
+      intro={`${greet(name)}ordering has been re-enabled on your FoundOurMarket™ account. You can place new orders right away.`}
+      reason={reason}
+      timestamp={timestamp}
+    />
+  )
+}
+
+function ReviewsRestoredEmail({ name, reason, timestamp }: LifecycleEmailProps) {
+  return (
+    <Shell
+      preview="Reviewing has been restored on your FoundOurMarket™ account"
+      badge="Reviews Restored"
+      badgeColor={SUCCESS}
+      heading="Reviewing has been restored"
+      intro={`${greet(name)}you can post product reviews again on your FoundOurMarket™ account. Thanks for sharing your feedback with the community.`}
+      reason={reason}
+      timestamp={timestamp}
+    />
+  )
+}
+
+export const accountReactivatedTemplate = {
+  component: AccountReactivatedEmail,
+  subject: 'Your FoundOurMarket™ account has been reactivated',
+  displayName: 'Account reactivated',
+  previewData: { name: 'Alex', timestamp: 'June 14, 2026, 10:00 AM' },
+} satisfies TemplateEntry
+
+export const banRemovedTemplate = {
+  component: BanRemovedEmail,
+  subject: 'The ban on your FoundOurMarket™ account has been lifted',
+  displayName: 'Ban removed',
+  previewData: { name: 'Alex', timestamp: 'June 14, 2026, 10:00 AM' },
+} satisfies TemplateEntry
+
+export const orderingUnblockedTemplate = {
+  component: OrderingUnblockedEmail,
+  subject: 'Ordering re-enabled on your FoundOurMarket™ account',
+  displayName: 'Ordering restored',
+  previewData: { name: 'Alex', timestamp: 'June 14, 2026, 10:00 AM' },
+} satisfies TemplateEntry
+
+export const reviewsRestoredTemplate = {
+  component: ReviewsRestoredEmail,
+  subject: 'Reviewing restored on your FoundOurMarket™ account',
+  displayName: 'Reviews restored',
+  previewData: { name: 'Alex', timestamp: 'June 14, 2026, 10:00 AM' },
+} satisfies TemplateEntry
