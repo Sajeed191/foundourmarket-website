@@ -431,3 +431,120 @@ export const getEmailDeliverability = createServerFn({ method: "POST" })
       },
     };
   });
+
+// ============================================================
+// Email Diagnostics — single consolidated health dashboard feed.
+// ============================================================
+
+export type DiagFailure = {
+  id: string;
+  message_id: string | null;
+  template_name: string;
+  recipient_email: string;
+  status: string;
+  error_message: string | null;
+  created_at: string;
+};
+export type DiagSuppression = { id: string; email: string; reason: string | null; created_at: string };
+
+/**
+ * Admin — consolidated email diagnostics: health score, delivery/bounce/
+ * failure/complaint rates, queue depth, DLQ + suppression counts, last
+ * successful/failed email, and recent failures / bounces / suppressions.
+ */
+export const getEmailDiagnostics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ range: z.enum(["24h", "7d", "30d"]).default("7d") }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context as { userId: string };
+    await assertEmailStaff(userId);
+
+    const ms = data.range === "24h" ? 864e5 : data.range === "30d" ? 30 * 864e5 : 7 * 864e5;
+    const since = new Date(Date.now() - ms).toISOString();
+
+    const [logRes, supRes, queueRes] = await Promise.all([
+      supabaseAdmin
+        .from("email_send_log")
+        .select("id, message_id, template_name, recipient_email, status, error_message, created_at")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(5000),
+      supabaseAdmin
+        .from("suppressed_emails")
+        .select("id, email, reason, created_at")
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      supabaseAdmin.rpc("email_queue_status"),
+    ]);
+
+    if (logRes.error) throw new Error(logRes.error.message);
+
+    // Deduplicate to latest status per message_id (rows sorted desc already).
+    const seen = new Set<string>();
+    const latest: DiagFailure[] = [];
+    for (const r of (logRes.data as DiagFailure[]) ?? []) {
+      const key = r.message_id ?? r.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      latest.push(r);
+    }
+
+    const total = latest.length || 0;
+    const count = (s: string | string[]) => {
+      const set = new Set(Array.isArray(s) ? s : [s]);
+      return latest.filter((r) => set.has(r.status)).length;
+    };
+    const sent = count(["sent", "delivered"]);
+    const bounced = count("bounced");
+    const complained = count("complained");
+    const failed = count(["failed", "dlq"]);
+    const suppressedSends = count("suppressed");
+
+    const rate = (n: number) => (total > 0 ? Math.round((n / total) * 1000) / 10 : 0);
+    const deliveryRate = rate(sent);
+    const bounceRate = rate(bounced);
+    const failureRate = rate(failed);
+    const complaintRate = rate(complained);
+
+    // Health score: start at 100, penalise problem rates (weighted), floor 0.
+    const healthScore = Math.max(
+      0,
+      Math.round(100 - failureRate * 1.5 - bounceRate * 2 - complaintRate * 4),
+    );
+
+    const lastSuccessful = latest.find((r) => r.status === "sent" || r.status === "delivered") ?? null;
+    const lastFailed = latest.find((r) => ["failed", "dlq", "bounced", "complained"].includes(r.status)) ?? null;
+
+    const FAIL = new Set(["failed", "dlq"]);
+    const recentFailures = latest.filter((r) => FAIL.has(r.status)).slice(0, 15);
+    const recentBounces = latest.filter((r) => r.status === "bounced" || r.status === "complained").slice(0, 15);
+    const suppressions = (supRes.data as DiagSuppression[]) ?? [];
+    const recentSuppressions = suppressions.slice(0, 15);
+
+    const queues = (queueRes.data as QueueRow[] | null) ?? [];
+    const queueDepth = queues.reduce((a, q) => a + Number(q.queued ?? 0) + Number(q.in_flight ?? 0), 0);
+    const dlqCount = queues.reduce((a, q) => a + Number(q.dlq ?? 0), 0);
+
+    return {
+      range: data.range,
+      fetchedAt: new Date().toISOString(),
+      healthScore,
+      rates: { deliveryRate, bounceRate, failureRate, complaintRate },
+      counts: {
+        total,
+        sent,
+        bounced,
+        complained,
+        failed,
+        suppressedSends,
+        queueDepth,
+        dlqCount,
+        suppressionCount: suppressions.length,
+      },
+      lastSuccessful,
+      lastFailed,
+      recentFailures,
+      recentBounces,
+      recentSuppressions,
+    };
+  });
