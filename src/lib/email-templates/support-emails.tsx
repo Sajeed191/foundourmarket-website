@@ -24,7 +24,7 @@ const MUTED = '#8a96ad'
 const ACCENT = '#ff8a3d'
 
 export interface SupportCustomerEmailProps {
-  kind?: 'created' | 'reply' | 'resolved' | 'closed'
+  kind?: 'created' | 'reply' | 'resolved' | 'closed' | 'escalated'
   ticketSubject?: string
   ticketShort?: string
   status?: string
