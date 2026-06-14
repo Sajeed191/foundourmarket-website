@@ -692,3 +692,98 @@ export const getCustomerTimelineFn = createServerFn({ method: "POST" })
     events.sort((x, y) => new Date(y.at).getTime() - new Date(x.at).getTime());
     return { events: events.slice(0, 300) };
   });
+
+export type CustomerEmailRow = {
+  id: string;
+  subject: string | null;
+  template: string | null;
+  status: string;
+  sent_at: string | null;
+  delivered_at: string | null;
+  failure_reason: string | null;
+  trigger_source: string | null;
+  recipient: string | null;
+  created_at: string;
+};
+
+/**
+ * Per-customer email history. Reads the customer-linked `email_logs` mirror
+ * and overlays the latest operational status from `email_send_log` (sent /
+ * failed / dlq / bounced / suppressed) keyed by message id.
+ */
+export const listCustomerEmailsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ customerId: z.string().uuid() }).parse(input))
+  .handler(async ({ data: input, context }) => {
+    const { userId } = context as { userId: string };
+    await requireStaff(userId, CUST_STAFF, "customers.emails.view", input.customerId);
+    const cid = input.customerId;
+
+    const { data: logs } = await supabaseAdmin
+      .from("email_logs")
+      .select(
+        "id,subject,template,status,sent_at,delivered_at,error,provider,provider_message_id,message_id,payload,recipient,created_at",
+      )
+      .eq("user_id", cid)
+      .order("created_at", { ascending: false })
+      .limit(300);
+
+    const rows = logs ?? [];
+
+    const ids = [
+      ...new Set(
+        rows
+          .map((r) => (r.provider_message_id as string | null) ?? (r.message_id as string | null))
+          .filter(Boolean) as string[],
+      ),
+    ];
+    const statusMap = new Map<string, { status: string; error: string | null }>();
+    if (ids.length) {
+      const { data: sends } = await supabaseAdmin
+        .from("email_send_log")
+        .select("message_id,status,error_message,created_at")
+        .in("message_id", ids)
+        .order("created_at", { ascending: false });
+      for (const s of sends ?? []) {
+        const mid = s.message_id as string;
+        if (!mid || statusMap.has(mid)) continue; // first row = latest (desc order)
+        statusMap.set(mid, {
+          status: s.status as string,
+          error: (s.error_message as string | null) ?? null,
+        });
+      }
+    }
+
+    const result: CustomerEmailRow[] = rows.map((r) => {
+      const mid = (r.provider_message_id as string | null) ?? (r.message_id as string | null);
+      const overlay = mid ? statusMap.get(mid) : undefined;
+      const payload = (r.payload ?? {}) as Record<string, unknown>;
+      const trigger =
+        (payload.event as string | undefined) ||
+        (payload.context as string | undefined) ||
+        (r.provider as string | null) ||
+        null;
+      return {
+        id: r.id as string,
+        subject: (r.subject as string | null) ?? null,
+        template: (r.template as string | null) ?? null,
+        status: overlay?.status ?? (r.status as string) ?? "sent",
+        sent_at: (r.sent_at as string | null) ?? (r.created_at as string),
+        delivered_at: (r.delivered_at as string | null) ?? null,
+        failure_reason: overlay?.error ?? (r.error as string | null) ?? null,
+        trigger_source: trigger,
+        recipient: (r.recipient as string | null) ?? null,
+        created_at: r.created_at as string,
+      };
+    });
+
+    await logSecurity({
+      actorId: userId,
+      actorRole: "manager",
+      action: "customers.emails.view",
+      target: cid,
+      success: true,
+    });
+
+    return { emails: result };
+  });
