@@ -723,7 +723,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
       )}
 
       {/* Sticky mobile write button */}
-      {user && !showCompose && (
+      {user && eligible && !showCompose && (
         <button
           onClick={openCompose}
           className="sm:hidden fixed bottom-5 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground shadow-[var(--shadow-ember)]"
