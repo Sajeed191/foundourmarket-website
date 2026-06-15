@@ -269,8 +269,8 @@ export function PaymentIntelDrawer({ payment, onClose }: { payment: PaymentRow |
                     <Field label="Shipped" value={when(ship?.shipped_at)} />
                     <Field label="Delivered" value={when(ship?.delivered_at)} />
                     <Field label="Latest Event" value={latestEvent ? `${latestEvent.status ?? ""} — ${latestEvent.description ?? ""}` : "—"} />
-                    {ship?.tracking_url && (
-                      <a href={ship.tracking_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-accent hover:underline">
+                    {safeExternalUrl(ship?.tracking_url) && (
+                      <a href={safeExternalUrl(ship?.tracking_url)!} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-accent hover:underline">
                         <ExternalLink className="size-3.5" /> Track shipment
                       </a>
                     )}
