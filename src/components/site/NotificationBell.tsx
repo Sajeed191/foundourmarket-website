@@ -161,8 +161,29 @@ export function NotificationBell() {
 
           {/* List */}
           <div className="flex-1 overflow-y-auto">
+            {!isAdmin && supportUnread > 0 && (
+              <div className="p-2 pb-0">
+                <Link
+                  to="/account_/support"
+                  onClick={() => setOpen(false)}
+                  className="flex items-start gap-3 rounded-xl border border-accent/30 bg-accent/10 p-3 transition-colors hover:bg-accent/15"
+                >
+                  <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-accent/20 text-accent">
+                    <LifeBuoy className="size-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-foreground">
+                      FoundOurMarket Support replied
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      You have {supportUnread} unread {supportUnread === 1 ? "reply" : "replies"}. Tap to open your ticket.
+                    </span>
+                  </span>
+                </Link>
+              </div>
+            )}
             {visible.length === 0 ? (
-              <EmptyState onClose={() => setOpen(false)} />
+              !isAdmin && supportUnread > 0 ? null : <EmptyState onClose={() => setOpen(false)} />
             ) : (
               <ul className="p-2 space-y-1.5">
                 {visible.map((n) => (
