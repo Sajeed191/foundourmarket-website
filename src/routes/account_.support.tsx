@@ -250,16 +250,16 @@ function SupportPage() {
             prefill={prefill}
             onClose={() => {
               setComposing(false);
-              if (wantsCompose) nav({ to: "/account_/support", search: {}, replace: true });
+              if (wantsCompose) nav({ to: "/account/support", search: {}, replace: true });
             }}
             onContinue={(id) => {
               setComposing(false);
-              if (wantsCompose) nav({ to: "/account_/support", search: {}, replace: true });
+              if (wantsCompose) nav({ to: "/account/support", search: {}, replace: true });
               setActiveId(id);
             }}
             onCreated={(id) => {
               setComposing(false);
-              if (wantsCompose) nav({ to: "/account_/support", search: {}, replace: true });
+              if (wantsCompose) nav({ to: "/account/support", search: {}, replace: true });
               void loadTickets();
               setActiveId(id);
             }}
@@ -273,7 +273,7 @@ function SupportPage() {
             isStaff={false}
             onClose={() => {
               setActiveId(null);
-              if (deepLinkTicket) nav({ to: "/account_/support", search: {}, replace: true });
+              if (deepLinkTicket) nav({ to: "/account/support", search: {}, replace: true });
             }}
           />
         )}
