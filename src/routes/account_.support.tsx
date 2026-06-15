@@ -329,7 +329,20 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
                         {m.attachments.map((p) => <AttachmentImage key={p} path={p} />)}
                       </div>
                     )}
-                    <p className="text-[9px] font-mono text-muted-foreground/50 mt-1.5">{new Date(m.created_at).toLocaleString()}</p>
+                    <p className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground/50 mt-1.5">
+                      <span>{new Date(m.created_at).toLocaleString()}</span>
+                      {mine && (
+                        m.read_at ? (
+                          <span className="flex items-center gap-0.5 text-accent" title={`Read ${new Date(m.read_at).toLocaleString()}`}>
+                            <CheckCheck className="size-3" /> Read
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-0.5 text-muted-foreground/60" title="Delivered">
+                            <Check className="size-3" /> Delivered
+                          </span>
+                        )
+                      )}
+                    </p>
                   </div>
                 </div>
               );
