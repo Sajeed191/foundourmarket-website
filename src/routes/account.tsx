@@ -260,10 +260,34 @@ function AccountPage() {
       .slice(0, 8),
     [products, wishSlugs],
   );
-  const recentlyViewed = useMemo(() => {
+  // Slugs the user has already purchased — never resurface these.
+  const purchasedSlugs = useMemo(() => {
+    const s = new Set<string>();
+    for (const o of orders ?? []) for (const it of o.order_items ?? []) if (it.product_slug) s.add(it.product_slug);
+    return s;
+  }, [orders]);
+
+  /**
+   * Personalized "Continue Shopping" — only products THIS user has interacted
+   * with (cart > saved > recently viewed), excluding anything already purchased.
+   * Empty for brand-new visitors so the section hides entirely.
+   */
+  const continueShopping = useMemo(() => {
     const map = new Map(products.map((p) => [p.slug, p] as const));
-    return recentSlugs.map((s) => map.get(s)).filter(Boolean).slice(0, 8) as Product[];
-  }, [products, recentSlugs]);
+    const seen = new Set<string>();
+    const out: { product: Product; badge: "cart" | "saved" | "viewed" }[] = [];
+    const push = (slug: string, badge: "cart" | "saved" | "viewed") => {
+      if (!slug || seen.has(slug) || purchasedSlugs.has(slug)) return;
+      const p = map.get(slug);
+      if (!p) return;
+      seen.add(slug);
+      out.push({ product: p, badge });
+    };
+    for (const i of cart.items) push(i.slug, "cart");
+    for (const s of wishSlugs) push(s, "saved");
+    for (const s of recentSlugs) push(s, "viewed");
+    return out.slice(0, 10);
+  }, [products, cart.items, wishSlugs, recentSlugs, purchasedSlugs]);
 
   if (loading || !user) {
     return <PremiumLoader />;
