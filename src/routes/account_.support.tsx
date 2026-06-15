@@ -518,6 +518,7 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
     });
     setSending(false);
     if (error) { toast.error(error.message); return; }
+    notifyStop();
     if (isStaff) void import("@/lib/support-presence").then((m) => m.pingPresence("send_message"));
     fireSupportEmail(ticketId, isStaff ? "staff_reply" : "customer_reply");
     setReply(""); setFiles([]);
