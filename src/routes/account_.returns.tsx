@@ -1049,7 +1049,21 @@ function ReturnsPage() {
                     </div>
                   </dl>
 
-                  <div className="mt-5 grid grid-cols-2 gap-2">
+                  <Link
+                    to="/account/support"
+                    onClick={() => { hapticTap(); setDetail(null); }}
+                    search={supportSearch(
+                      view.isReplacement
+                        ? { return: detail.id, order: detail.order_id, category: "return_request", subject: `Return request · Order #${detail.order_id.slice(0, 8)}` }
+                        : { refund: detail.id, order: detail.order_id, category: "refund_request", subject: `Refund request · Order #${detail.order_id.slice(0, 8)}` },
+                    )}
+                    className="mt-5 w-full inline-flex items-center justify-center gap-1.5 bg-[#FF7A00] text-white rounded-full px-4 py-2.5 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 transition"
+                  >
+                    <LifeBuoy className="size-3.5" /> Contact Support
+                  </Link>
+
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+
                     <Link
                       to="/track"
                       onClick={() => { hapticTap(); setDetail(null); }}
