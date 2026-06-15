@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  LifeBuoy, MessageSquare, ChevronRight, History, ShieldCheck, Flag,
+  LifeBuoy, MessageSquare, History, Flag,
   CheckCircle2, XCircle, UserCheck, Clock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
