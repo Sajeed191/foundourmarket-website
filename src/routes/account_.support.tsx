@@ -637,8 +637,8 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
 /* ---------- shared bits ---------- */
 function Sheet({ title, subtitle, children, onClose, fullPage }: { title: string; subtitle?: string; children: React.ReactNode; onClose: () => void; fullPage?: boolean }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={cn("fixed inset-0 z-[70] flex", fullPage ? "items-start sm:items-center sm:justify-center" : "items-end sm:items-center sm:justify-center")}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={cn("fixed inset-0 z-[100] flex", fullPage ? "items-start sm:items-center sm:justify-center" : "items-end sm:items-center sm:justify-center")}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
