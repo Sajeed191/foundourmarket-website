@@ -63,6 +63,7 @@ type FullTicket = {
   status: string; priority: string; order_id: string | null; user_id: string;
   assigned_to: string | null; created_at: string; first_response_at: string | null;
   resolved_at: string | null; closed_at: string | null; last_message_at: string;
+  channel?: string | null; source?: string | null; guest_email?: string | null; guest_name?: string | null;
 };
 type EventRow = { id: string; event_type: string; from_status: string | null; to_status: string | null; actor_id: string | null; meta: Record<string, unknown>; created_at: string };
 type NoteRow = { id: string; body: string; author_id: string; created_at: string };
