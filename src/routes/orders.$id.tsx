@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { safeExternalUrl } from "@/lib/safe-redirect";
 import { ReturnRequestDialog } from "@/components/site/ReturnRequestDialog";
+import { OrderSupportSection } from "@/components/site/OrderSupportSection";
 
 export const Route = createFileRoute("/orders/$id")({
   head: () => ({ meta: [{ title: "Order Details — FoundOurMarket™" }] }),
