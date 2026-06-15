@@ -254,6 +254,8 @@ function AdminSupportPage() {
           <ReturnsView returns={returns} onChanged={load} />
         ) : section === "agents" ? (
           <AgentPerformanceView enriched={enriched} profiles={profiles} />
+        ) : section === "satisfaction" ? (
+          user ? <SupportSatisfactionPanel currentUserId={user.id} onOpenThread={setActiveId} /> : null
         ) : section === "settings" ? (
           <SupportSettingsView />
         ) : (
