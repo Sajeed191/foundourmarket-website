@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, Loader2, CheckCircle2, Pencil, Trash2, ThumbsUp, ThumbsDown, Flag,
   ImagePlus, X, Pin, Sparkles, ShieldCheck, EyeOff, Eye, MessageSquare, Play, Brain,
-  Camera, BadgeCheck, PackageCheck,
+  Camera, BadgeCheck, PackageCheck, ChevronLeft, ChevronRight, ThumbsUp as Recommend,
+  Users, TrendingUp, Check, ArrowRight, ArrowLeft, ZoomIn,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,9 +23,8 @@ import { StarRating } from "@/components/site/StarRating";
 
 type ProfileMap = Record<string, { full_name: string | null; avatar_url: string | null }>;
 
-type ReviewFilter =
-  | "all" | "verified" | "photo" | "5" | "4" | "3";
-type ReviewSort = "newest" | "oldest" | "helpful";
+type ReviewFilter = "all" | "verified" | "photo" | "5" | "4" | "3" | "2" | "1";
+type ReviewSort = "newest" | "helpful" | "highest" | "lowest";
 
 // Full column set incl. moderation/sentiment/fraud internals — admin moderation only.
 const REVIEW_COLS =
@@ -33,8 +34,18 @@ const REVIEW_COLS_PUBLIC =
   "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, admin_reply, admin_reply_at, created_at";
 
 function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
+
+// Themes derived from review text to surface "what customers love".
+const HIGHLIGHT_THEMES: { label: string; keywords: string[] }[] = [
+  { label: "Quality", keywords: ["quality", "well made", "well-made", "durable", "premium", "sturdy", "excellent", "build"] },
+  { label: "Fast Delivery", keywords: ["delivery", "shipping", "fast", "quick", "arrived", "on time", "speedy", "prompt"] },
+  { label: "Value for Money", keywords: ["value", "price", "worth", "affordable", "cheap", "bargain", "deal", "money"] },
+  { label: "Packaging", keywords: ["packaging", "packed", "package", "wrapped", "box", "secure"] },
+  { label: "As Described", keywords: ["as described", "as shown", "accurate", "exactly", "matches", "true to"] },
+  { label: "Comfort", keywords: ["comfort", "comfortable", "soft", "cozy", "fit"] },
+];
 
 export function ProductReviews({ productSlug, onAggregateChange }: { productSlug: string; onAggregateChange?: () => void }) {
   const { user } = useAuth();
@@ -50,10 +61,12 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   // browse state
   const [filter, setFilter] = useState<ReviewFilter>("all");
   const [sort, setSort] = useState<ReviewSort>("newest");
-  const [lightbox, setLightbox] = useState<ReviewMedia | null>(null);
+  const [lightboxList, setLightboxList] = useState<ReviewMedia[] | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   // compose form
   const [showCompose, setShowCompose] = useState(false);
+  const [step, setStep] = useState(1);
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState("");
@@ -71,6 +84,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [reportFor, setReportFor] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(6);
 
   const load = useCallback(async () => {
     const table = (isAdmin ? "product_reviews" : "product_reviews_public") as "product_reviews_public";
@@ -116,21 +130,33 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     return () => { supabase.removeChannel(ch); };
   }, [productSlug, load, loadMyVotes]);
 
-  const published = reviews.filter((r) => r.status === "published");
+  const published = useMemo(() => reviews.filter((r) => r.status === "published"), [reviews]);
   const avg = published.length ? published.reduce((s, r) => s + r.rating, 0) / published.length : 0;
   const buckets = ratingBuckets(published);
   const verifiedCount = published.filter((r) => r.verified_purchase).length;
   const photoReviews = published.filter((r) => (r.media?.length ?? 0) > 0);
+  const recommendPct = published.length
+    ? Math.round((published.filter((r) => r.rating >= 4).length / published.length) * 100)
+    : 0;
+
+  // highlights derived from review content
+  const highlights = useMemo(() => {
+    const text = published.map((r) => `${r.title ?? ""} ${r.body ?? ""}`.toLowerCase()).join(" \n ");
+    return HIGHLIGHT_THEMES
+      .map((t) => ({ label: t.label, count: t.keywords.reduce((n, k) => n + (text.includes(k) ? 1 : 0), 0) }))
+      .filter((t) => t.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 4);
+  }, [published]);
 
   // gallery of all customer media (cap for performance)
   const galleryMedia = useMemo(() => {
-    const all: { media: ReviewMedia; reviewId: string }[] = [];
-    for (const r of published) for (const m of r.media ?? []) all.push({ media: m, reviewId: r.id });
-    return all.slice(0, 18);
+    const all: ReviewMedia[] = [];
+    for (const r of published) for (const m of r.media ?? []) all.push(m);
+    return all;
   }, [published]);
 
   const sorted = useMemo(() => {
-    // admins still see all statuses; filters apply to displayed set
     let list = reviews.slice();
     list = list.filter((r) => {
       switch (filter) {
@@ -139,6 +165,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         case "5": return Math.round(r.rating) === 5;
         case "4": return Math.round(r.rating) === 4;
         case "3": return Math.round(r.rating) === 3;
+        case "2": return Math.round(r.rating) === 2;
+        case "1": return Math.round(r.rating) === 1;
         default: return true;
       }
     });
@@ -146,10 +174,18 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       if (a.featured !== b.featured) return a.featured ? -1 : 1;
       if (sort === "helpful") return (b.helpful_count ?? 0) - (a.helpful_count ?? 0);
-      const diff = +new Date(b.created_at) - +new Date(a.created_at);
-      return sort === "oldest" ? -diff : diff;
+      if (sort === "highest") return b.rating - a.rating;
+      if (sort === "lowest") return a.rating - b.rating;
+      return +new Date(b.created_at) - +new Date(a.created_at);
     });
   }, [reviews, filter, sort]);
+
+  useEffect(() => { setVisibleCount(6); }, [filter, sort]);
+
+  function openLightbox(list: ReviewMedia[], index: number) {
+    setLightboxList(list);
+    setLightboxIndex(index);
+  }
 
   async function onPickFiles(files: FileList | null) {
     if (!files || !user) return;
@@ -169,8 +205,13 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     if (fileRef.current) fileRef.current.value = "";
   }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  function openCompose() {
+    setStep(1); setRating(5); setTitle(""); setBody(""); setPendingMedia([]);
+    setShowCompose(true);
+  }
+
+  async function submit(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!user) return;
     setSubmitting(true);
     const { error } = await supabase.rpc("submit_review", {
@@ -182,8 +223,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     });
     setSubmitting(false);
     if (error) { toast.error("Could not post review", { description: error.message }); return; }
-    setRating(5); setTitle(""); setBody(""); setPendingMedia([]); setShowCompose(false);
-    toast.success("Review posted");
+    setRating(5); setTitle(""); setBody(""); setPendingMedia([]); setShowCompose(false); setStep(1);
+    toast.success("Review posted — thank you!");
     await load();
     onAggregateChange?.();
   }
@@ -251,26 +292,33 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   const filterChips: { key: ReviewFilter; label: string }[] = [
     { key: "all", label: "All reviews" },
-    { key: "verified", label: "Verified purchases" },
+    { key: "verified", label: "Verified" },
     { key: "photo", label: "With photos" },
-    { key: "5", label: "5 stars" },
-    { key: "4", label: "4 stars" },
-    { key: "3", label: "3 stars" },
+    { key: "5", label: "5★" },
+    { key: "4", label: "4★" },
+    { key: "3", label: "3★" },
+    { key: "2", label: "2★" },
+    { key: "1", label: "1★" },
   ];
   const sortChips: { key: ReviewSort; label: string }[] = [
     { key: "newest", label: "Newest" },
-    { key: "oldest", label: "Oldest" },
     { key: "helpful", label: "Most helpful" },
+    { key: "highest", label: "Highest" },
+    { key: "lowest", label: "Lowest" },
   ];
+
+  const hasReviews = published.length > 0;
+  const visible = sorted.slice(0, visibleCount);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-20 border-t border-border/60">
+      {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
         <div>
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">Reviews</p>
           <h2 className="text-2xl sm:text-3xl font-display tracking-tight">Customer Reviews</h2>
         </div>
-        {trust !== null && published.length > 0 && (
+        {trust !== null && hasReviews && (
           <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/[0.07] px-3.5 py-2">
             <ShieldCheck className="size-4 text-accent" />
             <span className="text-xs font-mono uppercase tracking-widest text-accent">Trust score {trust}/100</span>
@@ -278,373 +326,741 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         )}
       </div>
 
-      {/* Summary */}
-      {published.length > 0 && (
-        <div className="mb-10 grid gap-8 lg:grid-cols-[260px_1fr] rounded-3xl border border-white/10 bg-card/50 backdrop-blur-xl p-6 sm:p-8 shadow-[0_24px_60px_-40px_oklch(0_0_0/0.9)]">
-          <div className="flex flex-col items-center justify-center text-center lg:border-r lg:border-border/50 lg:pr-8">
-            <p className="text-6xl font-display leading-none">{avg.toFixed(1)}</p>
-            <div className="mt-3"><StarRating rating={avg} starClassName="size-5" /></div>
-            <p className="mt-3 text-xs font-mono uppercase tracking-widest text-muted-foreground">
-              Based on {published.length.toLocaleString()} {published.length === 1 ? "review" : "reviews"}
-            </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/[0.08] px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
-                <BadgeCheck className="size-3" /> {verifiedCount} verified
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                <Camera className="size-3" /> {photoReviews.length} with photos
-              </span>
+      {loading ? (
+        <ReviewsSkeleton />
+      ) : (
+        <>
+          {/* Summary header */}
+          {hasReviews && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="mb-8 grid gap-8 lg:grid-cols-[280px_1fr] rounded-3xl border border-white/10 bg-card/50 backdrop-blur-xl p-6 sm:p-8 shadow-[0_24px_60px_-40px_oklch(0_0_0/0.9)] relative overflow-hidden"
+            >
+              <div className="pointer-events-none absolute -top-24 -left-24 size-64 rounded-full opacity-60" style={{ background: "var(--gradient-ember-soft)" }} />
+              <div className="relative flex flex-col items-center justify-center text-center lg:border-r lg:border-border/50 lg:pr-8">
+                <p className="text-6xl font-display leading-none bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">{avg.toFixed(1)}</p>
+                <div className="mt-3"><StarRating rating={avg} starClassName="size-5" glow /></div>
+                <p className="mt-3 text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                  Based on {published.length.toLocaleString()} {published.length === 1 ? "review" : "reviews"}
+                </p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/[0.08] px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
+                    <BadgeCheck className="size-3" /> {verifiedCount} verified
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                    <Camera className="size-3" /> {photoReviews.length} with photos
+                  </span>
+                </div>
+                {recommendPct > 0 && (
+                  <p className="mt-4 text-sm text-foreground/90">
+                    <span className="font-display text-accent">{recommendPct}%</span> of customers recommend this product
+                  </p>
+                )}
+              </div>
+              <div className="relative space-y-2.5 self-center">
+                {[5, 4, 3, 2, 1].map((star, idx) => {
+                  const count = buckets[star - 1];
+                  const pct = published.length ? (count / published.length) * 100 : 0;
+                  return (
+                    <button
+                      key={star}
+                      onClick={() => setFilter(String(star) as ReviewFilter)}
+                      className="flex w-full items-center gap-3 text-xs group"
+                    >
+                      <span className="flex w-12 items-center gap-1 font-mono text-muted-foreground">
+                        {star}<Star className="size-3 fill-accent/70 text-accent/70" />
+                      </span>
+                      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+                        <motion.span
+                          className="block h-full rounded-full bg-accent/80 group-hover:bg-accent"
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${pct}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.7, delay: idx * 0.08, ease: "easeOut" }}
+                        />
+                      </span>
+                      <span className="w-14 text-right font-mono text-muted-foreground">{Math.round(pct)}%</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Trust boosters */}
+          {hasReviews && (
+            <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatCard icon={<Users className="size-4" />} value={verifiedCount.toLocaleString()} label="Verified Buyers" />
+              <StatCard icon={<Star className="size-4" />} value={avg.toFixed(1)} label="Average Rating" />
+              <StatCard icon={<TrendingUp className="size-4" />} value={`${trust ?? 98}%`} label="Trust Score" />
+              <StatCard icon={<Recommend className="size-4" />} value={`${recommendPct}%`} label="Recommend" highlight />
+            </div>
+          )}
+
+          {/* Review highlights */}
+          {highlights.length > 0 && (
+            <div className="mb-8 rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-5">
+              <p className="mb-3 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Customers love</p>
+              <div className="flex flex-wrap gap-2">
+                {highlights.map((h) => (
+                  <span key={h.label} className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/[0.08] px-3.5 py-1.5 text-xs text-accent">
+                    <Check className="size-3.5" /> {h.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Customer photos gallery */}
+          {galleryMedia.length > 0 && (
+            <div className="mb-8">
+              <h3 className="mb-4 text-sm font-display tracking-tight flex items-center gap-2">
+                <Camera className="size-4 text-accent" /> Customer Photos &amp; Videos
+                <span className="text-[11px] font-mono text-muted-foreground">({galleryMedia.length})</span>
+              </h3>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
+                {galleryMedia.slice(0, 16).map((media, i) => (
+                  <button
+                    key={i}
+                    onClick={() => openLightbox(galleryMedia, i)}
+                    className="relative aspect-square overflow-hidden rounded-xl border border-white/10 group"
+                  >
+                    {media.type === "image" ? (
+                      <img src={media.url} alt="" loading="lazy" className="size-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                    ) : (
+                      <>
+                        <video src={media.url} className="size-full object-cover" />
+                        <span className="absolute inset-0 grid place-items-center bg-black/40"><Play className="size-5 text-white" /></span>
+                      </>
+                    )}
+                    {i === 15 && galleryMedia.length > 16 && (
+                      <span className="absolute inset-0 grid place-items-center bg-black/60 text-sm font-display text-white">+{galleryMedia.length - 16}</span>
+                    )}
+                    <span className="absolute inset-0 grid place-items-center bg-black/0 opacity-0 transition-all group-hover:bg-black/30 group-hover:opacity-100">
+                      <ZoomIn className="size-5 text-white" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Filters + sort + write CTA */}
+          <div className="mb-8 space-y-3">
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {filterChips.map((c) => (
+                <button
+                  key={c.key}
+                  onClick={() => setFilter(c.key)}
+                  className={cn(
+                    "shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-wider transition-all",
+                    filter === c.key
+                      ? "border-accent/40 bg-accent/15 text-accent shadow-[0_0_0_1px_oklch(0.74_0.19_49/0.2)]"
+                      : "border-border text-muted-foreground hover:text-foreground hover:border-white/20",
+                  )}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <span className="shrink-0 self-center text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 mr-1">Sort</span>
+                {sortChips.map((c) => (
+                  <button
+                    key={c.key}
+                    onClick={() => setSort(c.key)}
+                    className={cn(
+                      "shrink-0 rounded-full px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider transition-colors",
+                      sort === c.key ? "bg-white/[0.07] text-foreground" : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              {user ? (
+                <button
+                  onClick={openCompose}
+                  className="hidden sm:inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110 hover:shadow-[var(--shadow-ember)]"
+                >
+                  <Pencil className="size-3.5" /> Write a review
+                </button>
+              ) : (
+                <Link to="/auth" className="hidden sm:inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110">
+                  Sign in to review
+                </Link>
+              )}
             </div>
           </div>
-          <div className="space-y-2.5 self-center">
-            {[5, 4, 3, 2, 1].map((star) => {
-              const count = buckets[star - 1];
-              const pct = published.length ? (count / published.length) * 100 : 0;
-              return (
-                <button
-                  key={star}
-                  onClick={() => setFilter(star >= 3 ? (String(star) as ReviewFilter) : "all")}
-                  className="flex w-full items-center gap-3 text-xs group"
-                >
-                  <span className="flex w-12 items-center gap-1 font-mono text-muted-foreground">
-                    {star}<Star className="size-3 fill-accent/70 text-accent/70" />
-                  </span>
-                  <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
-                    <span className="block h-full rounded-full bg-accent/80 transition-all group-hover:bg-accent" style={{ width: `${pct}%` }} />
-                  </span>
-                  <span className="w-14 text-right font-mono text-muted-foreground">{Math.round(pct)}%</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+
+          {/* List / empty state */}
+          {sorted.length === 0 ? (
+            <EmptyState canWrite={!!user} onWrite={openCompose} filtered={filter !== "all"} onReset={() => setFilter("all")} />
+          ) : (
+            <>
+              <ul className="grid gap-5 sm:grid-cols-2">
+                <AnimatePresence>
+                  {visible.map((r) => {
+                    const prof = profiles[r.user_id];
+                    const name = prof?.full_name || "Anonymous";
+                    const isOwn = user?.id === r.user_id;
+                    const editing = editingId === r.id;
+                    return (
+                      <motion.li
+                        layout
+                        key={r.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.35 }}
+                        className={cn(
+                          "group rounded-2xl border bg-card/50 backdrop-blur-xl p-5 sm:p-6 transition-all hover:border-accent/30 hover:shadow-[0_18px_50px_-30px_oklch(0.74_0.19_49/0.5)]",
+                          r.pinned || r.featured ? "border-accent/40" : "border-white/10",
+                          r.status !== "published" && "opacity-70",
+                        )}
+                      >
+                        {(r.featured || r.pinned) && (
+                          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[9px] font-mono uppercase tracking-widest text-accent">
+                            {r.pinned ? <Pin className="size-2.5" /> : <Sparkles className="size-2.5" />}
+                            {r.pinned ? "Pinned" : "Featured"}
+                          </div>
+                        )}
+                        {isAdmin && (r.status !== "published" || r.is_flagged) && (
+                          <div className="mb-3 flex flex-wrap gap-1.5">
+                            {r.status !== "published" && <Badge tone="muted">{r.status}</Badge>}
+                            {r.is_flagged && <Badge tone="danger"><Flag className="size-2.5" /> {r.report_count} report{r.report_count === 1 ? "" : "s"}</Badge>}
+                          </div>
+                        )}
+
+                        {editing ? (
+                          <div>
+                            <div className="flex items-center gap-1 mb-3">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <button key={i} type="button" onClick={() => setEditRating(i + 1)} className="p-1">
+                                  <Star className={cn("size-5", editRating >= i + 1 ? "fill-accent text-accent" : "text-muted-foreground")} />
+                                </button>
+                              ))}
+                            </div>
+                            <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} maxLength={120}
+                              className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-2.5 focus:outline-none focus:border-accent" />
+                            <textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} maxLength={2000} rows={3}
+                              className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-accent" />
+                            <div className="flex gap-2">
+                              <button onClick={() => saveEdit(r.id)} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground">Update</button>
+                              <button onClick={() => setEditingId(null)} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest border border-border">Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-3.5">
+                              <div className="size-12 rounded-full bg-muted overflow-hidden grid place-items-center text-base font-display shrink-0 ring-1 ring-white/10">
+                                {prof?.avatar_url ? <img src={prof.avatar_url} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[15px] font-display truncate">{name}</p>
+                                {r.verified_purchase && (
+                                  <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
+                                    <BadgeCheck className="size-3" /> Verified Purchase
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="mt-4 flex items-center gap-3">
+                              <StarRating rating={r.rating} starClassName="size-4" />
+                              <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground/70">{fmtDate(r.created_at)}</span>
+                            </div>
+
+                            {r.title && <p className="mt-4 text-base font-display leading-snug">{r.title}</p>}
+                            {r.body && <p className="mt-2 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{r.body}</p>}
+
+                            {r.media?.length > 0 && (
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                {r.media.map((m, i) => (
+                                  <button key={i} onClick={() => openLightbox(r.media, i)} className="relative size-20 overflow-hidden rounded-xl border border-white/10 group/media">
+                                    {m.type === "image" ? (
+                                      <img src={m.url} alt="" loading="lazy" className="size-full object-cover transition-transform group-hover/media:scale-110" />
+                                    ) : (
+                                      <>
+                                        <video src={m.url} className="size-full object-cover" />
+                                        <span className="absolute inset-0 grid place-items-center bg-black/30"><Play className="size-5 text-white" /></span>
+                                      </>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {r.verified_purchase && (
+                              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                                <span className="inline-flex items-center gap-1 text-emerald-400/90"><CheckCircle2 className="size-3" /> Verified Purchase</span>
+                                <span className="inline-flex items-center gap-1"><PackageCheck className="size-3" /> Product Delivered</span>
+                                <span className="inline-flex items-center gap-1"><ShieldCheck className="size-3" /> Review Approved</span>
+                              </div>
+                            )}
+
+                            {r.admin_reply && (
+                              <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-accent/20 bg-accent/[0.06] p-3.5">
+                                <ShieldCheck className="size-4 text-accent shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="text-[10px] font-mono uppercase tracking-widest text-accent mb-1">FoundOurMarket · Official reply</p>
+                                  <p className="text-sm leading-relaxed">{r.admin_reply}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {isAdmin && r.sentiment && (
+                              <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-mono">
+                                <Badge tone={r.sentiment === "negative" ? "danger" : r.sentiment === "positive" ? "accent" : "muted"}>
+                                  <Brain className="size-2.5" /> {r.sentiment} {r.sentiment_score ?? 0}
+                                </Badge>
+                                {typeof r.fake_score === "number" && (
+                                  <Badge tone={r.fake_score >= 60 ? "danger" : "muted"}>Fake risk {r.fake_score}</Badge>
+                                )}
+                                {r.sentiment_summary && <span className="text-muted-foreground">{r.sentiment_summary}</span>}
+                              </div>
+                            )}
+
+                            <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/40 pt-3">
+                              <button onClick={() => vote(r, "helpful")} className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-mono uppercase tracking-widest transition-all", myVotes[r.id] === "helpful" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground")}>
+                                <ThumbsUp className="size-3.5" /> Helpful {r.helpful_count > 0 ? `(${r.helpful_count})` : ""}
+                              </button>
+                              <button onClick={() => vote(r, "not_helpful")} className={cn("inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest transition-colors", myVotes[r.id] === "not_helpful" ? "text-destructive" : "text-muted-foreground hover:text-foreground")}>
+                                <ThumbsDown className="size-3.5" /> {r.not_helpful_count}
+                              </button>
+                              {!isOwn && user && (
+                                <button onClick={() => setReportFor(reportFor === r.id ? null : r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive ml-auto">
+                                  <Flag className="size-3.5" /> Report
+                                </button>
+                              )}
+                              {isOwn && (
+                                <button onClick={() => { setEditingId(r.id); setEditRating(r.rating); setEditTitle(r.title ?? ""); setEditBody(r.body ?? ""); }} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">
+                                  <Pencil className="size-3.5" /> Edit
+                                </button>
+                              )}
+                              {(isOwn || isAdmin) && (
+                                <button onClick={() => remove(r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
+                                  <Trash2 className="size-3.5" /> Delete
+                                </button>
+                              )}
+                            </div>
+
+                            {reportFor === r.id && (
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {REPORT_REASONS.map((reason) => (
+                                  <button key={reason} onClick={() => submitReport(r.id, reason)} className="rounded-lg border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-destructive/50 hover:text-destructive">
+                                    {reason}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {isAdmin && (
+                              <div className="mt-3 border-t border-border/50 pt-3">
+                                <div className="flex flex-wrap gap-1.5">
+                                  <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned })} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
+                                  <ModBtn onClick={() => patch(r.id, { featured: !r.featured })} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
+                                  {r.status === "published" ? (
+                                    <ModBtn onClick={() => patch(r.id, { status: "hidden" })}><EyeOff className="size-3" /> Hide</ModBtn>
+                                  ) : (
+                                    <ModBtn onClick={() => patch(r.id, { status: "published" })}><Eye className="size-3" /> Approve</ModBtn>
+                                  )}
+                                  {r.status !== "rejected" && (
+                                    <ModBtn onClick={() => patch(r.id, { status: "rejected" })}><X className="size-3" /> Reject</ModBtn>
+                                  )}
+                                  <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
+                                    {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
+                                  </ModBtn>
+                                </div>
+                                <div className="mt-2 flex gap-2">
+                                  <input value={replyDrafts[r.id] ?? r.admin_reply ?? ""} onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))} placeholder="Public reply…"
+                                    className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-accent" />
+                                  <button onClick={() => postReply(r.id)} className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground font-bold px-4 rounded-full text-[11px] uppercase tracking-widest">
+                                    <MessageSquare className="size-3.5" /> {r.admin_reply ? "Update" : "Reply"}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </motion.li>
+                    );
+                  })}
+                </AnimatePresence>
+              </ul>
+
+              {visibleCount < sorted.length && (
+                <div className="mt-8 grid place-items-center">
+                  <button
+                    onClick={() => setVisibleCount((c) => c + 6)}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-6 py-3 text-[11px] font-mono uppercase tracking-widest text-foreground transition-all hover:border-accent/40 hover:text-accent"
+                  >
+                    Load more reviews <ChevronRight className="size-3.5" />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </>
       )}
 
-      {/* Customer media gallery */}
-      {galleryMedia.length > 0 && (
-        <div className="mb-10">
-          <h3 className="mb-4 text-sm font-display tracking-tight flex items-center gap-2">
-            <Camera className="size-4 text-accent" /> Customer Photos &amp; Videos
-          </h3>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {galleryMedia.map(({ media }, i) => (
-              <button
-                key={i}
-                onClick={() => setLightbox(media)}
-                className="relative size-24 sm:size-28 shrink-0 overflow-hidden rounded-2xl border border-white/10 group"
-              >
-                {media.type === "image" ? (
-                  <img src={media.url} alt="" loading="lazy" className="size-full object-cover transition-transform group-hover:scale-105" />
-                ) : (
-                  <>
-                    <video src={media.url} className="size-full object-cover" />
-                    <span className="absolute inset-0 grid place-items-center bg-black/40"><Play className="size-6 text-white" /></span>
-                  </>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Sticky mobile write button */}
+      {user && !showCompose && (
+        <button
+          onClick={openCompose}
+          className="sm:hidden fixed bottom-5 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground shadow-[var(--shadow-ember)]"
+        >
+          <Pencil className="size-4" /> Write Review
+        </button>
       )}
 
-      {/* Filters + write CTA */}
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {filterChips.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setFilter(c.key)}
-              className={cn(
-                "rounded-full border px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider transition-colors",
-                filter === c.key ? "border-accent/40 bg-accent/15 text-accent" : "border-border text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {c.label}
-            </button>
-          ))}
-          <span className="mx-1 h-4 w-px bg-border" />
-          {sortChips.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setSort(c.key)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider transition-colors",
-                sort === c.key ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-        {user ? (
-          <button
-            onClick={() => setShowCompose((s) => !s)}
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110"
-          >
+      {/* Write review multi-step modal */}
+      <WriteReviewModal
+        open={showCompose && !!user}
+        onClose={() => setShowCompose(false)}
+        step={step}
+        setStep={setStep}
+        rating={rating}
+        setRating={setRating}
+        hoverRating={hoverRating}
+        setHoverRating={setHoverRating}
+        title={title}
+        setTitle={setTitle}
+        body={body}
+        setBody={setBody}
+        pendingMedia={pendingMedia}
+        setPendingMedia={setPendingMedia}
+        uploading={uploading}
+        submitting={submitting}
+        fileRef={fileRef}
+        onPickFiles={onPickFiles}
+        onSubmit={submit}
+      />
+
+      {/* Lightbox gallery */}
+      <Lightbox
+        list={lightboxList}
+        index={lightboxIndex}
+        onIndex={setLightboxIndex}
+        onClose={() => setLightboxList(null)}
+      />
+    </section>
+  );
+}
+
+/* ---------- Sub components ---------- */
+
+function StatCard({ icon, value, label, highlight }: { icon: React.ReactNode; value: string; label: string; highlight?: boolean }) {
+  return (
+    <div className={cn(
+      "rounded-2xl border p-4 backdrop-blur-xl",
+      highlight ? "border-accent/30 bg-accent/[0.08]" : "border-white/10 bg-card/40",
+    )}>
+      <span className={cn("inline-grid size-8 place-items-center rounded-full mb-2", highlight ? "bg-accent/15 text-accent" : "bg-white/5 text-muted-foreground")}>{icon}</span>
+      <p className="text-xl font-display leading-none">{value}</p>
+      <p className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+function EmptyState({ canWrite, onWrite, filtered, onReset }: { canWrite: boolean; onWrite: () => void; filtered: boolean; onReset: () => void }) {
+  if (filtered) {
+    return (
+      <div className="grid place-items-center rounded-3xl border border-white/10 bg-card/40 py-14 text-center">
+        <p className="text-sm text-muted-foreground">No reviews match this filter.</p>
+        <button onClick={onReset} className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-[11px] font-mono uppercase tracking-widest hover:border-accent/40 hover:text-accent">
+          Show all reviews
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="relative grid place-items-center overflow-hidden rounded-3xl border border-white/10 bg-card/40 backdrop-blur-xl py-16 px-6 text-center">
+      <div className="pointer-events-none absolute inset-0 opacity-50" style={{ background: "var(--gradient-ember-soft)" }} />
+      <div className="relative">
+        <span className="inline-grid size-16 place-items-center rounded-2xl bg-accent/15 text-accent animate-glow">
+          <Star className="size-8 fill-accent" />
+        </span>
+        <h3 className="mt-5 text-xl font-display">Be the first to review this product</h3>
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">Share your experience and help other customers shop with confidence.</p>
+        {canWrite ? (
+          <button onClick={onWrite} className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110 hover:shadow-[var(--shadow-ember)]">
             <Pencil className="size-3.5" /> Write a review
           </button>
         ) : (
-          <Link to="/auth" className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110">
+          <Link to="/auth" className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110">
             Sign in to review
           </Link>
         )}
       </div>
+    </div>
+  );
+}
 
-      {/* Compose */}
-      {user && showCompose && (
-        <form onSubmit={submit} className="mb-10 bg-card/60 backdrop-blur-xl border border-border rounded-2xl p-5 sm:p-6">
-          <h3 className="text-sm font-display mb-4">Write a review</h3>
-          <div className="flex items-center gap-1 mb-4">
-            {Array.from({ length: 5 }).map((_, i) => {
-              const value = i + 1;
-              const active = (hoverRating || rating) >= value;
-              return (
-                <button key={i} type="button" onMouseEnter={() => setHoverRating(value)} onMouseLeave={() => setHoverRating(0)} onClick={() => setRating(value)} aria-label={`Rate ${value}`} className="p-1">
-                  <Star className={cn("size-6", active ? "fill-accent text-accent" : "text-muted-foreground")} />
-                </button>
-              );
-            })}
+function ReviewsSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="mb-8 grid gap-8 lg:grid-cols-[280px_1fr] rounded-3xl border border-white/10 bg-card/40 p-8">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-16 w-20 rounded-xl bg-white/5" />
+          <div className="h-4 w-32 rounded bg-white/5" />
+          <div className="h-3 w-40 rounded bg-white/5" />
+        </div>
+        <div className="space-y-3 self-center">
+          {[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-2.5 w-full rounded-full bg-white/5" />)}
+        </div>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="rounded-2xl border border-white/10 bg-card/40 p-6">
+            <div className="flex items-center gap-3.5">
+              <div className="size-12 rounded-full bg-white/5" />
+              <div className="space-y-2"><div className="h-3 w-24 rounded bg-white/5" /><div className="h-2.5 w-16 rounded bg-white/5" /></div>
+            </div>
+            <div className="mt-4 h-3 w-32 rounded bg-white/5" />
+            <div className="mt-4 h-4 w-48 rounded bg-white/5" />
+            <div className="mt-2 h-3 w-full rounded bg-white/5" />
+            <div className="mt-1.5 h-3 w-3/4 rounded bg-white/5" />
           </div>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder="Title (optional)"
-            className="w-full bg-background/60 border border-border rounded-lg px-3.5 py-2.5 text-sm mb-3 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25" />
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={4} placeholder="Share your thoughts…"
-            className="w-full bg-background/60 border border-border rounded-lg px-3.5 py-2.5 text-sm mb-4 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25" />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-          {pendingMedia.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-2">
-              {pendingMedia.map((m, i) => (
-                <div key={i} className="relative size-16 overflow-hidden rounded-lg border border-border">
-                  {m.type === "image" ? <img src={m.url} alt="" className="size-full object-cover" /> : <video src={m.url} className="size-full object-cover" />}
-                  <button type="button" onClick={() => setPendingMedia((p) => p.filter((_, idx) => idx !== i))}
-                    className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-background/90 text-foreground ring-1 ring-border">
-                    <X className="size-3" />
-                  </button>
-                </div>
+const STEPS = ["Rating", "Title", "Experience", "Photos", "Submit"];
+
+function WriteReviewModal(props: {
+  open: boolean;
+  onClose: () => void;
+  step: number;
+  setStep: (n: number) => void;
+  rating: number;
+  setRating: (n: number) => void;
+  hoverRating: number;
+  setHoverRating: (n: number) => void;
+  title: string;
+  setTitle: (s: string) => void;
+  body: string;
+  setBody: (s: string) => void;
+  pendingMedia: ReviewMedia[];
+  setPendingMedia: React.Dispatch<React.SetStateAction<ReviewMedia[]>>;
+  uploading: boolean;
+  submitting: boolean;
+  fileRef: React.RefObject<HTMLInputElement | null>;
+  onPickFiles: (f: FileList | null) => void;
+  onSubmit: () => void;
+}) {
+  const { open, onClose, step, setStep, rating, setRating, hoverRating, setHoverRating, title, setTitle, body, setBody, pendingMedia, setPendingMedia, uploading, submitting, fileRef, onPickFiles, onSubmit } = props;
+  const last = step === STEPS.length;
+  const canNext = step !== 3 || body.trim().length > 0;
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ y: 40, opacity: 0, scale: 0.98 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 40, opacity: 0 }}
+            transition={{ type: "spring", damping: 26, stiffness: 280 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border border-white/10 bg-card/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[var(--shadow-float)]"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-display">Write a review</h3>
+              <button onClick={onClose} className="grid size-9 place-items-center rounded-full border border-white/10 text-muted-foreground hover:text-foreground">
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* progress */}
+            <div className="mb-6 flex items-center gap-1.5">
+              {STEPS.map((_, i) => (
+                <span key={i} className={cn("h-1 flex-1 rounded-full transition-colors", i < step ? "bg-accent" : "bg-white/10")} />
               ))}
             </div>
-          )}
-          <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => onPickFiles(e.target.files)} />
-          <div className="flex flex-wrap items-center gap-3">
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading || pendingMedia.length >= 6}
-              className="inline-flex items-center gap-2 rounded-lg border border-border px-3.5 py-2.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50">
-              {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <ImagePlus className="size-3.5" />}
-              Add photos / videos
-            </button>
-            <button type="submit" disabled={submitting || uploading}
-              className="ml-auto px-6 py-2.5 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground hover:brightness-110 disabled:opacity-50">
-              {submitting ? "Posting…" : "Submit review"}
-            </button>
-          </div>
-        </form>
-      )}
+            <p className="mb-5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Step {step} of {STEPS.length} · {STEPS[step - 1]}</p>
 
-      {/* List */}
-      {loading ? (
-        <div className="grid place-items-center py-16"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
-      ) : sorted.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-10 text-center">No reviews match this filter yet.</p>
-      ) : (
-        <ul className="grid gap-5 sm:grid-cols-2">
-          {sorted.map((r) => {
-            const prof = profiles[r.user_id];
-            const name = prof?.full_name || "Anonymous";
-            const isOwn = user?.id === r.user_id;
-            const editing = editingId === r.id;
-            return (
-              <li key={r.id} className={cn(
-                "rounded-2xl border bg-card/50 backdrop-blur-xl p-5 sm:p-6 transition-all",
-                r.pinned ? "border-accent/40" : "border-white/10",
-                r.status !== "published" && "opacity-70",
-              )}>
-                {isAdmin && (r.status !== "published" || r.is_flagged || r.featured || r.pinned) && (
-                  <div className="mb-3 flex flex-wrap gap-1.5">
-                    {r.pinned && <Badge tone="accent"><Pin className="size-2.5" /> Pinned</Badge>}
-                    {r.featured && <Badge tone="accent"><Sparkles className="size-2.5" /> Featured</Badge>}
-                    {r.status !== "published" && <Badge tone="muted">{r.status}</Badge>}
-                    {r.is_flagged && <Badge tone="danger"><Flag className="size-2.5" /> {r.report_count} report{r.report_count === 1 ? "" : "s"}</Badge>}
+            <div className="min-h-[180px]">
+              {step === 1 && (
+                <div className="grid place-items-center py-6">
+                  <p className="mb-5 text-sm text-muted-foreground">How would you rate this product?</p>
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const value = i + 1;
+                      const active = (hoverRating || rating) >= value;
+                      return (
+                        <button key={i} type="button" onMouseEnter={() => setHoverRating(value)} onMouseLeave={() => setHoverRating(0)} onClick={() => setRating(value)} aria-label={`Rate ${value}`} className="p-1 transition-transform hover:scale-125">
+                          <Star className={cn("size-9 transition-colors", active ? "fill-accent text-accent drop-shadow-[0_0_8px_oklch(0.74_0.19_49/0.5)]" : "text-muted-foreground/40")} />
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-
-                {editing ? (
-                  <div>
-                    <div className="flex items-center gap-1 mb-3">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <button key={i} type="button" onClick={() => setEditRating(i + 1)} className="p-1">
-                          <Star className={cn("size-5", editRating >= i + 1 ? "fill-accent text-accent" : "text-muted-foreground")} />
+                  <p className="mt-4 text-sm font-display text-accent">{["", "Poor", "Fair", "Good", "Very good", "Excellent"][hoverRating || rating]}</p>
+                </div>
+              )}
+              {step === 2 && (
+                <div>
+                  <label className="mb-2 block text-sm text-muted-foreground">Give your review a title</label>
+                  <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder="e.g. Excellent quality and fast delivery" autoFocus
+                    className="w-full bg-background/60 border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25" />
+                  <p className="mt-2 text-right text-[10px] font-mono text-muted-foreground">{title.length}/120</p>
+                </div>
+              )}
+              {step === 3 && (
+                <div>
+                  <label className="mb-2 block text-sm text-muted-foreground">Tell us about your experience</label>
+                  <textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={6} placeholder="What did you like? How was the quality, delivery and packaging?" autoFocus
+                    className="w-full bg-background/60 border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25" />
+                  <p className="mt-2 text-right text-[10px] font-mono text-muted-foreground">{body.length}/2000</p>
+                </div>
+              )}
+              {step === 4 && (
+                <div>
+                  <label className="mb-3 block text-sm text-muted-foreground">Add photos or videos (optional)</label>
+                  <div className="flex flex-wrap gap-2.5">
+                    {pendingMedia.map((m, i) => (
+                      <div key={i} className="relative size-20 overflow-hidden rounded-xl border border-border">
+                        {m.type === "image" ? <img src={m.url} alt="" className="size-full object-cover" /> : <video src={m.url} className="size-full object-cover" />}
+                        <button type="button" onClick={() => setPendingMedia((p) => p.filter((_, idx) => idx !== i))}
+                          className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-background/90 text-foreground ring-1 ring-border">
+                          <X className="size-3" />
                         </button>
-                      ))}
-                    </div>
-                    <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} maxLength={120}
-                      className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-2.5 focus:outline-none focus:border-accent" />
-                    <textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} maxLength={2000} rows={3}
-                      className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-accent" />
-                    <div className="flex gap-2">
-                      <button onClick={() => saveEdit(r.id)} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground">Update</button>
-                      <button onClick={() => setEditingId(null)} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest border border-border">Cancel</button>
-                    </div>
+                      </div>
+                    ))}
+                    {pendingMedia.length < 6 && (
+                      <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+                        className="grid size-20 place-items-center rounded-xl border border-dashed border-border text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-50">
+                        {uploading ? <Loader2 className="size-5 animate-spin" /> : <ImagePlus className="size-5" />}
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  <>
-                    {/* Top row: avatar + name + verified */}
-                    <div className="flex items-center gap-3.5">
-                      <div className="size-12 rounded-full bg-muted overflow-hidden grid place-items-center text-base font-display shrink-0 ring-1 ring-white/10">
-                        {prof?.avatar_url ? <img src={prof.avatar_url} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[15px] font-display truncate">{name}</p>
-                        {r.verified_purchase && (
-                          <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
-                            <BadgeCheck className="size-3" /> Verified Purchase
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                  <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => onPickFiles(e.target.files)} />
+                </div>
+              )}
+              {step === 5 && (
+                <div className="rounded-2xl border border-white/10 bg-background/40 p-5">
+                  <p className="mb-3 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Review summary</p>
+                  <StarRating rating={rating} starClassName="size-5" />
+                  {title && <p className="mt-3 font-display">{title}</p>}
+                  {body && <p className="mt-1.5 text-sm text-muted-foreground line-clamp-4">{body}</p>}
+                  {pendingMedia.length > 0 && (
+                    <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground"><Camera className="size-3.5" /> {pendingMedia.length} attachment{pendingMedia.length === 1 ? "" : "s"}</p>
+                  )}
+                </div>
+              )}
+            </div>
 
-                    {/* Second row: stars + date */}
-                    <div className="mt-4 flex items-center gap-3">
-                      <StarRating rating={r.rating} starClassName="size-4" />
-                      <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground/70">{fmtDate(r.created_at)}</span>
-                    </div>
-
-                    {/* Title + body */}
-                    {r.title && <p className="mt-4 text-base font-display leading-snug">{r.title}</p>}
-                    {r.body && <p className="mt-2 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{r.body}</p>}
-
-                    {/* media */}
-                    {r.media?.length > 0 && (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {r.media.map((m, i) => (
-                          <button key={i} onClick={() => setLightbox(m)} className="relative size-20 overflow-hidden rounded-xl border border-white/10 group">
-                            {m.type === "image" ? (
-                              <img src={m.url} alt="" loading="lazy" className="size-full object-cover transition-transform group-hover:scale-105" />
-                            ) : (
-                              <>
-                                <video src={m.url} className="size-full object-cover" />
-                                <span className="absolute inset-0 grid place-items-center bg-black/30"><Play className="size-5 text-white" /></span>
-                              </>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* trust signals */}
-                    {r.verified_purchase && (
-                      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                        <span className="inline-flex items-center gap-1 text-emerald-400/90"><CheckCircle2 className="size-3" /> Verified Purchase</span>
-                        <span className="inline-flex items-center gap-1"><PackageCheck className="size-3" /> Product Delivered</span>
-                        <span className="inline-flex items-center gap-1"><ShieldCheck className="size-3" /> Review Approved</span>
-                      </div>
-                    )}
-
-                    {/* official reply */}
-                    {r.admin_reply && (
-                      <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-accent/20 bg-accent/[0.06] p-3.5">
-                        <ShieldCheck className="size-4 text-accent shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-[10px] font-mono uppercase tracking-widest text-accent mb-1">FoundOurMarket · Official reply</p>
-                          <p className="text-sm leading-relaxed">{r.admin_reply}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* AI insight (staff) */}
-                    {isAdmin && r.sentiment && (
-                      <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-mono">
-                        <Badge tone={r.sentiment === "negative" ? "danger" : r.sentiment === "positive" ? "accent" : "muted"}>
-                          <Brain className="size-2.5" /> {r.sentiment} {r.sentiment_score ?? 0}
-                        </Badge>
-                        {typeof r.fake_score === "number" && (
-                          <Badge tone={r.fake_score >= 60 ? "danger" : "muted"}>Fake risk {r.fake_score}</Badge>
-                        )}
-                        {r.sentiment_summary && <span className="text-muted-foreground">{r.sentiment_summary}</span>}
-                      </div>
-                    )}
-
-                    {/* action row */}
-                    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/40 pt-3">
-                      <button onClick={() => vote(r, "helpful")} className={cn("inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest transition-colors", myVotes[r.id] === "helpful" ? "text-accent" : "text-muted-foreground hover:text-foreground")}>
-                        <ThumbsUp className="size-3.5" /> Helpful {r.helpful_count > 0 ? `(${r.helpful_count})` : ""}
-                      </button>
-                      <button onClick={() => vote(r, "not_helpful")} className={cn("inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest transition-colors", myVotes[r.id] === "not_helpful" ? "text-destructive" : "text-muted-foreground hover:text-foreground")}>
-                        <ThumbsDown className="size-3.5" /> {r.not_helpful_count}
-                      </button>
-                      {!isOwn && user && (
-                        <button onClick={() => setReportFor(reportFor === r.id ? null : r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
-                          <Flag className="size-3.5" /> Report
-                        </button>
-                      )}
-                      {isOwn && (
-                        <button onClick={() => { setEditingId(r.id); setEditRating(r.rating); setEditTitle(r.title ?? ""); setEditBody(r.body ?? ""); }} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">
-                          <Pencil className="size-3.5" /> Edit
-                        </button>
-                      )}
-                      {(isOwn || isAdmin) && (
-                        <button onClick={() => remove(r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
-                          <Trash2 className="size-3.5" /> Delete
-                        </button>
-                      )}
-                    </div>
-
-                    {reportFor === r.id && (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {REPORT_REASONS.map((reason) => (
-                          <button key={reason} onClick={() => submitReport(r.id, reason)} className="rounded-lg border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-destructive/50 hover:text-destructive">
-                            {reason}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* staff moderation toolbar */}
-                    {isAdmin && (
-                      <div className="mt-3 border-t border-border/50 pt-3">
-                        <div className="flex flex-wrap gap-1.5">
-                          <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned })} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
-                          <ModBtn onClick={() => patch(r.id, { featured: !r.featured })} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
-                          {r.status === "published" ? (
-                            <ModBtn onClick={() => patch(r.id, { status: "hidden" })}><EyeOff className="size-3" /> Hide</ModBtn>
-                          ) : (
-                            <ModBtn onClick={() => patch(r.id, { status: "published" })}><Eye className="size-3" /> Publish</ModBtn>
-                          )}
-                          <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
-                            {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
-                          </ModBtn>
-                        </div>
-                        <div className="mt-2 flex gap-2">
-                          <input value={replyDrafts[r.id] ?? r.admin_reply ?? ""} onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))} placeholder="Public reply…"
-                            className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-accent" />
-                          <button onClick={() => postReply(r.id)} className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground font-bold px-4 rounded-full text-[11px] uppercase tracking-widest">
-                            <MessageSquare className="size-3.5" /> {r.admin_reply ? "Update" : "Reply"}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+            {/* nav */}
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <button
+                onClick={() => (step === 1 ? onClose() : setStep(step - 1))}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="size-3.5" /> {step === 1 ? "Cancel" : "Back"}
+              </button>
+              {last ? (
+                <button onClick={onSubmit} disabled={submitting || uploading}
+                  className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110 disabled:opacity-50">
+                  {submitting ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} {submitting ? "Posting…" : "Submit review"}
+                </button>
+              ) : (
+                <button onClick={() => canNext && setStep(step + 1)} disabled={!canNext}
+                  className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110 disabled:opacity-40">
+                  Next <ArrowRight className="size-3.5" />
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
       )}
+    </AnimatePresence>
+  );
+}
 
-      {/* Lightbox */}
-      {lightbox && (
-        <div
-          onClick={() => setLightbox(null)}
-          className="fixed inset-0 z-[100] grid place-items-center bg-black/85 backdrop-blur-sm p-4"
-        >
-          <button onClick={() => setLightbox(null)} className="absolute top-5 right-5 grid size-10 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20">
+function Lightbox({ list, index, onIndex, onClose }: { list: ReviewMedia[] | null; index: number; onIndex: (i: number) => void; onClose: () => void }) {
+  const touchStart = useRef<number | null>(null);
+  const count = list?.length ?? 0;
+
+  useEffect(() => {
+    if (!list) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight" && count > 1) onIndex((index + 1) % count);
+      if (e.key === "ArrowLeft" && count > 1) onIndex((index - 1 + count) % count);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [list, index, count, onClose, onIndex]);
+
+  if (!list) return null;
+  const current = list[index];
+  if (!current) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[130] flex flex-col bg-black/90 backdrop-blur-md"
+      >
+        <div className="flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{index + 1} / {count}</span>
+          <button onClick={onClose} className="grid size-10 place-items-center rounded-full border border-white/10 text-muted-foreground hover:text-foreground">
             <X className="size-5" />
           </button>
-          {lightbox.type === "image" ? (
-            <img src={lightbox.url} alt="" className="max-h-[85vh] max-w-[90vw] rounded-2xl object-contain" />
+        </div>
+        <div
+          className="relative flex flex-1 items-center justify-center px-4"
+          onClick={(e) => e.stopPropagation()}
+          onTouchStart={(e) => (touchStart.current = e.touches[0].clientX)}
+          onTouchEnd={(e) => {
+            if (touchStart.current == null || count < 2) return;
+            const dx = e.changedTouches[0].clientX - touchStart.current;
+            if (dx > 50) onIndex((index - 1 + count) % count);
+            else if (dx < -50) onIndex((index + 1) % count);
+            touchStart.current = null;
+          }}
+        >
+          {count > 1 && (
+            <button onClick={() => onIndex((index - 1 + count) % count)} className="absolute left-2 z-10 grid size-11 place-items-center rounded-full border border-white/10 bg-background/60 text-foreground hover:text-accent">
+              <ChevronLeft className="size-5" />
+            </button>
+          )}
+          {current.type === "image" ? (
+            <motion.img key={current.url} src={current.url} alt="" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="max-h-[78vh] max-w-full rounded-2xl object-contain" />
           ) : (
-            <video src={lightbox.url} controls autoPlay className="max-h-[85vh] max-w-[90vw] rounded-2xl" />
+            <video key={current.url} src={current.url} controls autoPlay className="max-h-[78vh] max-w-full rounded-2xl" />
+          )}
+          {count > 1 && (
+            <button onClick={() => onIndex((index + 1) % count)} className="absolute right-2 z-10 grid size-11 place-items-center rounded-full border border-white/10 bg-background/60 text-foreground hover:text-accent">
+              <ChevronRight className="size-5" />
+            </button>
           )}
         </div>
-      )}
-    </section>
+        {count > 1 && (
+          <div className="flex justify-center gap-2 overflow-x-auto px-4 py-4" onClick={(e) => e.stopPropagation()}>
+            {list.map((m, i) => (
+              <button key={i} onClick={() => onIndex(i)} className={cn("size-14 shrink-0 overflow-hidden rounded-lg border transition-all", i === index ? "border-accent ring-2 ring-accent/30" : "border-border opacity-60 hover:opacity-100")}>
+                {m.type === "image" ? <img src={m.url} alt="" className="size-full object-cover" loading="lazy" /> : <video src={m.url} className="size-full object-cover" />}
+              </button>
+            ))}
+          </div>
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
