@@ -557,6 +557,8 @@ function TicketsView(props: {
         <div className="space-y-3">
           {tickets.map((e) => (
             <TicketCard key={e.ticket.id} e={e}
+              assignedName={e.ticket.assigned_to ? (profiles.get(e.ticket.assigned_to) ?? "Agent") : null}
+              assignedPresence={e.ticket.assigned_to ? presenceOf(e.ticket.assigned_to) : null}
               onOpen={() => props.onOpen(e.ticket.id)} onManage={() => props.onManage(e.ticket.id)}
               on360={() => props.on360(e.ticket.user_id, e.customerName)} onAi={() => props.onAi(e.ticket.id)}
               onStatus={(st) => props.onStatus(e.ticket.id, st)} onPriority={(p) => props.onPriority(e.ticket.id, p)} />
