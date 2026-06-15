@@ -155,6 +155,7 @@ function AdminSupportPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase.from("support_tickets") as any).update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
+    void pingPresence("ticket_update");
     logActivity("support_update", "support_ticket", id, patch);
     if (patch.status === "resolved" || patch.status === "closed") {
       void notifySupportEvent({ data: { ticketId: id, event: patch.status as "resolved" | "closed" } }).catch(() => {});
