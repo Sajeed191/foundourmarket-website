@@ -181,12 +181,14 @@ function CheckoutPage() {
     () => detailed.reduce((s, i) => s + shippingFeeOf(i.product) * i.qty, 0),
     [detailed, shippingFeeOf],
   );
-  const totals = computeOrderTotals(market, subtotalUSD, 0, productShipping);
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const couponDiscountUSD = coupon?.discount ?? 0;
+  const totals = computeOrderTotals(market, subtotalUSD, couponDiscountUSD, productShipping);
   const subtotalINR = totals.subtotal;
   const shippingINR = totals.shipping;
   const taxINR = totals.tax;
   const totalINR = totals.total;
-  const savingsINR = 0;
+  const savingsINR = totals.discount;
   const itemsCount = useMemo(() => detailed.reduce((s, i) => s + i.qty, 0), [detailed]);
 
   const eta = formatEta(3, 5);
