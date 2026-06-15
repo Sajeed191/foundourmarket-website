@@ -773,37 +773,15 @@ function Home() {
 
       <CinematicDivider />
 
-      {/* 7 · Social Proof — compact metrics + verified reviews */}
+      {/* 7 · Social Proof — verified customer reviews */}
       <section className="cv-auto px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
         <Reveal className="text-center mb-4 sm:mb-6">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2 inline-flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-accent animate-glow" /> Live Marketplace
+            <span className="size-1.5 rounded-full bg-accent animate-glow" /> Customer Stories
           </p>
-          <h2 className="text-fluid-2xl font-display tracking-tight">Trusted by customers in 120+ countries</h2>
+          <h2 className="text-fluid-2xl font-display tracking-tight">What our customers say</h2>
         </Reveal>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
-          {[
-            { icon: Users, value: 50000, suffix: "+", label: "Customers" },
-            { icon: Package, value: 10000, suffix: "+", label: "Products" },
-            { icon: Globe2, value: 120, suffix: "+", label: "Countries" },
-            { icon: Star, value: 4.8, suffix: "★", label: "Rating" },
-          ].map((s, i) => (
-            <Reveal key={s.label} delay={i}>
-              <div className="glass-strong rounded-2xl p-3.5 sm:p-5 h-full flex items-center gap-3">
-                <div className="size-9 shrink-0 rounded-xl bg-accent/10 text-accent grid place-items-center ring-1 ring-accent/20">
-                  <s.icon className="size-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xl sm:text-3xl font-display font-semibold tracking-tight text-gradient-ember leading-none">
-                    <AnimatedCounter to={s.value} suffix={s.suffix} decimals={Number.isInteger(s.value) ? 0 : 1} />
-                  </div>
-                  <div className="text-[9px] sm:text-[11px] font-mono uppercase tracking-widest text-muted-foreground mt-1.5">{s.label}</div>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
 
         {testimonials.length > 0 && (
           <LazyMount minHeight={240}>
