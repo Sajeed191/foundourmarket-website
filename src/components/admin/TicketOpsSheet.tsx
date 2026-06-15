@@ -121,11 +121,12 @@ export function TicketOpsSheet({
     setMsgRows(msgs);
 
     if (tk) {
-      // customer + orders + full support history
-      const [{ data: cust }, { data: o }, { data: ut }] = await Promise.all([
+      // customer + orders + full support history + satisfaction ratings
+      const [{ data: cust }, { data: o }, { data: ut }, { data: rt }] = await Promise.all([
         supabase.from("profiles").select("full_name,created_at").eq("id", tk.user_id).maybeSingle(),
         supabase.from("orders").select("id,total,currency,status,payment_status,created_at,contact_email").eq("user_id", tk.user_id).order("created_at", { ascending: false }).limit(50),
         supabase.from("support_tickets").select("id,ticket_number,category,status,created_at,resolved_at,closed_at").eq("user_id", tk.user_id).order("created_at", { ascending: false }).limit(100),
+        supabase.from("support_ticket_ratings").select("id,ticket_id,rating,comment,category,assigned_agent,rated_at").eq("customer_id", tk.user_id).order("rated_at", { ascending: false }).limit(50),
       ]);
       const oRows = (o as OrderLite[]) ?? [];
       setOrders(oRows);
@@ -136,7 +137,9 @@ export function TicketOpsSheet({
         createdAt: profile?.created_at ?? null,
       });
       setUserTickets((ut as typeof userTickets) ?? []);
+      setRatings((rt as RatingRow[]) ?? []);
     }
+
 
     // resolve actor / note-author / staff names + staff list
     const ids = new Set<string>();
