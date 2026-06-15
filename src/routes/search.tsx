@@ -218,10 +218,14 @@ function SearchPage() {
     }
   }, [search.q]);
 
+  const sort = search.sort ?? "relevance";
+
+  // Reset and fetch the first page whenever the query / RPC-handled filters change.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    const sort = search.sort ?? "relevance";
+    setRawRows([]);
+    setHasMore(false);
     (supabase.rpc as any)("search_products", {
       q: search.q ?? null,
       category_filter: search.cat ?? null,
@@ -229,20 +233,52 @@ function SearchPage() {
       max_price: search.max ?? null,
       min_rating: search.rating ?? null,
       sort_by: RPC_SORTS.has(sort) ? sort : "relevance",
-      page_limit: 60,
+      page_limit: PAGE_SIZE,
       page_offset: 0,
     }).then(({ data }: { data: any[] | null }) => {
       if (cancelled) return;
-      let rows = (data ?? []).map((r: any) => rowToProduct(r));
-      if (search.stock === "in") rows = rows.filter((p) => p.inStock);
-      if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
-      if (search.disc === "1") rows = rows.filter((p) => discountPercent(p.price, compareOf(p)) != null);
-      rows = applyClientSort(rows, sort, (p) => discountPercent(p.price, compareOf(p)) ?? 0);
-      setResults(rows);
+      const rows = (data ?? []).map((r: any) => rowToProduct(r));
+      setHasMore(rows.length === PAGE_SIZE);
+      setRawRows(rows);
       setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [search.q, search.cat, search.min, search.max, search.sort, search.stock, search.rating, search.free, search.disc]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.q, search.cat, search.min, search.max, search.rating, sort]);
+
+  // Load the next page and append (deduped by slug) — preserves filters/sorting.
+  function loadMore() {
+    if (loading || loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    (supabase.rpc as any)("search_products", {
+      q: search.q ?? null,
+      category_filter: search.cat ?? null,
+      min_price: search.min ?? null,
+      max_price: search.max ?? null,
+      min_rating: search.rating ?? null,
+      sort_by: RPC_SORTS.has(sort) ? sort : "relevance",
+      page_limit: PAGE_SIZE,
+      page_offset: rawRows.length,
+    }).then(({ data }: { data: any[] | null }) => {
+      const rows = (data ?? []).map((r: any) => rowToProduct(r));
+      setHasMore(rows.length === PAGE_SIZE);
+      setRawRows((prev) => {
+        const seen = new Set(prev.map((p) => p.slug));
+        return [...prev, ...rows.filter((r: Product) => !seen.has(r.slug))];
+      });
+      setLoadingMore(false);
+    });
+  }
+
+  // Client-side filters / sorts that the RPC does not handle, applied to the
+  // accumulated raw rows so pagination stays consistent.
+  const results = useMemo(() => {
+    let rows = rawRows;
+    if (search.stock === "in") rows = rows.filter((p) => p.inStock);
+    if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
+    if (search.disc === "1") rows = rows.filter((p) => discountPercent(p.price, compareOf(p)) != null);
+    return applyClientSort(rows, sort, (p) => discountPercent(p.price, compareOf(p)) ?? 0);
+  }, [rawRows, search.stock, search.free, search.disc, sort, shippingFeeOf, compareOf]);
 
 
   function update(patch: Partial<SearchParams>) {
