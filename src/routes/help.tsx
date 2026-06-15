@@ -952,8 +952,6 @@ function HelpPage() {
           FoundOurMarket™ · Premium support, 24/7
         </p>
       </div>
-
-      <StickyHelpButton onClick={() => { loadCrisp().then(() => openCrispChat()).catch(() => toast.error("Live chat is loading — try again in a moment")); }} />
     </div>
   );
 }
