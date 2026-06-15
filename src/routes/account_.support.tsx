@@ -172,6 +172,9 @@ function SupportPage() {
           </p>
         </motion.div>
 
+        <SupportAvailabilityBanner />
+
+
         <button
           onClick={() => setComposing(true)}
           className="group w-full mb-6 flex items-center gap-3 rounded-2xl glass-strong p-4 text-left hover:border-accent/40 transition-all"
