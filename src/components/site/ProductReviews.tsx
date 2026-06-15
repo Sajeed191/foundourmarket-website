@@ -520,7 +520,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                 <AnimatePresence>
                   {visible.map((r) => {
                     const prof = profiles[r.user_id];
-                    const name = prof?.full_name || "Anonymous";
+                    const name = prof?.full_name || "Customer";
                     const isOwn = user?.id === r.user_id;
                     const editing = editingId === r.id;
                     return (
