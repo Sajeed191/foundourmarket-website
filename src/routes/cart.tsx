@@ -60,7 +60,7 @@ function CartPage() {
   } = useCart();
   const { format, priceOf, compareOf, shippingFeeOf, currencyReady } = useRegion();
 
-  const [promo] = useState<AutoPromo>(null);
+  const [promo, setPromo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
 
   // Pull the latest admin pricing/shipping when the cart opens.
