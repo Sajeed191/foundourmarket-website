@@ -147,6 +147,7 @@ import { Route as ApiPublicWebhooksCourierRouteImport } from './routes/api/publi
 import { Route as ApiPublicTrackOpenRouteImport } from './routes/api/public/track.open'
 import { Route as ApiPublicTrackClickRouteImport } from './routes/api/public/track.click'
 import { Route as ApiPublicSupportInboundEmailRouteImport } from './routes/api/public/support/inbound-email'
+import { Route as ApiPublicSupport_inboundSelftestRouteImport } from './routes/api/public/support/__inbound-selftest'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -854,6 +855,12 @@ const ApiPublicSupportInboundEmailRoute =
     path: '/api/public/support/inbound-email',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSupport_inboundSelftestRoute =
+  ApiPublicSupport_inboundSelftestRouteImport.update({
+    id: '/api/public/support/__inbound-selftest',
+    path: '/api/public/support',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -985,6 +992,7 @@ export interface FileRoutesByFullPath {
   '/category/$main/$sub': typeof CategoryMainSubRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin-product/$slug/': typeof AdminProductSlugIndexRoute
+  '/api/public/support': typeof ApiPublicSupport_inboundSelftestRoute
   '/api/public/support/inbound-email': typeof ApiPublicSupportInboundEmailRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
@@ -1124,6 +1132,7 @@ export interface FileRoutesByTo {
   '/category/$main/$sub': typeof CategoryMainSubRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin-product/$slug': typeof AdminProductSlugIndexRoute
+  '/api/public/support': typeof ApiPublicSupport_inboundSelftestRoute
   '/api/public/support/inbound-email': typeof ApiPublicSupportInboundEmailRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
@@ -1265,6 +1274,7 @@ export interface FileRoutesById {
   '/category/$main/$sub': typeof CategoryMainSubRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin-product/$slug/': typeof AdminProductSlugIndexRoute
+  '/api/public/support/__inbound-selftest': typeof ApiPublicSupport_inboundSelftestRoute
   '/api/public/support/inbound-email': typeof ApiPublicSupportInboundEmailRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
@@ -1407,6 +1417,7 @@ export interface FileRouteTypes {
     | '/category/$main/$sub'
     | '/lovable/email/suppression'
     | '/admin-product/$slug/'
+    | '/api/public/support'
     | '/api/public/support/inbound-email'
     | '/api/public/track/click'
     | '/api/public/track/open'
@@ -1546,6 +1557,7 @@ export interface FileRouteTypes {
     | '/category/$main/$sub'
     | '/lovable/email/suppression'
     | '/admin-product/$slug'
+    | '/api/public/support'
     | '/api/public/support/inbound-email'
     | '/api/public/track/click'
     | '/api/public/track/open'
@@ -1686,6 +1698,7 @@ export interface FileRouteTypes {
     | '/category/$main/$sub'
     | '/lovable/email/suppression'
     | '/admin-product/$slug/'
+    | '/api/public/support/__inbound-selftest'
     | '/api/public/support/inbound-email'
     | '/api/public/track/click'
     | '/api/public/track/open'
@@ -1813,6 +1826,7 @@ export interface RootRouteChildren {
   ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
   CategoryMainSubRoute: typeof CategoryMainSubRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicSupport_inboundSelftestRoute: typeof ApiPublicSupport_inboundSelftestRoute
   ApiPublicSupportInboundEmailRoute: typeof ApiPublicSupportInboundEmailRoute
   ApiPublicTrackClickRoute: typeof ApiPublicTrackClickRoute
   ApiPublicTrackOpenRoute: typeof ApiPublicTrackOpenRoute
@@ -2792,6 +2806,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSupportInboundEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/support/__inbound-selftest': {
+      id: '/api/public/support/__inbound-selftest'
+      path: '/api/public/support'
+      fullPath: '/api/public/support'
+      preLoaderRoute: typeof ApiPublicSupport_inboundSelftestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2982,6 +3003,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
   CategoryMainSubRoute: CategoryMainSubRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicSupport_inboundSelftestRoute: ApiPublicSupport_inboundSelftestRoute,
   ApiPublicSupportInboundEmailRoute: ApiPublicSupportInboundEmailRoute,
   ApiPublicTrackClickRoute: ApiPublicTrackClickRoute,
   ApiPublicTrackOpenRoute: ApiPublicTrackOpenRoute,
@@ -2995,13 +3017,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
