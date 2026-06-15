@@ -208,7 +208,7 @@ function CheckoutPage() {
         data: {
           items: detailed.map((i) => ({ slug: i.slug, qty: i.qty })),
           addressId: selectedAddress.id,
-          promoCode: null,
+          promoCode: coupon?.code ?? null,
           attribution: buildOrderAttribution(),
         },
       });
@@ -411,7 +411,7 @@ function CheckoutPage() {
         data: {
           items: detailed.map((i) => ({ slug: i.slug, qty: i.qty })),
           addressId: selectedAddress.id,
-          promoCode: null,
+          promoCode: coupon?.code ?? null,
           attribution: buildOrderAttribution(),
         },
       });
