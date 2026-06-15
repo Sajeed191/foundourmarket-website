@@ -21,6 +21,7 @@ import {
   setCustomerStatusFn, restoreCustomerFn, sendCustomerNotificationFn, resetCustomerPasswordFn,
 } from "@/lib/customer-admin.functions";
 import { computeTier, computeHealth, initialsOf, type TierMeta } from "@/lib/customer-tiers";
+import { safeExternalUrl } from "@/lib/safe-redirect";
 import { toast } from "sonner";
 
 
