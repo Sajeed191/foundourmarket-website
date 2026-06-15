@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useSupportSettings, resolveSupportStatus } from "@/lib/use-support-settings";
 import {
   TrustHeaderCards, ContactDetailStrip, TicketStatusOverview, OrderHelpCenter,
-  KnowledgeBase, StripeTrustSection, DisputePrevention, FooterHelpLinks, StickyHelpButton,
+  KnowledgeBase, StripeTrustSection, DisputePrevention, FooterHelpLinks,
 } from "@/components/site/HelpEnhancements";
 
 export const Route = createFileRoute("/help")({
