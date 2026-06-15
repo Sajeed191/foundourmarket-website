@@ -186,7 +186,15 @@ function SupportPage() {
           />
         )}
         {activeId && (
-          <ThreadSheet ticketId={activeId} userId={user.id} isStaff={false} onClose={() => setActiveId(null)} />
+          <ThreadSheet
+            ticketId={activeId}
+            userId={user.id}
+            isStaff={false}
+            onClose={() => {
+              setActiveId(null);
+              if (deepLinkTicket) nav({ to: "/account_/support", search: {}, replace: true });
+            }}
+          />
         )}
       </AnimatePresence>
     </div>
