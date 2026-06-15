@@ -4,7 +4,7 @@ import {
   Loader2, LifeBuoy, MessageSquare, Search, X, Gauge, Inbox, RotateCcw,
   Banknote, AlertTriangle, Clock, Flame, Sparkles, User, Package, Truck,
   Bell, ShieldAlert, Copy, ChevronRight, TrendingUp,
-  Check, Ban, FileText, Mail, Phone, MapPin, Users, Activity, Radio,
+  Check, Ban, FileText, Mail, Phone, MapPin, Users, Activity, Radio, SlidersHorizontal,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
