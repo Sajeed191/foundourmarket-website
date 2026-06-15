@@ -211,6 +211,7 @@ function AdminSupportPage() {
     { key: "refunds", label: "Refunds", icon: <Banknote className="size-3.5" /> },
     { key: "returns", label: "Returns", icon: <RotateCcw className="size-3.5" /> },
     { key: "agents", label: "Agents", icon: <Users className="size-3.5" /> },
+    { key: "satisfaction", label: "Satisfaction", icon: <Sparkles className="size-3.5" /> },
     { key: "warroom", label: "War Room", icon: <Radio className="size-3.5" /> },
     { key: "settings", label: "Settings", icon: <Gauge className="size-3.5" /> },
   ];
