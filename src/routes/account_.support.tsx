@@ -329,7 +329,7 @@ function ComposeSheet({
         order_id: prefill?.order ?? null,
         return_id: prefill?.return ?? null,
         refund_id: prefill?.refund ?? null,
-        context: (ctx ?? {}) as Record<string, unknown>,
+        context: (ctx ?? {}) as unknown as never,
       })
       .select("id")
       .single();
