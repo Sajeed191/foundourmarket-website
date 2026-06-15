@@ -56,6 +56,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [profiles, setProfiles] = useState<ProfileMap>({});
   const [myVotes, setMyVotes] = useState<Record<string, "helpful" | "not_helpful">>({});
   const [trust, setTrust] = useState<number | null>(null);
+  const [eligible, setEligible] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // browse state
