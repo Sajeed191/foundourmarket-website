@@ -167,7 +167,7 @@ function NotificationsPage() {
         <ul className="space-y-2">
           <AnimatePresence initial={false}>
             {filtered.map((n) => (
-              <Row key={n.id} n={n} onRead={markRead} onRemove={remove} />
+              <Row key={n.id} n={n} onRead={markRead} onRemove={remove} onArchive={archive} />
             ))}
           </AnimatePresence>
         </ul>
