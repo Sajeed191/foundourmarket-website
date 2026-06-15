@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowLeft, Loader2, Plus, Send, LifeBuoy, X, ChevronRight,
   ShieldCheck, MessageSquare, CheckCircle2, Check, CheckCheck,
