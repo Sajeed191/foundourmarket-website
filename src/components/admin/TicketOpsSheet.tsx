@@ -105,17 +105,21 @@ export function TicketOpsSheet({
     setMsgRows(msgs);
 
     if (tk) {
-      // customer + orders
-      const [{ data: cust }, { data: o }] = await Promise.all([
-        supabase.from("profiles").select("full_name").eq("id", tk.user_id).maybeSingle(),
+      // customer + orders + full support history
+      const [{ data: cust }, { data: o }, { data: ut }] = await Promise.all([
+        supabase.from("profiles").select("full_name,created_at").eq("id", tk.user_id).maybeSingle(),
         supabase.from("orders").select("id,total,currency,status,payment_status,created_at,contact_email").eq("user_id", tk.user_id).order("created_at", { ascending: false }).limit(50),
+        supabase.from("support_tickets").select("id,ticket_number,category,status,created_at,resolved_at,closed_at").eq("user_id", tk.user_id).order("created_at", { ascending: false }).limit(100),
       ]);
       const oRows = (o as OrderLite[]) ?? [];
       setOrders(oRows);
+      const profile = cust as { full_name: string | null; created_at: string | null } | null;
       setCustomer({
-        name: (cust as { full_name: string | null } | null)?.full_name ?? "Customer",
+        name: profile?.full_name ?? "Customer",
         email: oRows.find((x) => x.contact_email)?.contact_email ?? null,
+        createdAt: profile?.created_at ?? null,
       });
+      setUserTickets((ut as typeof userTickets) ?? []);
     }
 
     // resolve actor / note-author / staff names + staff list
