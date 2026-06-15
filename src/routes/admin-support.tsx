@@ -290,16 +290,20 @@ function AdminSupportPage() {
         {tickets === null ? (
           <div className="grid place-items-center py-20"><Loader2 className="size-5 animate-spin text-accent" /></div>
         ) : section === "dashboard" ? (
-          <DashboardView kpis={kpis} enriched={enriched} />
+          <DashboardView kpis={kpis} enriched={enriched} team={team} avgFirstReplyTodayMin={avgFirstReplyTodayMin} />
         ) : section === "tickets" ? (
           <TicketsView
             tickets={visibleTickets} stageFilter={stageFilter} setStageFilter={setStageFilter} stageCount={stageCount}
             priorityFilter={priorityFilter} setPriorityFilter={setPriorityFilter}
             assignFilter={assignFilter} setAssignFilter={setAssignFilter}
-            sortBy={sortBy} setSortBy={setSortBy}
-            q={q} setQ={setQ} onOpen={setActiveId} onManage={setManageId} on360={(uid, name) => setC360({ userId: uid, name })} onAi={setAiTicket}
+            sortBy={sortBy} setSortBy={setSortBy} presenceOf={presenceOf} profiles={profiles}
+            q={q} setQ={setQ}
+            onOpen={(id) => { setActiveId(id); void pingPresence("open_ticket"); }}
+            onManage={(id) => { setManageId(id); void pingPresence("manage_ticket"); }}
+            on360={(uid, name) => setC360({ userId: uid, name })} onAi={setAiTicket}
             onStatus={(id, st) => update(id, { status: st })} onPriority={(id, p) => update(id, { priority: priorityToDb(p) })}
           />
+
 
         ) : section === "refunds" ? (
           <RefundsView refunds={refunds} orders={orders} onChanged={load} />
