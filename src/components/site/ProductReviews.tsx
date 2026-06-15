@@ -56,6 +56,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [profiles, setProfiles] = useState<ProfileMap>({});
   const [myVotes, setMyVotes] = useState<Record<string, "helpful" | "not_helpful">>({});
   const [trust, setTrust] = useState<number | null>(null);
+  const [eligible, setEligible] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // browse state
@@ -117,8 +118,15 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     setMyVotes(map);
   }, [user]);
 
+  const loadEligibility = useCallback(async () => {
+    if (!user) { setEligible(false); return; }
+    const { data } = await supabase.rpc("can_review_product", { _slug: productSlug });
+    setEligible(data === true);
+  }, [user, productSlug]);
+
   useEffect(() => { setLoading(true); load(); }, [load]);
   useEffect(() => { loadMyVotes(); }, [loadMyVotes]);
+  useEffect(() => { loadEligibility(); }, [loadEligibility]);
 
   // realtime
   useEffect(() => {
@@ -206,6 +214,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   function openCompose() {
+    if (!eligible) { toast.error("Only verified purchasers can review this product."); return; }
     setStep(1); setRating(5); setTitle(""); setBody(""); setPendingMedia([]);
     setShowCompose(true);
   }
@@ -243,9 +252,10 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this review?")) return;
-    const { error } = await supabase.from("product_reviews").delete().eq("id", id);
+    if (!confirm("Are you sure you want to delete this review?")) return;
+    const { error } = await supabase.rpc("soft_delete_own_review", { p_id: id });
     if (error) { toast.error(error.message); return; }
+    toast.success("Review deleted.");
     await load();
     onAggregateChange?.();
   }
@@ -482,7 +492,11 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                   </button>
                 ))}
               </div>
-              {user ? (
+              {!user ? (
+                <Link to="/auth" className="hidden sm:inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110">
+                  Sign in to review
+                </Link>
+              ) : eligible ? (
                 <button
                   onClick={openCompose}
                   className="hidden sm:inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110 hover:shadow-[var(--shadow-ember)]"
@@ -490,23 +504,23 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                   <Pencil className="size-3.5" /> Write a review
                 </button>
               ) : (
-                <Link to="/auth" className="hidden sm:inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110">
-                  Sign in to review
-                </Link>
+                <span className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                  <ShieldCheck className="size-3.5" /> Verified purchasers only
+                </span>
               )}
             </div>
           </div>
 
           {/* List / empty state */}
           {sorted.length === 0 ? (
-            <EmptyState canWrite={!!user} onWrite={openCompose} filtered={filter !== "all"} onReset={() => setFilter("all")} />
+            <EmptyState canWrite={!!user && eligible} onWrite={openCompose} filtered={filter !== "all"} onReset={() => setFilter("all")} />
           ) : (
             <>
               <ul className="grid gap-5 sm:grid-cols-2">
                 <AnimatePresence>
                   {visible.map((r) => {
                     const prof = profiles[r.user_id];
-                    const name = prof?.full_name || "Anonymous";
+                    const name = prof?.full_name || "Customer";
                     const isOwn = user?.id === r.user_id;
                     const editing = editingId === r.id;
                     return (
@@ -709,7 +723,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
       )}
 
       {/* Sticky mobile write button */}
-      {user && !showCompose && (
+      {user && eligible && !showCompose && (
         <button
           onClick={openCompose}
           className="sm:hidden fixed bottom-5 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground shadow-[var(--shadow-ember)]"

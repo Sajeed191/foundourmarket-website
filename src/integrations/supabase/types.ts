@@ -2840,6 +2840,7 @@ export type Database = {
           answered_at: string | null
           answered_by: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           is_seeded: boolean
           product_slug: string
@@ -2852,6 +2853,7 @@ export type Database = {
           answered_at?: string | null
           answered_by?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_seeded?: boolean
           product_slug: string
@@ -2864,6 +2866,7 @@ export type Database = {
           answered_at?: string | null
           answered_by?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_seeded?: boolean
           product_slug?: string
@@ -2922,6 +2925,7 @@ export type Database = {
           admin_reply_by: string | null
           body: string | null
           created_at: string
+          deleted_at: string | null
           fake_reasons: string | null
           fake_score: number | null
           featured: boolean
@@ -2952,6 +2956,7 @@ export type Database = {
           admin_reply_by?: string | null
           body?: string | null
           created_at?: string
+          deleted_at?: string | null
           fake_reasons?: string | null
           fake_score?: number | null
           featured?: boolean
@@ -2982,6 +2987,7 @@ export type Database = {
           admin_reply_by?: string | null
           body?: string | null
           created_at?: string
+          deleted_at?: string | null
           fake_reasons?: string | null
           fake_score?: number | null
           featured?: boolean
@@ -6351,6 +6357,7 @@ export type Database = {
       }
       backfill_order_lifecycle: { Args: never; Returns: Json }
       can_access_support_thread: { Args: { _topic: string }; Returns: boolean }
+      can_review_product: { Args: { _slug: string }; Returns: boolean }
       check_order_integrity: { Args: never; Returns: Json }
       commit_order_stock: { Args: { _order_id: string }; Returns: undefined }
       customer_cancel_order: {
@@ -6761,6 +6768,8 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      soft_delete_own_question: { Args: { p_id: string }; Returns: undefined }
+      soft_delete_own_review: { Args: { p_id: string }; Returns: undefined }
       submit_review: {
         Args: {
           p_body?: string

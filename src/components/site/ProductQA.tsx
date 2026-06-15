@@ -158,8 +158,8 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this question?")) return;
-    const { error } = await supabase.from("product_questions").delete().eq("id", id);
+    if (!confirm("Are you sure you want to delete this question?")) return;
+    const { error } = await supabase.rpc("soft_delete_own_question", { p_id: id });
     if (error) {
       console.error("[ProductQA] delete failed", { id, code: error.code, message: error.message });
       toast.error("Couldn't delete the question.");
@@ -268,7 +268,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
             const canDelete = isAdmin || q.is_mine;
             const canAnswer = isAdmin && !q.answer;
             const canEditQuestion = q.is_mine;
-            const name = q.author_name || "Anonymous";
+            const name = q.author_name || "Customer";
             return (
               <li key={q.id} className="bg-card border border-border rounded-2xl p-5 sm:p-6">
                 <div className="flex items-start gap-4">
