@@ -4742,7 +4742,9 @@ export type Database = {
           assigned_to: string | null
           category: string
           closed_at: string | null
+          context: Json
           created_at: string
+          dispute_id: string | null
           first_response_at: string | null
           id: string
           is_seeded: boolean
@@ -4750,7 +4752,11 @@ export type Database = {
           market_region: string | null
           order_id: string | null
           priority: string
+          refund_id: string | null
           resolved_at: string | null
+          return_id: string | null
+          seller_id: string | null
+          shipment_id: string | null
           status: string
           subject: string
           tags: string[]
@@ -4764,7 +4770,9 @@ export type Database = {
           assigned_to?: string | null
           category?: string
           closed_at?: string | null
+          context?: Json
           created_at?: string
+          dispute_id?: string | null
           first_response_at?: string | null
           id?: string
           is_seeded?: boolean
@@ -4772,7 +4780,11 @@ export type Database = {
           market_region?: string | null
           order_id?: string | null
           priority?: string
+          refund_id?: string | null
           resolved_at?: string | null
+          return_id?: string | null
+          seller_id?: string | null
+          shipment_id?: string | null
           status?: string
           subject: string
           tags?: string[]
@@ -4786,7 +4798,9 @@ export type Database = {
           assigned_to?: string | null
           category?: string
           closed_at?: string | null
+          context?: Json
           created_at?: string
+          dispute_id?: string | null
           first_response_at?: string | null
           id?: string
           is_seeded?: boolean
@@ -4794,7 +4808,11 @@ export type Database = {
           market_region?: string | null
           order_id?: string | null
           priority?: string
+          refund_id?: string | null
           resolved_at?: string | null
+          return_id?: string | null
+          seller_id?: string | null
+          shipment_id?: string | null
           status?: string
           subject?: string
           tags?: string[]
