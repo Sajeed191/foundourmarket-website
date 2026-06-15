@@ -67,7 +67,7 @@ export async function executeRazorpayRefund(
       .eq("id", opts.paymentId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    pay = data as typeof pay;
+    pay = data as any;
   } else if (opts.orderId) {
     const { data, error } = await supabaseAdmin
       .from("payments")
@@ -78,7 +78,7 @@ export async function executeRazorpayRefund(
       .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    pay = data as typeof pay;
+    pay = data as any;
   }
 
   if (!pay) throw new Error("No captured payment found for this refund.");
