@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, Package, Search, ArrowRight, ArrowLeft, ShoppingBag, Bell,
   Truck, CheckCircle2, X, HelpCircle, RefreshCw, MapPin, ChevronDown,
-  AlertCircle, Wallet, Sparkles, RotateCcw, Repeat, Check,
+  AlertCircle, Wallet, Sparkles, RotateCcw, Repeat, Check, LifeBuoy,
 } from "lucide-react";
+import { supportSearch } from "@/lib/support-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
