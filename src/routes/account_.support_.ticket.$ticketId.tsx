@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import supportEmpty from "@/assets/support-empty.png";
 
-export const Route = createFileRoute("/account_/support/ticket/$ticketId")({
+export const Route = createFileRoute("/account_/support_/ticket/$ticketId")({
   head: () => ({
     meta: [
       { title: "Conversation — FoundOurMarket™ Support" },
