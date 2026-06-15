@@ -523,9 +523,20 @@ function TicketCard({ e, onOpen, onManage, on360, onAi, onStatus, onPriority }: 
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 mb-3">
+        {firstReply.status === "breached" && (
+          <Tag tone="destructive" icon={<AlertTriangle className="size-3" />}>First reply breached by {fmtCountdownMin(firstReply.remainingMin ?? 0)}</Tag>
+        )}
+        {firstReply.status === "due_soon" && (
+          <Tag tone="amber" icon={<Clock className="size-3" />}>First reply due in {fmtCountdownMin(firstReply.remainingMin ?? 0)}</Tag>
+        )}
+        {firstReply.status === "within" && (
+          <Tag tone="muted" icon={<Clock className="size-3" />}>First reply due in {fmtCountdownMin(firstReply.remainingMin ?? 0)}</Tag>
+        )}
+        {firstReply.status === "answered" && firstReply.answeredInMin != null && (
+          <Tag tone={firstReply.metTarget ? "muted" : "amber"}>1st reply {fmtCountdownMin(firstReply.answeredInMin)}{firstReply.metTarget === false ? " (late)" : ""}</Tag>
+        )}
         {sla.overdue && <Tag tone="destructive" icon={<AlertTriangle className="size-3" />}>Overdue · waited {hrs(sla.awaitingStaffH)}</Tag>}
         {sla.breached && !sla.overdue && <Tag tone="amber" icon={<Clock className="size-3" />}>SLA breached</Tag>}
-        {sla.firstResponseH != null && <Tag tone="muted">1st reply {hrs(sla.firstResponseH)}</Tag>}
         {escalations.map((r) => <Tag key={r} tone="amber" icon={<Flame className="size-3" />}>{ESCALATION_LABEL[r]}</Tag>)}
       </div>
 
