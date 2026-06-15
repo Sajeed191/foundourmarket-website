@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   X, Loader2, UserPlus, UserMinus, UserCog, Check, Flame, Clock, MessageSquare,
   History, StickyNote, Send, Package, Mail, TrendingUp, User, ShieldCheck, ChevronRight,
+  Star, Heart, AlertTriangle, RotateCcw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
