@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { safeExternalUrl } from "@/lib/safe-redirect";
 import { ReturnRequestDialog } from "@/components/site/ReturnRequestDialog";
+import { OrderSupportSection } from "@/components/site/OrderSupportSection";
 
 export const Route = createFileRoute("/orders/$id")({
   head: () => ({ meta: [{ title: "Order Details — FoundOurMarket™" }] }),
@@ -341,6 +342,24 @@ function OrderDetailPage() {
           ))}
         </motion.div>
       )}
+
+      <OrderSupportSection
+        orderId={order.id}
+        prefill={{
+          order: order.id,
+          category: "order_issue",
+          subject: `Help with order #${order.id.slice(0, 8)}`,
+          context: {
+            order_number: order.id.slice(0, 8),
+            order_status: order.status,
+            product_name: order.order_items[0]?.name,
+            product_image: order.order_items[0]?.image ?? undefined,
+            tracking_number: shipments.find((s) => s.tracking_number)?.tracking_number ?? undefined,
+            carrier: shipments.find((s) => s.carrier)?.carrier ?? undefined,
+            delivery_status: reachedKey,
+          },
+        }}
+      />
     </div>
   );
 }
