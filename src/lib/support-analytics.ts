@@ -164,6 +164,105 @@ export function computeSla(
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
+// ── First-reply SLA engine ───────────────────────────────────────────────────
+// Aggressive first-response targets (in MINUTES) — the metric customers feel most.
+export const FIRST_REPLY_TARGET_MIN: Record<Priority, number> = {
+  urgent: 15, high: 60, medium: 240, low: 1440,
+};
+
+export type FirstReplyStatus = "answered" | "within" | "due_soon" | "breached";
+
+export type FirstReplySla = {
+  status: FirstReplyStatus;
+  targetMin: number;
+  dueAt: number | null;          // epoch ms when first reply is due (unanswered only)
+  remainingMin: number | null;   // minutes until due; negative once breached
+  answeredInMin: number | null;  // minutes taken to first reply (answered)
+  metTarget: boolean | null;     // answered within target?
+};
+
+/**
+ * First-reply SLA for the support queue. Uses the first staff reply timestamp
+ * (from real support_messages / first_response_at). Closed, resolved and spam
+ * tickets are treated as settled. Unanswered open tickets get a live countdown.
+ */
+export function computeFirstReplySla(
+  t: TicketRow,
+  stage: TicketStage,
+  firstStaffReplyAt: number | null,
+  now = Date.now(),
+): FirstReplySla {
+  const priority = normPriority(t.priority);
+  const targetMin = FIRST_REPLY_TARGET_MIN[priority];
+  const created = new Date(t.created_at).getTime();
+
+  if (firstStaffReplyAt != null) {
+    const answeredInMin = Math.round((firstStaffReplyAt - created) / 60000);
+    return { status: "answered", targetMin, dueAt: null, remainingMin: null, answeredInMin, metTarget: answeredInMin <= targetMin };
+  }
+  if (stage === "resolved" || stage === "closed" || stage === "spam") {
+    return { status: "answered", targetMin, dueAt: null, remainingMin: null, answeredInMin: null, metTarget: null };
+  }
+  const dueAt = created + targetMin * 60000;
+  const remainingMin = Math.round((dueAt - now) / 60000);
+  const soonWindow = Math.max(5, Math.round(targetMin * 0.25));
+  let status: FirstReplyStatus = "within";
+  if (remainingMin < 0) status = "breached";
+  else if (remainingMin <= soonWindow) status = "due_soon";
+  return { status, targetMin, dueAt, remainingMin, answeredInMin: null, metTarget: null };
+}
+
+// Human countdown: "37m", "1h 12m", "2d 3h".
+export function fmtCountdownMin(mins: number): string {
+  const m = Math.abs(Math.round(mins));
+  if (m < 60) return `${m}m`;
+  if (m < 1440) { const h = Math.floor(m / 60), rm = m % 60; return rm ? `${h}h ${rm}m` : `${h}h`; }
+  const d = Math.floor(m / 1440), rh = Math.floor((m % 1440) / 60);
+  return rh ? `${d}d ${rh}h` : `${d}d`;
+}
+
+// ── Channel foundation ───────────────────────────────────────────────────────
+export type SupportChannel = "website" | "email" | "whatsapp" | "chat" | "phone" | "other";
+
+export function normChannel(c: string | null | undefined): SupportChannel {
+  const v = (c ?? "").toLowerCase().trim();
+  if (v === "email" || v === "mail" || v === "inbound_email") return "email";
+  if (v === "whatsapp" || v === "wa") return "whatsapp";
+  if (v === "chat" || v === "livechat" || v === "live_chat") return "chat";
+  if (v === "phone" || v === "call") return "phone";
+  if (v === "website" || v === "web" || v === "site" || v === "" ) return "website";
+  return "other";
+}
+
+export const CHANNEL_META: Record<SupportChannel, { label: string; icon: string }> = {
+  website: { label: "Website", icon: "🌐" },
+  email: { label: "Email", icon: "📧" },
+  whatsapp: { label: "WhatsApp", icon: "💬" },
+  chat: { label: "Live Chat", icon: "💭" },
+  phone: { label: "Phone", icon: "📞" },
+  other: { label: "Other", icon: "🔗" },
+};
+
+// ── Presence (derived from activity timestamps, never manual) ─────────────────
+export type PresenceState = "online" | "away" | "offline";
+
+export function derivePresence(lastActiveAt: string | number | null | undefined, now = Date.now()): PresenceState {
+  if (lastActiveAt == null) return "offline";
+  const t = typeof lastActiveAt === "number" ? lastActiveAt : new Date(lastActiveAt).getTime();
+  if (!Number.isFinite(t)) return "offline";
+  const mins = (now - t) / 60000;
+  if (mins <= 5) return "online";
+  if (mins <= 30) return "away";
+  return "offline";
+}
+
+export const PRESENCE_META: Record<PresenceState, { label: string; dot: string }> = {
+  online: { label: "Online", dot: "🟢" },
+  away: { label: "Away", dot: "🟡" },
+  offline: { label: "Offline", dot: "🔴" },
+};
+
+
 // ── Auto-escalation detection ────────────────────────────────────────────────
 export type EscalationReason =
   | "refund_complaint" | "failed_delivery" | "repeated_contact"
