@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
+import { safeExternalUrl } from "@/lib/safe-redirect";
 import { ReturnRequestDialog } from "@/components/site/ReturnRequestDialog";
 
 export const Route = createFileRoute("/orders/$id")({
