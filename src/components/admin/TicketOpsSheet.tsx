@@ -70,6 +70,10 @@ type Staff = { id: string; name: string };
 type OrderLite = { id: string; total: number; currency: string | null; status: string; payment_status: string | null; created_at: string; contact_email: string | null };
 
 type TimelineItem = { id: string; at: string; label: string; sub?: string; tone: "accent" | "amber" | "emerald" | "destructive" | "muted" };
+type RatingRow = {
+  id: string; ticket_id: string; rating: number; comment: string | null;
+  category: string | null; assigned_agent: string | null; rated_at: string;
+};
 
 const PAID = ["paid", "succeeded", "delivered", "shipped", "completed"];
 
