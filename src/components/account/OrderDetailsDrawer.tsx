@@ -464,8 +464,8 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
                         order.shipping_address?.city, order.shipping_address?.region,
                         order.shipping_address?.postal_code, order.shipping_address?.country,
                       ].filter(Boolean).join(", ")} />
-                      {shipment?.tracking_url && (
-                        <a href={shipment.tracking_url} target="_blank" rel="noopener noreferrer"
+                      {safeExternalUrl(shipment?.tracking_url) && (
+                        <a href={safeExternalUrl(shipment?.tracking_url)!} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-full border border-border/60 hover:border-accent/40 hover:text-accent active:scale-95 transition">
                           Tracking link <ExternalLink className="size-3" />
                         </a>
