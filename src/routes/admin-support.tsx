@@ -425,7 +425,12 @@ function DashboardView({ kpis, enriched }: { kpis: ReturnType<typeof computeSupp
         <Kpi label="Overdue" value={kpis.overdue} icon={<AlertTriangle className="size-4" />} tone={kpis.overdue ? "destructive" : undefined} />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid lg:grid-cols-3 gap-4">
+        <Panel title="First-reply SLA breached" icon={<Clock className="size-4 text-destructive" />}>
+          {breachedList.length === 0 ? <Empty text="No first-reply breaches 🎉" /> : breachedList.map((e) => (
+            <MiniRow key={e.ticket.id} title={e.ticket.subject} sub={`${e.customerName} · ${PRIORITY_LABEL[e.sla.priority]} · breached by ${fmtCountdownMin(e.firstReply.remainingMin ?? 0)}`} tone="destructive" />
+          ))}
+        </Panel>
         <Panel title="Critical SLA tickets" icon={<AlertTriangle className="size-4 text-destructive" />}>
           {critical.length === 0 ? <Empty text="No critical tickets." /> : critical.map((e) => (
             <MiniRow key={e.ticket.id} title={e.ticket.subject} sub={`${e.customerName} · ${PRIORITY_LABEL[e.sla.priority]} · waiting ${hrs(e.sla.awaitingStaffH)}`} tone="destructive" />
