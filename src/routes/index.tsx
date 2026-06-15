@@ -51,7 +51,7 @@ function useRotatingPlaceholder(active: boolean) {
   return PLACEHOLDERS[idx];
 }
 
-import { Reveal, AnimatedCounter } from "@/components/site/Reveal";
+import { Reveal } from "@/components/site/Reveal";
 
 
 export const Route = createFileRoute("/")({
