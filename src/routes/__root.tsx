@@ -310,7 +310,7 @@ function DeferredShell({
       <CompareTray />
       <InstallPrompt />
       {!hideLiveChat && <LiveChat />}
-      {!hideLiveChat && <FloatingSupportBadge />}
+      {!hideLiveChat && <SupportReplyWatcher />}
     </Suspense>
   );
 }
