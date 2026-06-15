@@ -136,7 +136,6 @@ export function TicketOpsSheet({
     setLoading(false);
   }, [ticketId]);
 
-  const [msgRows, setMsgRows] = useState<{ id: string; sender_role: string | null; created_at: string }[]>([]);
 
   useEffect(() => {
     void load();
