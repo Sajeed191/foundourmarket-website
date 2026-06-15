@@ -635,14 +635,19 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
 }
 
 /* ---------- shared bits ---------- */
-function Sheet({ title, subtitle, children, onClose }: { title: string; subtitle?: string; children: React.ReactNode; onClose: () => void }) {
+function Sheet({ title, subtitle, children, onClose, fullPage }: { title: string; subtitle?: string; children: React.ReactNode; onClose: () => void; fullPage?: boolean }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] flex items-end sm:items-center sm:justify-center">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={cn("fixed inset-0 z-[70] flex", fullPage ? "items-start sm:items-center sm:justify-center" : "items-end sm:items-center sm:justify-center")}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl glass-strong p-5 max-h-[92dvh] overflow-y-auto"
+        className={cn(
+          "relative w-full glass-strong p-5 overflow-y-auto",
+          fullPage
+            ? "h-[100dvh] rounded-none sm:max-w-lg sm:rounded-3xl sm:h-auto sm:max-h-[92dvh]"
+            : "sm:max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[92dvh]"
+        )}
         style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
       >
         <div className="flex items-start justify-between mb-4">
