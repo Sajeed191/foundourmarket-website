@@ -82,7 +82,7 @@ export function NotificationBell() {
         <Bell className={`size-[18px] ${pulse ? "animate-glow text-accent" : ""}`} />
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono grid place-items-center shadow-[0_0_10px_2px_oklch(0.74_0.19_49_/_0.6)]">
-            {unread > 9 ? "9+" : unread}
+            {unread > 99 ? "99+" : unread}
           </span>
         )}
       </button>

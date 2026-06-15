@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Bell, Check, Trash2, ArrowLeft, Settings as SettingsIcon, CheckCheck, Search, ShoppingBag, X,
+  Bell, Check, Trash2, ArrowLeft, Settings as SettingsIcon, CheckCheck, Search, ShoppingBag, X, Archive,
 } from "lucide-react";
 import {
   useNotifications, categoryOf, resolveNotificationLink, type NotificationCategory, type Notification,
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/account_/notifications")({
 type Filter = "all" | NotificationCategory;
 
 function NotificationsPage() {
-  const { items, unread, markRead, markAllRead, remove, clearAll, loading } = useNotifications();
+  const { items, unread, markRead, markAllRead, remove, archive, clearAll, loading } = useNotifications();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
 
@@ -167,7 +167,7 @@ function NotificationsPage() {
         <ul className="space-y-2">
           <AnimatePresence initial={false}>
             {filtered.map((n) => (
-              <Row key={n.id} n={n} onRead={markRead} onRemove={remove} />
+              <Row key={n.id} n={n} onRead={markRead} onRemove={remove} onArchive={archive} />
             ))}
           </AnimatePresence>
         </ul>
@@ -177,11 +177,12 @@ function NotificationsPage() {
 }
 
 function Row({
-  n, onRead, onRemove,
+  n, onRead, onRemove, onArchive,
 }: {
   n: Notification;
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
+  onArchive: (id: string) => void;
 }) {
   const cat = categoryOf(n);
   const { Icon, tone, dot } = CAT_META[cat];
@@ -233,6 +234,13 @@ function Row({
             <Check className="size-3.5" />
           </button>
         )}
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onArchive(n.id); }}
+          aria-label="Archive notification"
+          className="size-7 grid place-items-center rounded-full bg-background/80 backdrop-blur border border-border text-muted-foreground hover:text-accent"
+        >
+          <Archive className="size-3.5" />
+        </button>
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(n.id); }}
           aria-label="Delete notification"

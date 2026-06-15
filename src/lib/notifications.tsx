@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useCallback, type ReactNode } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
@@ -11,6 +12,7 @@ export type Notification = {
   link: string | null;
   data: Record<string, unknown> | null;
   read_at: string | null;
+  archived_at?: string | null;
   created_at: string;
 };
 
@@ -150,6 +152,7 @@ type Ctx = {
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
   remove: (id: string) => Promise<void>;
+  archive: (id: string) => Promise<void>;
   clearAll: () => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -157,8 +160,41 @@ type Ctx = {
 const NotificationsCtx = createContext<Ctx>({
   items: [], unread: 0, loading: false,
   markRead: async () => {}, markAllRead: async () => {},
-  remove: async () => {}, clearAll: async () => {}, refresh: async () => {},
+  remove: async () => {}, archive: async () => {}, clearAll: async () => {}, refresh: async () => {},
 });
+
+/**
+ * Drives the browser-tab unread badge: `FoundOurMarket™` → `(8) FoundOurMarket™`.
+ * Uses a MutationObserver so the prefix survives TanStack head() title swaps on
+ * navigation, and re-applies whenever the unread count changes. Caps at 99+.
+ */
+function TabBadge({ unread }: { unread: number }) {
+  // React to route changes so the badge re-applies after head() rewrites <title>.
+  useRouterState({ select: (s) => s.location.pathname });
+  const unreadRef = useRef(unread);
+  unreadRef.current = unread;
+
+  const apply = useCallback(() => {
+    if (typeof document === "undefined") return;
+    const u = unreadRef.current;
+    const base = document.title.replace(/^\(\d+\+?\)\s+/, "");
+    const next = u > 0 ? `(${u > 99 ? "99+" : u}) ${base}` : base;
+    if (document.title !== next) document.title = next;
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const titleEl = document.querySelector("title");
+    apply();
+    if (!titleEl) return;
+    const obs = new MutationObserver(() => apply());
+    obs.observe(titleEl, { childList: true, characterData: true, subtree: true });
+    return () => obs.disconnect();
+  }, [apply]);
+
+  useEffect(() => { apply(); }, [unread, apply]);
+  return null;
+}
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -172,6 +208,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       .from("notifications")
       .select("*")
       .eq("user_id", user.id)
+      .is("archived_at", null)
       .order("created_at", { ascending: false })
       .limit(100);
     setItems((data ?? []) as Notification[]);
@@ -193,7 +230,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         }))
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (payload) => setItems((prev) => prev.map(n => n.id === (payload.new as Notification).id ? payload.new as Notification : n)))
+        (payload) => setItems((prev) => {
+          const n = payload.new as Notification;
+          if (n.archived_at) return prev.filter((p) => p.id !== n.id);
+          return prev.map((p) => (p.id === n.id ? n : p));
+        }))
       .on("postgres_changes",
         { event: "DELETE", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
         (payload) => setItems((prev) => prev.filter(n => n.id !== (payload.old as { id: string }).id)))
@@ -217,6 +258,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     setItems(prev => prev.filter(n => n.id !== id));
     await supabase.from("notifications").delete().eq("id", id);
   };
+  const archive = async (id: string) => {
+    if (!user) return;
+    setItems(prev => prev.filter(n => n.id !== id));
+    await supabase.from("notifications").update({ archived_at: new Date().toISOString() }).eq("id", id);
+  };
   const clearAll = async () => {
     if (!user) return;
     setItems([]);
@@ -226,7 +272,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const unread = items.filter(n => !n.read_at).length;
 
   return (
-    <NotificationsCtx.Provider value={{ items, unread, loading, markRead, markAllRead, remove, clearAll, refresh }}>
+    <NotificationsCtx.Provider value={{ items, unread, loading, markRead, markAllRead, remove, archive, clearAll, refresh }}>
+      <TabBadge unread={unread} />
       {children}
     </NotificationsCtx.Provider>
   );

@@ -1,135 +1,304 @@
-## FoundOurMarket™ Email Infrastructure — Completion Plan
+# FoundOurMarket™ Enterprise Support Platform — Phased Build
 
-The backbone already exists: a retry-capable queue (5 attempts, DLQ, TTL), suppression list, branded sender `FoundOurMarket Support <support@foundourmarket.com>` on the now-configured `notify.foundourmarket.com` domain, five admin email dashboards (health, ops, delivery, queue, identity/DNS), audit logging, in-app notifications, and Customer-360 timeline. This plan closes the concrete gaps rather than rebuilding what works.
+This is a large, multi-system upgrade. Building it as one change is not safe to review or test. I propose 6 phases, each independently shippable and testable, reusing the existing support schema (`support_tickets`, `support_messages`, `support_ticket_events`, `notifications`, etc.) and the premium dark aesthetic already in memory.
 
-### Scope being delivered
+I'll start Phase 1 once you approve. Tell me if you want to reprioritize.
 
-**1. Missing transactional + security templates**
-Add branded React Email templates (dark luxury header, personalization, Privacy/Terms/Contact footer) and register them:
+---
 
-- Security: `password-changed`, `account-recovery`, `login-new-device` (covers "login alert" + "new device login"), `account-locked`, `suspicious-activity`
-- Order: `payment-failed`, `order-processing`, `order-packed`, `order-cancelled`
-- Return/Refund: `return-requested`, `return-approved`, `return-rejected`, `refund-initiated` (existing `refund-processed` stays as "completed")
-- Support: `ticket-escalated`
+## Phase 1 — Notification Center + Bell + Tab Badge
 
-**2. Missing account-management lifecycle events**
-Extend the `LifecycleEvent` union + `fireLifecycleEvent` + templates for the "removal/restore" side currently absent: `account-reactivated`, `ban-removed`, `ordering-unblocked`, `reviews-restored`. Wire each to its admin action so applying AND lifting every restriction sends email + notification + timeline event + audit log.
+The highest-value, lowest-risk layer. The `notifications` table already exists.
 
-**3. Customer-360 timeline blind spot (high value)**
-Order and support emails write only to `email_send_log`, so they never appear in the customer timeline (which reads `email_logs`). Fix by also writing an `email_logs` row (with `user_id`) whenever an order/support email is enqueued, so every email a customer receives shows in their timeline and Email History — closing "no untracked communications".
+- `useNotifications` hook: realtime subscription (channel torn down on unmount), unread count, mark read / mark all read / delete, pagination (infinite scroll).
+- Notification bell component with `99+` badge → added to desktop navbar, mobile navbar, customer dashboard, admin dashboard.
+- Bell dropdown: icon, title, description, timestamp, read state, quick actions, "View All".
+- Routes: `/account/notifications` and admin notifications view (full history, states: unread/read/archived).
+- Browser tab badge: dynamic `document.title` → `FoundOurMarket™ (n)` / `(99+)`, driven by unread count.
+- Deep linking map: support→ticket, order→order, return→return, refund→refund, dispute→dispute. Deep-link target validated before navigation.
 
-**4. Reliability hardening**
-Ensure every new send path follows the existing resilient pattern: log attempt before render, never throw, record `failed`/`suppressed`/`sent`. Confirm retry schedule is documented; the queue already retries via pgmq visibility timeout up to 5 attempts then DLQ.
+## Phase 2 — Marketplace / Order Integration
 
-### Technical notes
+- Order details page: Contact Support / Create Ticket / View Existing Ticket, with status, assigned agent, priority.
+- Auto-linking: tickets capture `order_id`, `customer_id`, `shipment_id`, `return_id`, `refund_id`, `dispute_id` when created from those contexts (columns added as needed).
+- Ticket header: ticket number, order number, status, priority, assigned staff, created, last activity.
+- Customer timeline inside order details, sourced from `support_ticket_events`.
 
-- Templates: new `.tsx` files in `src/lib/email-templates/`, each `satisfies TemplateEntry`, registered in `registry.ts`. Reuse the shared dark-luxury layout already used by `lifecycle-emails.tsx`/`order-emails.tsx`.
-- Lifecycle: edit `src/lib/customer-lifecycle.server.ts` (add events to union + `NOTIFY_COPY`) and the call sites in `src/lib/customer-admin.functions.ts` so flag-lift actions fire events.
-- Timeline fix: add an `email_logs` insert helper used by `order-emails.server.ts` and `support-emails.server.ts`, resolving `user_id` from the order/ticket.
-- No DB schema changes are required; `email_logs` and `email_send_log` already exist with the needed columns.
+## Phase 3 — Satisfaction Ratings + Trust Metrics
 
-### Platform limits — being upfront (not building)
+- New table `support_ticket_ratings` (rating, comment, customer_id, ticket_id, timestamps) with RLS + GRANTs.
+- Rating prompt (★1–5 + optional feedback) when ticket → Resolved/Closed.
+- Admin analytics: average rating, monthly rating, resolution satisfaction, negative-feedback queue, recent reviews.
+- Trust metrics: CSAT, first response time, resolution time (computed from events).
 
-- **Bulk marketing emails** (promotions, flash deals, recommendations, wishlist price drops, back-in-stock, newsletter): the Lovable email pipeline is for transactional, one-recipient-per-event sends and does not support bulk/marketing campaigns. These should go through a dedicated marketing-email service. I will NOT build these into the transactional queue. (Single triggered emails like a back-in-stock alert to one specific user who opted in can be added later as transactional if you want.)
-- **Open-rate / click-rate tracking**: the current pipeline tracks queued → sent → delivered → failed → bounced → complained, but does not ingest open/click events (no tracking pixel / click-wrap webhook). The admin dashboards will continue to show delivery/bounce/complaint/failure rates. Adding opens/clicks would require an external ESP webhook integration — flagged as a separate follow-up.
+## Phase 4 — Secure Attachments
 
-### Out of scope / already done
+- New table `support_attachments` + private storage bucket, RLS, signed URLs.
+- Drag & drop, multi-file, mobile camera, progress, validation (type/size), preview + download.
+- Permission validation: only ticket participants + admins can read.
 
-- Domain + DNS (SPF/DKIM/DMARC) — handled by the `notify.foundourmarket.com` setup; verifies in Cloud → Emails.
-- Deletion/ban force-logout + session revocation — already implemented.
-- Admin Email Center dashboards — already exist across five routes.
+## Phase 5 — Realtime Presence + Typing + Email-to-Ticket
 
-### Verification
+- Typing indicators via Realtime broadcast (ephemeral, auto-hide on inactivity).
+- Online presence (🟢/🟡/🔴) from recent activity with configurable timeout, shown in support header, ticket view, admin dashboard.
+- Email-to-ticket: public webhook route (`/api/public/...`) using the connected Gmail mailbox to create tickets from inbound mail, append replies to existing tickets by ticket number, preserve attachments, match customer by email, basic spam filtering.
 
-After implementation: typecheck/build passes; send a test through the existing test-email widget; trigger one restriction + one lift and confirm email row in `email_logs`, notification row, timeline entry, and audit log; confirm an order email now appears in the customer timeline.
+## Phase 6 — Omnichannel + Advanced Analytics + Automation Foundation
+
+- Channel columns on tickets (`channel`, `source`, `first_contact`) + channel badge (Website/Email/WhatsApp/future). WhatsApp left as schema-ready stubs (no live API yet).
+- Analytics dashboard: open/resolved, avg first response, avg resolution, CSAT, agent performance, by category/priority/channel, with daily/weekly/monthly/custom range charts.
+- Automation foundation: schema scaffolding for AI assistant, suggested replies, auto-categorization, escalation rules, SLA automation (tables/columns + audit logging, no live AI yet).
+
+---
+
+## Technical notes
+
+- Every new `public` table: CREATE → GRANT → ENABLE RLS → POLICY in one migration; policies scoped to `auth.uid()` / `has_role(...)`.
+- Realtime: subscribe inside `useEffect`, remove channel on unmount, RLS-scoped.
+- Data access via `createServerFn` where elevated reads are needed; public webhook only under `/api/public/`.
+- Attachments bucket private; access via signed URLs only.
+- All UI uses existing semantic tokens (oklch) — no hardcoded colors.
+
+## Scope flags (need a quick decision)
+
+- WhatsApp: live integration needs a provider (Twilio/Meta Cloud API). I'll build schema + admin UI as "ready" and wire the live API later. OK?
+- Email-to-ticket: uses the already-connected Gmail mailbox for inbound polling/webhook. OK to use that mailbox?
+
+I'll begin with Phase 1 on approval.
+
+I approve the phased approach.
+
+For FoundOurMarket™, this is significantly safer than attempting all 6 phases in one deployment.
+
+### My Decisions
+
+#### ✅ Phase Order Approved
+
+Proceed exactly in this order:
+
+1. Notification Center + Bell + Tab Badge
+2. Marketplace / Order Integration
+3. Satisfaction Ratings + Trust Metrics
+4. Secure Attachments
+5. Realtime Presence + Typing + Email-to-Ticket
+6. Omnichannel + Analytics + Automation Foundation
+
+---
+
+### WhatsApp Decision
+
+✅ YES
+
+Build:
+
+- channel field
+- source field
+- channel badges
+- WhatsApp-ready architecture
+- admin UI placeholders
+
+Do NOT integrate Meta Cloud API or Twilio yet.
+
+Reason:
+
+- Adds complexity
+- Requires business verification
+- Requires ongoing maintenance
+- No immediate revenue impact
+
+Prepare the foundation now.
+
+Implement the API later.
+
+---
+
+### Email-to-Ticket Decision
+
+⚠️ Modify slightly
+
+Do NOT use:
+
+[foundourmarket@gmail.com](mailto:foundourmarket@gmail.com)
+
+for long-term ticket ingestion.
+
+Use:
+
+[support@foundourmarket.com](mailto:support@foundourmarket.com)
+
+as the primary support address.
+
+The Gmail address should remain fallback only.
+
+Recommended flow:
+
+[support@foundourmarket.com](mailto:support@foundourmarket.com) ↓ Mailgun / forwarding ↓ Email-to-Ticket processor ↓ support_tickets
+
+This aligns with your enterprise marketplace direction.
+
+---
+
+## Additional Requirements For Phase 1
+
+Add:
+
+### Notification Preferences
+
+Account → Notification Settings
+
+Allow:
+
+- Support Replies
+- Order Updates
+- Shipment Updates
+- Refund Updates
+- Returns
+- Marketing Updates
+
+Future-proof now.
+
+---
+
+### Notification Categories
+
+Store:
+
+- support
+- order
+- shipment
+- refund
+- return
+- dispute
+- system
+- marketing
+
+This will help analytics later.
+
+---
+
+### Notification Expiration
+
+Auto archive:
+
+- Read notifications older than 30 days
+
+Keep database clean.
+
+---
+
+## Additional Requirements For Phase 2
+
+When customer opens:
+
+Order Details
+
+Show:
+
+### Support Card
+
+Status: Open
+
+Assigned: Support Team
+
+Priority: Normal
+
+Last Reply: 2 hours ago
+
+Button: View Conversation
+
+This creates strong trust signals.
+
+---
+
+## Additional Requirements For Phase 3
+
+After a customer submits a rating:
+
+Show:
+
+"Thank you for your feedback."
+
+Do not repeatedly prompt.
+
+Store:
+
+rated_at
+
+to prevent duplicate prompts.
+
+---
+
+## Additional Requirements For Phase 4
+
+Attachments should support:
+
+### Images
+
+- JPG
+- PNG
+- WEBP
+
+### Documents
+
+- PDF
+
+Only allow:
+
+Maximum 10 MB per file initially.
+
+Avoid DOCX, ZIP, and other formats for now.
+
+Reduce abuse risk.
+
+---
+
+## Additional Requirements For Phase 6
+
+Analytics Dashboard should include:
+
+### Support Health
+
+- Open Tickets
+- Pending Tickets
+- Resolved Tickets
+- Avg First Response
+- Avg Resolution Time
+- CSAT Score
+
+### Agent Performance
+
+- Tickets Handled
+- Avg Response Time
+- Satisfaction Rating
+
+### Marketplace Support Trends
+
+- Orders Creating Tickets
+- Return Related Tickets
+- Refund Related Tickets
+- Top Support Categories
+
+These metrics will become valuable once order volume grows.
+
+---
+
+# Final Approval
+
+✅ Approved to begin Phase 1
+
+Approved Scope:
+
+- Notification Center
+- Notification Bell
+- Realtime Badge
+- Browser Tab Badge
+- Deep Linking
+- Notification Preferences
+- Notification Categories
+- Notification History
+
+After Phase 1 is deployed and tested, move to Phase 2.
+
+This rollout strategy fits FoundOurMarket™'s current stage and keeps the support platform stable while steadily evolving toward a true enterprise marketplace support system.
 
 &nbsp;
-
-FINAL EMAIL INFRASTRUCTURE HARDENING
-
-Before considering the FoundOurMarket email system complete, implement the following enterprise-grade additions.
-
-EMAIL PREFERENCE CENTER
-
-Allow customers to manage optional email preferences.
-
-Mandatory:
-
-- Security Emails
-- Order Emails
-- Payment Emails
-- Shipment Emails
-
-Optional:
-
-- Marketing Emails
-- Price Drop Alerts
-- Wishlist Alerts
-- Back In Stock Alerts
-
-━━━━━━━━━━━━━━━━━━
-
-EMAIL TEMPLATE MANAGEMENT
-
-Create Email Templates admin module.
-
-Features:
-
-- Preview Template
-- Send Test Email
-- Template Version History
-- Last Modified By
-- Last Modified Date
-
-━━━━━━━━━━━━━━━━━━
-
-CUSTOMER EMAIL HISTORY
-
-Inside Customer Profile display:
-
-- Sent
-- Delivered
-- Failed
-- Bounced
-- Complained
-
-Allow searching and filtering.
-
-━━━━━━━━━━━━━━━━━━
-
-EMAIL FAILURE ALERTING
-
-If delivery repeatedly fails:
-
-- Notify Admin
-- Create Audit Log
-- Create Dashboard Alert
-
-No silent failures.
-
-━━━━━━━━━━━━━━━━━━
-
-ADMIN ACTIVITY NOTIFICATIONS
-
-Generate internal notifications for:
-
-- Customer Ban
-- Customer Restore
-- Customer Delete
-- Password Reset Trigger
-- Ordering Restriction
-- Restriction Removal
-
-━━━━━━━━━━━━━━━━━━
-
-FINAL GOAL
-
-Every customer email must be:
-
-Tracked Audited Visible Recoverable Deliverable
-
-Every lifecycle action must produce:
-
-Database Update Audit Log Notification Timeline Event Email Delivery
-
-FoundOurMarket email infrastructure should operate at enterprise ecommerce standards.
