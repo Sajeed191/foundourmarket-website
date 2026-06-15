@@ -1,15 +1,17 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Loader2, Plus, Send, LifeBuoy, Paperclip, X, ChevronRight,
   ShieldCheck, MessageSquare, ImageIcon, CheckCircle2, Check, CheckCheck,
+  Package, Truck, RotateCcw, AlertCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { markTicketRead } from "@/lib/use-support-unread";
 import { notifySupportEvent } from "@/lib/support.functions";
+import { SUPPORT_CATEGORIES, type SupportCategoryId, type SupportContextSnapshot } from "@/lib/support-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -18,10 +20,29 @@ function fireSupportEmail(ticketId: string, event: "created" | "customer_reply" 
   void notifySupportEvent({ data: { ticketId, event } }).catch(() => {});
 }
 
+type SearchParams = {
+  ticket?: string;
+  order?: string;
+  return?: string;
+  refund?: string;
+  compose?: string;
+  category?: string;
+  subject?: string;
+};
+
 export const Route = createFileRoute("/account_/support")({
-  validateSearch: (search: Record<string, unknown>): { ticket?: string } => ({
-    ticket: typeof search.ticket === "string" ? search.ticket : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): SearchParams => {
+    const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined);
+    return {
+      ticket: str(search.ticket),
+      order: str(search.order),
+      return: str(search.return),
+      refund: str(search.refund),
+      compose: str(search.compose),
+      category: str(search.category),
+      subject: str(search.subject),
+    };
+  },
   head: () => ({
     meta: [
       { title: "Support — FoundOurMarket™" },
@@ -31,15 +52,8 @@ export const Route = createFileRoute("/account_/support")({
   component: SupportPage,
 });
 
-const CATEGORIES = [
-  { id: "order", label: "Order issue" },
-  { id: "payment", label: "Payment" },
-  { id: "shipping", label: "Shipping & delivery" },
-  { id: "refund", label: "Refund / return" },
-  { id: "product", label: "Product question" },
-  { id: "account", label: "Account" },
-  { id: "general", label: "Something else" },
-] as const;
+const CATEGORIES = SUPPORT_CATEGORIES;
+
 
 type Ticket = {
   id: string;
