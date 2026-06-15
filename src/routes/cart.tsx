@@ -304,6 +304,24 @@ function CartPage() {
           <div className="lg:sticky lg:top-24 space-y-4">
             <ShippingBox subtotalUSD={subtotalUSD} ship={ship} setShip={setShip} format={format} />
 
+            {detailed.length > 0 && (
+              <CouponInput
+                items={detailed.map((i) => ({ slug: i.slug, qty: i.qty }))}
+                format={format}
+                onChange={(a: AppliedCoupon | null) =>
+                  setPromo(
+                    a
+                      ? {
+                          label: a.kind === "percent" ? `Coupon ${a.code} · ${a.value}% off` : `Coupon ${a.code}`,
+                          discount: a.discount,
+                        }
+                      : null,
+                  )
+                }
+              />
+            )}
+
+
 
             <div className="bg-card border border-border rounded-2xl p-5 sm:p-6">
               <h2 className="text-lg font-medium mb-5">Order Summary</h2>
