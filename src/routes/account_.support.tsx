@@ -508,7 +508,7 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
                     <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>
                     {m.attachments.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {m.attachments.map((p) => <AttachmentImage key={p} path={p} />)}
+                        {m.attachments.map((p) => <Attachment key={p} path={p} />)}
                       </div>
                     )}
                     <p className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground/50 mt-1.5">
