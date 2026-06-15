@@ -1229,9 +1229,17 @@ function CompactSupportCard({
   return <Link to={to!} className={cls}>{inner}</Link>;
 }
 
-function ContinueShopping({ items }: { items: Product[] }) {
-  const shown = items.slice(0, 5);
-  const hasMore = items.length > 5;
+type ContinueItem = { product: Product; badge: "cart" | "saved" | "viewed" };
+
+const CONTINUE_BADGE: Record<ContinueItem["badge"], { label: string; icon: string }> = {
+  cart: { label: "In Cart", icon: "🛒" },
+  saved: { label: "Saved", icon: "❤️" },
+  viewed: { label: "Recently Viewed", icon: "👀" },
+};
+
+function ContinueShopping({ items }: { items: ContinueItem[] }) {
+  const shown = items.slice(0, 9);
+  const hasMore = items.length > 9;
   return (
     <div className="-mx-4 sm:mx-0">
       <div
