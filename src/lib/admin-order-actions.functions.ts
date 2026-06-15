@@ -56,6 +56,15 @@ const STAGE_NOTIFY: Record<string, { title: string; body: string; priority: "hig
   cancelled: { title: "❌ Order cancelled", body: "Your order has been cancelled.", priority: "high" },
 };
 
+/** Fulfilment stage → branded shipment lifecycle email (idempotent per order). */
+const STAGE_EMAIL: Record<string, OrderEmailEvent> = {
+  shipped: "order-shipped",
+  out_for_delivery: "out-for-delivery",
+  delivered: "order-delivered",
+};
+
+
+
 async function notifyCustomer(userId: string | null | undefined, orderId: string, stage: string) {
   if (!userId) return;
   const copy = STAGE_NOTIFY[stage];
