@@ -266,6 +266,7 @@ function AdminSupportPage() {
           onClose={() => setManageId(null)}
           onOpenThread={() => { setActiveId(manageId); }}
           onOpen360={(uid, name) => setC360({ userId: uid, name })}
+          onOpenTicket={(id) => setManageId(id)}
         />
       )}
       {c360 && <Customer360Sheet userId={c360.userId} name={c360.name} onClose={() => setC360(null)} />}
