@@ -22,11 +22,12 @@ import {
   deriveStage, computeSla, computeSupportKpis, detectEscalation,
   groupByStatus, refundRisk, normPriority, isStaffSender,
   computeFirstReplySla, fmtCountdownMin, normChannel, CHANNEL_META,
-  STAGE_LABEL, STAGE_ORDER, PRIORITY_LABEL, ESCALATION_LABEL,
+  STAGE_LABEL, STAGE_ORDER, PRIORITY_LABEL, ESCALATION_LABEL, PRESENCE_META,
   type TicketRow, type MessageRow, type OrderLite, type RefundRow, type ReturnRow,
   type TicketStage, type SlaInfo, type EscalationReason, type EscalationContext, type Priority,
-  type FirstReplySla, type SupportChannel,
+  type FirstReplySla, type SupportChannel, type PresenceState,
 } from "@/lib/support-analytics";
+import { useAgentPresence, pingPresence, fmtLastActive } from "@/lib/support-presence";
 
 
 export const Route = createFileRoute("/admin-support")({
