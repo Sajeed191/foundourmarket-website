@@ -168,10 +168,22 @@ function SupportPage() {
     }
   }, [deepLinkTicket, nav]);
 
-  // Deep-link: open the compose sheet pre-filled with order/return/refund context.
+  // Deep-link: redirect compose intent to the dedicated full-page new-ticket form.
   useEffect(() => {
-    if (wantsCompose && !deepLinkTicket) setComposing(true);
-  }, [wantsCompose, deepLinkTicket]);
+    if (wantsCompose && !deepLinkTicket) {
+      nav({
+        to: "/account/support/new",
+        search: {
+          order: prefill.order,
+          return: prefill.return,
+          refund: prefill.refund,
+          category: prefill.category,
+          subject: prefill.subject,
+        },
+        replace: true,
+      });
+    }
+  }, [wantsCompose, deepLinkTicket, nav, prefill]);
 
   const loadTickets = useCallback(async () => {
     const { data, error } = await supabase
