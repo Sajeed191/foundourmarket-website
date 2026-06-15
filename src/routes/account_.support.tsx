@@ -12,6 +12,8 @@ import { useRegion } from "@/lib/region";
 import { markTicketRead } from "@/lib/use-support-unread";
 import { notifySupportEvent } from "@/lib/support.functions";
 import { SUPPORT_CATEGORIES, type SupportCategoryId, type SupportContextSnapshot } from "@/lib/support-context";
+import { useSupportAvailability, fmtLastActive } from "@/lib/support-presence";
+import { PRESENCE_META } from "@/lib/support-analytics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TicketRatingPrompt } from "@/components/site/TicketRatingPrompt";
