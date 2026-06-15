@@ -14,6 +14,31 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const SAFE_FALLBACK = "/";
 
+// Open-redirect guard: campaign links may only bounce the visitor to a
+// same-site relative path or to an explicitly allowlisted FoundOurMarket
+// host. This prevents a compromised/abused `campaign_links` row from turning
+// foundourmarket.com into a phishing redirector (a Google Safe Browsing
+// "deceptive site" trigger).
+const ALLOWED_HOSTS = new Set([
+  "foundourmarket.com",
+  "www.foundourmarket.com",
+  "foundourmarket.lovable.app",
+]);
+
+function isSafeTarget(raw: unknown): raw is string {
+  if (typeof raw !== "string" || !raw) return false;
+  const value = raw.trim();
+  // Same-site relative path (but never protocol-relative "//host").
+  if (value.startsWith("/")) return !value.startsWith("//") && !value.startsWith("/\\");
+  try {
+    const u = new URL(value);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    return ALLOWED_HOSTS.has(u.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 function redirect(to: string) {
   return new Response(null, { status: 302, headers: { Location: to } });
 }
@@ -57,9 +82,10 @@ export const Route = createFileRoute("/api/public/track/click")({
             ip_hash: ipHash,
           });
 
-          // Only allow http(s) or same-site relative targets.
+          // Only allow same-site relative targets or allowlisted hosts —
+          // never an arbitrary external URL.
           const target = link.target_url;
-          if (/^https?:\/\//i.test(target) || target.startsWith("/")) {
+          if (isSafeTarget(target)) {
             return redirect(target);
           }
           return redirect(SAFE_FALLBACK);
