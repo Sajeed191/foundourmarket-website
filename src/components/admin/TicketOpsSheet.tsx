@@ -472,6 +472,115 @@ export function TicketOpsSheet({
               </Block>
             )}
 
+            {/* Customer satisfaction history */}
+            <Block title="Customer satisfaction" icon={<Heart className="size-3.5" />}>
+              {satisfaction.total === 0 ? (
+                <p className="text-xs text-muted-foreground py-1">No support ratings yet from this customer.</p>
+              ) : (
+                <div className="space-y-3">
+                  {/* Health indicator */}
+                  <div className={cn(
+                    "rounded-xl border p-3 flex items-center gap-3",
+                    satisfaction.health === "excellent" ? "border-emerald-400/30 bg-emerald-400/[0.06]" :
+                    satisfaction.health === "average" ? "border-amber-400/30 bg-amber-400/[0.06]" :
+                    "border-destructive/30 bg-destructive/[0.06]",
+                  )}>
+                    <span className="text-2xl leading-none">
+                      {satisfaction.health === "excellent" ? "🟢" : satisfaction.health === "average" ? "🟡" : "🔴"}
+                    </span>
+                    <div className="min-w-0">
+                      <p className={cn(
+                        "text-sm font-semibold",
+                        satisfaction.health === "excellent" ? "text-emerald-400" :
+                        satisfaction.health === "average" ? "text-amber-400" : "text-destructive",
+                      )}>
+                        {satisfaction.health === "excellent" ? "Excellent" : satisfaction.health === "average" ? "Average" : "At Risk"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {satisfaction.health === "risk"
+                          ? "Customer has rated support poorly — handle with extra care."
+                          : satisfaction.poorlyRatedBefore
+                            ? "Generally satisfied, but had a poor experience before."
+                            : "Customer is generally satisfied with support."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Summary card */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-white/[0.03] px-2.5 py-1.5">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1"><Star className="size-3" />Avg rating</p>
+                      <p className="text-sm font-semibold tabular-nums">{satisfaction.avg.toFixed(1)}<span className="text-muted-foreground"> / 5</span></p>
+                    </div>
+                    <div className="rounded-lg bg-white/[0.03] px-2.5 py-1.5">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Total ratings</p>
+                      <p className="text-sm font-semibold tabular-nums">{satisfaction.total}</p>
+                    </div>
+                    <div className="rounded-lg bg-white/[0.03] px-2.5 py-1.5">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Positive</p>
+                      <p className="text-sm font-semibold tabular-nums text-emerald-400">{satisfaction.positivePct}%</p>
+                    </div>
+                    <div className="rounded-lg bg-white/[0.03] px-2.5 py-1.5">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Negative</p>
+                      <p className="text-sm font-semibold tabular-nums text-destructive">{satisfaction.negativePct}%</p>
+                    </div>
+                  </div>
+
+                  {/* Last 5 ratings */}
+                  <div className="space-y-2">
+                    {satisfaction.recent.map((r) => {
+                      const poor = r.rating <= 2;
+                      return (
+                        <div key={r.id} className={cn(
+                          "rounded-xl border p-3 space-y-1.5",
+                          poor ? "border-destructive/25 bg-destructive/[0.04]" : "border-border/60 bg-background/40",
+                        )}>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-0.5">
+                              {[1, 2, 3, 4, 5].map((n) => (
+                                <Star key={n} className={cn("size-3.5", n <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40")} />
+                              ))}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground shrink-0">{ago(r.rated_at)}</span>
+                          </div>
+                          {r.comment && <p className="text-xs italic text-foreground/90">“{r.comment}”</p>}
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
+                            <span className="font-mono text-accent">{ticketNumberById.get(r.ticket_id) ?? `#${r.ticket_id.slice(0, 8)}`}</span>
+                            {r.category && <span>{r.category}</span>}
+                            <span>{nameOf(r.assigned_agent) ?? "Support Team"}</span>
+                          </div>
+                          {poor && (
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              <OpBtn icon={<MessageSquare className="size-3" />} onClick={() => onOpenTicket?.(r.ticket_id)}>View feedback</OpBtn>
+                              <OpBtn icon={<ChevronRight className="size-3" />} onClick={() => onOpenTicket?.(r.ticket_id)}>Open ticket</OpBtn>
+                              <OpBtn icon={<RotateCcw className="size-3" />} disabled={busy}
+                                onClick={() => { if (r.ticket_id === ticketId) { void patch({ status: "open", resolved_at: null, closed_at: null }, "Ticket reopened"); } else { onOpenTicket?.(r.ticket_id); } }}>
+                                Reopen
+                              </OpBtn>
+                              {customer?.email && (
+                                <a href={`mailto:${customer.email}`}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-foreground hover:border-accent/40 hover:text-accent transition-colors">
+                                  <Mail className="size-3" />Contact
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {satisfaction.health === "risk" && (
+                    <p className="flex items-center gap-1.5 text-[11px] text-destructive">
+                      <AlertTriangle className="size-3.5" /> Support risk — prioritise a careful, personal response.
+                    </p>
+                  )}
+                </div>
+              )}
+            </Block>
+
+
+
             {/* Internal notes */}
             <Block title="Internal notes" icon={<StickyNote className="size-3.5" />} hint="Admin only — never shown to customers">
               <div className="space-y-2">
