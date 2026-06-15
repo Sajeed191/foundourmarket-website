@@ -471,9 +471,22 @@ function SearchPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
-              {results.map((p) => <ProductCard key={p.slug} product={p} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+                {results.map((p) => <ProductCard key={p.slug} product={p} />)}
+              </div>
+              {hasMore && (
+                <div className="mt-8 sm:mt-10 flex justify-center">
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-6 py-3 text-[11px] font-mono uppercase tracking-widest text-foreground hover:border-accent hover:text-accent transition-colors disabled:opacity-50"
+                  >
+                    {loadingMore ? "Loading…" : "Load More"}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
