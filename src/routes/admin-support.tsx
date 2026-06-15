@@ -635,7 +635,13 @@ function TicketCard({ e, assignedName, assignedPresence, onOpen, onManage, on360
         <button onClick={on360} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium hover:border-accent/40">
           <User className="size-3" /> Customer 360
         </button>
-        {ticket.assigned_to && <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"><User className="size-3" /> Assigned</span>}
+        {ticket.assigned_to && (
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <User className="size-3" />
+            <span className="font-medium text-foreground/80">{assignedName}</span>
+            {assignedPresence && <PresenceTag state={assignedPresence.state} lastActiveAt={assignedPresence.lastActiveAt} />}
+          </span>
+        )}
 
       </div>
     </div>
