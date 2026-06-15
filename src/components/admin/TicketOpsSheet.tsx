@@ -75,6 +75,7 @@ export function TicketOpsSheet({
   const [names, setNames] = useState<Map<string, string>>(new Map());
   const [orders, setOrders] = useState<OrderLite[]>([]);
   const [customer, setCustomer] = useState<{ name: string; email: string | null } | null>(null);
+  const [msgRows, setMsgRows] = useState<{ id: string; sender_role: string | null; created_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
