@@ -12,6 +12,8 @@ type Filter = "all" | NotificationCategory;
 export function NotificationBell() {
   const { items, unread, markRead, markAllRead, remove } = useNotifications();
   const { isAdmin } = useIsAdmin();
+  const { count: supportUnread } = useSupportUnread();
+  const totalUnread = unread + (isAdmin ? 0 : supportUnread);
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [pulse, setPulse] = useState(false);
