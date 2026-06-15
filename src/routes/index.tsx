@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 
 import {
-  Search, ArrowRight, Star, Sparkles, Award, Package, Globe2, Users, Flame,
+  Search, ArrowRight, Star, Sparkles, Award, Package, Globe2, Flame,
   BadgeCheck, Pencil, Truck, ShieldCheck, TrendingUp,
   Sofa, UtensilsCrossed, Gamepad2, Cpu, ToyBrick, PawPrint, Car, Shirt, Dumbbell,
   Watch, Headphones, Gem, Baby, Wrench, BookOpen,
