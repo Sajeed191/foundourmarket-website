@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth";
 
 import { markTicketRead } from "@/lib/use-support-unread";
 import { notifySupportEvent } from "@/lib/support.functions";
-import { SUPPORT_CATEGORIES, type SupportCategoryId, type SupportContextSnapshot } from "@/lib/support-context";
+import { type SupportCategoryId, type SupportContextSnapshot } from "@/lib/support-context";
 import { useSupportAvailability, fmtLastActive, useTypingIndicator } from "@/lib/support-presence";
 import { PRESENCE_META } from "@/lib/support-analytics";
 import { TypingIndicator } from "@/components/support/TypingDots";
