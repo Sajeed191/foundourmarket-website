@@ -250,12 +250,70 @@ function SupportPage() {
 }
 
 /* ---------- Compose new ticket ---------- */
-function ComposeSheet({ userId, market, onClose, onCreated }: { userId: string; market: string; onClose: () => void; onCreated: (id: string) => void }) {
-  const [subject, setSubject] = useState("");
-  const [category, setCategory] = useState<string>("general");
+type Prefill = { order?: string; return?: string; refund?: string; category?: SupportCategoryId; subject?: string };
+type OpenTicket = { id: string; subject: string; status: string; ticket_number: string };
+
+function ComposeSheet({
+  userId, market, prefill, onClose, onCreated, onContinue,
+}: {
+  userId: string;
+  market: string;
+  prefill?: Prefill;
+  onClose: () => void;
+  onCreated: (id: string) => void;
+  onContinue: (id: string) => void;
+}) {
+  const [subject, setSubject] = useState(prefill?.subject ?? "");
+  const [category, setCategory] = useState<string>(prefill?.category ?? "other");
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
+  const [ctx, setCtx] = useState<SupportContextSnapshot | null>(null);
+  const [existing, setExisting] = useState<OpenTicket[] | null>(null);
+  const [forceNew, setForceNew] = useState(false);
+
+  // Build a context snapshot + duplicate check from the linked order/return/refund.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const snap: SupportContextSnapshot = {};
+      if (prefill?.order) {
+        const [{ data: order }, { data: items }, { data: ship }, { data: ret }] = await Promise.all([
+          supabase.from("orders").select("id,status,total,currency,tracking_number,carrier").eq("id", prefill.order).maybeSingle(),
+          supabase.from("order_items").select("name,image").eq("order_id", prefill.order).limit(1),
+          supabase.from("shipments").select("status").eq("order_id", prefill.order).order("created_at", { ascending: false }).limit(1),
+          supabase.from("returns").select("status,refund_status").eq("order_id", prefill.order).order("created_at", { ascending: false }).limit(1),
+        ]);
+        if (order) {
+          snap.order_number = order.id.slice(0, 8).toUpperCase();
+          snap.order_status = order.status;
+          snap.total = order.total;
+          snap.currency = order.currency;
+          snap.tracking_number = order.tracking_number ?? undefined;
+          snap.carrier = order.carrier ?? undefined;
+        }
+        const item = (items ?? [])[0];
+        if (item) { snap.product_name = item.name; snap.product_image = item.image ?? undefined; }
+        const s = (ship ?? [])[0];
+        if (s) snap.delivery_status = s.status;
+        const r = (ret ?? [])[0];
+        if (r) { snap.return_status = r.status; snap.refund_status = r.refund_status ?? undefined; }
+
+        // Duplicate detection: any active ticket already linked to this order.
+        const { data: open } = await supabase
+          .from("support_tickets")
+          .select("id,subject,status,ticket_number")
+          .eq("order_id", prefill.order)
+          .in("status", ["open", "pending"])
+          .order("last_message_at", { ascending: false });
+        if (active) setExisting((open as OpenTicket[]) ?? []);
+      } else {
+        if (active) setExisting([]);
+      }
+      if (active) setCtx(Object.keys(snap).length ? snap : null);
+    })();
+    return () => { active = false; };
+  }, [prefill?.order]);
 
   async function submit() {
     if (!subject.trim()) { toast.error("Add a subject"); return; }
@@ -263,7 +321,16 @@ function ComposeSheet({ userId, market, onClose, onCreated }: { userId: string; 
     setSaving(true);
     const { data: t, error } = await supabase
       .from("support_tickets")
-      .insert({ user_id: userId, subject: subject.trim(), category, market_region: market })
+      .insert({
+        user_id: userId,
+        subject: subject.trim(),
+        category,
+        market_region: market,
+        order_id: prefill?.order ?? null,
+        return_id: prefill?.return ?? null,
+        refund_id: prefill?.refund ?? null,
+        context: (ctx ?? {}) as Record<string, unknown>,
+      })
       .select("id")
       .single();
     if (error || !t) { setSaving(false); toast.error(error?.message ?? "Failed to create ticket"); return; }
@@ -278,36 +345,101 @@ function ComposeSheet({ userId, market, onClose, onCreated }: { userId: string; 
     onCreated(t.id);
   }
 
+  const showDuplicateGate = existing && existing.length > 0 && !forceNew;
+
   return (
     <Sheet onClose={onClose} title="New ticket">
       <div className="space-y-4">
-        <Field label="Subject">
-          <input value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={120} placeholder="Brief summary of your issue"
-            className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-accent/60 transition" />
-        </Field>
-        <Field label="Category">
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <button key={c.id} onClick={() => setCategory(c.id)} type="button"
-                className={cn("rounded-full px-3 py-1.5 text-xs ring-1 transition", category === c.id ? "bg-accent/15 text-accent ring-accent/40" : "bg-white/[0.03] text-muted-foreground ring-white/10 hover:ring-accent/30")}>
-                {c.label}
+        {ctx && <ContextCard ctx={ctx} />}
+
+        {showDuplicateGate ? (
+          <div className="rounded-2xl border border-accent/30 bg-accent/[0.06] p-4 space-y-3">
+            <p className="flex items-center gap-2 text-sm font-semibold text-accent">
+              <AlertCircle className="size-4" /> You already have an active conversation for this order.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Continuing keeps everything in one thread so our team has full context.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => onContinue(existing![0].id)}
+                className="w-full bg-accent text-accent-foreground rounded-full px-5 py-2.5 text-xs uppercase tracking-widest font-bold hover:brightness-110 transition inline-flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="size-4" /> Continue existing ticket
               </button>
-            ))}
+              <button
+                onClick={() => setForceNew(true)}
+                className="w-full bg-white/[0.04] ring-1 ring-white/10 text-foreground rounded-full px-5 py-2.5 text-xs uppercase tracking-widest font-semibold hover:ring-accent/40 transition inline-flex items-center justify-center gap-2"
+              >
+                <Plus className="size-4" /> Create new ticket
+              </button>
+            </div>
           </div>
-        </Field>
-        <Field label="Message">
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={5} maxLength={4000} placeholder="Tell us what's going on…"
-            className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-accent/60 resize-none transition" />
-        </Field>
-        <AttachmentPicker files={files} setFiles={setFiles} />
-        <button onClick={submit} disabled={saving}
-          className="w-full bg-accent text-accent-foreground rounded-full px-6 py-3 text-xs uppercase tracking-widest font-bold disabled:opacity-50 hover:brightness-110 transition-all flex items-center justify-center gap-2">
-          {saving ? <><Loader2 className="size-4 animate-spin" /> Creating…</> : <><Send className="size-4" /> Submit ticket</>}
-        </button>
+        ) : (
+          <>
+            <Field label="Subject">
+              <input value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={120} placeholder="Brief summary of your issue"
+                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-accent/60 transition" />
+            </Field>
+            <Field label="Category">
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((c) => (
+                  <button key={c.id} onClick={() => setCategory(c.id)} type="button"
+                    className={cn("rounded-full px-3 py-1.5 text-xs ring-1 transition", category === c.id ? "bg-accent/15 text-accent ring-accent/40" : "bg-white/[0.03] text-muted-foreground ring-white/10 hover:ring-accent/30")}>
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </Field>
+            <Field label="Message">
+              <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={5} maxLength={4000} placeholder="Tell us what's going on…"
+                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-accent/60 resize-none transition" />
+            </Field>
+            <AttachmentPicker files={files} setFiles={setFiles} />
+            <button onClick={submit} disabled={saving}
+              className="w-full bg-accent text-accent-foreground rounded-full px-6 py-3 text-xs uppercase tracking-widest font-bold disabled:opacity-50 hover:brightness-110 transition-all flex items-center justify-center gap-2">
+              {saving ? <><Loader2 className="size-4 animate-spin" /> Creating…</> : <><Send className="size-4" /> Submit ticket</>}
+            </button>
+          </>
+        )}
       </div>
     </Sheet>
   );
 }
+
+/* ---------- Context card shown on ticket compose + thread ---------- */
+export function ContextCard({ ctx }: { ctx: SupportContextSnapshot }) {
+  const rows: { icon: typeof Package; label: string; value?: string }[] = [
+    { icon: Package, label: "Order", value: ctx.order_number ? `#${ctx.order_number}` : undefined },
+    { icon: CheckCircle2, label: "Status", value: ctx.order_status },
+    { icon: Truck, label: "Tracking", value: ctx.tracking_number ? `${ctx.carrier ? ctx.carrier + " · " : ""}${ctx.tracking_number}` : ctx.delivery_status },
+    { icon: RotateCcw, label: "Return", value: ctx.return_status },
+    { icon: RotateCcw, label: "Refund", value: ctx.refund_status },
+  ].filter((r) => r.value);
+
+  return (
+    <div className="rounded-2xl glass p-3.5 flex gap-3">
+      {ctx.product_image ? (
+        <img src={ctx.product_image} alt={ctx.product_name ?? "Product"} className="size-14 rounded-xl object-cover ring-1 ring-white/10 shrink-0" />
+      ) : (
+        <div className="size-14 rounded-xl bg-white/[0.04] grid place-items-center shrink-0"><Package className="size-5 text-muted-foreground" /></div>
+      )}
+      <div className="min-w-0 flex-1">
+        {ctx.product_name && <p className="text-sm font-medium truncate">{ctx.product_name}</p>}
+        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+          {rows.map((r) => (
+            <span key={r.label} className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+              <r.icon className="size-3 text-accent/70" />
+              <span className="text-muted-foreground/60">{r.label}:</span>
+              <span className="text-foreground/90 capitalize">{r.value!.replace(/_/g, " ")}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 /* ---------- Conversation thread ---------- */
 export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: string; userId: string; isStaff: boolean; onClose: () => void }) {
