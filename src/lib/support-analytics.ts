@@ -16,6 +16,8 @@ export type TicketRow = {
   assigned_to: string | null;
   tags: string[] | null;
   created_at: string;
+  channel?: string | null;
+  first_response_at?: string | null;
 };
 
 export type MessageRow = {
