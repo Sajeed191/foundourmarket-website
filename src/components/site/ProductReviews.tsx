@@ -214,6 +214,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   function openCompose() {
+    if (!eligible) { toast.error("Only verified purchasers can review this product."); return; }
     setStep(1); setRating(5); setTitle(""); setBody(""); setPendingMedia([]);
     setShowCompose(true);
   }
