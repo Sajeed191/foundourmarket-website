@@ -152,6 +152,7 @@ type Ctx = {
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
   remove: (id: string) => Promise<void>;
+  archive: (id: string) => Promise<void>;
   clearAll: () => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -159,8 +160,41 @@ type Ctx = {
 const NotificationsCtx = createContext<Ctx>({
   items: [], unread: 0, loading: false,
   markRead: async () => {}, markAllRead: async () => {},
-  remove: async () => {}, clearAll: async () => {}, refresh: async () => {},
+  remove: async () => {}, archive: async () => {}, clearAll: async () => {}, refresh: async () => {},
 });
+
+/**
+ * Drives the browser-tab unread badge: `FoundOurMarket™` → `(8) FoundOurMarket™`.
+ * Uses a MutationObserver so the prefix survives TanStack head() title swaps on
+ * navigation, and re-applies whenever the unread count changes. Caps at 99+.
+ */
+function TabBadge({ unread }: { unread: number }) {
+  // React to route changes so the badge re-applies after head() rewrites <title>.
+  useRouterState({ select: (s) => s.location.pathname });
+  const unreadRef = useRef(unread);
+  unreadRef.current = unread;
+
+  const apply = useCallback(() => {
+    if (typeof document === "undefined") return;
+    const u = unreadRef.current;
+    const base = document.title.replace(/^\(\d+\+?\)\s+/, "");
+    const next = u > 0 ? `(${u > 99 ? "99+" : u}) ${base}` : base;
+    if (document.title !== next) document.title = next;
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const titleEl = document.querySelector("title");
+    apply();
+    if (!titleEl) return;
+    const obs = new MutationObserver(() => apply());
+    obs.observe(titleEl, { childList: true, characterData: true, subtree: true });
+    return () => obs.disconnect();
+  }, [apply]);
+
+  useEffect(() => { apply(); }, [unread, apply]);
+  return null;
+}
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
