@@ -61,7 +61,7 @@ export function SupportReplyWatcher() {
               label: "View Reply",
               onClick: () =>
                 navigate({
-                  to: "/account_/support",
+                  to: "/account/support",
                   search: { ticket: row.ticket_id } as never,
                 }),
             },
