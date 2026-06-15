@@ -6,6 +6,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { useAdminMode } from "@/lib/admin-mode";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useTheme } from "@/lib/theme";
+import { useSupportUnread } from "@/lib/use-support-unread";
 
 export function MobileBottomNav() {
   const { count } = useCart();
@@ -14,6 +15,7 @@ export function MobileBottomNav() {
   const { adminMode } = useAdminMode();
   const { isAdmin } = useIsAdmin();
   const { effectiveTheme } = useTheme();
+  const { count: supportUnread } = useSupportUnread();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Hand the bottom dock over to the admin bar when a staff member is actively
@@ -31,7 +33,7 @@ export function MobileBottomNav() {
     { to: "/search", label: "Search", icon: Search, match: (p) => p === "/search" || p.startsWith("/category") },
     { to: "/wishlist", label: "Saved", icon: Heart, match: (p) => p === "/wishlist", badge: slugs.size },
     { to: "/cart", label: "Cart", icon: ShoppingBag, match: (p) => p === "/cart", badge: count },
-    { to: user ? "/account" : "/auth", label: "Account", icon: User, match: (p) => p === "/account" || p === "/auth" },
+    { to: user ? "/account" : "/auth", label: "Account", icon: User, match: (p) => p === "/account" || p === "/auth", badge: user ? supportUnread : 0 },
   ];
 
   return (

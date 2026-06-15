@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bell, Check, CheckCheck, Settings, Trash2, ShoppingBag, X } from "lucide-react";
+import { Bell, Check, CheckCheck, Settings, Trash2, ShoppingBag, X, LifeBuoy } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useNotifications, categoryOf, resolveNotificationLink, type NotificationCategory, type Notification } from "@/lib/notifications";
 import { CAT_META, CATEGORY_ORDER, timeAgo } from "@/lib/notification-meta";
 import { useIsAdmin } from "@/lib/use-admin";
+import { useSupportUnread } from "@/lib/use-support-unread";
 
 type Filter = "all" | NotificationCategory;
 
 export function NotificationBell() {
   const { items, unread, markRead, markAllRead, remove } = useNotifications();
   const { isAdmin } = useIsAdmin();
+  const { count: supportUnread } = useSupportUnread();
+  const totalUnread = unread + (isAdmin ? 0 : supportUnread);
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [pulse, setPulse] = useState(false);
@@ -80,9 +83,9 @@ export function NotificationBell() {
         }`}
       >
         <Bell className={`size-[18px] ${pulse ? "animate-glow text-accent" : ""}`} />
-        {unread > 0 && (
+        {totalUnread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono grid place-items-center shadow-[0_0_10px_2px_oklch(0.74_0.19_49_/_0.6)]">
-            {unread > 99 ? "99+" : unread}
+            {totalUnread > 99 ? "99+" : totalUnread}
           </span>
         )}
       </button>
@@ -158,8 +161,29 @@ export function NotificationBell() {
 
           {/* List */}
           <div className="flex-1 overflow-y-auto">
+            {!isAdmin && supportUnread > 0 && (
+              <div className="p-2 pb-0">
+                <Link
+                  to="/account_/support"
+                  onClick={() => setOpen(false)}
+                  className="flex items-start gap-3 rounded-xl border border-accent/30 bg-accent/10 p-3 transition-colors hover:bg-accent/15"
+                >
+                  <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-accent/20 text-accent">
+                    <LifeBuoy className="size-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-foreground">
+                      FoundOurMarket Support replied
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      You have {supportUnread} unread {supportUnread === 1 ? "reply" : "replies"}. Tap to open your ticket.
+                    </span>
+                  </span>
+                </Link>
+              </div>
+            )}
             {visible.length === 0 ? (
-              <EmptyState onClose={() => setOpen(false)} />
+              !isAdmin && supportUnread > 0 ? null : <EmptyState onClose={() => setOpen(false)} />
             ) : (
               <ul className="p-2 space-y-1.5">
                 {visible.map((n) => (

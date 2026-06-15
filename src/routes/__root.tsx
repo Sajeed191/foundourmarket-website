@@ -64,9 +64,9 @@ const InstallPrompt = lazy(() =>
 const LiveChat = lazy(() =>
   import("@/components/chat/LiveChat").then((m) => ({ default: m.LiveChat })),
 );
-const FloatingSupportBadge = lazy(() =>
-  import("@/components/chat/FloatingSupportBadge").then((m) => ({
-    default: m.FloatingSupportBadge,
+const SupportReplyWatcher = lazy(() =>
+  import("@/components/chat/SupportReplyWatcher").then((m) => ({
+    default: m.SupportReplyWatcher,
   })),
 );
 const RegionSelectModal = lazy(() =>
@@ -310,7 +310,7 @@ function DeferredShell({
       <CompareTray />
       <InstallPrompt />
       {!hideLiveChat && <LiveChat />}
-      {!hideLiveChat && <FloatingSupportBadge />}
+      {!hideLiveChat && <SupportReplyWatcher />}
     </Suspense>
   );
 }
