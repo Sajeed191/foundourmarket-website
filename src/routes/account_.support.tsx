@@ -532,6 +532,12 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
           <div ref={endRef} />
         </div>
 
+        {!isStaff && (ticket?.status === "resolved" || ticket?.status === "closed") && (
+          <TicketRatingPrompt ticketId={ticketId} userId={userId} />
+        )}
+
+
+
         {ticket?.status === "closed" ? (
           <div className="mt-3 rounded-xl glass p-3 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
             <CheckCircle2 className="size-3.5 text-emerald-400" /> This ticket is closed.
