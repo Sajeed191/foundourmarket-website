@@ -526,8 +526,8 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
 
   return (
     <Sheet onClose={onClose} title={ticket?.subject ?? "Conversation"} subtitle={ticket ? `#${ticket.id.slice(0, 8)} · ${ticket.status}` : undefined}>
-      <div className="flex flex-col h-[60vh]">
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+      <div className="flex flex-col h-[60dvh] min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1">
           {messages === null ? (
             <Loader2 className="size-4 animate-spin text-muted-foreground" />
           ) : messages.length === 0 ? (
