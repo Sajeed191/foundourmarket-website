@@ -21,9 +21,11 @@ import { refundActionFn, returnActionFn } from "@/lib/support-actions.functions"
 import {
   deriveStage, computeSla, computeSupportKpis, detectEscalation,
   groupByStatus, refundRisk, normPriority, isStaffSender,
+  computeFirstReplySla, fmtCountdownMin, normChannel, CHANNEL_META,
   STAGE_LABEL, STAGE_ORDER, PRIORITY_LABEL, ESCALATION_LABEL,
   type TicketRow, type MessageRow, type OrderLite, type RefundRow, type ReturnRow,
   type TicketStage, type SlaInfo, type EscalationReason, type EscalationContext, type Priority,
+  type FirstReplySla, type SupportChannel,
 } from "@/lib/support-analytics";
 
 
@@ -67,6 +69,8 @@ type Enriched = {
   ticket: TicketRow;
   stage: TicketStage;
   sla: SlaInfo;
+  firstReply: FirstReplySla;
+  channel: SupportChannel;
   lastSenderRole: string | null;
   escalations: EscalationReason[];
   customerName: string;
@@ -94,10 +98,17 @@ function AdminSupportPage() {
   const [c360, setC360] = useState<{ userId: string; name: string } | null>(null);
   const [aiTicket, setAiTicket] = useState<string | null>(null);
   const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [nowTick, setNowTick] = useState(() => Date.now());
+
+  // Live SLA countdown — re-render every 30s without refetching.
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const load = useCallback(async () => {
     const [t, m, o, rf, rt, pf, sh, fr] = await Promise.all([
-      supabase.from("support_tickets").select("id,user_id,subject,category,status,priority,order_id,market_region,last_message_at,resolved_at,assigned_to,tags,created_at").order("last_message_at", { ascending: false }).limit(500),
+      supabase.from("support_tickets").select("id,user_id,subject,category,status,priority,order_id,market_region,last_message_at,resolved_at,assigned_to,tags,created_at,channel,first_response_at").order("last_message_at", { ascending: false }).limit(500),
       supabase.from("support_messages").select("id,ticket_id,sender_id,sender_role,created_at").order("created_at", { ascending: true }).limit(4000),
       supabase.from("orders").select("id,user_id,total,currency,status,payment_status").limit(2000),
       supabase.from("refunds").select("id,order_id,amount,currency,status,reason,created_at").order("created_at", { ascending: false }).limit(500),
@@ -172,11 +183,14 @@ function AdminSupportPage() {
     return tickets.map((ticket) => {
       const lastSenderRole = msgAgg.lastSender.get(ticket.id) ?? null;
       const stage = deriveStage(ticket, lastSenderRole, msgAgg.has.has(ticket.id));
-      const sla = computeSla(ticket, stage, msgAgg.firstStaff.get(ticket.id) ?? null, lastSenderRole);
+      const firstStaffAt = msgAgg.firstStaff.get(ticket.id)
+        ?? (ticket.first_response_at ? +new Date(ticket.first_response_at) : null);
+      const sla = computeSla(ticket, stage, firstStaffAt, lastSenderRole);
+      const firstReply = computeFirstReplySla(ticket, stage, firstStaffAt, nowTick);
       const escalations = detectEscalation(ticket, escCtx);
-      return { ticket, stage, sla, lastSenderRole, escalations, customerName: profiles.get(ticket.user_id) ?? "Customer" };
+      return { ticket, stage, sla, firstReply, channel: normChannel(ticket.channel), lastSenderRole, escalations, customerName: profiles.get(ticket.user_id) ?? "Customer" };
     });
-  }, [tickets, msgAgg, escCtx, profiles]);
+  }, [tickets, msgAgg, escCtx, profiles, nowTick]);
 
   const kpis = useMemo(() => computeSupportKpis(enriched), [enriched]);
 
@@ -194,7 +208,11 @@ function AdminSupportPage() {
         .some((v) => (v ?? "").toString().toLowerCase().includes(term));
     });
     const open = (e: Enriched) => e.stage !== "resolved" && e.stage !== "closed";
+    // First-reply breached tickets always float to the very top of every sort.
+    const breachRank = (e: Enriched) => (e.firstReply.status === "breached" ? 0 : e.firstReply.status === "due_soon" ? 1 : 2);
     return [...list].sort((a, b) => {
+      const br = breachRank(a) - breachRank(b);
+      if (br !== 0) return br;
       if (sortBy === "priority") return PRIORITY_RANK[a.sla.priority] - PRIORITY_RANK[b.sla.priority] || (+new Date(b.ticket.last_message_at) - +new Date(a.ticket.last_message_at));
       if (sortBy === "oldest") return (open(b) ? 1 : 0) - (open(a) ? 1 : 0) || (+new Date(a.ticket.created_at) - +new Date(b.ticket.created_at));
       return +new Date(b.ticket.last_message_at) - +new Date(a.ticket.last_message_at);
@@ -365,8 +383,35 @@ function SupportSettingsView() {
 function DashboardView({ kpis, enriched }: { kpis: ReturnType<typeof computeSupportKpis>; enriched: Enriched[] }) {
   const critical = enriched.filter((e) => e.sla.critical).slice(0, 6);
   const escalations = enriched.filter((e) => e.escalations.length && e.stage !== "resolved" && e.stage !== "closed").slice(0, 6);
+
+  // ── Queue Health — instant operational visibility (all from real records) ──
+  const isOpen = (e: Enriched) => e.stage !== "resolved" && e.stage !== "closed" && e.stage !== "spam";
+  const openTickets = enriched.filter(isOpen);
+  const health = {
+    open: openTickets.length,
+    waitingCustomer: openTickets.filter((e) => e.stage === "pending_customer").length,
+    waitingStaff: openTickets.filter((e) => !isStaffSender(e.lastSenderRole)).length,
+    breached: openTickets.filter((e) => e.firstReply.status === "breached").length,
+    dueSoon: openTickets.filter((e) => e.firstReply.status === "due_soon").length,
+    unassigned: openTickets.filter((e) => !e.ticket.assigned_to).length,
+    urgent: openTickets.filter((e) => e.sla.priority === "urgent").length,
+  };
+  const breachedList = openTickets.filter((e) => e.firstReply.status === "breached").slice(0, 6);
+
   return (
     <div className="space-y-4">
+      <div>
+        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Queue Health</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          <Kpi label="Open Tickets" value={health.open} icon={<Inbox className="size-4" />} />
+          <Kpi label="Waiting Customer" value={health.waitingCustomer} />
+          <Kpi label="Waiting Staff" value={health.waitingStaff} tone={health.waitingStaff ? "amber" : undefined} />
+          <Kpi label="SLA Breached" value={health.breached} icon={<AlertTriangle className="size-4" />} tone={health.breached ? "destructive" : undefined} />
+          <Kpi label="Unassigned" value={health.unassigned} tone={health.unassigned ? "amber" : undefined} />
+          <Kpi label="Urgent" value={health.urgent} icon={<Flame className="size-4" />} tone={health.urgent ? "destructive" : undefined} />
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <Kpi label="Open" value={kpis.open} icon={<Inbox className="size-4" />} />
         <Kpi label="Pending Customer" value={kpis.pendingCustomer} />
@@ -380,7 +425,12 @@ function DashboardView({ kpis, enriched }: { kpis: ReturnType<typeof computeSupp
         <Kpi label="Overdue" value={kpis.overdue} icon={<AlertTriangle className="size-4" />} tone={kpis.overdue ? "destructive" : undefined} />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid lg:grid-cols-3 gap-4">
+        <Panel title="First-reply SLA breached" icon={<Clock className="size-4 text-destructive" />}>
+          {breachedList.length === 0 ? <Empty text="No first-reply breaches 🎉" /> : breachedList.map((e) => (
+            <MiniRow key={e.ticket.id} title={e.ticket.subject} sub={`${e.customerName} · ${PRIORITY_LABEL[e.sla.priority]} · breached by ${fmtCountdownMin(e.firstReply.remainingMin ?? 0)}`} tone="destructive" />
+          ))}
+        </Panel>
         <Panel title="Critical SLA tickets" icon={<AlertTriangle className="size-4 text-destructive" />}>
           {critical.length === 0 ? <Empty text="No critical tickets." /> : critical.map((e) => (
             <MiniRow key={e.ticket.id} title={e.ticket.subject} sub={`${e.customerName} · ${PRIORITY_LABEL[e.sla.priority]} · waiting ${hrs(e.sla.awaitingStaffH)}`} tone="destructive" />
@@ -480,7 +530,7 @@ function TicketCard({ e, onOpen, onManage, on360, onAi, onStatus, onPriority }: 
   e: Enriched; onOpen: () => void; onManage: () => void; on360: () => void; onAi: () => void;
   onStatus: (s: TicketStage) => void; onPriority: (p: Priority) => void;
 }) {
-  const { ticket, stage, sla, escalations, customerName } = e;
+  const { ticket, stage, sla, firstReply, channel, escalations, customerName } = e;
 
   return (
     <div className={cn("card-premium rounded-2xl p-4 md:p-5", sla.critical && "border-destructive/40")}>
@@ -488,22 +538,37 @@ function TicketCard({ e, onOpen, onManage, on360, onAi, onStatus, onPriority }: 
         <button onClick={onOpen} className="text-left group min-w-0 flex items-start gap-3 flex-1">
           <span className="size-9 mt-0.5 grid place-items-center rounded-xl bg-white/[0.04] text-muted-foreground group-hover:text-accent transition-colors shrink-0"><MessageSquare className="size-4" /></span>
           <div className="min-w-0">
-            <p className="text-sm font-medium group-hover:text-accent transition-colors truncate">{ticket.subject}</p>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <ChannelBadge channel={channel} />
+              <p className="text-sm font-medium group-hover:text-accent transition-colors truncate">{ticket.subject}</p>
+            </div>
             <p className="font-mono text-[11px] text-muted-foreground mt-0.5 truncate">
               #{ticket.id.slice(0, 8)} · {customerName} · {ticket.category}{ticket.market_region ? ` · ${ticket.market_region}` : ""} · {fmtTime(ticket.last_message_at)}
             </p>
           </div>
         </button>
         <div className="flex flex-col items-end gap-1 shrink-0">
+          <FirstReplyBadge fr={firstReply} />
           <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider border", STAGE_CLS[stage])}>{STAGE_LABEL[stage]}</span>
           <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider border", PRIORITY_CLS[sla.priority])}>{PRIORITY_LABEL[sla.priority]}</span>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 mb-3">
+        {firstReply.status === "breached" && (
+          <Tag tone="destructive" icon={<AlertTriangle className="size-3" />}>First reply breached by {fmtCountdownMin(firstReply.remainingMin ?? 0)}</Tag>
+        )}
+        {firstReply.status === "due_soon" && (
+          <Tag tone="amber" icon={<Clock className="size-3" />}>First reply due in {fmtCountdownMin(firstReply.remainingMin ?? 0)}</Tag>
+        )}
+        {firstReply.status === "within" && (
+          <Tag tone="muted" icon={<Clock className="size-3" />}>First reply due in {fmtCountdownMin(firstReply.remainingMin ?? 0)}</Tag>
+        )}
+        {firstReply.status === "answered" && firstReply.answeredInMin != null && (
+          <Tag tone={firstReply.metTarget ? "muted" : "amber"}>1st reply {fmtCountdownMin(firstReply.answeredInMin)}{firstReply.metTarget === false ? " (late)" : ""}</Tag>
+        )}
         {sla.overdue && <Tag tone="destructive" icon={<AlertTriangle className="size-3" />}>Overdue · waited {hrs(sla.awaitingStaffH)}</Tag>}
         {sla.breached && !sla.overdue && <Tag tone="amber" icon={<Clock className="size-3" />}>SLA breached</Tag>}
-        {sla.firstResponseH != null && <Tag tone="muted">1st reply {hrs(sla.firstResponseH)}</Tag>}
         {escalations.map((r) => <Tag key={r} tone="amber" icon={<Flame className="size-3" />}>{ESCALATION_LABEL[r]}</Tag>)}
       </div>
 
@@ -940,6 +1005,35 @@ function Sheet({ title, subtitle, onClose, children }: { title: string; subtitle
     </div>
   );
 }
+
+function ChannelBadge({ channel, className }: { channel: SupportChannel; className?: string }) {
+  const meta = CHANNEL_META[channel];
+  return (
+    <span title={meta.label}
+      className={cn("inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground shrink-0", className)}>
+      <span aria-hidden>{meta.icon}</span><span className="hidden sm:inline">{meta.label}</span>
+    </span>
+  );
+}
+
+function FirstReplyBadge({ fr }: { fr: FirstReplySla }) {
+  if (fr.status === "answered") return null;
+  const cls =
+    fr.status === "breached" ? "text-destructive border-destructive/40 bg-destructive/10"
+    : fr.status === "due_soon" ? "text-amber-400 border-amber-400/40 bg-amber-400/10"
+    : "text-emerald-400 border-emerald-400/30 bg-emerald-400/10";
+  const dot = fr.status === "breached" ? "🔴" : fr.status === "due_soon" ? "🟡" : "🟢";
+  const text =
+    fr.status === "breached" ? `Breached ${fmtCountdownMin(fr.remainingMin ?? 0)}`
+    : `Due ${fmtCountdownMin(fr.remainingMin ?? 0)}`;
+  return (
+    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider border", cls)}>
+      <span aria-hidden>{dot}</span>{text}
+    </span>
+  );
+}
+
+
 
 function Kpi({ label, value, icon, tone }: { label: string; value: number; icon?: React.ReactNode; tone?: "emerald" | "amber" | "destructive" }) {
   const t = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "destructive" ? "text-destructive" : "";
