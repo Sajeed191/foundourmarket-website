@@ -235,6 +235,13 @@ function Row({
           </button>
         )}
         <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onArchive(n.id); }}
+          aria-label="Archive notification"
+          className="size-7 grid place-items-center rounded-full bg-background/80 backdrop-blur border border-border text-muted-foreground hover:text-accent"
+        >
+          <Archive className="size-3.5" />
+        </button>
+        <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(n.id); }}
           aria-label="Delete notification"
           className="size-7 grid place-items-center rounded-full bg-background/80 backdrop-blur border border-border text-muted-foreground hover:text-rose-400"
