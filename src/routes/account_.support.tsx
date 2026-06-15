@@ -67,6 +67,10 @@ type Ticket = {
   priority: string;
   last_message_at: string;
   created_at: string;
+  ticket_number?: string;
+  unread_customer_count?: number;
+  order_id?: string | null;
+  channel?: string | null;
 };
 
 type Message = {
