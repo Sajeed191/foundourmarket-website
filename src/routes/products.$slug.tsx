@@ -274,16 +274,13 @@ function ProductPage() {
     return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
   }, []);
 
-  // Deterministic social-proof numbers derived from the slug so they stay
-  // stable across renders/hydration (no flicker, no SSR mismatch).
+  // Real activity from the products table (total views / units sold). No
+  // fabricated "today/this week" numbers — only show what we actually track.
   const socialProof = useMemo(() => {
     if (!product) return null;
-    const seed = product.slug.split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0);
     return {
-      viewers: 12 + (seed % 40),
-      sold: 5 + (seed % 24),
-      addedToCart: 4 + (seed % 12),
-      purchases: 2 + (seed % 6),
+      views: product.viewsCount ?? 0,
+      sold: product.soldCount ?? 0,
     };
   }, [product?.slug]);
 
