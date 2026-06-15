@@ -6,6 +6,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { useAdminMode } from "@/lib/admin-mode";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useTheme } from "@/lib/theme";
+import { useSupportUnread } from "@/lib/use-support-unread";
 
 export function MobileBottomNav() {
   const { count } = useCart();
