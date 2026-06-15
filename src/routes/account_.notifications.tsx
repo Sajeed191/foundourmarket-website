@@ -177,11 +177,12 @@ function NotificationsPage() {
 }
 
 function Row({
-  n, onRead, onRemove,
+  n, onRead, onRemove, onArchive,
 }: {
   n: Notification;
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
+  onArchive: (id: string) => void;
 }) {
   const cat = categoryOf(n);
   const { Icon, tone, dot } = CAT_META[cat];
