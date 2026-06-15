@@ -83,8 +83,12 @@ function AdminSupportPage() {
 
   const [section, setSection] = useState<Section>("dashboard");
   const [stageFilter, setStageFilter] = useState<TicketStage | "all" | "overdue">("all");
+  const [priorityFilter, setPriorityFilter] = useState<Priority | "all">("all");
+  const [assignFilter, setAssignFilter] = useState<"all" | "me" | "unassigned">("all");
+  const [sortBy, setSortBy] = useState<"activity" | "priority" | "oldest">("activity");
   const [q, setQ] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [manageId, setManageId] = useState<string | null>(null);
   const [c360, setC360] = useState<{ userId: string; name: string } | null>(null);
   const [aiTicket, setAiTicket] = useState<string | null>(null);
   const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
