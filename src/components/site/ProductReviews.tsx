@@ -118,8 +118,15 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     setMyVotes(map);
   }, [user]);
 
+  const loadEligibility = useCallback(async () => {
+    if (!user) { setEligible(false); return; }
+    const { data } = await supabase.rpc("can_review_product", { _slug: productSlug });
+    setEligible(data === true);
+  }, [user, productSlug]);
+
   useEffect(() => { setLoading(true); load(); }, [load]);
   useEffect(() => { loadMyVotes(); }, [loadMyVotes]);
+  useEffect(() => { loadEligibility(); }, [loadEligibility]);
 
   // realtime
   useEffect(() => {
