@@ -332,28 +332,6 @@ function SupportPage() {
           </div>
         )}
       </div>
-
-      <AnimatePresence>
-        {composing && (
-          <ComposeSheet
-            userId={user.id}
-            market={market}
-            prefill={prefill}
-            onClose={() => {
-              setComposing(false);
-              if (wantsCompose) nav({ to: "/account/support", search: {}, replace: true });
-            }}
-            onContinue={(id) => {
-              setComposing(false);
-              nav({ to: "/account/support/ticket/$ticketId", params: { ticketId: id } });
-            }}
-            onCreated={(id) => {
-              setComposing(false);
-              nav({ to: "/account/support/ticket/$ticketId", params: { ticketId: id } });
-            }}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }
