@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Loader2, Plus, Send, LifeBuoy, Paperclip, X, ChevronRight,
-  ShieldCheck, MessageSquare, ImageIcon, CheckCircle2,
+  ShieldCheck, MessageSquare, ImageIcon, CheckCircle2, Check, CheckCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -19,6 +19,9 @@ function fireSupportEmail(ticketId: string, event: "created" | "customer_reply" 
 }
 
 export const Route = createFileRoute("/account_/support")({
+  validateSearch: (search: Record<string, unknown>): { ticket?: string } => ({
+    ticket: typeof search.ticket === "string" ? search.ticket : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Support — FoundOurMarket™" },
@@ -56,6 +59,8 @@ type Message = {
   body: string;
   attachments: string[];
   created_at: string;
+  delivered_at: string | null;
+  read_at: string | null;
 };
 
 function statusTone(s: string) {
@@ -69,11 +74,17 @@ function SupportPage() {
   const { user, loading } = useAuth();
   const { market } = useRegion();
   const nav = useNavigate();
+  const { ticket: deepLinkTicket } = useSearch({ from: Route.id });
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
 
   useEffect(() => { if (!loading && !user) nav({ to: "/auth" }); }, [loading, user, nav]);
+
+  // Deep-link: open the exact ticket from ?ticket=<id> (e.g. a notification tap).
+  useEffect(() => {
+    if (deepLinkTicket) setActiveId(deepLinkTicket);
+  }, [deepLinkTicket]);
 
   const loadTickets = useCallback(async () => {
     const { data, error } = await supabase
@@ -175,7 +186,15 @@ function SupportPage() {
           />
         )}
         {activeId && (
-          <ThreadSheet ticketId={activeId} userId={user.id} isStaff={false} onClose={() => setActiveId(null)} />
+          <ThreadSheet
+            ticketId={activeId}
+            userId={user.id}
+            isStaff={false}
+            onClose={() => {
+              setActiveId(null);
+              if (deepLinkTicket) nav({ to: "/account_/support", search: {}, replace: true });
+            }}
+          />
         )}
       </AnimatePresence>
     </div>
@@ -253,7 +272,7 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
 
   const load = useCallback(async () => {
     const [{ data: m }, { data: t }] = await Promise.all([
-      supabase.from("support_messages").select("id,ticket_id,sender_id,sender_role,body,attachments,created_at").eq("ticket_id", ticketId).order("created_at"),
+      supabase.from("support_messages").select("id,ticket_id,sender_id,sender_role,body,attachments,created_at,delivered_at,read_at").eq("ticket_id", ticketId).order("created_at"),
       supabase.from("support_tickets").select("id,subject,category,status,priority,last_message_at,created_at").eq("id", ticketId).maybeSingle(),
     ]);
     setMessages(((m as Message[]) ?? []).map((x) => ({ ...x, attachments: (x.attachments as unknown as string[]) ?? [] })));
@@ -267,6 +286,7 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
     const ch = supabase
       .channel(`support-thread:${ticketId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages", filter: `ticket_id=eq.${ticketId}` }, () => load())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "support_messages", filter: `ticket_id=eq.${ticketId}` }, () => load())
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "support_tickets", filter: `id=eq.${ticketId}` }, () => load())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -310,7 +330,20 @@ export function ThreadSheet({ ticketId, userId, isStaff, onClose }: { ticketId: 
                         {m.attachments.map((p) => <AttachmentImage key={p} path={p} />)}
                       </div>
                     )}
-                    <p className="text-[9px] font-mono text-muted-foreground/50 mt-1.5">{new Date(m.created_at).toLocaleString()}</p>
+                    <p className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground/50 mt-1.5">
+                      <span>{new Date(m.created_at).toLocaleString()}</span>
+                      {mine && (
+                        m.read_at ? (
+                          <span className="flex items-center gap-0.5 text-accent" title={`Read ${new Date(m.read_at).toLocaleString()}`}>
+                            <CheckCheck className="size-3" /> Read
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-0.5 text-muted-foreground/60" title="Delivered">
+                            <Check className="size-3" /> Delivered
+                          </span>
+                        )
+                      )}
+                    </p>
                   </div>
                 </div>
               );
