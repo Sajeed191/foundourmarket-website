@@ -30,9 +30,13 @@ export type FlashItem = {
   priority: number;
 };
 
-/** True when a product is flagged as a flash deal through any supported signal. */
+/**
+ * True when a product belongs in the Flash Deals section. Per the badge spec,
+ * the section shows products flagged FLASHDEAL or HOTDEAL (verifiable from real
+ * product data), plus legacy collection tokens.
+ */
 export function isFlashDealProduct(p: Product): boolean {
-  if (p.flashDeal) return true;
+  if (p.flashDeal || p.hotDeal) return true;
   const tokens = (p.collections ?? []).map((c) => c.toLowerCase().replace(/[\s_]+/g, "-"));
   return tokens.includes("flash-deal") || tokens.includes("flash-deals");
 }
