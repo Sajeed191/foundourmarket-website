@@ -3,7 +3,7 @@ import { openCrispChat } from "@/lib/crisp";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { motion, useMotionValue, useTransform, animate, useScroll, AnimatePresence, useMotionValueEvent } from "framer-motion";
 import {
-  LogOut, Package, Loader2, RotateCcw, MapPin, Bell, Heart, Clock, Sparkles,
+  LogOut, Package, Loader2, RotateCcw, MapPin, Heart, Clock, Sparkles,
   ShoppingBag, Wallet, ChevronRight, Shield, Settings, Eye, User as UserIcon,
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
   Search, Zap, Gift, Tag, Flame, Truck, Lock, Globe, Crown,
@@ -13,10 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
 import { useWishlist } from "@/lib/wishlist";
-import { useNotifications } from "@/lib/notifications";
-
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
-import { useIsAdmin } from "@/lib/use-admin";
 
 import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
@@ -131,8 +128,6 @@ function AccountPage() {
   const [returns, setReturns] = useState<Return[] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const { slugs: wishSlugs } = useWishlist();
-  const { unread } = useNotifications();
-  const { isAdmin } = useIsAdmin();
   const { products } = useProducts();
   const cart = useCart();
 
@@ -415,18 +410,6 @@ function AccountPage() {
               </div>
 
               <div className="flex items-center gap-1.5 shrink-0 self-center">
-                {isAdmin && (
-                  <Link
-                    to="/account/notifications"
-                    aria-label="Notifications"
-                    className="relative size-9 sm:size-10 grid place-items-center rounded-xl glass hover:bg-white/10 hover:text-accent transition-all"
-                  >
-                    <Bell className="size-4" />
-                    {unread > 0 && (
-                      <span className="absolute top-1 right-1 size-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--color-accent)]" />
-                    )}
-                  </Link>
-                )}
                 <Link
                   to="/account/profile"
                   aria-label="Settings"
