@@ -258,6 +258,36 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     setShowCompose(true);
   }
 
+  function scrollToQuestions() {
+    document.getElementById("questions")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function startEditMyReview() {
+    if (!myReview) return;
+    setEditingId(myReview.id);
+    setEditRating(myReview.rating);
+    setEditTitle(myReview.title ?? "");
+    setEditBody(myReview.body ?? "");
+    document.getElementById(`review-${myReview.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  async function buyAgain() {
+    setBuyingAgain(true);
+    try {
+      await cart.add(productSlug, 1);
+      toast.success("Added to cart");
+    } catch (e) {
+      toast.error("Could not add to cart", { description: e instanceof Error ? e.message : undefined });
+    } finally {
+      setBuyingAgain(false);
+    }
+  }
+
+  async function toggleSave() {
+    await wishlist.toggle(productSlug);
+    toast.success(wishlist.has(productSlug) ? "Removed from saved" : "Saved to your list");
+  }
+
   async function submit(e?: React.FormEvent) {
     e?.preventDefault();
     if (!user) return;
