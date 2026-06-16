@@ -128,7 +128,6 @@ function AccountPage() {
   const [returns, setReturns] = useState<Return[] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const { slugs: wishSlugs } = useWishlist();
-  const { isAdmin } = useIsAdmin();
   const { products } = useProducts();
   const cart = useCart();
 
