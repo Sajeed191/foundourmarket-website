@@ -590,7 +590,26 @@ export function SectionEditor<T extends Record<string, any>>({
             </div>
           </div>
 
-
+          {/* Save Confirmation Dialog */}
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogContent className="bg-background border-white/10">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Save changes?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You have made {changedKeys.length} change{changedKeys.length === 1 ? "" : "s"} to this product. Are you sure you want to save these edits?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setConfirmOpen(false)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => { setConfirmOpen(false); void doSave(false); }}
+                  className="bg-accent text-accent-foreground hover:brightness-110"
+                >
+                  Save Changes
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </AdminShell>
