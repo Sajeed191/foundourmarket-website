@@ -1092,7 +1092,7 @@ function WriteReviewModal(props: {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[2000] flex items-end justify-center bg-black/70 p-0 pb-[var(--app-bottom-nav-height)] backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-[var(--z-modal-overlay)] flex items-end justify-center bg-black/70 p-0 pb-[var(--app-bottom-nav-height)] backdrop-blur-sm sm:items-center sm:p-4"
           onClick={requestClose}
         >
           <motion.div
@@ -1218,7 +1218,7 @@ function WriteReviewModal(props: {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={(e) => { e.stopPropagation(); setConfirmDiscard(false); }}
-                className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+                className="fixed inset-0 z-[var(--z-modal-dialog)] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
               >
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0 }}
@@ -1277,7 +1277,7 @@ function Lightbox({ list, index, onIndex, onClose }: { list: ReviewMedia[] | nul
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-[130] flex flex-col bg-black/90 backdrop-blur-md"
+        className="fixed inset-0 z-[var(--z-modal-overlay)] flex flex-col bg-black/90 backdrop-blur-md"
       >
         <div className="flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
           <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{index + 1} / {count}</span>
