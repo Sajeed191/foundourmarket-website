@@ -1075,7 +1075,7 @@ function WriteReviewModal(props: {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4"
-          onClick={onClose}
+          onClick={requestClose}
         >
           <motion.div
             initial={{ y: 40, opacity: 0, scale: 0.98 }}
@@ -1087,7 +1087,7 @@ function WriteReviewModal(props: {
           >
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-display">Write a review</h3>
-              <button onClick={onClose} className="grid size-9 place-items-center rounded-full border border-white/10 text-muted-foreground hover:text-foreground">
+              <button onClick={requestClose} className="grid size-9 place-items-center rounded-full border border-white/10 text-muted-foreground hover:text-foreground">
                 <X className="size-4" />
               </button>
             </div>
