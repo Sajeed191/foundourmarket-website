@@ -7,11 +7,14 @@ import {
   ImagePlus, X, Pin, Sparkles, ShieldCheck, EyeOff, Eye, MessageSquare, Play, Brain,
   Camera, BadgeCheck, PackageCheck, ChevronLeft, ChevronRight, ThumbsUp as Recommend,
   Users, TrendingUp, Check, ArrowRight, ArrowLeft, ZoomIn,
+  LogIn, UserPlus, ShoppingBag, Repeat, HelpCircle, LifeBuoy, Lock, Bookmark, Truck, CalendarCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
+import { useWishlist } from "@/lib/wishlist";
 import { useIsAdmin } from "@/lib/use-admin";
 import {
   type Review, type ReviewMedia, REPORT_REASONS,
