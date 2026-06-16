@@ -43,6 +43,9 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
   // hidden unless the product is in the active rotation). A forced badge shows
   // only that single section badge.
   const labels = useVisibleBadges(product, context, forceBadge);
+  // Admin-assigned custom badges (Badge Manager / Bulk Badges) take priority on
+  // the storefront so staff badge work is visible to every shopper.
+  const assigned = useProductBadges(product.slug);
   const isPremium = labels.some((b) => b.key === "premium");
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
 
