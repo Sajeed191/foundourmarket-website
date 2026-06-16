@@ -10,6 +10,16 @@ import { invalidateProducts } from "@/lib/use-products";
 import { useUnsavedGuard } from "@/hooks/use-unsaved-guard";
 import { writeLocalDraft, readLocalDraft, clearLocalDraft, type SaveState } from "@/lib/drafts";
 import { COMPLETION_COLS, COMPLETION_SECTIONS, computeCompletion, type SectionCompletion, type SectionKey } from "@/lib/product-completion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const DRAFT_ENTITY = "product_section";
 const draftId = (slug: string, sectionKey: string) => `${slug}:${sectionKey}`;
@@ -300,6 +310,7 @@ export function SectionEditor<T extends Record<string, any>>({
   const inFlight = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const formRef = useRef<T | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   formRef.current = form;
 
   // Seed isolated state once from the loaded row, and surface any newer local draft.
@@ -532,7 +543,7 @@ export function SectionEditor<T extends Record<string, any>>({
                         icon={<FileText className="size-4" />}
                         label="Save Draft"
                         disabled={!dirty || saveState === "saving" || !!validationError}
-                        onClick={() => { setMenuOpen(false); void doSave(false); }}
+                        onClick={() => { setMenuOpen(false); setConfirmOpen(true); }}
                       />
                       <MenuItem
                         icon={<Copy className="size-4" />}
@@ -564,7 +575,7 @@ export function SectionEditor<T extends Record<string, any>>({
               {/* Save Changes — primary CTA (65%) */}
               <button
                 type="button"
-                onClick={() => void doSave(false)}
+                onClick={() => { if (dirty) setConfirmOpen(true); else void doSave(false); }}
                 disabled={(!dirty && !justSaved) || saveState === "saving" || !!validationError}
                 className={`inline-flex h-11 basis-[65%] grow items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${justSaved ? "bg-emerald-500 text-white" : "bg-accent text-accent-foreground hover:brightness-110"}`}
               >
@@ -579,7 +590,26 @@ export function SectionEditor<T extends Record<string, any>>({
             </div>
           </div>
 
-
+          {/* Save Confirmation Dialog */}
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogContent className="bg-background border-white/10">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Save changes?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You have made {changedKeys.length} change{changedKeys.length === 1 ? "" : "s"} to this product. Are you sure you want to save these edits?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setConfirmOpen(false)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => { setConfirmOpen(false); void doSave(false); }}
+                  className="bg-accent text-accent-foreground hover:brightness-110"
+                >
+                  Save Changes
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </AdminShell>
