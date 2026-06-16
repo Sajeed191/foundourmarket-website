@@ -471,14 +471,15 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
             </motion.div>
           )}
 
-          {/* ── Review submission area (no status labels) ────────────────── */}
+          {/* ── Single smart action card ─────────────────────────────────── */}
           <div className="mb-8 rounded-3xl border border-white/10 bg-card/50 backdrop-blur-xl p-5 sm:p-7 relative overflow-hidden">
             <div className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full opacity-50" style={{ background: "var(--gradient-ember-soft)" }} />
 
-            {/* Guest */}
+            {/* CASE 1 — Guest */}
             {customerState === "guest" && (
               <div className="relative">
-                <p className="text-base sm:text-lg font-display leading-snug">Sign in to write a review</p>
+                <p className="text-base sm:text-lg font-display leading-snug">Sign in to share your experience</p>
+                <p className="mt-1 text-sm text-muted-foreground">Only verified purchasers can review products.</p>
                 <div className="mt-4">
                   <Link to="/auth" className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110">
                     <LogIn className="size-3.5" /> Sign In
@@ -487,37 +488,40 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
               </div>
             )}
 
-            {/* Signed in, not purchased */}
+            {/* CASE 2 — Signed in, not purchased */}
             {customerState === "not_purchased" && (
               <div className="relative flex items-start gap-2.5 rounded-2xl border border-sky-500/15 bg-sky-500/[0.05] p-4">
                 <Lock className="size-4 text-sky-300 shrink-0 mt-0.5" />
-                <p className="text-sm text-foreground/90">Only verified purchasers can review this product.</p>
+                <p className="text-sm text-foreground/90">Only verified purchasers can review this product after delivery.</p>
               </div>
             )}
 
-            {/* Purchased, not yet reviewed */}
+            {/* CASE 3 — Purchased, awaiting delivery */}
+            {customerState === "purchased_pending" && (
+              <div className="relative flex items-start gap-2.5 rounded-2xl border border-amber-500/15 bg-amber-500/[0.05] p-4">
+                <Truck className="size-4 text-amber-300 shrink-0 mt-0.5" />
+                <p className="text-sm text-foreground/90">Your review will be available once the order is delivered.</p>
+              </div>
+            )}
+
+            {/* CASE 4 — Delivered/completed, no review yet */}
             {customerState === "can_review" && (
               <div className="relative">
-                <p className="text-base sm:text-lg font-display leading-snug">How was your experience?</p>
-                <p className="mt-1 text-sm text-muted-foreground">Share a star rating, your review and photos to help other shoppers.</p>
+                <p className="text-base sm:text-lg font-display leading-snug">Share your experience</p>
+                <p className="mt-1 text-sm text-muted-foreground">Help other shoppers by rating this product and uploading photos.</p>
                 <div className="mt-4">
                   <button onClick={openCompose} className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110">
-                    <Pencil className="size-3.5" /> Write a Review
+                    <Pencil className="size-3.5" /> Write Review
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Already reviewed */}
+            {/* CASE 5 — Already reviewed */}
             {customerState === "reviewed" && myReview && (
               <div className="relative">
-                <p className="text-base sm:text-lg font-display">Your Review</p>
-                <div className="mt-3 flex items-center gap-3">
-                  <StarRating rating={myReview.rating} starClassName="size-4" />
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground/70">{fmtDate(myReview.created_at)}</span>
-                </div>
-                {myReview.title && <p className="mt-3 text-base font-display leading-snug">{myReview.title}</p>}
-                {myReview.body && <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{myReview.body}</p>}
+                <p className="text-base sm:text-lg font-display leading-snug">Thank you for your review</p>
+                <p className="mt-1 text-sm text-muted-foreground">You can edit or delete your review anytime.</p>
                 <div className="mt-4 flex flex-wrap gap-2.5">
                   <button onClick={startEditMyReview} className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110">
                     <Pencil className="size-3.5" /> Edit Review
