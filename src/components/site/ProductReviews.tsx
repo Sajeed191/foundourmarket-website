@@ -91,6 +91,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const composeSessionRef = useRef(0);
 
   // per-review UI state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -231,6 +232,32 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   useEffect(() => { setVisibleCount(6); }, [filter, sort]);
 
+  function clearReviewDraft() {
+    composeSessionRef.current += 1;
+    setStep(1);
+    setRating(0);
+    setHoverRating(0);
+    setTitle("");
+    setBody("");
+    setPendingMedia([]);
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(`review_draft_${productSlug}`);
+      window.sessionStorage.removeItem(`review_draft_${productSlug}`);
+    }
+  }
+
+  function closeCompose() {
+    clearReviewDraft();
+    setShowCompose(false);
+  }
+
+  function discardReviewDraft() {
+    toast.dismiss();
+    closeCompose();
+  }
+
   function openLightbox(list: ReviewMedia[], index: number) {
     setLightboxList(list);
     setLightboxIndex(index);
@@ -238,25 +265,29 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   async function onPickFiles(files: FileList | null) {
     if (!files || !user) return;
+    const sessionId = composeSessionRef.current;
     const arr = Array.from(files).slice(0, 6 - pendingMedia.length);
     setUploading(true);
     for (const f of arr) {
+      if (sessionId !== composeSessionRef.current) return;
       const err = validateReviewFile(f);
       if (err) { toast.error(err); continue; }
       try {
         const m = await uploadReviewMedia(f, user.id);
+        if (sessionId !== composeSessionRef.current) return;
         setPendingMedia((p) => [...p, m]);
       } catch (e) {
         toast.error("Upload failed", { description: e instanceof Error ? e.message : undefined });
       }
     }
+    if (sessionId !== composeSessionRef.current) return;
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
   }
 
   function openCompose() {
     if (!eligible) { toast.error("Only verified purchasers can review this product."); return; }
-    setStep(1); setRating(5); setTitle(""); setBody(""); setPendingMedia([]);
+    clearReviewDraft();
     setShowCompose(true);
   }
 
@@ -293,6 +324,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   async function submit(e?: React.FormEvent) {
     e?.preventDefault();
     if (!user) return;
+    if (rating < 1) { toast.error("Choose a star rating before posting your review."); return; }
     setSubmitting(true);
     const { error } = await supabase.rpc("submit_review", {
       p_product_slug: productSlug,
@@ -303,7 +335,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     });
     setSubmitting(false);
     if (error) { toast.error("Could not post review", { description: error.message }); return; }
-    setRating(5); setTitle(""); setBody(""); setPendingMedia([]); setShowCompose(false); setStep(1);
+    closeCompose();
     toast.success("Review posted — thank you!");
     await load();
     onAggregateChange?.();
