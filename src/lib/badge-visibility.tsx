@@ -33,7 +33,16 @@ export type BadgeContext =
 export const MAX_VISIBLE_BADGES = 3;
 
 const FLASH_KEYS: BadgeKey[] = ["flash_deal", "hot_deal"];
-const PRIORITY_KEYS: BadgeKey[] = ["flash_deal", "hot_deal", "bestseller", "trending"];
+// Storefront badge priority (max 3 visible): Flash/Hot → Bestseller →
+// Trending → New Arrival → Hot Deal/Sale → Limited Stock.
+const PRIORITY_KEYS: BadgeKey[] = [
+  "flash_deal",
+  "hot_deal",
+  "bestseller",
+  "trending",
+  "new",
+  "limited_stock",
+];
 
 const isFlashKey = (k: BadgeKey) => FLASH_KEYS.includes(k);
 
