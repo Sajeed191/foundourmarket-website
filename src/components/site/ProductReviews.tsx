@@ -713,6 +713,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                       <motion.li
                         layout
                         key={r.id}
+                        id={`review-${r.id}`}
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
