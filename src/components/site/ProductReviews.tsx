@@ -167,9 +167,17 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   );
   const hasReviewed = !!myReview;
 
-  // Resolve which of the four customer states applies.
-  const customerState: "guest" | "not_purchased" | "can_review" | "reviewed" =
-    !user ? "guest" : hasReviewed ? "reviewed" : eligible ? "can_review" : "not_purchased";
+  // Resolve which of the five customer states applies.
+  const customerState: "guest" | "not_purchased" | "purchased_pending" | "can_review" | "reviewed" =
+    !user
+      ? "guest"
+      : hasReviewed
+        ? "reviewed"
+        : eligible
+          ? "can_review"
+          : purchase.purchased && !purchase.delivered
+            ? "purchased_pending"
+            : "not_purchased";
 
   const isSaved = user ? wishlist.has(productSlug) : false;
   const avg = published.length ? published.reduce((s, r) => s + r.rating, 0) / published.length : 0;
