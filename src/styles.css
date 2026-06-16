@@ -105,9 +105,9 @@
   --product-page-bottom-clearance: calc(var(--app-bottom-nav-height) + var(--app-cta-height) + var(--product-dock-gap) + 1.5rem);
   --floating-bottom-offset: calc(var(--app-bottom-nav-height) + 1.5rem);
   --z-page-content: 1;
-  --z-floating-controls: 55;
-  --z-top-header: 60;
-  --z-bottom-nav: 70;
+  --z-floating-controls: 800;
+  --z-top-header: 900;
+  --z-bottom-nav: 1200;
 
   /* Deep charcoal noir */
   --background: oklch(0.115 0.008 260);
@@ -608,13 +608,15 @@
     pointer-events: none;
   }
   [data-app-header] { z-index: var(--z-top-header) !important; }
-  [data-app-bottom-nav] { z-index: var(--z-bottom-nav) !important; }
+  [data-app-bottom-nav] {
+    z-index: var(--z-bottom-nav) !important;
+    padding-bottom: calc(var(--mobile-safe-bottom) + var(--mobile-nav-edge-gap)) !important;
+  }
   [data-floating-control] { z-index: var(--z-floating-controls) !important; }
   /* When the mobile hamburger sidebar is open, clear every floating mobile UI
      element out of the way so the menu reads as a full-screen navigation. */
   body[data-menu-open] [data-app-bottom-nav],
   body[data-order-drawer-open] [data-app-bottom-nav],
-  body[data-review-wizard-open] [data-app-bottom-nav],
   body[data-review-wizard-open] [data-floating-control],
   body[data-order-drawer-open] [data-floating-control],
   body[data-menu-open] [data-floating-control] {
@@ -1107,7 +1109,7 @@
 
 /* ---- Premium frosted bottom navigation (light only) ---- */
 [data-theme="light"] .bottom-nav-light {
-  background: linear-gradient(180deg, oklch(1 0 0 / 0.82), oklch(0.985 0.0035 255 / 0.72));
+  background: linear-gradient(180deg, oklch(1 0 0), oklch(0.985 0.0035 255));
   backdrop-filter: blur(22px) saturate(160%);
   border: 1px solid oklch(0.2 0.02 260 / 0.08);
   box-shadow:
@@ -1120,7 +1122,7 @@
 /* Grey theme: stronger contrast so the bottom bar stays fully visible against
    the light-grey page background. */
 [data-theme="grey"] .bottom-nav-light {
-  background: linear-gradient(180deg, oklch(0.99 0.003 260 / 0.92), oklch(0.95 0.004 260 / 0.85));
+  background: linear-gradient(180deg, oklch(0.99 0.003 260), oklch(0.95 0.004 260));
   backdrop-filter: blur(22px) saturate(160%);
   border: 1px solid oklch(0.2 0.02 260 / 0.16);
   box-shadow:

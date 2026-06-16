@@ -91,6 +91,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const composeSessionRef = useRef(0);
 
   // per-review UI state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -231,6 +232,32 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   useEffect(() => { setVisibleCount(6); }, [filter, sort]);
 
+  function clearReviewDraft() {
+    composeSessionRef.current += 1;
+    setStep(1);
+    setRating(0);
+    setHoverRating(0);
+    setTitle("");
+    setBody("");
+    setPendingMedia([]);
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(`review_draft_${productSlug}`);
+      window.sessionStorage.removeItem(`review_draft_${productSlug}`);
+    }
+  }
+
+  function closeCompose() {
+    clearReviewDraft();
+    setShowCompose(false);
+  }
+
+  function discardReviewDraft() {
+    toast.dismiss();
+    closeCompose();
+  }
+
   function openLightbox(list: ReviewMedia[], index: number) {
     setLightboxList(list);
     setLightboxIndex(index);
@@ -238,25 +265,29 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   async function onPickFiles(files: FileList | null) {
     if (!files || !user) return;
+    const sessionId = composeSessionRef.current;
     const arr = Array.from(files).slice(0, 6 - pendingMedia.length);
     setUploading(true);
     for (const f of arr) {
+      if (sessionId !== composeSessionRef.current) return;
       const err = validateReviewFile(f);
       if (err) { toast.error(err); continue; }
       try {
         const m = await uploadReviewMedia(f, user.id);
+        if (sessionId !== composeSessionRef.current) return;
         setPendingMedia((p) => [...p, m]);
       } catch (e) {
         toast.error("Upload failed", { description: e instanceof Error ? e.message : undefined });
       }
     }
+    if (sessionId !== composeSessionRef.current) return;
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
   }
 
   function openCompose() {
     if (!eligible) { toast.error("Only verified purchasers can review this product."); return; }
-    setStep(1); setRating(5); setTitle(""); setBody(""); setPendingMedia([]);
+    clearReviewDraft();
     setShowCompose(true);
   }
 
@@ -293,6 +324,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   async function submit(e?: React.FormEvent) {
     e?.preventDefault();
     if (!user) return;
+    if (rating < 1) { toast.error("Choose a star rating before posting your review."); return; }
     setSubmitting(true);
     const { error } = await supabase.rpc("submit_review", {
       p_product_slug: productSlug,
@@ -303,7 +335,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     });
     setSubmitting(false);
     if (error) { toast.error("Could not post review", { description: error.message }); return; }
-    setRating(5); setTitle(""); setBody(""); setPendingMedia([]); setShowCompose(false); setStep(1);
+    closeCompose();
     toast.success("Review posted — thank you!");
     await load();
     onAggregateChange?.();
@@ -847,34 +879,38 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
       {user && eligible && !hasReviewed && !showCompose && (
         <button
           onClick={openCompose}
-          className="sm:hidden fixed bottom-5 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground shadow-[var(--shadow-ember)]"
+          data-floating-control
+          className="sm:hidden fixed right-4 bottom-[var(--floating-bottom-offset)] z-[var(--z-floating-controls)] inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground shadow-[var(--shadow-ember)]"
         >
           <Pencil className="size-4" /> Write Review
         </button>
       )}
 
       {/* Write review multi-step modal */}
-      <WriteReviewModal
-        open={showCompose && !!user}
-        onClose={() => setShowCompose(false)}
-        step={step}
-        setStep={setStep}
-        rating={rating}
-        setRating={setRating}
-        hoverRating={hoverRating}
-        setHoverRating={setHoverRating}
-        title={title}
-        setTitle={setTitle}
-        body={body}
-        setBody={setBody}
-        pendingMedia={pendingMedia}
-        setPendingMedia={setPendingMedia}
-        uploading={uploading}
-        submitting={submitting}
-        fileRef={fileRef}
-        onPickFiles={onPickFiles}
-        onSubmit={submit}
-      />
+      {showCompose && !!user && (
+        <WriteReviewModal
+          key={composeSessionRef.current}
+          onClose={closeCompose}
+          onDiscard={discardReviewDraft}
+          step={step}
+          setStep={setStep}
+          rating={rating}
+          setRating={setRating}
+          hoverRating={hoverRating}
+          setHoverRating={setHoverRating}
+          title={title}
+          setTitle={setTitle}
+          body={body}
+          setBody={setBody}
+          pendingMedia={pendingMedia}
+          setPendingMedia={setPendingMedia}
+          uploading={uploading}
+          submitting={submitting}
+          fileRef={fileRef}
+          onPickFiles={onPickFiles}
+          onSubmit={submit}
+        />
+      )}
 
       {/* Lightbox gallery */}
       <Lightbox
@@ -1015,8 +1051,8 @@ function ReviewsSkeleton() {
 const STEPS = ["Rating", "Title", "Experience", "Photos", "Submit"];
 
 function WriteReviewModal(props: {
-  open: boolean;
   onClose: () => void;
+  onDiscard: () => void;
   step: number;
   setStep: (n: number) => void;
   rating: number;
@@ -1035,13 +1071,13 @@ function WriteReviewModal(props: {
   onPickFiles: (f: FileList | null) => void;
   onSubmit: () => void;
 }) {
-  const { open, onClose, step, setStep, rating, setRating, hoverRating, setHoverRating, title, setTitle, body, setBody, pendingMedia, setPendingMedia, uploading, submitting, fileRef, onPickFiles, onSubmit } = props;
+  const { onClose, onDiscard, step, setStep, rating, setRating, hoverRating, setHoverRating, title, setTitle, body, setBody, pendingMedia, setPendingMedia, uploading, submitting, fileRef, onPickFiles, onSubmit } = props;
   const last = step === STEPS.length;
   const canNext = step !== 3 || body.trim().length > 0;
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   // A draft is "dirty" once the shopper has written something or attached media.
-  const isDirty = title.trim().length > 0 || body.trim().length > 0 || pendingMedia.length > 0;
+  const isDirty = rating > 0 || title.trim().length > 0 || body.trim().length > 0 || pendingMedia.length > 0;
 
   // Intercept close: if there is an in-progress draft, ask for confirmation via a
   // centered modal instead of letting the prompt fall toward the bottom nav.
@@ -1055,26 +1091,21 @@ function WriteReviewModal(props: {
 
   function discardAndClose() {
     setConfirmDiscard(false);
-    onClose();
+    onDiscard();
   }
 
   useEffect(() => {
-    if (open) {
-      document.body.setAttribute("data-review-wizard-open", "");
-      return () => document.body.removeAttribute("data-review-wizard-open");
-    }
-    // Reset the confirm dialog whenever the wizard is fully closed.
-    setConfirmDiscard(false);
-  }, [open]);
+    document.body.setAttribute("data-review-wizard-open", "");
+    return () => document.body.removeAttribute("data-review-wizard-open");
+  }, []);
 
   return (
     <AnimatePresence>
-      {open && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4"
+          className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/70 p-0 pb-[var(--app-bottom-nav-height)] backdrop-blur-sm sm:items-center sm:p-4"
           onClick={requestClose}
         >
           <motion.div
@@ -1222,7 +1253,7 @@ function WriteReviewModal(props: {
                       onClick={discardAndClose}
                       className="inline-flex items-center justify-center gap-2 rounded-full bg-destructive px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-destructive-foreground transition-all hover:brightness-110"
                     >
-                      <Trash2 className="size-3.5" /> Discard
+                      <Trash2 className="size-3.5" /> Discard Review
                     </button>
                   </div>
                 </motion.div>
@@ -1230,7 +1261,6 @@ function WriteReviewModal(props: {
             )}
           </AnimatePresence>
         </motion.div>
-      )}
     </AnimatePresence>
   );
 }

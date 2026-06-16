@@ -40,13 +40,13 @@ export function MobileBottomNav() {
     <nav
       data-app-bottom-nav
       aria-label="Primary mobile navigation"
-      className="md:hidden fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] px-[max(0.75rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
+      className="md:hidden fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] bg-background px-[max(0.75rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
     >
       <ul
         className={
           frosted
             ? "bottom-nav-light pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 rounded-[26px] px-1.5 py-2"
-            : "pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 rounded-2xl glass-strong border border-white/10 shadow-[0_8px_28px_-12px_oklch(0_0_0/0.6)] px-1.5 py-2"
+            : "pointer-events-auto relative max-w-7xl mx-auto grid h-[var(--mobile-nav-surface-height)] grid-cols-5 rounded-2xl border border-white/10 bg-card shadow-[0_8px_28px_-12px_oklch(0_0_0/0.6)] px-1.5 py-2"
         }
       >
         {items.map(({ to, label, icon: Icon, match, badge }) => {
