@@ -62,12 +62,16 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const { user } = useAuth();
   const { isAdmin } = useIsAdmin();
   const runAnalyze = useServerFn(analyzeReviews);
+  const cart = useCart();
+  const wishlist = useWishlist();
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [profiles, setProfiles] = useState<ProfileMap>({});
   const [myVotes, setMyVotes] = useState<Record<string, "helpful" | "not_helpful">>({});
   const [trust, setTrust] = useState<number | null>(null);
   const [eligible, setEligible] = useState(false);
+  const [purchase, setPurchase] = useState<PurchaseState>({ purchased: false, delivered: false });
+  const [buyingAgain, setBuyingAgain] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // browse state
