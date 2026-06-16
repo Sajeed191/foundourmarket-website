@@ -947,6 +947,55 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
 /* ---------- Sub components ---------- */
 
+function SmartActions({
+  purchase, primary, onBuyAgain, buyingAgain, onAsk, onSave, isSaved,
+}: {
+  purchase: PurchaseState;
+  primary?: { label: string; icon: React.ReactNode; onClick: () => void };
+  onBuyAgain: () => void;
+  buyingAgain: boolean;
+  onAsk: () => void;
+  onSave: () => void;
+  isSaved: boolean;
+}) {
+  return (
+    <div className="mt-5 border-t border-border/40 pt-5">
+      {/* Purchase facts */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+        {purchase.purchased_at && (
+          <span className="inline-flex items-center gap-1 text-emerald-400/90"><CalendarCheck className="size-3" /> Purchased on {fmtDate(purchase.purchased_at)}</span>
+        )}
+        {purchase.delivered && (
+          <span className="inline-flex items-center gap-1"><Truck className="size-3" /> Delivered</span>
+        )}
+        <span className="inline-flex items-center gap-1 text-emerald-400/90"><BadgeCheck className="size-3" /> Verified Purchase</span>
+      </div>
+      {/* Actions */}
+      <div className="mt-3.5 flex flex-wrap gap-2">
+        {primary && (
+          <button onClick={primary.onClick} className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110">
+            {primary.icon} {primary.label}
+          </button>
+        )}
+        <button onClick={onBuyAgain} disabled={buyingAgain} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-accent/40 hover:text-accent disabled:opacity-60">
+          {buyingAgain ? <Loader2 className="size-3.5 animate-spin" /> : <Repeat className="size-3.5" />} Buy Again
+        </button>
+        <button onClick={onAsk} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-accent/40 hover:text-accent">
+          <HelpCircle className="size-3.5" /> Ask Question
+        </button>
+        <button onClick={onSave} className={cn("inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-bold uppercase tracking-widest transition-all", isSaved ? "border-accent/40 bg-accent/10 text-accent" : "border-white/15 text-foreground hover:border-accent/40 hover:text-accent")}>
+          <Bookmark className={cn("size-3.5", isSaved && "fill-accent")} /> {isSaved ? "Saved" : "Save"}
+        </button>
+        <Link to="/account/support/new" className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-accent/40 hover:text-accent">
+          <LifeBuoy className="size-3.5" /> Contact Support
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+
+
 function StatCard({ icon, value, label, highlight }: { icon: React.ReactNode; value: string; label: string; highlight?: boolean }) {
   return (
     <div className={cn(
