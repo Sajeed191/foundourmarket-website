@@ -83,7 +83,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   // compose form
   const [showCompose, setShowCompose] = useState(false);
   const [step, setStep] = useState(1);
-  const [rating, setRating] = useState(5);
+  const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -254,7 +254,6 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   function discardReviewDraft() {
-    toast.dismiss();
     closeCompose();
   }
 
@@ -875,17 +874,6 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         </>
       )}
 
-      {/* Sticky mobile write button */}
-      {user && eligible && !hasReviewed && !showCompose && (
-        <button
-          onClick={openCompose}
-          data-floating-control
-          className="sm:hidden fixed right-4 bottom-[var(--floating-bottom-offset)] z-[var(--z-floating-controls)] inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground shadow-[var(--shadow-ember)]"
-        >
-          <Pencil className="size-4" /> Write Review
-        </button>
-      )}
-
       {/* Write review multi-step modal */}
       {showCompose && !!user && (
         <WriteReviewModal
@@ -1073,16 +1061,15 @@ function WriteReviewModal(props: {
 }) {
   const { onClose, onDiscard, step, setStep, rating, setRating, hoverRating, setHoverRating, title, setTitle, body, setBody, pendingMedia, setPendingMedia, uploading, submitting, fileRef, onPickFiles, onSubmit } = props;
   const last = step === STEPS.length;
-  const canNext = step !== 3 || body.trim().length > 0;
+  const canNext = (step !== 1 || rating > 0) && (step !== 3 || body.trim().length > 0);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  // A draft is "dirty" once the shopper has written something or attached media.
-  const isDirty = rating > 0 || title.trim().length > 0 || body.trim().length > 0 || pendingMedia.length > 0;
+  const hasUnsavedChanges = rating > 0 || title.trim().length > 0 || body.trim().length > 0 || pendingMedia.length > 0;
 
   // Intercept close: if there is an in-progress draft, ask for confirmation via a
   // centered modal instead of letting the prompt fall toward the bottom nav.
   function requestClose() {
-    if (isDirty && !submitting) {
+    if (hasUnsavedChanges && !submitting) {
       setConfirmDiscard(true);
       return;
     }
@@ -1105,7 +1092,7 @@ function WriteReviewModal(props: {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/70 p-0 pb-[var(--app-bottom-nav-height)] backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-[var(--z-modal-overlay)] flex items-end justify-center bg-black/70 p-0 pb-[var(--app-bottom-nav-height)] backdrop-blur-sm sm:items-center sm:p-4"
           onClick={requestClose}
         >
           <motion.div
@@ -1231,7 +1218,7 @@ function WriteReviewModal(props: {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={(e) => { e.stopPropagation(); setConfirmDiscard(false); }}
-                className="absolute inset-0 z-[10] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+                className="fixed inset-0 z-[var(--z-modal-dialog)] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
               >
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0 }}
@@ -1240,8 +1227,8 @@ function WriteReviewModal(props: {
                   onClick={(e) => e.stopPropagation()}
                   className="w-full max-w-sm rounded-3xl border border-white/10 bg-card p-6 text-center shadow-[var(--shadow-float)]"
                 >
-                  <p className="text-base font-display">Discard your review draft?</p>
-                  <p className="mt-1.5 text-sm text-muted-foreground">Your unsaved review will be lost.</p>
+                  <p className="text-base font-display">Discard review?</p>
+                  <p className="mt-1.5 text-sm text-muted-foreground">You have unsaved changes. Do you want to continue editing or discard this review?</p>
                   <div className="mt-5 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-center">
                     <button
                       onClick={() => setConfirmDiscard(false)}
@@ -1290,7 +1277,7 @@ function Lightbox({ list, index, onIndex, onClose }: { list: ReviewMedia[] | nul
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-[130] flex flex-col bg-black/90 backdrop-blur-md"
+        className="fixed inset-0 z-[var(--z-modal-overlay)] flex flex-col bg-black/90 backdrop-blur-md"
       >
         <div className="flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
           <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{index + 1} / {count}</span>
