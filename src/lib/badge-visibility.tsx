@@ -120,38 +120,43 @@ export function useBadgeEngine(): BadgeEngineValue {
 }
 
 /**
- * Caps a badge list at {@link MAX_VISIBLE_BADGES}, always keeping the highest
- * priority badges (Flash/Hot when allowed, Best Seller, Trending) and filling
- * any remaining slot with ONE other eligible badge that rotates once every 24h.
+ * Caps a badge list at the admin-configured max (1–3), always keeping the
+ * highest priority badges (Flash/Hot when allowed, Best Seller, Trending) and
+ * filling any remaining slot with ONE other eligible badge that rotates once
+ * every 24h.
  */
-function capWithRotation(product: Product, pool: Badge[], daySeed: number): Badge[] {
-  if (pool.length <= MAX_VISIBLE_BADGES) return pool;
-  const must = pool.filter((b) => PRIORITY_KEYS.includes(b.key)).slice(0, MAX_VISIBLE_BADGES);
+function capWithRotation(product: Product, pool: Badge[], daySeed: number, max: number): Badge[] {
+  const cap = Math.min(MAX_VISIBLE_BADGES, Math.max(1, max));
+  if (pool.length <= cap) return pool;
+  const must = pool.filter((b) => PRIORITY_KEYS.includes(b.key)).slice(0, cap);
   const rest = pool.filter((b) => !PRIORITY_KEYS.includes(b.key));
-  const slots = MAX_VISIBLE_BADGES - must.length;
-  if (slots <= 0 || rest.length === 0) return must.slice(0, MAX_VISIBLE_BADGES);
+  const slots = cap - must.length;
+  if (slots <= 0 || rest.length === 0) return must.slice(0, cap);
 
   const offset = hashString(`${product.slug}:${daySeed}`);
   const picked: Badge[] = [];
   for (let i = 0; i < slots && i < rest.length; i++) {
     picked.push(rest[(offset + i) % rest.length]);
   }
-  return [...must, ...picked].slice(0, MAX_VISIBLE_BADGES);
+  return [...must, ...picked].slice(0, cap);
 }
 
 /**
  * Computes the badges that should be visible for a product in a given surface,
- * honoring the global rules: max 3 badges, Best Seller/Trending priority, the
- * 24h-rotating third badge, and Flash/Hot badges hidden everywhere unless the
- * product is in the active Flash Deal rotation.
+ * honoring the admin-configured rules: enable flags + thresholds, max badges,
+ * Best Seller/Trending priority, the 24h-rotating third badge, and Flash/Hot
+ * badges hidden everywhere unless the product is in the active Flash Deal
+ * rotation.
  */
 export function computeContextBadges(
   product: Product,
   context: BadgeContext,
   engine: BadgeEngineValue,
 ): Badge[] {
-  const all = computeBadges(product, DEFAULT_BADGE_SETTINGS, 99);
+  const { settings } = engine;
+  const all = computeBadges(product, settings, 99);
   const flashActive = engine.activeFlashSlugs.has(product.slug);
+  const max = settings.maxBadges;
 
   switch (context) {
     case "flash":
@@ -165,13 +170,13 @@ export function computeContextBadges(
       const pool = all.filter(
         (b) => !["bestseller", "trending", "flash_deal", "hot_deal"].includes(b.key),
       );
-      return capWithRotation(product, pool, engine.daySeed);
+      return capWithRotation(product, pool, engine.daySeed, max);
     }
     default: {
       // category, search, recently_viewed, related, product_page, default:
       // hide Flash/Hot unless this product is in the active rotation.
       const pool = all.filter((b) => !isFlashKey(b.key) || flashActive);
-      return capWithRotation(product, pool, engine.daySeed);
+      return capWithRotation(product, pool, engine.daySeed, max);
     }
   }
 }
