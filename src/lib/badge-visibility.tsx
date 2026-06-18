@@ -52,11 +52,14 @@ type BadgeEngineValue = {
   activeFlashSlugs: Set<string>;
   /** 24h-stable seed driving the rotating "third badge" selection. */
   daySeed: number;
+  /** Live admin-configured badge rules (thresholds, enable flags, max badges). */
+  settings: BadgeSettings;
 };
 
 const BadgeEngineContext = createContext<BadgeEngineValue>({
   activeFlashSlugs: new Set(),
   daySeed: 0,
+  settings: DEFAULT_BADGE_SETTINGS,
 });
 
 /** How many products may be visibly promoted as Flash Deals at any one time. */
