@@ -208,8 +208,14 @@ export function FlashDeals() {
                       className="w-full h-full object-cover group-active:scale-105 transition-transform"
                     />
                   )}
+                  <span
+                    className={`absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase leading-none tracking-wide shadow-sm shadow-black/30 ${dealBadge.className}`}
+                  >
+                    <span aria-hidden>{dealBadge.emoji}</span>
+                    {dealBadge.label}
+                  </span>
                   {off > 0 && (
-                    <span className="absolute top-1.5 left-1.5 inline-flex items-center rounded-full bg-accent text-black text-[9px] font-bold font-mono px-2 py-0.5 shadow-[var(--shadow-ember)]">
+                    <span className="absolute top-1.5 right-1.5 inline-flex items-center rounded-full bg-accent text-black text-[9px] font-bold font-mono px-2 py-0.5 shadow-[var(--shadow-ember)]">
                       -{off}%
                     </span>
                   )}
