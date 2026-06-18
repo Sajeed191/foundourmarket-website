@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Product } from "@/lib/products";
-import { computeBadges, singleBadge, DEFAULT_BADGE_SETTINGS, type Badge, type BadgeKey } from "@/lib/badges";
+import { computeBadges, singleBadge, DEFAULT_BADGE_SETTINGS, type Badge, type BadgeKey, type BadgeSettings } from "@/lib/badges";
 import { useProducts } from "@/lib/use-products";
+import { useBadgeSettings } from "@/lib/use-badge-settings";
 import { useRotationNonce } from "@/lib/use-rotation-nonce";
 import { isFlashDealProduct } from "@/lib/use-flash-deals";
 import {
