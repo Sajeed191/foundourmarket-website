@@ -10,6 +10,7 @@ import { useRegion } from "@/lib/region";
 import { useFlashDeals } from "@/lib/use-flash-deals";
 import { useHomepageSections, toggleHomepageSection } from "@/lib/use-homepage-sections";
 import type { Product } from "@/lib/products";
+import { singleBadge } from "@/lib/badges";
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
