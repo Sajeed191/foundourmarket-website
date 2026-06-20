@@ -106,6 +106,16 @@ function CheckoutPage() {
   // Ensure shipping/prices reflect the latest admin changes at checkout.
   useEffect(() => { refreshProducts(); }, []);
 
+  // Record a "checkout started" signal for each cart product once per visit so
+  // the personalized Continue Shopping page can prioritize these items.
+  const beganCheckoutRef = useRef(false);
+  useEffect(() => {
+    if (beganCheckoutRef.current) return;
+    if (loading || !user || !cartHydrated || detailed.length === 0) return;
+    beganCheckoutRef.current = true;
+    for (const i of detailed) void recordEvent({ type: "begin_checkout", productSlug: i.slug });
+  }, [loading, user, cartHydrated, detailed]);
+
 
   useEffect(() => {
     if (!loading && user && cartHydrated && count === 0 && stage !== "success") nav({ to: "/cart" });
