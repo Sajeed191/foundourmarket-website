@@ -26,6 +26,7 @@ import { SavedAddressRail } from "@/components/site/SavedAddressRail";
 import { SmartDeliveryCard } from "@/components/site/SmartDeliveryCard";
 import { createRazorpayOrder, verifyRazorpayPayment, cancelRazorpayOrder, placeCodOrder } from "@/lib/razorpay.functions";
 import { buildOrderAttribution } from "@/lib/marketing-tracking";
+import { recordEvent } from "@/lib/personalization";
 import { syncRazorpayPaymentMethods } from "@/lib/payment-methods.functions";
 import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpay-loader";
 import { validatePincode, type ServiceabilityResult } from "@/lib/serviceability.functions";
@@ -104,6 +105,16 @@ function CheckoutPage() {
 
   // Ensure shipping/prices reflect the latest admin changes at checkout.
   useEffect(() => { refreshProducts(); }, []);
+
+  // Record a "checkout started" signal for each cart product once per visit so
+  // the personalized Continue Shopping page can prioritize these items.
+  const beganCheckoutRef = useRef(false);
+  useEffect(() => {
+    if (beganCheckoutRef.current) return;
+    if (loading || !user || !cartHydrated || detailed.length === 0) return;
+    beganCheckoutRef.current = true;
+    for (const i of detailed) void recordEvent({ type: "begin_checkout", productSlug: i.slug });
+  }, [loading, user, cartHydrated, detailed]);
 
 
   useEffect(() => {
