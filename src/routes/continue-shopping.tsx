@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { formatDistanceToNow } from "date-fns";
 import {
-  ShoppingBag, Heart, Eye, CreditCard, Clock, ArrowDownUp, Sparkles, LogIn, Plus, Check,
+  ShoppingBag, Heart, Eye, CreditCard, Clock, ArrowDownUp, Sparkles, LogIn, ArrowRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -34,21 +33,45 @@ const PRIORITY: Record<ActivityKind, number> = { checkout: 0, cart: 1, wishlist:
 
 const KIND_META: Record<ActivityKind, { label: string; icon: typeof ShoppingBag; tone: string }> = {
   checkout: { label: "Checkout started", icon: CreditCard, tone: "text-amber-400 bg-amber-500/15" },
-  cart: { label: "In your cart", icon: ShoppingBag, tone: "text-sky-400 bg-sky-500/15" },
-  wishlist: { label: "Saved", icon: Heart, tone: "text-rose-400 bg-rose-500/15" },
-  viewed: { label: "Recently viewed", icon: Eye, tone: "text-violet-400 bg-violet-500/15" },
+  cart: { label: "Added to cart", icon: ShoppingBag, tone: "text-sky-400 bg-sky-500/15" },
+  wishlist: { label: "Saved for later", icon: Heart, tone: "text-rose-400 bg-rose-500/15" },
+  viewed: { label: "Viewed recently", icon: Eye, tone: "text-violet-400 bg-violet-500/15" },
+};
+
+/** Activity expiry windows (days). Wishlist never expires. */
+const DAY = 24 * 60 * 60 * 1000;
+const EXPIRY_MS: Record<ActivityKind, number> = {
+  viewed: 90 * DAY,
+  cart: 60 * DAY,
+  checkout: 30 * DAY,
+  wishlist: Infinity,
 };
 
 type Entry = { product: Product; kind: ActivityKind; at: number | null };
 type FilterKey = "all" | ActivityKind;
 type SortKey = "recent" | "price-asc" | "price-desc";
 
+/** Human, enterprise-style relative time: "5 minutes ago", "Yesterday", "Last week". */
+function relTime(ts: number | null): string {
+  if (!ts) return "Recently";
+  const diff = Date.now() - ts;
+  if (diff < 0) return "Just now";
+  const min = 60 * 1000, hour = 60 * min;
+  if (diff < min) return "Just now";
+  if (diff < hour) { const m = Math.round(diff / min); return `${m} minute${m > 1 ? "s" : ""} ago`; }
+  if (diff < DAY) { const h = Math.round(diff / hour); return `${h} hour${h > 1 ? "s" : ""} ago`; }
+  const days = Math.round(diff / DAY);
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  if (days < 14) return "Last week";
+  if (days < 30) { const w = Math.round(days / 7); return `${w} weeks ago`; }
+  const months = Math.round(days / 30);
+  return months <= 1 ? "Last month" : `${months} months ago`;
+}
+
 function ActivityCard({ entry }: { entry: Entry }) {
   const { product, kind, at } = entry;
   const { priceOf } = useRegion();
-  const { add, items } = useCart();
-  const [justAdded, setJustAdded] = useState(false);
-  const inCart = items.some((i) => i.slug === product.slug);
   const meta = KIND_META[kind];
   const Icon = meta.icon;
 
@@ -76,7 +99,7 @@ function ActivityCard({ entry }: { entry: Entry }) {
 
       <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
         <Clock className="size-3 shrink-0" />
-        <span className="truncate">{at ? `${formatDistanceToNow(at)} ago` : "Recently"}</span>
+        <span className="truncate">{relTime(at)}</span>
         {product.inStock ? (
           <span className="ml-auto text-emerald-400 font-medium">In stock</span>
         ) : (
@@ -86,19 +109,15 @@ function ActivityCard({ entry }: { entry: Entry }) {
 
       <div className="mt-2 flex items-center justify-between gap-2">
         <Price value={priceOf(product)} className="font-display font-semibold text-sm tabular-nums leading-none" />
-        <button
-          onClick={() => {
-            add(product.slug);
-            setJustAdded(true);
-            window.setTimeout(() => setJustAdded(false), 900);
-          }}
-          aria-label={`Add ${product.name} to cart`}
-          disabled={!product.inStock}
-          className="shrink-0 grid place-items-center size-8 rounded-full bg-accent text-accent-foreground transition-all hover:brightness-110 active:scale-90 shadow-[var(--shadow-ember)] disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {justAdded || inCart ? <Check className="size-4" /> : <Plus className="size-4" />}
-        </button>
       </div>
+
+      <Link
+        to="/products/$slug"
+        params={{ slug: product.slug }}
+        className="mt-2.5 inline-flex items-center justify-center gap-1.5 w-full rounded-full bg-accent text-accent-foreground py-2 text-[11px] uppercase tracking-widest font-bold transition-all hover:brightness-110 active:scale-[0.98] shadow-[var(--shadow-ember)]"
+      >
+        Continue Shopping <ArrowRight className="size-3.5" />
+      </Link>
     </div>
   );
 }
@@ -116,55 +135,95 @@ function ContinueShoppingPage() {
   // Account-isolated activity timestamps + checkout-started signals, scoped to
   // auth.uid() by RLS. Guests fall back to client-side cart/wishlist/views only.
   const [eventAt, setEventAt] = useState<Map<string, number>>(new Map());
-  const [checkoutSlugs, setCheckoutSlugs] = useState<Set<string>>(new Set());
+  const [checkoutAt, setCheckoutAt] = useState<Map<string, number>>(new Map());
+  const [cartAt, setCartAt] = useState<Map<string, number>>(new Map());
+  const [viewedAt, setViewedAt] = useState<Map<string, number>>(new Map());
+  // Products already purchased AND delivered — never show these again.
+  const [purchasedSlugs, setPurchasedSlugs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
     if (!user) {
       setEventAt(new Map());
-      setCheckoutSlugs(new Set());
+      setCheckoutAt(new Map());
+      setCartAt(new Map());
+      setViewedAt(new Map());
+      setPurchasedSlugs(new Set());
       return;
     }
     void (async () => {
-      const { data } = await supabase
-        .from("recommendation_events")
-        .select("product_slug, event_type, created_at")
-        .eq("user_id", user.id)
-        .not("product_slug", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(500);
+      const [events, delivered] = await Promise.all([
+        supabase
+          .from("recommendation_events")
+          .select("product_slug, event_type, created_at")
+          .eq("user_id", user.id)
+          .not("product_slug", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(500),
+        supabase
+          .from("orders")
+          .select("id, order_items(product_slug)")
+          .eq("user_id", user.id)
+          .eq("fulfillment_status", "delivered"),
+      ]);
       if (cancelled) return;
+
       const at = new Map<string, number>();
-      const checkout = new Set<string>();
-      for (const r of (data ?? []) as { product_slug: string; event_type: string; created_at: string }[]) {
+      const checkout = new Map<string, number>();
+      const cart = new Map<string, number>();
+      const viewed = new Map<string, number>();
+      for (const r of (events.data ?? []) as { product_slug: string; event_type: string; created_at: string }[]) {
         const t = new Date(r.created_at).getTime();
         if (!at.has(r.product_slug)) at.set(r.product_slug, t);
-        if (r.event_type === "begin_checkout") checkout.add(r.product_slug);
+        if (r.event_type === "begin_checkout" && !checkout.has(r.product_slug)) checkout.set(r.product_slug, t);
+        if (r.event_type === "add_to_cart" && !cart.has(r.product_slug)) cart.set(r.product_slug, t);
+        if (r.event_type === "view" && !viewed.has(r.product_slug)) viewed.set(r.product_slug, t);
       }
+
+      const purchased = new Set<string>();
+      for (const o of (delivered.data ?? []) as { order_items: { product_slug: string | null }[] | null }[]) {
+        for (const it of o.order_items ?? []) {
+          if (it.product_slug) purchased.add(it.product_slug);
+        }
+      }
+
       setEventAt(at);
-      setCheckoutSlugs(checkout);
+      setCheckoutAt(checkout);
+      setCartAt(cart);
+      setViewedAt(viewed);
+      setPurchasedSlugs(purchased);
     })();
     return () => { cancelled = true; };
   }, [user]);
 
-  // Build one entry per product, keeping ONLY the highest-priority activity.
+  // Build one entry per product, keeping ONLY the highest-priority, non-expired
+  // activity. Delivered purchases are excluded entirely.
   const entries = useMemo<Entry[]>(() => {
     const map = new Map(products.map((p) => [p.slug, p] as const));
     const best = new Map<string, Entry>();
+    const tsFor = (slug: string, kind: ActivityKind): number | null => {
+      if (kind === "checkout") return checkoutAt.get(slug) ?? eventAt.get(slug) ?? null;
+      if (kind === "cart") return cartAt.get(slug) ?? eventAt.get(slug) ?? null;
+      if (kind === "viewed") return viewedAt.get(slug) ?? eventAt.get(slug) ?? null;
+      return eventAt.get(slug) ?? null; // wishlist
+    };
     const consider = (slug: string, kind: ActivityKind) => {
+      if (purchasedSlugs.has(slug)) return; // never show delivered purchases
       const product = map.get(slug);
       if (!product) return;
-      const at = eventAt.get(slug) ?? null;
+      const at = tsFor(slug, kind);
+      // Expire stale activity (wishlist never expires).
+      if (at != null && Date.now() - at > EXPIRY_MS[kind]) return;
       const existing = best.get(slug);
       if (existing && PRIORITY[existing.kind] <= PRIORITY[kind]) return;
       best.set(slug, { product, kind, at });
     };
-    for (const slug of checkoutSlugs) consider(slug, "checkout");
+    for (const slug of checkoutAt.keys()) consider(slug, "checkout");
     for (const i of cartItems) consider(i.slug, "cart");
     for (const slug of wishSlugs) consider(slug, "wishlist");
     for (const slug of recentSlugs) consider(slug, "viewed");
     return [...best.values()];
-  }, [products, checkoutSlugs, cartItems, wishSlugs, recentSlugs, eventAt]);
+  }, [products, checkoutAt, cartItems, wishSlugs, recentSlugs, eventAt, cartAt, viewedAt, purchasedSlugs]);
 
   const counts = useMemo(() => {
     const c: Record<FilterKey, number> = { all: entries.length, checkout: 0, cart: 0, wishlist: 0, viewed: 0 };
@@ -187,9 +246,9 @@ function ContinueShoppingPage() {
   const FILTERS: { key: FilterKey; label: string }[] = [
     { key: "all", label: "All" },
     { key: "checkout", label: "Checkout started" },
-    { key: "cart", label: "Cart" },
-    { key: "wishlist", label: "Wishlist" },
-    { key: "viewed", label: "Recently viewed" },
+    { key: "cart", label: "Added to cart" },
+    { key: "wishlist", label: "Saved for later" },
+    { key: "viewed", label: "Viewed recently" },
   ];
 
   return (
@@ -274,12 +333,12 @@ function ContinueShoppingPage() {
           <div className="size-16 mx-auto mb-5 grid place-items-center rounded-full bg-accent/15 border border-accent/30 text-accent animate-[float-soft_3s_ease-in-out_infinite]">
             <ShoppingBag className="size-6" />
           </div>
-          <h2 className="text-xl font-display font-semibold mb-1.5">No activity yet</h2>
+          <h2 className="text-xl font-display font-semibold mb-1.5">Nothing here yet</h2>
           <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
-            Browse products, add to cart or save to your wishlist and they will appear here.
+            Start exploring products to build your personalized shopping experience.
           </p>
           <Link to="/" className="inline-flex items-center gap-2 bg-accent text-accent-foreground rounded-full px-6 py-3 text-[11px] uppercase tracking-widest font-bold hover:brightness-110 transition-all shadow-[var(--shadow-ember)]">
-            <ShoppingBag className="size-3.5" /> Start browsing
+            <ShoppingBag className="size-3.5" /> Browse Products
           </Link>
         </div>
       )}
