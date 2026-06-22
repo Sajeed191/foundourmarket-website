@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { getResponsiveImage } from "@/lib/product-images";
 
 type Props = {
@@ -30,6 +30,15 @@ export function ProductImage({
   const responsive = getResponsiveImage(src);
   const [loaded, setLoaded] = useState(false);
 
+  // Callback ref: if the image is already complete by the time it mounts
+  // (cached / decoded before React attached onLoad), reveal it immediately.
+  // Without this the onLoad event can be missed on fast scroll, leaving the
+  // image at opacity-0 and the blurred LQIP placeholder visible underneath —
+  // which reads as a duplicated/ghosted image on low-end devices.
+  const imgRef = useCallback((node: HTMLImageElement | null) => {
+    if (node && node.complete && node.naturalWidth > 0) setLoaded(true);
+  }, []);
+
   return (
     <>
       {!loaded && (
@@ -40,6 +49,7 @@ export function ProductImage({
         />
       )}
       <img
+        ref={imgRef}
         src={src}
         srcSet={responsive?.srcset}
         sizes={responsive ? sizes : undefined}
