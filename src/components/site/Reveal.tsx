@@ -28,6 +28,15 @@ export function Reveal({
   className?: string;
   delay?: number;
 }) {
+  const lowEnd = useLowEndDevice();
+  // On constrained devices (≤4GB RAM / few cores / reduced-motion) skip
+  // framer-motion entirely: per-element motion layers are the main source of
+  // GPU compositing artifacts (ghosted images, stacked cards, flicker) during
+  // fast scroll. Content still renders fully — only the entrance animation is
+  // dropped on the devices that can't afford it.
+  if (lowEnd) {
+    return <div className={className}>{children}</div>;
+  }
   return (
     <Suspense fallback={<div className={className}>{children}</div>}>
       <MotionReveal className={className} delay={delay}>
