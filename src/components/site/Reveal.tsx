@@ -1,4 +1,5 @@
 import { Suspense, lazy, type ReactNode } from "react";
+import { useLowEndDevice } from "@/lib/use-low-end-device";
 
 /**
  * Reveal / AnimatedCounter — public API used across the homepage.
