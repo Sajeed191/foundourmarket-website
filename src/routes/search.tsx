@@ -130,9 +130,9 @@ function FilterPanel({
       {/* Price range slider */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Price (USD)</h3>
+          <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Price</h3>
           <span className="text-[11px] font-mono tabular-nums text-foreground">
-            ${priceRange[0]} – ${priceRange[1]}{priceRange[1] >= PRICE_MAX ? "+" : ""}
+            {fmt(priceRange[0])} – {fmt(priceRange[1])}{priceRange[1] >= PRICE_MAX ? "+" : ""}
           </span>
         </div>
         <Slider
@@ -143,6 +143,7 @@ function FilterPanel({
           onValueChange={(v) => set({ min: v[0] > 0 ? v[0] : undefined, max: v[1] < PRICE_MAX ? v[1] : undefined })}
         />
       </div>
+
 
       {/* Rating filter */}
       <div>
