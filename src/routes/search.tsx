@@ -91,6 +91,15 @@ function FilterPanel({
   onChange: (next: Filters) => void;
 }) {
   const { categories } = useCategories();
+  const { market, symbol } = useRegion();
+  // The price filter operates on the base (USD) price column server-side; for
+  // Indian shoppers we only translate the *displayed* numbers into ₹ so the UI
+  // never leaks USD, while the slider value sent to the backend stays unchanged.
+  const rate = market === "india" ? 83 : 1;
+  const fmt = (usd: number) =>
+    market === "india"
+      ? `${symbol}${Math.round(usd * rate).toLocaleString("en-IN")}`
+      : `${symbol}${usd}`;
   const set = (patch: Partial<Filters>) => onChange({ ...value, ...patch });
   const priceRange: [number, number] = [value.min ?? 0, value.max ?? PRICE_MAX];
 
@@ -121,9 +130,9 @@ function FilterPanel({
       {/* Price range slider */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Price (USD)</h3>
+          <h3 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Price</h3>
           <span className="text-[11px] font-mono tabular-nums text-foreground">
-            ${priceRange[0]} – ${priceRange[1]}{priceRange[1] >= PRICE_MAX ? "+" : ""}
+            {fmt(priceRange[0])} – {fmt(priceRange[1])}{priceRange[1] >= PRICE_MAX ? "+" : ""}
           </span>
         </div>
         <Slider
@@ -134,6 +143,7 @@ function FilterPanel({
           onValueChange={(v) => set({ min: v[0] > 0 ? v[0] : undefined, max: v[1] < PRICE_MAX ? v[1] : undefined })}
         />
       </div>
+
 
       {/* Rating filter */}
       <div>
@@ -175,7 +185,11 @@ function SearchPage() {
   const search = Route.useSearch();
   const nav = useNavigate({ from: "/search" });
   const { categories } = useCategories();
-  const { shippingFeeOf, compareOf } = useRegion();
+  const { shippingFeeOf, compareOf, market, symbol } = useRegion();
+  const fmtPrice = (usd: number) =>
+    market === "india"
+      ? `${symbol}${Math.round(usd * 83).toLocaleString("en-IN")}`
+      : `${symbol}${usd}`;
 
   const [query, setQuery] = useState(search.q ?? "");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -303,10 +317,10 @@ function SearchPage() {
   if (search.free === "1") activeChips.push({ label: "Free shipping", clear: () => update({ free: undefined }) });
   if (search.disc === "1") activeChips.push({ label: "On sale", clear: () => update({ disc: undefined }) });
   if (search.rating) activeChips.push({ label: `${search.rating}★ & up`, clear: () => update({ rating: undefined }) });
-  if (search.min) activeChips.push({ label: `Min $${search.min}`, clear: () => update({ min: undefined }) });
-  if (search.max) activeChips.push({ label: `Max $${search.max}`, clear: () => update({ max: undefined }) });
+  if (search.min) activeChips.push({ label: `Min ${fmtPrice(search.min)}`, clear: () => update({ min: undefined }) });
+  if (search.max) activeChips.push({ label: `Max ${fmtPrice(search.max)}`, clear: () => update({ max: undefined }) });
 
-  const resultCount = useMemo(() => results.length, [results]);
+  
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 mobile-page-clearance sm:pb-16">
@@ -335,30 +349,33 @@ function SearchPage() {
         </form>
       </div>
 
-      <div className="mb-6 sm:mb-8">
-        <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-3">Discover</p>
-        <h1 className="text-fluid-2xl font-display font-semibold mb-5 sm:mb-6">Search the marketplace</h1>
+      <div className="mb-5 sm:mb-6">
+        <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">Discover</p>
+        <h1 className="text-fluid-2xl font-display font-semibold mb-4">Search the marketplace</h1>
 
-        <form onSubmit={(e) => { e.preventDefault(); update({ q: query }); }} className="relative max-w-2xl">
+        <form onSubmit={(e) => { e.preventDefault(); update({ q: query }); }} className="relative w-full max-w-2xl">
           <Search className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search products, categories…"
-            className="w-full bg-card border border-border rounded-full pl-11 sm:pl-12 pr-24 sm:pr-28 py-3.5 sm:py-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+            className="w-full bg-card border border-border rounded-full pl-11 sm:pl-12 pr-[5.5rem] sm:pr-28 py-3 sm:py-3.5 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
           />
-          <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-bold px-4 sm:px-5 py-2.5 rounded-full text-[10px] sm:text-[11px] uppercase tracking-widest hover:brightness-110 transition-all">
+          <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-[11px] uppercase tracking-widest hover:brightness-110 transition-all">
             Search
           </button>
         </form>
+      </div>
 
+      {/* Controls bar — categories, filters and sort aligned in one compact row */}
+      <div className="mb-5 pb-4 border-b border-border space-y-3">
         {/* Category chips — horizontal scroll, premium pill design */}
         {categories.length > 0 && (
-          <div className="-mx-4 px-4 sm:mx-0 sm:px-0 mt-5">
-            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <button
                 onClick={() => update({ cat: undefined })}
-                className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest transition-all ${!search.cat ? "border-accent bg-accent/15 text-accent shadow-[0_0_18px_-4px_var(--accent)]" : "border-border text-foreground hover:border-accent/60"}`}
+                className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest whitespace-nowrap transition-all ${!search.cat ? "border-accent bg-accent/15 text-accent shadow-[0_0_18px_-4px_var(--accent)]" : "border-border text-foreground hover:border-accent/60"}`}
               >
                 All
               </button>
@@ -366,7 +383,7 @@ function SearchPage() {
                 <button
                   key={c.slug}
                   onClick={() => update({ cat: search.cat === c.slug ? undefined : c.slug })}
-                  className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest transition-all ${search.cat === c.slug ? "border-accent bg-accent/15 text-accent shadow-[0_0_18px_-4px_var(--accent)]" : "border-border text-foreground hover:border-accent/60"}`}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-mono uppercase tracking-widest whitespace-nowrap transition-all ${search.cat === c.slug ? "border-accent bg-accent/15 text-accent shadow-[0_0_18px_-4px_var(--accent)]" : "border-border text-foreground hover:border-accent/60"}`}
                 >
                   {c.name}
                 </button>
@@ -375,58 +392,55 @@ function SearchPage() {
           </div>
         )}
 
-      </div>
-
-
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          {/* Mobile filter drawer trigger */}
-          <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-            <DrawerTrigger asChild>
-              <button className="lg:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-[11px] font-mono uppercase tracking-widest hover:bg-white/5">
-                <SlidersHorizontal className="size-3.5" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-              </button>
-            </DrawerTrigger>
-            <DrawerContent className="max-h-[85vh]">
-              <div className="flex items-center justify-between px-4 pb-3 pt-1">
-                <h2 className="text-sm font-semibold">Filters</h2>
-                <button onClick={() => setDrawerOpen(false)} aria-label="Close filters" className="grid place-items-center size-8 rounded-full hover:bg-white/5">
-                  <X className="size-4" />
+        {/* Filters + sort row */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Mobile filter drawer trigger */}
+            <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+              <DrawerTrigger asChild>
+                <button className="lg:hidden shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-[11px] font-mono uppercase tracking-widest hover:bg-white/5">
+                  <SlidersHorizontal className="size-3.5" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
                 </button>
-              </div>
-              <div className="overflow-y-auto px-4 pb-4">
-                <FilterPanel value={draft} onChange={setDraft} />
-              </div>
-              <div className="flex items-center gap-3 border-t border-border p-4">
-                <button
-                  onClick={() => { clearAll(); setDrawerOpen(false); }}
-                  className="flex-1 rounded-full border border-border py-3 text-[11px] font-mono uppercase tracking-widest hover:bg-white/5"
-                >
-                  Clear All
-                </button>
-                <button
-                  onClick={() => { applyFilters(draft); setDrawerOpen(false); }}
-                  className="flex-1 rounded-full bg-accent text-accent-foreground py-3 text-[11px] font-bold font-mono uppercase tracking-widest hover:brightness-110"
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </DrawerContent>
-          </Drawer>
+              </DrawerTrigger>
+              <DrawerContent className="max-h-[85vh]">
+                <div className="flex items-center justify-between px-4 pb-3 pt-1">
+                  <h2 className="text-sm font-semibold">Filters</h2>
+                  <button onClick={() => setDrawerOpen(false)} aria-label="Close filters" className="grid place-items-center size-8 rounded-full hover:bg-white/5">
+                    <X className="size-4" />
+                  </button>
+                </div>
+                <div className="overflow-y-auto px-4 pb-4">
+                  {drawerOpen && <FilterPanel value={draft} onChange={setDraft} />}
+                </div>
+                <div className="flex items-center gap-3 border-t border-border p-4">
+                  <button
+                    onClick={() => { clearAll(); setDrawerOpen(false); }}
+                    className="flex-1 rounded-full border border-border py-3 text-[11px] font-mono uppercase tracking-widest hover:bg-white/5"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    onClick={() => { applyFilters(draft); setDrawerOpen(false); }}
+                    className="flex-1 rounded-full bg-accent text-accent-foreground py-3 text-[11px] font-bold font-mono uppercase tracking-widest hover:brightness-110"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </DrawerContent>
+            </Drawer>
 
-          {activeFilterCount > 0 && (
-            <button onClick={clearAll} className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">Clear all</button>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] font-mono tracking-wide text-muted-foreground">{loading ? "Searching…" : `${resultCount} Product${resultCount === 1 ? "" : "s"} Found`}</span>
+            {activeFilterCount > 0 && (
+              <button onClick={clearAll} className="shrink-0 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">Clear all</button>
+            )}
+          </div>
           <select value={search.sort ?? "relevance"} onChange={(e) => update({ sort: e.target.value })}
             aria-label="Sort search results"
-            className="bg-background border border-border rounded-full px-3 py-2 text-[11px] font-mono uppercase tracking-widest focus:outline-none focus:border-accent">
+            className="shrink-0 bg-background border border-border rounded-full px-3 py-2 text-[11px] font-mono uppercase tracking-widest focus:outline-none focus:border-accent">
             {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
         </div>
       </div>
+
 
       {/* Active filter chips — removable */}
       {activeChips.length > 0 && (
