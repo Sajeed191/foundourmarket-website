@@ -320,7 +320,7 @@ function SearchPage() {
   if (search.min) activeChips.push({ label: `Min ${fmtPrice(search.min)}`, clear: () => update({ min: undefined }) });
   if (search.max) activeChips.push({ label: `Max ${fmtPrice(search.max)}`, clear: () => update({ max: undefined }) });
 
-  const resultCount = useMemo(() => results.length, [results]);
+  
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 mobile-page-clearance sm:pb-16">
