@@ -91,6 +91,15 @@ function FilterPanel({
   onChange: (next: Filters) => void;
 }) {
   const { categories } = useCategories();
+  const { market, symbol } = useRegion();
+  // The price filter operates on the base (USD) price column server-side; for
+  // Indian shoppers we only translate the *displayed* numbers into ₹ so the UI
+  // never leaks USD, while the slider value sent to the backend stays unchanged.
+  const rate = market === "india" ? 83 : 1;
+  const fmt = (usd: number) =>
+    market === "india"
+      ? `${symbol}${Math.round(usd * rate).toLocaleString("en-IN")}`
+      : `${symbol}${usd}`;
   const set = (patch: Partial<Filters>) => onChange({ ...value, ...patch });
   const priceRange: [number, number] = [value.min ?? 0, value.max ?? PRICE_MAX];
 
