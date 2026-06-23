@@ -185,7 +185,11 @@ function SearchPage() {
   const search = Route.useSearch();
   const nav = useNavigate({ from: "/search" });
   const { categories } = useCategories();
-  const { shippingFeeOf, compareOf } = useRegion();
+  const { shippingFeeOf, compareOf, market, symbol } = useRegion();
+  const fmtPrice = (usd: number) =>
+    market === "india"
+      ? `${symbol}${Math.round(usd * 83).toLocaleString("en-IN")}`
+      : `${symbol}${usd}`;
 
   const [query, setQuery] = useState(search.q ?? "");
   const [drawerOpen, setDrawerOpen] = useState(false);
