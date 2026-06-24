@@ -57,11 +57,26 @@ import { Reveal } from "@/components/site/Reveal";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FoundOurMarket™ — Whatever You Need. All In One Place." },
-      { name: "description", content: "Premium global marketplace. Curated electronics, home, fitness and more — delivered worldwide." },
-      { property: "og:title", content: "FoundOurMarket™ — Premium Global Marketplace" },
-      { property: "og:description", content: "Curated electronics, home, fitness and more — delivered worldwide with secure checkout." },
+      { title: "FoundOurMarket™ | Global Marketplace - Whatever You Need, All In One Place" },
+      {
+        name: "description",
+        content:
+          "FoundOurMarket™ is a global online marketplace offering electronics, home essentials, fitness products, pet supplies, automotive accessories, and more with worldwide delivery.",
+      },
+      { property: "og:title", content: "FoundOurMarket™ | Global Marketplace" },
+      {
+        property: "og:description",
+        content:
+          "FoundOurMarket™ is a global online marketplace offering electronics, home essentials, fitness products, pet supplies, automotive accessories, and more with worldwide delivery.",
+      },
+      { property: "og:site_name", content: "FoundOurMarket" },
       { property: "og:url", content: "https://foundourmarket.com/" },
+      { name: "twitter:title", content: "FoundOurMarket™ | Global Marketplace" },
+      {
+        name: "twitter:description",
+        content:
+          "FoundOurMarket™ is a global online marketplace offering electronics, home essentials, fitness products, pet supplies, automotive accessories, and more with worldwide delivery.",
+      },
     ],
     links: [{ rel: "canonical", href: "https://foundourmarket.com/" }],
   }),
