@@ -57,11 +57,26 @@ import { Reveal } from "@/components/site/Reveal";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FoundOurMarket™ — Whatever You Need. All In One Place." },
-      { name: "description", content: "Premium global marketplace. Curated electronics, home, fitness and more — delivered worldwide." },
-      { property: "og:title", content: "FoundOurMarket™ — Premium Global Marketplace" },
-      { property: "og:description", content: "Curated electronics, home, fitness and more — delivered worldwide with secure checkout." },
+      { title: "FoundOurMarket™ | Global Marketplace - Whatever You Need, All In One Place" },
+      {
+        name: "description",
+        content:
+          "FoundOurMarket™ is a global online marketplace offering electronics, home essentials, fitness products, pet supplies, automotive accessories, and more with worldwide delivery.",
+      },
+      { property: "og:title", content: "FoundOurMarket™ | Global Marketplace" },
+      {
+        property: "og:description",
+        content:
+          "FoundOurMarket™ is a global online marketplace offering electronics, home essentials, fitness products, pet supplies, automotive accessories, and more with worldwide delivery.",
+      },
+      { property: "og:site_name", content: "FoundOurMarket" },
       { property: "og:url", content: "https://foundourmarket.com/" },
+      { name: "twitter:title", content: "FoundOurMarket™ | Global Marketplace" },
+      {
+        name: "twitter:description",
+        content:
+          "FoundOurMarket™ is a global online marketplace offering electronics, home essentials, fitness products, pet supplies, automotive accessories, and more with worldwide delivery.",
+      },
     ],
     links: [{ rel: "canonical", href: "https://foundourmarket.com/" }],
   }),
@@ -465,11 +480,14 @@ function Home() {
             <h1
               className="hero-rise-h1 text-fluid-hero lg:text-[clamp(3rem,1vw+3rem,4.5rem)] lg:leading-[1.02] lg:tracking-[-0.03em] font-display font-semibold tracking-tight text-balance mb-5 sm:mb-7"
             >
-              <span className="sr-only">FoundOurMarket — Premium Global Marketplace. </span>
+              <span className="sr-only">FoundOurMarket™ — Global Marketplace, Whatever You Need, All In One Place. </span>
               <span aria-hidden="true">Whatever you need.</span>
               <br />
               <span className="text-gradient-ember">All in one place.</span>
             </h1>
+            <p className="sr-only">
+              FoundOurMarket™ — Global Marketplace – Whatever You Need, All In One Place.
+            </p>
 
             <p
               className="hero-rise hero-rise-1 text-fluid-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-balance mb-7 sm:mb-9 px-2 lg:px-0"
