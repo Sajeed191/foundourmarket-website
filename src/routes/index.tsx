@@ -480,11 +480,14 @@ function Home() {
             <h1
               className="hero-rise-h1 text-fluid-hero lg:text-[clamp(3rem,1vw+3rem,4.5rem)] lg:leading-[1.02] lg:tracking-[-0.03em] font-display font-semibold tracking-tight text-balance mb-5 sm:mb-7"
             >
-              <span className="sr-only">FoundOurMarket — Premium Global Marketplace. </span>
+              <span className="sr-only">FoundOurMarket™ — Global Marketplace, Whatever You Need, All In One Place. </span>
               <span aria-hidden="true">Whatever you need.</span>
               <br />
               <span className="text-gradient-ember">All in one place.</span>
             </h1>
+            <p className="sr-only">
+              FoundOurMarket™ — Global Marketplace – Whatever You Need, All In One Place.
+            </p>
 
             <p
               className="hero-rise hero-rise-1 text-fluid-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-balance mb-7 sm:mb-9 px-2 lg:px-0"
