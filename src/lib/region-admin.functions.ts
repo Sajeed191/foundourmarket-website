@@ -241,7 +241,7 @@ export const adminSetUserRegion = createServerFn({ method: "POST" })
     const { userId } = context as { userId: string };
     const { primaryRole } = await requireStaff(
       userId,
-      [...STAFF],
+      [...SUPER_ONLY],
       "region.change",
       data.targetUserId,
     );
