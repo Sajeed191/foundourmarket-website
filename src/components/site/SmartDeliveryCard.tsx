@@ -35,6 +35,7 @@ export function SmartDeliveryCard({
   postal,
   returnsDays = 4,
   region = "India",
+  businessDays = "3–5 business days",
 }: Props) {
   const serviceable = service?.serviceable === true;
   const serviceDown = service?.status === "service_down";
