@@ -66,13 +66,18 @@ export const Route = createFileRoute("/product-feed.xml")({
 
         const items: string[] = [];
         for (const p of list as any[]) {
-          // Pricing: prefer USD for Google Shopping (international free listings),
-          // fall back to INR. Skip products with no valid price.
+          // Pricing per requested market. Keep product IDs identical across feeds.
           const usd = p.price_usd != null ? Number(p.price_usd) : null;
           const inr = p.price_inr != null ? Number(p.price_inr) : null;
           let price: string | null = null;
-          if (usd != null && usd > 0) price = `${usd.toFixed(2)} USD`;
-          else if (inr != null && inr > 0) price = `${inr.toFixed(2)} INR`;
+          if (market === "in") {
+            if (inr != null && inr > 0) price = `${inr.toFixed(2)} INR`;
+          } else if (market === "global") {
+            if (usd != null && usd > 0) price = `${usd.toFixed(2)} USD`;
+          } else {
+            if (usd != null && usd > 0) price = `${usd.toFixed(2)} USD`;
+            else if (inr != null && inr > 0) price = `${inr.toFixed(2)} INR`;
+          }
           if (!price) continue;
 
           const id = p.sku || p.slug;
