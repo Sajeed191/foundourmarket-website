@@ -123,3 +123,97 @@ export function friendlyCheckoutError(e: unknown): string {
   if (raw && raw.length < 140 && !/[{}<>]/.test(raw)) return raw;
   return "Something went wrong while processing your order. Your cart is safe — please try again.";
 }
+
+/**
+ * Exact failure-reason taxonomy for the payment-initialization audit. Every
+ * checkout failure is bucketed so the funnel can report a precise breakdown:
+ *
+ *   Stock · Gateway · SDK · Network · Validation · Authentication · Other
+ */
+export type CheckoutFailureCategory =
+  | "Stock"
+  | "Gateway"
+  | "SDK"
+  | "Network"
+  | "Validation"
+  | "Authentication"
+  | "Other";
+
+export function classifyCheckoutFailure(e: unknown): CheckoutFailureCategory {
+  const raw =
+    (e as { message?: string } | null)?.message ??
+    (typeof e === "string" ? e : "") ??
+    "";
+  const msg = raw.toLowerCase();
+
+  // SDK — Razorpay checkout.js failed to load / not present.
+  if (
+    msg.includes("razorpay not loaded") ||
+    msg.includes("failed to load razorpay") ||
+    msg.includes("no window")
+  ) {
+    return "SDK";
+  }
+
+  // Network / connectivity (ad-blockers usually surface here or as SDK).
+  if (
+    msg.includes("failed to fetch") ||
+    msg.includes("networkerror") ||
+    msg.includes("network request failed") ||
+    msg.includes("load failed") ||
+    msg.includes("check your network") ||
+    msg.includes("timeout") ||
+    msg.includes("timed out")
+  ) {
+    return "Network";
+  }
+
+  // Stock / inventory.
+  if (msg.includes("stock") || msg.includes("inventory") || msg.includes("sold out")) {
+    return "Stock";
+  }
+
+  // Authentication / session.
+  if (
+    msg.includes("unauthorized") ||
+    msg.includes("not authorised") ||
+    msg.includes("not authorized") ||
+    msg.includes("session") ||
+    msg.includes("auth")
+  ) {
+    return "Authentication";
+  }
+
+  // Validation — address, pricing, serviceability, market/region state, cart.
+  if (
+    msg.includes("address") ||
+    msg.includes("serviceable") ||
+    msg.includes("pincode") ||
+    msg.includes("postal") ||
+    msg.includes("price") ||
+    msg.includes("pricing") ||
+    msg.includes("region") ||
+    msg.includes("market") ||
+    msg.includes("cart") ||
+    msg.includes("empty") ||
+    msg.includes("invalid") ||
+    msg.includes("required")
+  ) {
+    return "Validation";
+  }
+
+  // Gateway — Razorpay order/credentials/payment-service errors.
+  if (
+    msg.includes("razorpay") ||
+    msg.includes("gateway") ||
+    msg.includes("could not initialise payment") ||
+    msg.includes("could not start checkout") ||
+    msg.includes("credentials") ||
+    msg.includes("signature") ||
+    msg.includes("verification")
+  ) {
+    return "Gateway";
+  }
+
+  return "Other";
+}

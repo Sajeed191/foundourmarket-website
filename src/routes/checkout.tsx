@@ -32,7 +32,7 @@ import { loadRazorpay, openRazorpay, type RazorpayResponse } from "@/lib/razorpa
 import { validatePincode, type ServiceabilityResult } from "@/lib/serviceability.functions";
 import { usePaymentGateways } from "@/lib/use-payment-gateways";
 import { GlobalCheckoutBeta } from "@/components/site/GlobalCheckoutBeta";
-import { logCheckout, friendlyCheckoutError } from "@/lib/checkout-logger";
+import { logCheckout, friendlyCheckoutError, classifyCheckoutFailure } from "@/lib/checkout-logger";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -97,6 +97,9 @@ function CheckoutPage() {
   const [reserveLeft, setReserveLeft] = useState(15 * 60);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const purchaseItemsRef = useRef<typeof detailed>([]);
+  // Hard guard against double-submit (double-tap / impatient retap on mobile).
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const isIndia = market === "india";
 
@@ -236,6 +239,10 @@ function CheckoutPage() {
       toast.error("Please select or add a shipping address.");
       return;
     }
+    // Disable double-click: ignore re-entry while a payment init is in flight.
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
     setError(null);
     setStage("processing");
     logCheckout("payment_initialized", {
@@ -245,10 +252,24 @@ function CheckoutPage() {
       items: detailed.length,
     });
     try {
-      await loadRazorpay();
-      let created;
+      // SDK load (loader itself retries once internally on transient failure).
       try {
-        created = await createOrder({
+        await loadRazorpay();
+      } catch (sdkErr: any) {
+        logCheckout("payment_init_failed", {
+          category: classifyCheckoutFailure(sdkErr),
+          stage: "sdk_load",
+          market,
+          value: totalINR,
+          error: String(sdkErr?.message ?? sdkErr),
+        });
+        throw sdkErr;
+      }
+
+      // Order creation with a single retry on transient (network/gateway) errors.
+      let created;
+      const createOnce = () =>
+        createOrder({
           data: {
             items: detailed.map((i) => ({ slug: i.slug, qty: i.qty })),
             addressId: selectedAddress.id,
@@ -256,13 +277,46 @@ function CheckoutPage() {
             attribution: buildOrderAttribution(),
           },
         });
-      } catch (orderErr: any) {
-        logCheckout("order_create_failed", {
-          market,
-          value: totalINR,
-          error: String(orderErr?.message ?? orderErr),
-        });
-        throw orderErr;
+      try {
+        created = await createOnce();
+      } catch (firstErr: any) {
+        const cat = classifyCheckoutFailure(firstErr);
+        // Only retry transient categories — never retry Stock/Validation/Auth
+        // (those won't succeed on a second attempt and could double-charge risk).
+        if (cat === "Network" || cat === "Gateway" || cat === "Other") {
+          logCheckout("order_create_failed", {
+            category: cat,
+            attempt: 1,
+            retrying: true,
+            market,
+            value: totalINR,
+            error: String(firstErr?.message ?? firstErr),
+          });
+          await new Promise((r) => setTimeout(r, 600));
+          try {
+            created = await createOnce();
+          } catch (secondErr: any) {
+            logCheckout("order_create_failed", {
+              category: classifyCheckoutFailure(secondErr),
+              attempt: 2,
+              retrying: false,
+              market,
+              value: totalINR,
+              error: String(secondErr?.message ?? secondErr),
+            });
+            throw secondErr;
+          }
+        } else {
+          logCheckout("order_create_failed", {
+            category: cat,
+            attempt: 1,
+            retrying: false,
+            market,
+            value: totalINR,
+            error: String(firstErr?.message ?? firstErr),
+          });
+          throw firstErr;
+        }
       }
       logCheckout("order_created", {
         orderId: created.orderId,
@@ -457,16 +511,23 @@ function CheckoutPage() {
         }),
       );
       rzp.open();
+      // Modal is open — release the submit guard so the user can re-initiate
+      // after a dismiss/failure without reloading the page.
+      submittingRef.current = false;
+      setSubmitting(false);
     } catch (e: any) {
       const friendly = friendlyCheckoutError(e);
       setStage("failed");
       setError(friendly);
       toast.error(friendly);
       logCheckout("payment_init_failed", {
+        category: classifyCheckoutFailure(e),
         error: String(e?.message ?? e),
         market,
         value: totalINR,
       });
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   }
 
@@ -477,6 +538,9 @@ function CheckoutPage() {
       toast.error("Please select or add a shipping address.");
       return;
     }
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
     setError(null);
     setStage("processing");
     logCheckout("order_created", { paymentMethod: "cod", value: totalINR, items: detailed.length });
@@ -502,7 +566,14 @@ function CheckoutPage() {
       setStage("failed");
       setError(friendly);
       toast.error(friendly);
-      logCheckout("cod_order_failed", { error: String(e?.message ?? e), value: totalINR });
+      logCheckout("cod_order_failed", {
+        category: classifyCheckoutFailure(e),
+        error: String(e?.message ?? e),
+        value: totalINR,
+      });
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   }
 
@@ -574,7 +645,7 @@ function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
-  const busy = stage === "processing" || stage === "verifying";
+  const busy = submitting || stage === "processing" || stage === "verifying";
 
   /* ---------- checkout readiness engine — single source of truth ---------- */
   const serviceabilityStatus: DeliveryStatus =
