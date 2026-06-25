@@ -648,59 +648,8 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         className={`${base} border-border resize-none`}
       />
 
-      {/* Address quality score (Phase 2 — weighted + region-aware) */}
-      <div className="rounded-2xl border border-border bg-background/40 px-3.5 py-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            Address quality · {quality.grade}
-          </span>
-          <span
-            className={`text-xs font-semibold tabular-nums ${
-              quality.score >= 90 ? "text-emerald-400" : quality.score >= 75 ? "text-accent" : "text-muted-foreground"
-            }`}
-          >
-            {quality.score}%
-          </span>
-        </div>
-        <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              quality.score >= 90 ? "bg-emerald-400" : "bg-accent"
-            }`}
-            style={{ width: `${quality.score}%` }}
-          />
-        </div>
-        <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1">
-          {quality.checks.map((c) => (
-            <span
-              key={c.label}
-              className={`inline-flex items-center gap-1 text-[10px] ${
-                c.ok ? "text-emerald-400" : "text-muted-foreground/60"
-              }`}
-            >
-              {c.ok ? <CheckCircle2 className="size-2.5" /> : <AlertCircle className="size-2.5" />}
-              {c.label}
-            </span>
-          ))}
-        </div>
-        {/* Phase 6 — surface fraud/risk flags inline */}
-        {risk.level !== "low" && risk.flags.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-white/5 pt-2">
-            <span
-              className={`inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest ${
-                risk.level === "high" ? "text-destructive" : "text-amber-400"
-              }`}
-            >
-              <ShieldAlert className="size-3" /> {risk.level} risk
-            </span>
-            {risk.flags.map((f) => (
-              <span key={f} className="text-[10px] text-muted-foreground">
-                {f}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Internal address-quality scores, confidence %, and risk diagnostics
+          are intentionally NOT surfaced to customers. */}
 
 
       <div className="flex flex-wrap gap-x-6 gap-y-2 pt-0.5 text-xs text-muted-foreground">
