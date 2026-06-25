@@ -57,7 +57,7 @@ export function ProductImage({
         width={width}
         height={height}
         loading={priority ? "eager" : "lazy"}
-        fetchPriority={priority ? "high" : "auto"}
+        fetchPriority={priority ? "high" : "low"}
         decoding="async"
         onLoad={() => setLoaded(true)}
         className={`${className} ${loaded ? "opacity-100" : "opacity-0"}`}
