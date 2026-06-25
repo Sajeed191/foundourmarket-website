@@ -22,8 +22,20 @@ function resolveUrl(raw: string | null | undefined): string | null {
 export const Route = createFileRoute("/product-feed.xml")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
         const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!);
+
+        // Market-aware feed: ?market=in -> INR, ?market=global -> USD.
+        // Default (no param) preserves prior behaviour: prefer USD, fall back to INR.
+        const marketParam = (new URL(request.url).searchParams.get("market") || "")
+          .trim()
+          .toLowerCase();
+        const market: "in" | "global" | "auto" =
+          marketParam === "in"
+            ? "in"
+            : marketParam === "global"
+              ? "global"
+              : "auto";
 
         const { data: products } = await sb
           .from("products_public")
