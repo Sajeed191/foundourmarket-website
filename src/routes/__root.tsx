@@ -456,7 +456,8 @@ function RootComponent() {
   if (oauthReturnPending) return <OAuthReturnScreen />;
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
           <NotificationsProvider>
