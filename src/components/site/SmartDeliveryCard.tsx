@@ -16,6 +16,8 @@ type Props = {
   returnsDays?: number;
   /** Market the destination resolved to. */
   region?: "India" | "International";
+  /** Plain business-day window label, e.g. "3–5 business days". */
+  businessDays?: string;
 };
 
 /**
