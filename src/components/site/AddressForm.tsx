@@ -307,6 +307,8 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
       else delete next[k];
       return next;
     });
+    // Field abandonment: user left a required field empty or invalid.
+    if (e) trackAddr("address_field_abandoned", { field: k, reason: e });
   };
 
   const validateAll = () => {
@@ -318,7 +320,11 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     }
     setErrors(e);
     setTouched(Object.fromEntries(keys.map((k) => [k, true])));
-    return Object.keys(e).length === 0;
+    const failed = Object.keys(e);
+    if (failed.length > 0) {
+      trackAddr("address_validation_failed", { fields: failed, count: failed.length });
+    }
+    return failed.length === 0;
   };
 
   const submit = async (ev?: React.FormEvent | React.MouseEvent) => {
