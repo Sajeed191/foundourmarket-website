@@ -511,16 +511,23 @@ function CheckoutPage() {
         }),
       );
       rzp.open();
+      // Modal is open — release the submit guard so the user can re-initiate
+      // after a dismiss/failure without reloading the page.
+      submittingRef.current = false;
+      setSubmitting(false);
     } catch (e: any) {
       const friendly = friendlyCheckoutError(e);
       setStage("failed");
       setError(friendly);
       toast.error(friendly);
       logCheckout("payment_init_failed", {
+        category: classifyCheckoutFailure(e),
         error: String(e?.message ?? e),
         market,
         value: totalINR,
       });
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   }
 
