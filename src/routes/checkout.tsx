@@ -538,6 +538,9 @@ function CheckoutPage() {
       toast.error("Please select or add a shipping address.");
       return;
     }
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
     setError(null);
     setStage("processing");
     logCheckout("order_created", { paymentMethod: "cod", value: totalINR, items: detailed.length });
@@ -563,7 +566,14 @@ function CheckoutPage() {
       setStage("failed");
       setError(friendly);
       toast.error(friendly);
-      logCheckout("cod_order_failed", { error: String(e?.message ?? e), value: totalINR });
+      logCheckout("cod_order_failed", {
+        category: classifyCheckoutFailure(e),
+        error: String(e?.message ?? e),
+        value: totalINR,
+      });
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   }
 
