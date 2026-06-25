@@ -210,19 +210,43 @@ function CheckoutPage() {
   async function payWithRazorpay() {
     if (!user || !selectedAddress) {
       setError("Please select or add a shipping address.");
+      toast.error("Please select or add a shipping address.");
       return;
     }
     setError(null);
     setStage("processing");
+    logCheckout("payment_initialized", {
+      stage: "loading_sdk",
+      market,
+      value: totalINR,
+      items: detailed.length,
+    });
     try {
       await loadRazorpay();
-      const created = await createOrder({
-        data: {
-          items: detailed.map((i) => ({ slug: i.slug, qty: i.qty })),
-          addressId: selectedAddress.id,
-          promoCode: coupon?.code ?? null,
-          attribution: buildOrderAttribution(),
-        },
+      let created;
+      try {
+        created = await createOrder({
+          data: {
+            items: detailed.map((i) => ({ slug: i.slug, qty: i.qty })),
+            addressId: selectedAddress.id,
+            promoCode: coupon?.code ?? null,
+            attribution: buildOrderAttribution(),
+          },
+        });
+      } catch (orderErr: any) {
+        logCheckout("order_create_failed", {
+          market,
+          value: totalINR,
+          error: String(orderErr?.message ?? orderErr),
+        });
+        throw orderErr;
+      }
+      logCheckout("order_created", {
+        orderId: created.orderId,
+        razorpayOrderId: created.razorpayOrderId,
+        currency: created.currency,
+        amount_minor: created.amount,
+        pricing_source: created.debug?.pricingSource ?? null,
       });
 
       // Audit: the displayed price must equal the charged Razorpay amount.
