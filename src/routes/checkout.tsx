@@ -451,10 +451,12 @@ function CheckoutPage() {
   async function placeCod() {
     if (!user || !selectedAddress) {
       setError("Please select or add a shipping address.");
+      toast.error("Please select or add a shipping address.");
       return;
     }
     setError(null);
     setStage("processing");
+    logCheckout("order_created", { paymentMethod: "cod", value: totalINR, items: detailed.length });
     try {
       // Order totals and line prices are computed server-side from trusted
       // database prices — never from client state (anti price-tampering).
@@ -469,13 +471,18 @@ function CheckoutPage() {
 
       setPlacedOrderId(placed.orderId);
       setStage("success");
+      logCheckout("cod_order_placed", { orderId: placed.orderId, value: totalINR });
       clear();
       if (selectedAddress) markUsed(selectedAddress.id).catch(() => {});
     } catch (e: any) {
+      const friendly = friendlyCheckoutError(e);
       setStage("failed");
-      setError(e?.message ?? "Could not place your COD order.");
+      setError(friendly);
+      toast.error(friendly);
+      logCheckout("cod_order_failed", { error: String(e?.message ?? e), value: totalINR });
     }
   }
+
 
 
   const placeOrder = (e: React.FormEvent) => {
