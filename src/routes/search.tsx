@@ -489,9 +489,13 @@ function SearchPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
-                {results.map((p) => <ProductCard key={p.slug} product={p} />)}
-              </div>
+              <VirtualizedProductGrid
+                items={results}
+                cols={{ base: 2, md: 3, xl: 4 }}
+                className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6"
+                renderItem={(p) => <ProductCard key={p.slug} product={p} />}
+              />
+
               {hasMore && (
                 <div className="mt-8 sm:mt-10 flex justify-center">
                   <button
