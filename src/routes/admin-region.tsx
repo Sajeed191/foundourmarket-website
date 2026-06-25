@@ -268,7 +268,7 @@ function AdminRegionPage() {
                 {r.review_note && (
                   <p className="mt-1 text-xs text-muted-foreground/80">Note: {r.review_note}</p>
                 )}
-                {r.status === "pending" && (
+                {r.status === "pending" && isSuperAdmin && (
                   <div className="mt-3 flex gap-2">
                     <button
                       disabled={busy === r.id}
@@ -285,6 +285,11 @@ function AdminRegionPage() {
                       <X className="size-3.5" /> Reject
                     </button>
                   </div>
+                )}
+                {r.status === "pending" && !isSuperAdmin && (
+                  <p className="mt-3 text-[11px] text-muted-foreground/70">
+                    Only a Super Admin can approve or reject market changes.
+                  </p>
                 )}
               </div>
             ))}
