@@ -17,7 +17,7 @@ export const validateIndianPincode = createServerFn({ method: "GET" })
         valid: true as const,
         // serviceable === false ONLY for confirmed-unsupported destinations.
         // A successful lookup means we deliver there.
-        serviceable: true as const,
+        serviceable: true as boolean,
         reason: "available" as const,
         city: res.city,
         state: res.state,
@@ -31,7 +31,7 @@ export const validateIndianPincode = createServerFn({ method: "GET" })
     // hard, confirmed "we don't deliver here" block.
     return {
       valid: false as const,
-      serviceable: true as const,
+      serviceable: true as boolean,
       reason: res.reason as "not_found" | "service_down" | "invalid",
       city: null,
       state: null,
