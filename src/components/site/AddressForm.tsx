@@ -567,7 +567,14 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           {pinState === "unverified" && !errors.postal && (
             <p className="text-[11px] text-amber-400/90 mt-1 flex items-center gap-1">
               <AlertCircle className="size-3 shrink-0" />
-              We could not verify this pincode. Please check your delivery details.
+              We could not verify this PIN right now. Please confirm your address details.
+            </p>
+          )}
+          {/* Hard block — confirmed unsupported destination only. */}
+          {pinState === "unsupported" && !errors.postal && (
+            <p className="text-[11px] text-destructive mt-1 flex items-start gap-1">
+              <AlertCircle className="size-3 shrink-0 mt-0.5" />
+              We're unable to deliver to this PIN code yet. Please use a different delivery address.
             </p>
           )}
         </div>
