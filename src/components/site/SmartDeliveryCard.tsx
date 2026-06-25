@@ -16,6 +16,8 @@ type Props = {
   returnsDays?: number;
   /** Market the destination resolved to. */
   region?: "India" | "International";
+  /** Plain business-day window label, e.g. "3–5 business days". */
+  businessDays?: string;
 };
 
 /**
@@ -33,6 +35,7 @@ export function SmartDeliveryCard({
   postal,
   returnsDays = 4,
   region = "India",
+  businessDays = "3–5 business days",
 }: Props) {
   const serviceable = service?.serviceable === true;
   const serviceDown = service?.status === "service_down";
@@ -89,21 +92,30 @@ export function SmartDeliveryCard({
         )}
       </div>
 
+      {/* Headline estimate + shipping — shown clearly before Continue */}
+      {(serviceable || serviceDown) && (
+        <div className="mt-4 grid grid-cols-2 gap-2.5">
+          <div className="rounded-xl border border-accent/25 bg-accent/[0.06] p-3">
+            <div className="inline-flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
+              <CalendarClock className="size-3.5" /> Estimated Delivery
+            </div>
+            <p className="mt-1 text-sm font-semibold text-accent">{businessDays}</p>
+            <p className="text-[11px] text-muted-foreground">{eta}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+            <div className="inline-flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-widest text-muted-foreground">
+              <Truck className="size-3.5" /> Shipping Cost
+            </div>
+            <p className={`mt-1 text-sm font-semibold ${shippingLabel.toUpperCase() === "FREE" ? "text-emerald-400" : "text-foreground"}`}>
+              {shippingLabel.toUpperCase() === "FREE" ? "Free Shipping" : shippingLabel}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Detail grid — only when we have a usable destination */}
       {(serviceable || serviceDown) && (
-        <div className="mt-4 grid grid-cols-3 gap-2.5">
-          <Stat
-            icon={<CalendarClock className="size-3.5" />}
-            label="Estimated"
-            value={eta}
-            tone="accent"
-          />
-          <Stat
-            icon={<Truck className="size-3.5" />}
-            label="Shipping"
-            value={shippingLabel}
-            tone={shippingLabel.toUpperCase() === "FREE" ? "emerald" : "default"}
-          />
+        <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <Stat
             icon={<Wallet className="size-3.5" />}
             label="COD"

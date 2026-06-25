@@ -5,7 +5,7 @@ import {
   Loader2, ShieldCheck, MapPin, Plus, Lock, Smartphone, CreditCard,
   Landmark, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Globe, Sparkles,
   Home, Briefcase, MapPinned, Pencil, Trash2, Star, ArrowRight, Clock,
-  PackageCheck, BadgeCheck, ShieldHalf, Download,
+  PackageCheck, BadgeCheck, ShieldHalf, Download, LifeBuoy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadInvoice } from "@/lib/invoice";
@@ -887,6 +887,27 @@ function CheckoutPage() {
                 />
               )}
 
+              {/* Compact address confirmation — quick reassurance of where it ships */}
+              {selectedAddress && !addingAddress && !editingId && (
+                <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.05] px-4 py-3 flex items-start gap-3">
+                  <CheckCircle2 className="size-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-emerald-400">Delivering to {selectedAddress.full_name}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {[selectedAddress.line1, selectedAddress.line2, selectedAddress.city, selectedAddress.state, selectedAddress.postal].filter(Boolean).join(", ")}
+                    </p>
+                    {selectedAddress.phone && (
+                      <p className="text-[11px] text-muted-foreground">{selectedAddress.phone}</p>
+                    )}
+                  </div>
+                  <button type="button" onClick={() => setEditingId(selectedAddress.id)}
+                    className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-accent inline-flex items-center gap-1 shrink-0">
+                    <Pencil className="size-3" /> Edit
+                  </button>
+                </div>
+              )}
+
+
 
               {/* Payment method */}
               <section className="glass border border-white/10 rounded-2xl p-5 sm:p-6">
@@ -948,13 +969,14 @@ function CheckoutPage() {
 
               {/* Trust & security */}
               <section className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                <TrustCard icon={<ShieldHalf className="size-4" />} title="PCI-DSS" sub="Compliant" />
-                <TrustCard icon={<Lock className="size-4" />} title="Encrypted" sub="256-bit SSL" />
-                <TrustCard icon={<BadgeCheck className="size-4" />} title="Razorpay" sub="Verified" />
-                <TrustCard icon={<RotateCcw className="size-4" />} title="Easy returns" sub="4-day window" />
-                
-                <TrustCard icon={<PackageCheck className="size-4" />} title="Tracked" sub="Real-time" />
+                <TrustCard icon={<Lock className="size-4" />} title="Secure Checkout" sub="256-bit SSL" />
+                <TrustCard icon={<BadgeCheck className="size-4" />} title="Razorpay Protected" sub="PCI-DSS payments" />
+                <TrustCard icon={<RotateCcw className="size-4" />} title="Easy Returns" sub="4-day window" />
+                <TrustCard icon={<LifeBuoy className="size-4" />} title="Customer Support" sub="Available to help" />
+                <TrustCard icon={<PackageCheck className="size-4" />} title="Tracked Delivery" sub="Real-time" />
+                <TrustCard icon={<ShieldHalf className="size-4" />} title="Encrypted" sub="End-to-end" />
               </section>
+
 
               {error && stage === "review" && (
                 <p className="text-xs text-destructive flex items-center gap-1.5"><XCircle className="size-3.5" />{error}</p>
