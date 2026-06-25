@@ -8,9 +8,7 @@ import { PhoneInput } from "@/components/site/PhoneInput";
 import { useRegion } from "@/lib/region";
 import {
   scoreAddressQuality,
-  pinCityStateConsistency,
   assessAddressRisk,
-  gpsFillConfidence,
   type MarketRegion,
 } from "@/lib/address-intelligence";
 
