@@ -5,6 +5,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireStaff, logSecurity, adminRpc } from "./admin-guard.server";
 
 const STAFF = ["admin", "super_admin", "manager"] as const;
+// Mutating a customer's locked market is restricted to super admins only.
+const SUPER_ONLY = ["super_admin"] as const;
 
 /* ---------------- Customer-facing ---------------- */
 
@@ -239,7 +241,7 @@ export const adminSetUserRegion = createServerFn({ method: "POST" })
     const { userId } = context as { userId: string };
     const { primaryRole } = await requireStaff(
       userId,
-      [...STAFF],
+      [...SUPER_ONLY],
       "region.change",
       data.targetUserId,
     );
@@ -278,7 +280,7 @@ export const adminReviewRegionRequest = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { userId } = context as { userId: string };
-    const { primaryRole } = await requireStaff(userId, [...STAFF], "region.review_request");
+    const { primaryRole } = await requireStaff(userId, [...SUPER_ONLY], "region.review_request");
 
     const { data: req, error: rErr } = await supabaseAdmin
       .from("region_change_requests")

@@ -11,6 +11,7 @@ import {
   adminReviewRegionRequest,
 } from "@/lib/region-admin.functions";
 import { getCheckoutRegionDebug } from "@/lib/region.functions";
+import { useStaffRoles } from "@/lib/use-admin";
 
 export const Route = createFileRoute("/admin-region")({
   head: () => ({ meta: [{ title: "Region Management — FoundOurMarket™" }] }),
@@ -113,6 +114,9 @@ function AdminRegionPage() {
   const setRegion = useServerFn(adminSetUserRegion);
   const review = useServerFn(adminReviewRegionRequest);
   const fetchDebug = useServerFn(getCheckoutRegionDebug);
+  // Only super admins may mutate a customer's locked market (server-enforced).
+  const { roles } = useStaffRoles();
+  const isSuperAdmin = roles.has("super_admin");
 
   const [tab, setTab] = useState<"customers" | "requests" | "debug">("requests");
   const [customers, setCustomers] = useState<any[]>([]);
@@ -264,7 +268,7 @@ function AdminRegionPage() {
                 {r.review_note && (
                   <p className="mt-1 text-xs text-muted-foreground/80">Note: {r.review_note}</p>
                 )}
-                {r.status === "pending" && (
+                {r.status === "pending" && isSuperAdmin && (
                   <div className="mt-3 flex gap-2">
                     <button
                       disabled={busy === r.id}
@@ -281,6 +285,11 @@ function AdminRegionPage() {
                       <X className="size-3.5" /> Reject
                     </button>
                   </div>
+                )}
+                {r.status === "pending" && !isSuperAdmin && (
+                  <p className="mt-3 text-[11px] text-muted-foreground/70">
+                    Only a Super Admin can approve or reject market changes.
+                  </p>
                 )}
               </div>
             ))}
@@ -313,18 +322,20 @@ function AdminRegionPage() {
                       </span>
                     )}
                     <ConfidenceBadge value={c.confidence ?? null} />
-                    <div className="ml-auto flex gap-1.5">
-                      {(["india", "international"] as const).map((rg) => (
-                        <button
-                          key={rg}
-                          disabled={busy === c.id || c.market_region === rg}
-                          onClick={() => override(c.id, rg)}
-                          className="rounded-lg border border-border px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider hover:border-accent/40 disabled:opacity-40"
-                        >
-                          {rg === "india" ? "Set 🇮🇳" : "Set 🌍"}
-                        </button>
-                      ))}
-                    </div>
+                    {isSuperAdmin && (
+                      <div className="ml-auto flex gap-1.5">
+                        {(["india", "international"] as const).map((rg) => (
+                          <button
+                            key={rg}
+                            disabled={busy === c.id || c.market_region === rg}
+                            onClick={() => override(c.id, rg)}
+                            className="rounded-lg border border-border px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider hover:border-accent/40 disabled:opacity-40"
+                          >
+                            {rg === "india" ? "Set 🇮🇳" : "Set 🌍"}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
