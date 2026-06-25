@@ -229,11 +229,9 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
 
           if (country) countryTouched.current = true;
 
-          const components = { line1, area, city, district, state, postal, country };
-          setGeo({
-            confidence: gpsFillConfidence(components),
-            source: "GPS + Reverse Geocode + Region Engine",
-          });
+          // Reverse-geocoded fields auto-fill the form silently; no confidence
+          // score or detection source is surfaced to the customer.
+
 
           setForm((p) => ({
             ...p,
