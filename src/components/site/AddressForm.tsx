@@ -195,6 +195,29 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     };
   }, [form.postal, form.country, validatePin]);
 
+  // Soft, NON-BLOCKING PIN ↔ City notice. When the postal lookup resolved a
+  // canonical city but the customer typed something that doesn't match (common
+  // for nearby towns, villages, or local names), we only warn — never block.
+  const cityMismatch = useMemo(() => {
+    const resolved = resolvedPin?.city?.trim().toLowerCase();
+    const entered = form.city.trim().toLowerCase();
+    if (!resolved || !entered) return false;
+    return !resolved.includes(entered) && !entered.includes(resolved);
+  }, [resolvedPin, form.city]);
+
+  useEffect(() => {
+    if (cityMismatch) {
+      trackAddr("pin_city_warning", {
+        pincode: (form.postal ?? "").trim(),
+        entered_city: form.city.trim(),
+        postal_city: resolvedPin?.city ?? null,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cityMismatch]);
+
+
+
 
   // Phase 1 — full structured GPS fill: reverse-geocode coordinates into every
   // address field, detect the region, sync country, and store a confidence score.
