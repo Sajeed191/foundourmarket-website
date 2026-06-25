@@ -595,6 +595,13 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             </datalist>
           )}
           <Err k="city" />
+          {/* Non-blocking PIN ↔ City notice — customer can still save & checkout. */}
+          {cityMismatch && !errors.city && (
+            <p className="text-[11px] text-amber-400/90 mt-1 flex items-start gap-1">
+              <AlertCircle className="size-3 shrink-0 mt-0.5" />
+              The city entered does not exactly match postal records. Please verify your address.
+            </p>
+          )}
         </div>
         <input
           placeholder="State / Region"
