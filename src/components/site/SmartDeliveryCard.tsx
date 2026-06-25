@@ -115,19 +115,7 @@ export function SmartDeliveryCard({
 
       {/* Detail grid — only when we have a usable destination */}
       {(serviceable || serviceDown) && (
-        <div className="mt-2.5 grid grid-cols-3 gap-2.5">
-          <Stat
-            icon={<CalendarClock className="size-3.5" />}
-            label="Estimated"
-            value={eta}
-            tone="accent"
-          />
-          <Stat
-            icon={<Truck className="size-3.5" />}
-            label="Shipping"
-            value={shippingLabel}
-            tone={shippingLabel.toUpperCase() === "FREE" ? "emerald" : "default"}
-          />
+        <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <Stat
             icon={<Wallet className="size-3.5" />}
             label="COD"
