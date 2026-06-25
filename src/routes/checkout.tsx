@@ -114,6 +114,11 @@ function CheckoutPage() {
     if (beganCheckoutRef.current) return;
     if (loading || !user || !cartHydrated || detailed.length === 0) return;
     beganCheckoutRef.current = true;
+    logCheckout("proceed_to_checkout", {
+      items: detailed.length,
+      market,
+      value: detailed.reduce((s, i) => s + i.qty, 0),
+    });
     for (const i of detailed) void recordEvent({ type: "begin_checkout", productSlug: i.slug });
   }, [loading, user, cartHydrated, detailed]);
 
