@@ -380,6 +380,7 @@ function RootComponent() {
   const lowEnd = useLowEndDevice();
 
   useEffect(() => {
+    installChunkRecovery();
     registerServiceWorker();
   }, []);
   // Flag low-end devices on <html> so global CSS can drop GPU-expensive effects,
