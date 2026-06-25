@@ -129,6 +129,13 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   const set = <K extends keyof AddressInput>(k: K, v: AddressInput[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
 
+  /** Lightweight, fire-and-forget address-funnel analytics. */
+  const trackAddr = (event: string, meta: Record<string, unknown> = {}) => {
+    void import("@/lib/visitor").then((m) =>
+      m.trackEvent(event, { metadata: { form: "address", market, ...meta } }),
+    );
+  };
+
   const expectedRegion: MarketRegion = market === "india" ? "india" : "international";
   const quality = useMemo(
     () => scoreAddressQuality(form, { expectedRegion }),
