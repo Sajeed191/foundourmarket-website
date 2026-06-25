@@ -245,7 +245,6 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           }));
         } catch {
           // Coordinates are still saved even if reverse geocode fails.
-          setGeo({ confidence: 35, source: "GPS coordinates only" });
         }
         setGeoBusy(false);
       },
