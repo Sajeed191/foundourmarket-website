@@ -488,9 +488,18 @@ function CheckoutPage() {
   const placeOrder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!allowProceed) {
-      setError(service?.message ?? "This address isn't serviceable yet.");
+      const m = service?.message ?? "This address isn't serviceable yet.";
+      setError(m);
+      toast.error(m);
+      logCheckout("order_create_failed", { reason: "not_serviceable", postal: selectedPostal });
       return;
     }
+    logCheckout("address_submitted", {
+      paymentMethod: payMethod,
+      postal: selectedPostal,
+      market,
+      value: totalINR,
+    });
     purchaseItemsRef.current = detailed;
     import("@/lib/ga4").then((m) => m.ga4BeginCheckout(
       detailed.map((i) => ({
