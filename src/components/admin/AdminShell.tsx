@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, Users, BarChart3, Megaphone, Zap, Target, Flame,
   FileText, Truck, RotateCcw, Pencil, Activity, Wallet, Globe, Search,
   Boxes, Loader2, ShieldAlert, Menu, X, Sparkles, TrendingUp, ShoppingCart,
-  Cpu, ChevronRight, Mail, ShieldBan, Inbox, PackageCheck, MailCheck, LifeBuoy, Database, Images, Bell, Gem, Crown, Store, UserCog, AlertTriangle, Trophy, ShieldCheck, Gauge,
+  Cpu, ChevronRight, Mail, ShieldBan, Inbox, PackageCheck, MailCheck, LifeBuoy, Database, Images, Bell, Gem, Crown, Store, UserCog, AlertTriangle, Trophy, ShieldCheck, Gauge, Filter,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -36,6 +36,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-live", label: "Live activity", icon: Activity },
       { to: "/admin-analytics", label: "Analytics", icon: BarChart3 },
       { to: "/admin-checkout-analytics", label: "Checkout Conversion", icon: ShoppingCart, roles: ["admin", "super_admin", "manager"] },
+      { to: "/admin-checkout-funnel", label: "Checkout Funnel", icon: Filter, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-financial", label: "Financial", icon: Wallet, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-payments", label: "Payments", icon: Wallet, roles: ["admin", "super_admin", "manager", "support"] },
 

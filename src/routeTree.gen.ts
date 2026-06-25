@@ -86,6 +86,7 @@ import { Route as AdminEmailDeliveryRouteImport } from './routes/admin-email-del
 import { Route as AdminCustomersRouteImport } from './routes/admin-customers'
 import { Route as AdminCustomerIntelligenceRouteImport } from './routes/admin-customer-intelligence'
 import { Route as AdminCmsRouteImport } from './routes/admin-cms'
+import { Route as AdminCheckoutFunnelRouteImport } from './routes/admin-checkout-funnel'
 import { Route as AdminCheckoutAnalyticsRouteImport } from './routes/admin-checkout-analytics'
 import { Route as AdminCategoriesManageRouteImport } from './routes/admin-categories-manage'
 import { Route as AdminCategoriesRouteImport } from './routes/admin-categories'
@@ -540,6 +541,11 @@ const AdminCmsRoute = AdminCmsRouteImport.update({
   path: '/admin-cms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCheckoutFunnelRoute = AdminCheckoutFunnelRouteImport.update({
+  id: '/admin-checkout-funnel',
+  path: '/admin-checkout-funnel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCheckoutAnalyticsRoute = AdminCheckoutAnalyticsRouteImport.update({
   id: '/admin-checkout-analytics',
   path: '/admin-checkout-analytics',
@@ -896,6 +902,7 @@ export interface FileRoutesByFullPath {
   '/admin-categories': typeof AdminCategoriesRoute
   '/admin-categories-manage': typeof AdminCategoriesManageRoute
   '/admin-checkout-analytics': typeof AdminCheckoutAnalyticsRoute
+  '/admin-checkout-funnel': typeof AdminCheckoutFunnelRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -1040,6 +1047,7 @@ export interface FileRoutesByTo {
   '/admin-categories': typeof AdminCategoriesRoute
   '/admin-categories-manage': typeof AdminCategoriesManageRoute
   '/admin-checkout-analytics': typeof AdminCheckoutAnalyticsRoute
+  '/admin-checkout-funnel': typeof AdminCheckoutFunnelRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -1184,6 +1192,7 @@ export interface FileRoutesById {
   '/admin-categories': typeof AdminCategoriesRoute
   '/admin-categories-manage': typeof AdminCategoriesManageRoute
   '/admin-checkout-analytics': typeof AdminCheckoutAnalyticsRoute
+  '/admin-checkout-funnel': typeof AdminCheckoutFunnelRoute
   '/admin-cms': typeof AdminCmsRoute
   '/admin-customer-intelligence': typeof AdminCustomerIntelligenceRoute
   '/admin-customers': typeof AdminCustomersRouteWithChildren
@@ -1330,6 +1339,7 @@ export interface FileRouteTypes {
     | '/admin-categories'
     | '/admin-categories-manage'
     | '/admin-checkout-analytics'
+    | '/admin-checkout-funnel'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -1474,6 +1484,7 @@ export interface FileRouteTypes {
     | '/admin-categories'
     | '/admin-categories-manage'
     | '/admin-checkout-analytics'
+    | '/admin-checkout-funnel'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -1617,6 +1628,7 @@ export interface FileRouteTypes {
     | '/admin-categories'
     | '/admin-categories-manage'
     | '/admin-checkout-analytics'
+    | '/admin-checkout-funnel'
     | '/admin-cms'
     | '/admin-customer-intelligence'
     | '/admin-customers'
@@ -1762,6 +1774,7 @@ export interface RootRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCategoriesManageRoute: typeof AdminCategoriesManageRoute
   AdminCheckoutAnalyticsRoute: typeof AdminCheckoutAnalyticsRoute
+  AdminCheckoutFunnelRoute: typeof AdminCheckoutFunnelRoute
   AdminCmsRoute: typeof AdminCmsRoute
   AdminCustomerIntelligenceRoute: typeof AdminCustomerIntelligenceRoute
   AdminCustomersRoute: typeof AdminCustomersRouteWithChildren
@@ -2418,6 +2431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-checkout-funnel': {
+      id: '/admin-checkout-funnel'
+      path: '/admin-checkout-funnel'
+      fullPath: '/admin-checkout-funnel'
+      preLoaderRoute: typeof AdminCheckoutFunnelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-checkout-analytics': {
       id: '/admin-checkout-analytics'
       path: '/admin-checkout-analytics'
@@ -2963,6 +2983,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCategoriesManageRoute: AdminCategoriesManageRoute,
   AdminCheckoutAnalyticsRoute: AdminCheckoutAnalyticsRoute,
+  AdminCheckoutFunnelRoute: AdminCheckoutFunnelRoute,
   AdminCmsRoute: AdminCmsRoute,
   AdminCustomerIntelligenceRoute: AdminCustomerIntelligenceRoute,
   AdminCustomersRoute: AdminCustomersRouteWithChildren,
