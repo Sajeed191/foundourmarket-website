@@ -34,6 +34,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ShareDialog } from "@/components/site/ShareDialog";
 import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
 import { safeInternalPath } from "@/lib/safe-redirect";
+import { useLowEndDevice } from "@/lib/use-low-end-device";
+import { startPerfMonitoring } from "@/lib/perf-monitor";
 
 // Non-critical client-only shell: deferred out of the entry bundle so the
 // homepage/product/search first paint never pays for admin tooling, the live
@@ -352,8 +354,20 @@ function RootComponent() {
     () => typeof window !== "undefined" && hasOAuthReturnParams(),
   );
 
+  const lowEnd = useLowEndDevice();
+
   useEffect(() => {
     registerServiceWorker();
+  }, []);
+  // Flag low-end devices on <html> so global CSS can drop GPU-expensive effects,
+  // and start dev-only runtime performance monitoring (long tasks / FPS / heap).
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.dataset.lowEnd = lowEnd ? "true" : "false";
+    }
+  }, [lowEnd]);
+  useEffect(() => {
+    startPerfMonitoring();
   }, []);
   useEffect(() => {
     preloadCrisp();

@@ -6,6 +6,7 @@ import { rowToProduct, discountPercent, type Product } from "@/lib/products";
 import { useCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import { ProductCard } from "@/components/site/ProductCard";
+import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -489,9 +490,13 @@ function SearchPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
-                {results.map((p) => <ProductCard key={p.slug} product={p} />)}
-              </div>
+              <VirtualizedProductGrid
+                items={results}
+                cols={{ base: 2, md: 3, xl: 4 }}
+                className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6"
+                renderItem={(p: Product) => <ProductCard key={p.slug} product={p} />}
+              />
+
               {hasMore && (
                 <div className="mt-8 sm:mt-10 flex justify-center">
                   <button

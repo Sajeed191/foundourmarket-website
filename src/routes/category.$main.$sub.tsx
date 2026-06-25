@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAllCategories } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
 import { ProductCard } from "@/components/site/ProductCard";
+import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid";
+import type { Product } from "@/lib/products";
 import { titleizeSlug } from "@/lib/category-path";
 import { Loader2 } from "lucide-react";
 
@@ -99,9 +101,13 @@ function SubcategoryPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-          {items.map((p) => (<ProductCard key={p.slug} product={p} />))}
-        </div>
+        <VirtualizedProductGrid
+          items={items}
+          cols={{ base: 2, sm: 3, lg: 4 }}
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5"
+          renderItem={(p: Product) => <ProductCard key={p.slug} product={p} />}
+        />
+
       )}
     </div>
   );

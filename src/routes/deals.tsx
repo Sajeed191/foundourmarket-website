@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { useFlashDeals } from "@/lib/use-flash-deals";
 import { ProductCard } from "@/components/site/ProductCard";
+import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid";
+import type { Product } from "@/lib/products";
 
 export const Route = createFileRoute("/deals")({
   head: () => ({
@@ -293,8 +295,11 @@ function DealsPage() {
         {/* Products grid */}
         {visibleProducts.length > 0 ? (
           <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }}>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 [grid-auto-rows:1fr]">
-              {visibleProducts.map((p, i) => (
+            <VirtualizedProductGrid
+              items={visibleProducts}
+              cols={{ base: 2, lg: 4 }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 [grid-auto-rows:1fr]"
+              renderItem={(p: Product, i: number) => (
                 <motion.div
                   key={p.slug}
                   initial={{ opacity: 0, y: 16 }}
@@ -305,9 +310,10 @@ function DealsPage() {
                 >
                   <ProductCard product={p} forceBadge={p.flashDeal ? "flash_deal" : "hot_deal"} />
                 </motion.div>
-              ))}
-            </div>
+              )}
+            />
           </motion.section>
+
         ) : (
           <EmptyDeals />
         )}
