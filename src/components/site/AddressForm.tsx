@@ -452,6 +452,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
       <div>
         <input
           autoFocus
+          autoComplete="name"
           placeholder="Full name *"
           value={form.full_name}
           onChange={(e) => set("full_name", e.target.value)}
@@ -492,6 +493,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
       <div>
         <input
           placeholder="Address line 1 *"
+          autoComplete="address-line1"
           value={form.line1}
           onChange={(e) => set("line1", e.target.value)}
           onBlur={() => markTouched("line1")}
@@ -503,6 +505,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
       <div className="grid grid-cols-2 gap-3">
         <input
           placeholder="Address line 2 (optional)"
+          autoComplete="address-line2"
           value={form.line2 ?? ""}
           onChange={(e) => set("line2", e.target.value)}
           className={cls("line2")}
@@ -521,6 +524,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           <div className="relative">
             <input
               placeholder="PIN code *"
+              autoComplete="postal-code"
               inputMode="numeric"
               value={form.postal}
               onChange={(e) => set("postal", e.target.value)}
@@ -538,6 +542,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         <div>
           <input
             placeholder="Country *"
+            autoComplete="country-name"
             value={form.country}
             onChange={(e) => {
               countryTouched.current = true;
