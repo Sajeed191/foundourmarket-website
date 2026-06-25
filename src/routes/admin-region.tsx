@@ -114,6 +114,9 @@ function AdminRegionPage() {
   const setRegion = useServerFn(adminSetUserRegion);
   const review = useServerFn(adminReviewRegionRequest);
   const fetchDebug = useServerFn(getCheckoutRegionDebug);
+  // Only super admins may mutate a customer's locked market (server-enforced).
+  const { roles } = useStaffRoles();
+  const isSuperAdmin = roles.has("super_admin");
 
   const [tab, setTab] = useState<"customers" | "requests" | "debug">("requests");
   const [customers, setCustomers] = useState<any[]>([]);
