@@ -128,12 +128,6 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     );
   };
 
-  const expectedRegion: MarketRegion = market === "india" ? "india" : "international";
-  const quality = useMemo(
-    () => scoreAddressQuality(form, { expectedRegion }),
-    [form, expectedRegion],
-  );
-  const risk = useMemo(() => assessAddressRisk(form), [form]);
 
 
   // Keep the country field aligned with the detected region until the user
