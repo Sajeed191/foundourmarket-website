@@ -179,20 +179,44 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           // Pincode not in lookup DB — soft, non-blocking. Admin-only signal.
           setPinState("unverified");
           setResolvedPin(null);
-          trackAddr("pincode_lookup_unverified", { pincode: pin, reason: "not_found" });
+          trackAddr("unknown_pin_entered", { pincode: pin, reason: "not_found" });
         }
       } catch {
         // Network/API failure — also soft and non-blocking.
         if (cancelled) return;
         setPinState("unverified");
         setResolvedPin(null);
-        trackAddr("pincode_lookup_failed", { pincode: pin, reason: "lookup_error" });
+        trackAddr("serviceability_lookup_failed", { pincode: pin, reason: "lookup_error" });
       }
+
     })();
     return () => {
       cancelled = true;
     };
   }, [form.postal, form.country, validatePin]);
+
+  // Soft, NON-BLOCKING PIN ↔ City notice. When the postal lookup resolved a
+  // canonical city but the customer typed something that doesn't match (common
+  // for nearby towns, villages, or local names), we only warn — never block.
+  const cityMismatch = useMemo(() => {
+    const resolved = resolvedPin?.city?.trim().toLowerCase();
+    const entered = form.city.trim().toLowerCase();
+    if (!resolved || !entered) return false;
+    return !resolved.includes(entered) && !entered.includes(resolved);
+  }, [resolvedPin, form.city]);
+
+  useEffect(() => {
+    if (cityMismatch) {
+      trackAddr("pin_city_warning", {
+        pincode: (form.postal ?? "").trim(),
+        entered_city: form.city.trim(),
+        postal_city: resolvedPin?.city ?? null,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cityMismatch]);
+
+
 
 
   // Phase 1 — full structured GPS fill: reverse-geocode coordinates into every
@@ -571,6 +595,13 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             </datalist>
           )}
           <Err k="city" />
+          {/* Non-blocking PIN ↔ City notice — customer can still save & checkout. */}
+          {cityMismatch && !errors.city && (
+            <p className="text-[11px] text-amber-400/90 mt-1 flex items-start gap-1">
+              <AlertCircle className="size-3 shrink-0 mt-0.5" />
+              The city entered does not exactly match postal records. Please verify your address.
+            </p>
+          )}
         </div>
         <input
           placeholder="State / Region"
