@@ -887,6 +887,27 @@ function CheckoutPage() {
                 />
               )}
 
+              {/* Compact address confirmation — quick reassurance of where it ships */}
+              {selectedAddress && !addingAddress && !editingId && (
+                <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.05] px-4 py-3 flex items-start gap-3">
+                  <CheckCircle2 className="size-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-emerald-400">Delivering to {selectedAddress.full_name}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {[selectedAddress.line1, selectedAddress.line2, selectedAddress.city, selectedAddress.state, selectedAddress.postal].filter(Boolean).join(", ")}
+                    </p>
+                    {selectedAddress.phone && (
+                      <p className="text-[11px] text-muted-foreground">{selectedAddress.phone}</p>
+                    )}
+                  </div>
+                  <button type="button" onClick={() => setEditingId(selectedAddress.id)}
+                    className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-accent inline-flex items-center gap-1 shrink-0">
+                    <Pencil className="size-3" /> Edit
+                  </button>
+                </div>
+              )}
+
+
 
               {/* Payment method */}
               <section className="glass border border-white/10 rounded-2xl p-5 sm:p-6">
