@@ -35,6 +35,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-notifications", label: "Operations Center", icon: Bell },
       { to: "/admin-live", label: "Live activity", icon: Activity },
       { to: "/admin-analytics", label: "Analytics", icon: BarChart3 },
+      { to: "/admin-checkout-analytics", label: "Checkout Conversion", icon: ShoppingCart, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-financial", label: "Financial", icon: Wallet, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-payments", label: "Payments", icon: Wallet, roles: ["admin", "super_admin", "manager", "support"] },
 
