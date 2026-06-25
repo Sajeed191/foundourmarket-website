@@ -34,6 +34,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ShareDialog } from "@/components/site/ShareDialog";
 import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
 import { safeInternalPath } from "@/lib/safe-redirect";
+import { useLowEndDevice } from "@/lib/use-low-end-device";
+import { startPerfMonitoring } from "@/lib/perf-monitor";
 
 // Non-critical client-only shell: deferred out of the entry bundle so the
 // homepage/product/search first paint never pays for admin tooling, the live
