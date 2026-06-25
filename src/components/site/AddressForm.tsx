@@ -672,7 +672,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         <button
           type="button"
           onClick={submit}
-          disabled={busy}
+          disabled={busy || blockedByServiceability}
           className="flex-1 bg-accent text-accent-foreground font-bold px-5 py-3.5 rounded-2xl text-[11px] uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2 shadow-[0_0_30px_-8px_var(--color-accent)]"
         >
           {busy && <Loader2 className="size-3.5 animate-spin" />}
