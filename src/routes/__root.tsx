@@ -41,39 +41,40 @@ import { startPerfMonitoring } from "@/lib/perf-monitor";
 // homepage/product/search first paint never pays for admin tooling, the live
 // chat widget, the compare tray, or the install prompt. These mount after
 // hydration via the <DeferredShell> gate below.
-const AdminFloatingToolbar = lazy(() =>
+const AdminFloatingToolbar = lazyWithRetry(() =>
   import("@/components/admin/AdminFloatingToolbar").then((m) => ({
     default: m.AdminFloatingToolbar,
   })),
 );
-const AdminOverlayIndicator = lazy(() =>
+const AdminOverlayIndicator = lazyWithRetry(() =>
   import("@/components/admin/AdminOverlayIndicator").then((m) => ({
     default: m.AdminOverlayIndicator,
   })),
 );
-const AdminCommandCenter = lazy(() =>
+const AdminCommandCenter = lazyWithRetry(() =>
   import("@/components/admin/AdminCommandCenter").then((m) => ({ default: m.AdminCommandCenter })),
 );
-const AdminMobileBar = lazy(() =>
+const AdminMobileBar = lazyWithRetry(() =>
   import("@/components/admin/AdminMobileBar").then((m) => ({ default: m.AdminMobileBar })),
 );
-const CompareTray = lazy(() =>
+const CompareTray = lazyWithRetry(() =>
   import("@/components/site/CompareTray").then((m) => ({ default: m.CompareTray })),
 );
-const InstallPrompt = lazy(() =>
+const InstallPrompt = lazyWithRetry(() =>
   import("@/components/site/InstallPrompt").then((m) => ({ default: m.InstallPrompt })),
 );
-const LiveChat = lazy(() =>
+const LiveChat = lazyWithRetry(() =>
   import("@/components/chat/LiveChat").then((m) => ({ default: m.LiveChat })),
 );
-const SupportReplyWatcher = lazy(() =>
+const SupportReplyWatcher = lazyWithRetry(() =>
   import("@/components/chat/SupportReplyWatcher").then((m) => ({
     default: m.SupportReplyWatcher,
   })),
 );
-const RegionSelectModal = lazy(() =>
+const RegionSelectModal = lazyWithRetry(() =>
   import("@/components/site/RegionSelectModal").then((m) => ({ default: m.RegionSelectModal })),
 );
+
 
 function NotFoundComponent() {
   return (
