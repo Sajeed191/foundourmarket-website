@@ -77,6 +77,8 @@ function postalError(country: string, postal: string): string | null {
 export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save address" }: Props) {
   const validatePin = useServerFn(validateIndianPincode);
   const { market, countryCode } = useRegion();
+  // India market is country-locked: no country/flag/dial selectors anywhere.
+  const isIndia = market === "india";
 
   // Region-derived defaults so we never fall back to GB/+44 for Indian users.
   const regionCountry = useMemo<CountryCode>(
@@ -145,6 +147,14 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     if (countryTouched.current) return;
     setForm((p) => (p.country === regionCountryName ? p : { ...p, country: regionCountryName }));
   }, [regionCountryName]);
+
+  // India market is country-locked — the stored country is always "India",
+  // regardless of any previously saved value or geocoder result.
+  useEffect(() => {
+    if (!isIndia) return;
+    setForm((p) => (p.country === "India" ? p : { ...p, country: "India" }));
+  }, [isIndia]);
+
 
 
   // Auto city/state from Indian pincode (best-effort autofill + area
@@ -311,7 +321,9 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             city: city || p.city,
             state: state || p.state,
             postal: postal || p.postal,
-            country: country || p.country,
+            // India market is country-locked — current location always resolves
+            // to an Indian address; never overwrite with a geocoded country.
+            country: isIndia ? "India" : country || p.country,
           }));
         } catch {
           // Coordinates are still saved even if reverse geocode fails.
@@ -532,6 +544,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             value={form.phone ?? ""}
             defaultCountry={regionCountry}
             autoDetect={false}
+            lockCountry={isIndia ? "IN" : undefined}
             onChange={(e164, valid) => {
               set("phone", e164);
               setPhoneValid(valid);
@@ -547,6 +560,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             value={form.alternate_phone ?? ""}
             defaultCountry={regionCountry}
             autoDetect={false}
+            lockCountry={isIndia ? "IN" : undefined}
             onChange={(e164) => set("alternate_phone", e164)}
             placeholder="Alternate"
           />
@@ -618,19 +632,32 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           )}
         </div>
         <div>
-          <input
-            placeholder="Country *"
-            autoComplete="country-name"
-            value={form.country}
-            onChange={(e) => {
-              countryTouched.current = true;
-              set("country", e.target.value);
-            }}
-            onBlur={() => markTouched("country")}
-            className={cls("country")}
-          />
+          {isIndia ? (
+            <input
+              placeholder="Country *"
+              autoComplete="country-name"
+              value="India"
+              readOnly
+              aria-readonly="true"
+              tabIndex={-1}
+              className={`${base} border-border opacity-90 cursor-not-allowed`}
+            />
+          ) : (
+            <input
+              placeholder="Country *"
+              autoComplete="country-name"
+              value={form.country}
+              onChange={(e) => {
+                countryTouched.current = true;
+                set("country", e.target.value);
+              }}
+              onBlur={() => markTouched("country")}
+              className={cls("country")}
+            />
+          )}
           <Err k="country" />
         </div>
+
 
       </div>
 

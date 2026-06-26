@@ -21,13 +21,25 @@ const REGION_NAMES =
     ? new Intl.DisplayNames(["en"], { type: "region" })
     : null;
 
-const COUNTRIES = getCountries()
-  .map((cc) => ({
-    cc,
-    name: REGION_NAMES?.of(cc) ?? cc,
-    dial: getCountryCallingCode(cc),
-  }))
-  .sort((a, b) => a.name.localeCompare(b.name));
+type CountryOption = { cc: string; name: string; dial: string };
+
+/**
+ * Build the full international country list lazily. Computing ~250 entries with
+ * Intl.DisplayNames is only needed for the International market, so we defer it
+ * until the selector is actually opened (Indian users never pay this cost).
+ */
+let COUNTRY_CACHE: CountryOption[] | null = null;
+function buildCountries(): CountryOption[] {
+  if (COUNTRY_CACHE) return COUNTRY_CACHE;
+  COUNTRY_CACHE = getCountries()
+    .map((cc) => ({
+      cc,
+      name: REGION_NAMES?.of(cc) ?? cc,
+      dial: getCountryCallingCode(cc),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return COUNTRY_CACHE;
+}
 
 type Props = {
   /** Stored value in E.164 format (e.g. +919876543210) */
@@ -42,6 +54,12 @@ type Props = {
    * `defaultCountry` so an en-GB browser never forces +44 on an Indian user.
    */
   autoDetect?: boolean;
+  /**
+   * When set, the country is FIXED and the selector is hidden entirely.
+   * Used for the India-only market: 🇮🇳 +91, no dropdown, no flag picker,
+   * and validation is locked to Indian mobile numbers.
+   */
+  lockCountry?: CountryCode;
   invalid?: boolean;
   id?: string;
   placeholder?: string;
@@ -53,16 +71,18 @@ export function PhoneInput({
   onBlur,
   defaultCountry = "IN",
   autoDetect = true,
+  lockCountry,
   invalid,
   id,
   placeholder = "Phone number",
 }: Props) {
+  const locked = !!lockCountry;
   const parsed = useMemo(
     () => (value ? parsePhoneNumberFromString(value) : undefined),
     [value]
   );
   const [country, setCountry] = useState<CountryCode>(
-    (parsed?.country as CountryCode) ?? defaultCountry
+    lockCountry ?? (parsed?.country as CountryCode) ?? defaultCountry
   );
   const [national, setNational] = useState<string>(
     parsed ? parsed.formatNational() : ""
@@ -72,10 +92,15 @@ export function PhoneInput({
   const rootRef = useRef<HTMLDivElement>(null);
   const autoDetected = useRef(false);
 
-  // Auto-detect country once, only when there is no value yet AND the parent
-  // has not supplied an authoritative region-derived default.
+  // Country is permanently fixed in locked mode — keep state pinned to it.
   useEffect(() => {
-    if (autoDetected.current || value || !autoDetect) return;
+    if (lockCountry) setCountry(lockCountry);
+  }, [lockCountry]);
+
+  // Auto-detect country once, only when there is no value yet AND the parent
+  // has not supplied an authoritative region-derived default. Never in locked mode.
+  useEffect(() => {
+    if (locked || autoDetected.current || value || !autoDetect) return;
     autoDetected.current = true;
     try {
       const locale = navigator.language || "";
@@ -86,22 +111,24 @@ export function PhoneInput({
     } catch {
       /* keep default */
     }
-  }, [value, autoDetect]);
+  }, [value, autoDetect, locked]);
 
   // Follow a region-derived default country while the field is still empty.
   useEffect(() => {
-    if (value) return;
+    if (locked || value) return;
     setCountry(defaultCountry);
-  }, [defaultCountry, value]);
+  }, [defaultCountry, value, locked]);
 
 
   // Keep local country in sync if a parsed value arrives later (edit mode).
+  // In locked mode the country stays fixed regardless of the parsed value.
   useEffect(() => {
+    if (locked) return;
     if (parsed?.country) {
       setCountry(parsed.country as CountryCode);
       setNational(parsed.formatNational());
     }
-  }, [parsed]);
+  }, [parsed, locked]);
 
   // Close dropdown on outside click.
   useEffect(() => {
@@ -131,16 +158,19 @@ export function PhoneInput({
     emit(digits, cc);
   };
 
+  // Only build the heavy international list when the picker is actually used.
   const filtered = useMemo(() => {
+    if (locked || !open) return [];
+    const all = buildCountries();
     const q = query.trim().toLowerCase();
-    if (!q) return COUNTRIES;
-    return COUNTRIES.filter(
+    if (!q) return all;
+    return all.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.cc.toLowerCase().includes(q) ||
         c.dial.includes(q)
     );
-  }, [query]);
+  }, [query, open, locked]);
 
   return (
     <div ref={rootRef} className="relative">
@@ -149,19 +179,31 @@ export function PhoneInput({
           invalid ? "border-destructive/60" : "border-border"
         }`}
       >
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Select country"
-          aria-expanded={open}
-          className="flex items-center gap-1.5 pl-3 pr-2.5 text-sm border-r border-border/70 shrink-0"
-        >
-          <span className="text-base leading-none">{flagEmoji(country)}</span>
-          <span className="font-mono text-xs text-muted-foreground">
-            +{getCountryCallingCode(country)}
-          </span>
-          <ChevronDown className="size-3 text-muted-foreground" />
-        </button>
+        {locked ? (
+          <div
+            aria-label={`Country code +${getCountryCallingCode(country)}`}
+            className="flex items-center gap-1.5 pl-3 pr-2.5 text-sm border-r border-border/70 shrink-0 select-none"
+          >
+            <span className="text-base leading-none">{flagEmoji(country)}</span>
+            <span className="font-mono text-xs text-muted-foreground">
+              +{getCountryCallingCode(country)}
+            </span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-label="Select country"
+            aria-expanded={open}
+            className="flex items-center gap-1.5 pl-3 pr-2.5 text-sm border-r border-border/70 shrink-0"
+          >
+            <span className="text-base leading-none">{flagEmoji(country)}</span>
+            <span className="font-mono text-xs text-muted-foreground">
+              +{getCountryCallingCode(country)}
+            </span>
+            <ChevronDown className="size-3 text-muted-foreground" />
+          </button>
+        )}
         <input
           id={id}
           inputMode="tel"
@@ -174,7 +216,7 @@ export function PhoneInput({
         />
       </div>
 
-      {open && (
+      {!locked && open && (
         <div className="absolute z-50 mt-1.5 w-full max-h-64 overflow-hidden rounded-2xl border border-border bg-popover shadow-xl">
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
             <Search className="size-3.5 text-muted-foreground" />
