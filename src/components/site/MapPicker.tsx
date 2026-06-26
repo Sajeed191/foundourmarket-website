@@ -71,6 +71,11 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
 
   // Live preview state.
   const [previewLines, setPreviewLines] = useState<string[]>([]);
+  const [previewMeta, setPreviewMeta] = useState<{ pin: string; city: string; state: string }>({
+    pin: "",
+    city: "",
+    state: "",
+  });
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState(false);
   const previewAbort = useRef<AbortController | null>(null);
