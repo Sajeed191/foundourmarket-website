@@ -671,7 +671,10 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           placeholder="State / Region"
           value={form.state ?? ""}
           autoComplete="address-level1"
-          onChange={(e) => set("state", e.target.value)}
+          onChange={(e) => {
+            set("state", e.target.value);
+            trackManualEdit("state");
+          }}
           className={cls("state")}
         />
       </div>
