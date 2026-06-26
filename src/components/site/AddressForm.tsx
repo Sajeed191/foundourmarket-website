@@ -77,6 +77,8 @@ function postalError(country: string, postal: string): string | null {
 export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save address" }: Props) {
   const validatePin = useServerFn(validateIndianPincode);
   const { market, countryCode } = useRegion();
+  // India market is country-locked: no country/flag/dial selectors anywhere.
+  const isIndia = market === "india";
 
   // Region-derived defaults so we never fall back to GB/+44 for Indian users.
   const regionCountry = useMemo<CountryCode>(
