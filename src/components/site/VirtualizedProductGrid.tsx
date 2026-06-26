@@ -54,13 +54,26 @@ export function VirtualizedProductGrid<T>({
 }: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  // Track the container's distance from the document top as LIVE state. The
+  // window virtualizer needs this as `scrollMargin` to place rows correctly.
+  // Reading `parentRef.current.offsetTop` only at render time goes stale when
+  // content above the grid reflows (lazy images decoding, async banners) — on
+  // Android that stale offset mis-positions rows so they overlap previously
+  // painted rows, which reads as duplicated / ghosted cards.
+  const [offsetTop, setOffsetTop] = useState(0);
 
   useEffect(() => {
     const el = parentRef.current;
     if (!el) return;
-    setWidth(el.clientWidth);
-    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
+    const measure = () => {
+      setWidth(el.clientWidth);
+      const rect = el.getBoundingClientRect();
+      setOffsetTop(rect.top + window.scrollY);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
+    ro.observe(document.body);
     return () => ro.disconnect();
   }, []);
 
@@ -73,7 +86,7 @@ export function VirtualizedProductGrid<T>({
     count: shouldVirtualize ? rowCount : 0,
     estimateSize: () => estimateRowHeight + gap,
     overscan,
-    scrollMargin: parentRef.current?.offsetTop ?? 0,
+    scrollMargin: offsetTop,
   });
 
   // Fallback: plain responsive grid (also the SSR / first-paint output).
