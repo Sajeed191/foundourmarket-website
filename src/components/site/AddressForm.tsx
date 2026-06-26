@@ -624,19 +624,32 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           )}
         </div>
         <div>
-          <input
-            placeholder="Country *"
-            autoComplete="country-name"
-            value={form.country}
-            onChange={(e) => {
-              countryTouched.current = true;
-              set("country", e.target.value);
-            }}
-            onBlur={() => markTouched("country")}
-            className={cls("country")}
-          />
+          {isIndia ? (
+            <input
+              placeholder="Country *"
+              autoComplete="country-name"
+              value="India"
+              readOnly
+              aria-readonly="true"
+              tabIndex={-1}
+              className={`${base} border-border opacity-90 cursor-not-allowed`}
+            />
+          ) : (
+            <input
+              placeholder="Country *"
+              autoComplete="country-name"
+              value={form.country}
+              onChange={(e) => {
+                countryTouched.current = true;
+                set("country", e.target.value);
+              }}
+              onBlur={() => markTouched("country")}
+              className={cls("country")}
+            />
+          )}
           <Err k="country" />
         </div>
+
 
       </div>
 
