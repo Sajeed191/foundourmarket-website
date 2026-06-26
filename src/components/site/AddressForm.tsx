@@ -256,29 +256,84 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
 
 
 
-  // Phase 1 — full structured GPS fill: reverse-geocode coordinates into every
-  // address field, detect the region, sync country, and store a confidence score.
+  // Shared structured autofill used by BOTH "Current location" (GPS) and
+  // "Select on map". Reverse-geocoded fields enrich (never overwrite) what the
+  // customer already typed; the India Post PIN lookup is the primary signal.
+  const applyGeoAddress = async (
+    latitude: number,
+    longitude: number,
+    a: Record<string, string>,
+  ) => {
+    set("latitude", latitude);
+    set("longitude", longitude);
+
+    const line1 = [a.house_number, a.road || a.pedestrian || a.footway].filter(Boolean).join(" ");
+    const area = a.neighbourhood || a.suburb || a.quarter || a.hamlet || "";
+    const locality = a.suburb || a.city_district || a.residential || "";
+    let city = a.city || a.town || a.village || a.municipality || a.county || "";
+    let district = a.state_district || a.county || "";
+    let state = a.state || "";
+    const postal = a.postcode || "";
+    const country = a.country || "";
+
+    if (country) countryTouched.current = true;
+
+    if (/^\d{6}$/.test(postal) && (country === "" || /india/i.test(country))) {
+      try {
+        const v = await validatePin({ data: { pincode: postal } });
+        if (v.valid) {
+          trackAddr("gps_lookup_success", { pincode: postal });
+          state = v.state || state;
+          district = v.district || district;
+          city = v.city || city;
+        } else {
+          trackAddr(v.reason === "service_down" ? "gps_lookup_failed" : "unknown_pin", {
+            pincode: postal,
+            reason: v.reason ?? "not_found",
+          });
+        }
+      } catch {
+        trackAddr("gps_lookup_failed", { pincode: postal, reason: "lookup_error" });
+      }
+    } else if (postal || city || state) {
+      trackAddr("gps_lookup_success", { pincode: postal || null, non_india: true });
+    }
+
+    setForm((p) => ({
+      ...p,
+      line1: p.line1 || line1,
+      line2: p.line2 || [locality, area, district].filter(Boolean).join(", "),
+      landmark: p.landmark || (area && area !== locality ? area : p.landmark),
+      city: city || p.city,
+      state: state || p.state,
+      postal: postal || p.postal,
+      // India market is country-locked — geocoded country is ignored.
+      country: isIndia ? "India" : country || p.country,
+    }));
+    setGeoStatus(city || postal || state ? "ok" : "fail");
+  };
+
+  // 📍 Current Location — GPS detect + reverse geocode. Never blocks checkout.
   const useCurrentLocation = async () => {
     if (!navigator.geolocation) {
       setError("Location is not supported on this device.");
+      setGeoStatus("fail");
       return;
     }
+    setMode("gps");
     setGeoBusy(true);
     setError(null);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        set("latitude", latitude);
-        set("longitude", longitude);
         try {
-          // Hard timeout on reverse geocode so GPS never hangs the form.
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), 8000);
           let j: any = null;
           try {
             const res = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latitude}&lon=${longitude}`,
-              { headers: { Accept: "application/json" }, signal: controller.signal }
+              { headers: { Accept: "application/json" }, signal: controller.signal },
             );
             j = await res.json();
           } catch {
@@ -286,72 +341,33 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           } finally {
             clearTimeout(timer);
           }
-          const a = j?.address ?? {};
-
-          const line1 = [a.house_number, a.road || a.pedestrian || a.footway]
-            .filter(Boolean)
-            .join(" ");
-          const area = a.neighbourhood || a.suburb || a.quarter || a.hamlet || "";
-          const locality = a.suburb || a.city_district || a.residential || "";
-          let city = a.city || a.town || a.village || a.municipality || a.county || "";
-          let district = a.state_district || a.county || "";
-          let state = a.state || "";
-          const postal = a.postcode || "";
-          const country = a.country || "";
-
-          if (country) countryTouched.current = true;
-
-          // PIN code is the PRIMARY signal. When the reverse geocoder returns a
-          // 6-digit Indian PIN, verify it against India Post and PREFER the
-          // official state/district/city over the geocoder's wording (which is
-          // often a village/locality/post-office name, not the India Post city).
-          // A mismatch or failed verification NEVER blocks — it only enriches.
-          if (/^\d{6}$/.test(postal) && (country === "" || /india/i.test(country))) {
-            try {
-              const v = await validatePin({ data: { pincode: postal } });
-              if (v.valid) {
-                trackAddr("gps_lookup_success", { pincode: postal });
-                state = v.state || state;
-                district = v.district || district;
-                city = v.city || city;
-              } else {
-                trackAddr(v.reason === "service_down" ? "gps_lookup_failed" : "unknown_pin", {
-                  pincode: postal,
-                  reason: v.reason ?? "not_found",
-                });
-              }
-            } catch {
-              trackAddr("gps_lookup_failed", { pincode: postal, reason: "lookup_error" });
-            }
-          } else if (postal || city || state) {
-            trackAddr("gps_lookup_success", { pincode: postal || null, non_india: true });
-          }
-
-          setForm((p) => ({
-            ...p,
-            line1: p.line1 || line1,
-            line2: p.line2 || [locality, area, district].filter(Boolean).join(", "),
-            landmark: p.landmark || (area && area !== locality ? area : p.landmark),
-            city: city || p.city,
-            state: state || p.state,
-            postal: postal || p.postal,
-            // India market is country-locked — current location always resolves
-            // to an Indian address; never overwrite with a geocoded country.
-            country: isIndia ? "India" : country || p.country,
-          }));
+          await applyGeoAddress(latitude, longitude, j?.address ?? {});
         } catch {
-          // Coordinates are still saved even if reverse geocode fails.
+          set("latitude", latitude);
+          set("longitude", longitude);
+          setGeoStatus("ok");
           trackAddr("gps_lookup_failed", { reason: "geocode_error" });
         }
         setGeoBusy(false);
       },
       () => {
-        setError("Couldn't access your location. You can enter the address manually.");
+        setError("Unable to detect location. Please enter your address manually.");
+        setGeoStatus("fail");
         trackAddr("gps_lookup_failed", { reason: "permission_denied" });
         setGeoBusy(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000 },
     );
+  };
+
+  // 🗺 Select on Map — confirm handler from the fullscreen Leaflet picker.
+  const onMapConfirm = async (r: MapPickResult) => {
+    setMapOpen(false);
+    setMode("map");
+    setGeoBusy(true);
+    trackAddr("map_location_selected", { lat: r.lat, lng: r.lng });
+    await applyGeoAddress(r.lat, r.lng, r.address);
+    setGeoBusy(false);
   };
 
   const fieldError = (k: string, f = form): string | undefined => {
