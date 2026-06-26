@@ -531,11 +531,12 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
       </div>
 
       <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
-        <div className="min-w-0">
+        <div class="min-w-0">
           <PhoneInput
             value={form.phone ?? ""}
             defaultCountry={regionCountry}
             autoDetect={false}
+            lockCountry={isIndia ? "IN" : undefined}
             onChange={(e164, valid) => {
               set("phone", e164);
               setPhoneValid(valid);
@@ -551,6 +552,7 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             value={form.alternate_phone ?? ""}
             defaultCountry={regionCountry}
             autoDetect={false}
+            lockCountry={isIndia ? "IN" : undefined}
             onChange={(e164) => set("alternate_phone", e164)}
             placeholder="Alternate"
           />
