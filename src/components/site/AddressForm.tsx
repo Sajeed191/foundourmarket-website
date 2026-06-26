@@ -642,7 +642,10 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             value={form.city}
             list="pin-areas"
             autoComplete="address-level2"
-            onChange={(e) => set("city", e.target.value)}
+            onChange={(e) => {
+              set("city", e.target.value);
+              trackManualEdit("city");
+            }}
             onBlur={() => markTouched("city")}
             className={cls("city")}
           />
