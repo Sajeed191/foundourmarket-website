@@ -502,18 +502,108 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         })}
       </div>
 
-      <button
-        type="button"
-        onClick={useCurrentLocation}
-        disabled={geoBusy}
-        className="w-full inline-flex items-center justify-center gap-2 border border-accent/40 text-accent rounded-2xl py-2.5 text-[11px] uppercase tracking-widest font-mono hover:bg-accent/10 transition-all disabled:opacity-60"
-      >
-        {geoBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Locate className="size-3.5" />}
-        Use current location
-      </button>
+      {/* Premium address modes — Flipkart-style cards. Only one active. */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <button
+          type="button"
+          onClick={useCurrentLocation}
+          disabled={geoBusy}
+          aria-pressed={mode === "gps"}
+          className={`relative overflow-hidden text-left rounded-[20px] border p-3.5 min-h-[88px] transition-all duration-200 disabled:opacity-70 ${
+            mode === "gps"
+              ? "border-accent bg-accent/10 shadow-[0_0_28px_-8px_var(--color-accent)]"
+              : "border-border bg-background/50 hover:border-accent/40"
+          }`}
+        >
+          <span
+            className={`grid place-items-center size-9 rounded-xl mb-2 ${
+              mode === "gps" ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"
+            }`}
+          >
+            {geoBusy && mode === "gps" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Navigation className="size-4" />
+            )}
+          </span>
+          <span className="block text-[13px] font-semibold">Current Location</span>
+          <span className="block text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+            <Zap className="size-3" /> Detect using GPS · Fastest
+          </span>
+        </button>
 
-      {/* Geo detection runs silently in the background — no confidence scores,
-          detection methods, or region diagnostics are ever shown to customers. */}
+        <button
+          type="button"
+          onClick={() => setMapOpen(true)}
+          aria-pressed={mode === "map"}
+          className={`relative overflow-hidden text-left rounded-[20px] border p-3.5 min-h-[88px] transition-all duration-200 ${
+            mode === "map"
+              ? "border-accent bg-accent/10 shadow-[0_0_28px_-8px_var(--color-accent)]"
+              : "border-border bg-background/50 hover:border-accent/40"
+          }`}
+        >
+          <span
+            className={`grid place-items-center size-9 rounded-xl mb-2 ${
+              mode === "map" ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"
+            }`}
+          >
+            <MapIcon className="size-4" />
+          </span>
+          <span className="block text-[13px] font-semibold">Select on Map</span>
+          <span className="block text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+            <MapPin className="size-3" /> Choose exact location
+          </span>
+        </button>
+      </div>
+
+      {/* Selected-address preview after GPS / map autofill */}
+      {geoStatus === "ok" && (form.city || form.postal || form.state) && (
+        <div className="rounded-[18px] border border-accent/30 bg-accent/[0.06] p-3.5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-accent flex items-center gap-1.5">
+                <MapPin className="size-3" /> Selected address
+              </p>
+              <p className="text-sm mt-1.5 leading-relaxed">
+                {[form.line1, form.line2, form.city, form.state, form.postal, form.country]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+              <p className="text-[11px] text-emerald-400 mt-1.5 flex items-center gap-1">
+                <CheckCircle2 className="size-3" /> Verified location
+              </p>
+            </div>
+            <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-1 shrink-0">
+              <Pencil className="size-3" /> Edit below
+            </span>
+          </div>
+        </div>
+      )}
+
+      {geoStatus === "fail" && (
+        <p className="text-[11px] text-amber-400/90 flex items-center gap-1.5">
+          <AlertCircle className="size-3.5 shrink-0" />
+          Unable to detect location. Please enter your address manually.
+        </p>
+      )}
+
+      {/* Fullscreen map picker — Leaflet loads lazily only when opened. */}
+      {mapOpen && (
+        <Suspense
+          fallback={
+            <div className="fixed inset-0 z-[2100] grid place-items-center bg-background/90">
+              <Loader2 className="size-6 animate-spin text-accent" />
+            </div>
+          }
+        >
+          <MapPicker
+            initial={{ lat: form.latitude, lng: form.longitude }}
+            lowEnd={lowEnd}
+            onConfirm={onMapConfirm}
+            onCancel={() => setMapOpen(false)}
+          />
+        </Suspense>
+      )}
 
 
 
