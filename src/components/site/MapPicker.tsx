@@ -216,33 +216,44 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
   };
 
   return (
-    <div className="fixed inset-0 z-[2100] flex flex-col bg-background">
-      {/* Search bar */}
-      <div className="relative z-[2200] p-3 border-b border-border bg-card/95 backdrop-blur">
+    <div
+      className="fixed inset-0 z-[99999] flex flex-col bg-background"
+      style={{ height: "100dvh" }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Select delivery location on map"
+    >
+      {/* Top bar — back, title, search */}
+      <div
+        className="relative z-[2200] shrink-0 border-b border-border bg-card/95 px-3 pb-3 backdrop-blur"
+        style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+      >
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onCancel}
-            aria-label="Cancel"
-            className="grid place-items-center size-11 rounded-2xl border border-border text-muted-foreground hover:text-foreground shrink-0"
+            aria-label="Back"
+            className="grid size-12 shrink-0 place-items-center rounded-2xl border border-border text-muted-foreground hover:text-foreground"
           >
-            <X className="size-5" />
+            <ArrowLeft className="size-5" />
           </button>
-          <form onSubmit={runSearch} className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search city, village, street, landmark, PIN…"
-              className="w-full h-11 pl-10 pr-10 rounded-2xl bg-background border border-border text-sm outline-none focus:border-accent"
-            />
-            {searching && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground animate-spin" />
-            )}
-          </form>
+          <h2 className="min-w-0 flex-1 truncate text-sm font-bold">Select delivery location</h2>
         </div>
+        <form onSubmit={runSearch} className="relative mt-2.5">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            aria-label="Search address"
+            placeholder="Search city, village, street, landmark, PIN…"
+            className="h-12 w-full rounded-2xl border border-border bg-background pl-10 pr-10 text-sm outline-none focus:border-accent"
+          />
+          {searching && (
+            <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+          )}
+        </form>
         {results.length > 0 && (
-          <ul className="mt-2 max-h-56 overflow-auto rounded-2xl border border-border bg-card divide-y divide-border">
+          <ul className="absolute inset-x-3 z-[2300] mt-2 max-h-64 divide-y divide-border overflow-auto rounded-2xl border border-border bg-card shadow-xl">
             {results.map((r, i) => (
               <li key={i}>
                 <button
@@ -252,9 +263,9 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
                     setResults([]);
                     setQ(r.name.split(",")[0] ?? r.name);
                   }}
-                  className="w-full text-left px-3 py-3 text-xs hover:bg-white/5 flex items-start gap-2"
+                  className="flex w-full items-start gap-2 px-3 py-3 text-left text-xs hover:bg-white/5"
                 >
-                  <MapPin className="size-3.5 mt-0.5 text-accent shrink-0" />
+                  <MapPin className="mt-0.5 size-3.5 shrink-0 text-accent" />
                   <span className="line-clamp-2">{r.name}</span>
                 </button>
               </li>
@@ -263,50 +274,74 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
         )}
       </div>
 
-      {/* Map */}
-      <div className="relative flex-1">
+      {/* Map — fills remaining space */}
+      <div className="relative min-h-0 flex-1">
         <div ref={mapEl} className="absolute inset-0" />
         {/* Fixed centre pin */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full z-[1000]">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-[1000] -translate-x-1/2 -translate-y-full">
           <MapPin
-            className={`size-9 text-accent fill-accent/20 ${lowEnd ? "" : "drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"}`}
+            className={`size-9 fill-accent/20 text-accent ${lowEnd ? "" : "drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"}`}
           />
         </div>
         <button
           type="button"
           onClick={locateMe}
-          aria-label="Use my location"
-          className="absolute right-4 bottom-4 z-[1000] grid place-items-center size-12 rounded-full bg-card border border-accent/40 text-accent shadow-lg"
+          aria-label="Use my current location"
+          className="absolute bottom-4 right-4 z-[1000] grid size-12 place-items-center rounded-full border border-accent/40 bg-card text-accent shadow-lg"
         >
           <Crosshair className="size-5" />
         </button>
       </div>
 
-      {/* Footer — bottom sheet with live preview + confirm */}
+      {/* Bottom sheet — live preview + sticky confirm */}
       <div
-        className={`p-4 border-t border-border bg-card rounded-t-3xl -mt-4 relative z-[1100] space-y-3 ${lowEnd ? "" : "backdrop-blur shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.5)]"}`}
+        className={`relative z-[1100] -mt-4 shrink-0 space-y-3 rounded-t-3xl border-t border-border bg-card px-4 pt-4 ${lowEnd ? "" : "backdrop-blur shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.5)]"}`}
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
+        <div className="mx-auto h-1 w-10 rounded-full bg-border" aria-hidden />
+
         {/* Selected address preview */}
-        <div className="rounded-2xl border border-border bg-background/60 p-3 min-h-[64px]">
+        <div className="rounded-2xl border border-border bg-background/60 p-3">
           <div className="flex items-start gap-2">
-            <MapPin className="size-4 mt-0.5 text-accent shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-0.5">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
+            <div className="min-w-0 flex-1">
+              <p className="mb-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
                 Selected address
               </p>
               {previewLoading ? (
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Loader2 className="size-3 animate-spin" /> Finding address…
                 </p>
               ) : previewError ? (
-                <p className="text-xs text-amber-500/90 flex items-start gap-1.5">
-                  <AlertCircle className="size-3.5 mt-0.5 shrink-0" />
+                <p className="flex items-start gap-1.5 text-xs text-amber-500/90">
+                  <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
                   Unable to fetch address. You can still confirm this location.
                 </p>
               ) : previewLines.length > 0 ? (
-                <p className="text-xs leading-relaxed text-foreground line-clamp-3">
-                  {previewLines.join(", ")}
-                </p>
+                <>
+                  <p className="line-clamp-2 text-xs leading-relaxed text-foreground">
+                    {previewLines.join(", ")}
+                  </p>
+                  {(previewMeta.city || previewMeta.state || previewMeta.pin) && (
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {previewMeta.city && (
+                        <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">
+                          {previewMeta.city}
+                        </span>
+                      )}
+                      {previewMeta.state && (
+                        <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">
+                          {previewMeta.state}
+                        </span>
+                      )}
+                      {previewMeta.pin && (
+                        <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">
+                          PIN {previewMeta.pin}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-xs text-muted-foreground">
                   Move the map to position the pin on your exact location.
@@ -316,24 +351,15 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-5 h-12 rounded-2xl text-[11px] uppercase tracking-widest border border-border hover:bg-white/5"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={confirm}
-            disabled={confirming}
-            className={`flex-1 inline-flex items-center justify-center gap-2 bg-accent text-accent-foreground font-bold h-12 rounded-2xl text-[11px] uppercase tracking-widest hover:brightness-110 disabled:opacity-60 ${lowEnd ? "" : "shadow-[0_0_30px_-8px_var(--color-accent)]"}`}
-          >
-            {confirming ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-            Confirm location
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={confirm}
+          disabled={confirming}
+          className={`inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-accent text-[12px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110 disabled:opacity-60 ${lowEnd ? "" : "shadow-[0_0_30px_-8px_var(--color-accent)]"}`}
+        >
+          {confirming ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+          Confirm this location
+        </button>
       </div>
     </div>
   );
