@@ -231,11 +231,21 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         set("latitude", latitude);
         set("longitude", longitude);
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latitude}&lon=${longitude}`,
-            { headers: { Accept: "application/json" } }
-          );
-          const j = await res.json();
+          // Hard timeout on reverse geocode so GPS never hangs the form.
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 8000);
+          let j: any = null;
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latitude}&lon=${longitude}`,
+              { headers: { Accept: "application/json" }, signal: controller.signal }
+            );
+            j = await res.json();
+          } catch {
+            trackAddr("reverse_geocode_timeout", { latitude, longitude });
+          } finally {
+            clearTimeout(timer);
+          }
           const a = j?.address ?? {};
 
           const line1 = [a.house_number, a.road || a.pedestrian || a.footway]
@@ -243,22 +253,44 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
             .join(" ");
           const area = a.neighbourhood || a.suburb || a.quarter || a.hamlet || "";
           const locality = a.suburb || a.city_district || a.residential || "";
-          const city = a.city || a.town || a.village || a.municipality || a.county || "";
-          const district = a.state_district || a.county || "";
-          const state = a.state || "";
+          let city = a.city || a.town || a.village || a.municipality || a.county || "";
+          let district = a.state_district || a.county || "";
+          let state = a.state || "";
           const postal = a.postcode || "";
           const country = a.country || "";
 
           if (country) countryTouched.current = true;
 
-          // Reverse-geocoded fields auto-fill the form silently; no confidence
-          // score or detection source is surfaced to the customer.
-
+          // PIN code is the PRIMARY signal. When the reverse geocoder returns a
+          // 6-digit Indian PIN, verify it against India Post and PREFER the
+          // official state/district/city over the geocoder's wording (which is
+          // often a village/locality/post-office name, not the India Post city).
+          // A mismatch or failed verification NEVER blocks — it only enriches.
+          if (/^\d{6}$/.test(postal) && (country === "" || /india/i.test(country))) {
+            try {
+              const v = await validatePin({ data: { pincode: postal } });
+              if (v.valid) {
+                trackAddr("gps_lookup_success", { pincode: postal });
+                state = v.state || state;
+                district = v.district || district;
+                city = v.city || city;
+              } else {
+                trackAddr(v.reason === "service_down" ? "gps_lookup_failed" : "unknown_pin", {
+                  pincode: postal,
+                  reason: v.reason ?? "not_found",
+                });
+              }
+            } catch {
+              trackAddr("gps_lookup_failed", { pincode: postal, reason: "lookup_error" });
+            }
+          } else if (postal || city || state) {
+            trackAddr("gps_lookup_success", { pincode: postal || null, non_india: true });
+          }
 
           setForm((p) => ({
             ...p,
             line1: p.line1 || line1,
-            line2: p.line2 || [locality, area].filter(Boolean).join(", "),
+            line2: p.line2 || [locality, area, district].filter(Boolean).join(", "),
             landmark: p.landmark || (area && area !== locality ? area : p.landmark),
             city: city || p.city,
             state: state || p.state,
@@ -267,11 +299,13 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
           }));
         } catch {
           // Coordinates are still saved even if reverse geocode fails.
+          trackAddr("gps_lookup_failed", { reason: "geocode_error" });
         }
         setGeoBusy(false);
       },
       () => {
         setError("Couldn't access your location. You can enter the address manually.");
+        trackAddr("gps_lookup_failed", { reason: "permission_denied" });
         setGeoBusy(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
