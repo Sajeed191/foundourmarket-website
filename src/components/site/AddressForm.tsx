@@ -128,6 +128,15 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
     );
   };
 
+  // Fire `manual_address_edit` once when the customer manually edits an
+  // auto-filled locality/city/district/address field after GPS autofill.
+  const manualEditTracked = useRef(false);
+  const trackManualEdit = (field: string) => {
+    if (manualEditTracked.current) return;
+    manualEditTracked.current = true;
+    trackAddr("manual_address_edit", { field });
+  };
+
 
 
   // Keep the country field aligned with the detected region until the user
