@@ -215,6 +215,55 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
     onConfirm({ lat, lng, address });
   };
 
+  // ---- Draggable bottom sheet with snap points (25% / 50% / 90%) ----
+  const SNAPS = [25, 50, 90] as const;
+  const regionRef = useRef<HTMLDivElement | null>(null);
+  const [snap, setSnap] = useState<number>(45); // current sheet height as % of region
+  const [dragging, setDragging] = useState(false);
+  const dragState = useRef<{ startY: number; startPct: number; regionH: number } | null>(null);
+
+  // Keep Leaflet sized correctly whenever the sheet height changes.
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const id = setTimeout(() => mapRef.current?.invalidateSize(), dragging ? 0 : 220);
+    return () => clearTimeout(id);
+  }, [snap, dragging]);
+
+  const nearestSnap = (pct: number) => {
+    let best: number = SNAPS[0];
+    let bestDist = Infinity;
+    for (const s of SNAPS) {
+      const d = Math.abs(s - pct);
+      if (d < bestDist) {
+        bestDist = d;
+        best = s;
+      }
+    }
+    return best;
+  };
+
+  const onHandleDown = (e: React.PointerEvent) => {
+    const regionH = regionRef.current?.clientHeight ?? window.innerHeight;
+    dragState.current = { startY: e.clientY, startPct: snap, regionH };
+    setDragging(true);
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const onHandleMove = (e: React.PointerEvent) => {
+    const ds = dragState.current;
+    if (!ds) return;
+    const deltaPct = ((ds.startY - e.clientY) / ds.regionH) * 100;
+    const next = Math.min(90, Math.max(25, ds.startPct + deltaPct));
+    setSnap(next);
+  };
+  const onHandleUp = (e: React.PointerEvent) => {
+    if (!dragState.current) return;
+    dragState.current = null;
+    setDragging(false);
+    setSnap((cur) => nearestSnap(cur));
+    (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+  };
+
+
   return (
     <div
       className="fixed inset-0 z-[99999] flex flex-col bg-background"
