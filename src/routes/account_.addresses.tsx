@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useAddresses, type Address, type AddressType } from "@/lib/use-addresses";
 import { AddressForm } from "@/components/site/AddressForm";
+import { BackButton } from "@/components/site/BackButton";
 
 export const Route = createFileRoute("/account_/addresses")({
   head: () => ({ meta: [{ title: "Manage Addresses — FoundOurMarket™" }] }),
