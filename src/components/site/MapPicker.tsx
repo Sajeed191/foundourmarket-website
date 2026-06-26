@@ -254,7 +254,7 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
     const ds = dragState.current;
     if (!ds) return;
     const deltaPct = ((ds.startY - e.clientY) / ds.regionH) * 100;
-    const next = Math.min(90, Math.max(25, ds.startPct + deltaPct));
+    const next = Math.min(90, Math.max(20, ds.startPct + deltaPct));
     setSnap(next);
   };
   const onHandleUp = (e: React.PointerEvent) => {
