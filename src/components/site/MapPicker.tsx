@@ -153,16 +153,18 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Lock body scroll + close on Escape while the fullscreen picker is open.
+  // Lock body scroll, hide website chrome, and close on Escape while open.
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.setAttribute("data-map-picker-open", "");
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onCancel();
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prev;
+      document.body.removeAttribute("data-map-picker-open");
       window.removeEventListener("keydown", onKey);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
