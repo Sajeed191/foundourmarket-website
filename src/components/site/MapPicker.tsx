@@ -99,11 +99,17 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
       if (a === null) {
         setPreviewError(true);
         setPreviewLines([]);
+        setPreviewMeta({ pin: "", city: "", state: "" });
         lastAddress.current = {};
         return;
       }
       lastAddress.current = a;
       setPreviewLines(formatPreview(a));
+      setPreviewMeta({
+        pin: a.postcode || "",
+        city: a.city || a.town || a.village || a.municipality || a.county || "",
+        state: a.state || "",
+      });
     }, 600);
   }, []);
 
