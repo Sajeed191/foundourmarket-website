@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Loader2, Home, Briefcase, MapPin, Locate, CheckCircle2, AlertCircle, Clock,
+  Loader2, Home, Briefcase, MapPin, CheckCircle2, AlertCircle, Clock,
   Building2, Map as MapIcon, Navigation, Pencil, Zap,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
