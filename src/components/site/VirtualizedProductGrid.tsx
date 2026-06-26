@@ -99,13 +99,26 @@ export function VirtualizedProductGrid<T>({
   }
 
   return (
-    <div ref={parentRef} style={{ position: "relative", height: rowVirtualizer.getTotalSize() }}>
+    <div
+      ref={parentRef}
+      style={{
+        position: "relative",
+        height: rowVirtualizer.getTotalSize(),
+        // Isolate paint/layout for the scroll body so the compositor only
+        // repaints the rows that actually change.
+        contain: "layout paint style",
+      }}
+    >
       {rowVirtualizer.getVirtualItems().map((vRow) => {
         const start = vRow.index * colCount;
         const rowItems = items.slice(start, start + colCount);
+        // Stable key derived from the row's actual content (not the virtual
+        // index) so React never reuses a row's DOM node for a different set of
+        // products — preventing recycled nodes from showing stale cards.
+        const rowKey = (rowItems[0] as { id?: string | number; slug?: string } | undefined);
         return (
           <div
-            key={vRow.key}
+            key={rowKey?.id ?? rowKey?.slug ?? vRow.key}
             data-index={vRow.index}
             ref={rowVirtualizer.measureElement}
             style={{
@@ -119,6 +132,13 @@ export function VirtualizedProductGrid<T>({
               gap,
               paddingBottom: gap,
               alignItems: "stretch",
+              // Per-row paint containment + an explicit compositor layer. This
+              // is the key fix for Android Chrome/WebView "ghost row" artifacts:
+              // without it, the GPU fails to invalidate the old tile when a row
+              // is repositioned during fast scroll, leaving duplicated cards.
+              contain: "layout paint style",
+              willChange: "transform",
+              backfaceVisibility: "hidden",
             }}
           >
             {rowItems.map((item, i) => renderItem(item, start + i))}
