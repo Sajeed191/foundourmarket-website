@@ -141,9 +141,8 @@ function AddressesPage() {
               Save delivery locations for one-tap checkout with realtime sync across devices.
             </p>
           </div>
-          <Link to="/account" className="text-xs uppercase tracking-widest text-muted-foreground hover:text-accent">
-            ← Back to account
-          </Link>
+          <BackButton to="/account" label="Account" showAccountIcon />
+
         </div>
       </motion.div>
 
