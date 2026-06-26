@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Loader2, Search, MapPin, X, Check, Crosshair, AlertCircle } from "lucide-react";
+import { Loader2, Search, MapPin, ArrowLeft, Check, Crosshair, AlertCircle } from "lucide-react";
 
 export type MapPickResult = {
   lat: number;
