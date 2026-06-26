@@ -153,7 +153,20 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const flyTo = (lat: number, lng: number) => {
+  // Lock body scroll + close on Escape while the fullscreen picker is open.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
     mapRef.current?.setView([lat, lng], 16, { animate: !lowEnd });
     refreshPreview(lat, lng);
   };
