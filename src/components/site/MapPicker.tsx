@@ -217,8 +217,8 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
     onConfirm({ lat, lng, address });
   };
 
-  // ---- Draggable bottom sheet with snap points (25% / 50% / 90%) ----
-  const SNAPS = [25, 50, 90] as const;
+  // ---- Draggable bottom sheet with snap points (20% / 45% / 90%) ----
+  const SNAPS = [20, 45, 90] as const;
   const regionRef = useRef<HTMLDivElement | null>(null);
   const [snap, setSnap] = useState<number>(45); // current sheet height as % of region
   const [dragging, setDragging] = useState(false);
