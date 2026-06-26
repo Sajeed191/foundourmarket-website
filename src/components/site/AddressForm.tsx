@@ -119,6 +119,12 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   const [phoneValid, setPhoneValid] = useState<boolean>(!!initial?.phone);
   const [pinState, setPinState] = useState<"idle" | "checking" | "valid" | "unverified" | "unsupported">("idle");
   const [geoBusy, setGeoBusy] = useState(false);
+  const lowEnd = useLowEndDevice();
+  // Which premium mode the customer last used to fill the address.
+  const [mode, setMode] = useState<"gps" | "map" | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
+  // Compact "selected address" preview shown after GPS / map autofill.
+  const [geoStatus, setGeoStatus] = useState<"ok" | "fail" | null>(null);
   // City/state/areas the postal service resolved for the current PIN.
   const [resolvedPin, setResolvedPin] = useState<{
     city: string | null;
