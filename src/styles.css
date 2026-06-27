@@ -1149,7 +1149,7 @@ html[data-android="true"] .group {
 html[data-android="true"] [data-product-media] {
   contain: none !important;
   isolation: auto !important;
-  overflow: visible !important;
+  overflow: clip !important;
   border-radius: 0 !important;
   clip-path: none !important;
   mask-image: none !important;
@@ -1184,6 +1184,7 @@ html[data-android="true"] [data-product-image] {
   border-radius: 0 !important;
   clip-path: none !important;
   mask-image: none !important;
+  overflow: clip !important;
   transform: none !important;
   filter: none !important;
   will-change: auto !important;
@@ -1399,7 +1400,7 @@ html[data-android="true"] [data-android-static-card] {
 
 html[data-android="true"] [data-android-static-card] [data-product-media] {
   display: block !important;
-  overflow: visible !important;
+  overflow: clip !important;
   position: static !important;
 }
 
@@ -1408,7 +1409,7 @@ html[data-android="true"] [data-android-static-card] [data-product-image] {
   height: 100% !important;
   max-width: none !important;
   object-fit: cover !important;
-  overflow: visible !important;
+  overflow: clip !important;
   position: static !important;
   width: 100% !important;
 }

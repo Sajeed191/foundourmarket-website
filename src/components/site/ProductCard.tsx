@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Heart, Plus, Check, Star, Minus, Eye } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { type BadgeKey } from "@/lib/badges";
@@ -23,7 +23,12 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
   const [justAdded, setJustAdded] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const [renderMode, setRenderMode] = useState<"static" | "rich">("static");
   const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
+
+  useEffect(() => {
+    if (document.documentElement.getAttribute("data-android") !== "true") setRenderMode("rich");
+  }, []);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,7 +60,6 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
       <article
         data-product-card
         data-android-static-card
-        data-product-card-static-fallback
         className="android-static-product-card flex h-full flex-col rounded-xl border border-border bg-card"
       >
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
@@ -183,9 +187,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
       </article>
   );
 
-  return (
-    <>
-      {androidStaticCard}
+  const richCard = (
       <div
       data-product-card
       data-android-rich-card
@@ -388,8 +390,9 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
 
       <QuickViewDialog product={product} open={quickOpen} onOpenChange={setQuickOpen} />
       </div>
-    </>
   );
+
+  return renderMode === "rich" ? richCard : androidStaticCard;
 }
 
 /**
