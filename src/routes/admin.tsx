@@ -221,6 +221,7 @@ function AdminPage() {
 
   return (
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+      <AdminNavDrawer />
       {/* Ambient background atmosphere */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="orb absolute -top-32 left-1/2 -translate-x-1/2 size-[40rem] opacity-40" style={{ background: "var(--gradient-ember)" }} />
