@@ -51,7 +51,8 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
 
   return (
     <div
-      className={`group relative flex h-full flex-col overflow-hidden rounded-[22px] border bg-card transition-[transform,box-shadow,border-color] duration-300 active:scale-[0.99] sm:hover:scale-[1.02] ${
+      data-product-card
+      className={`group product-card-shell relative flex h-full flex-col overflow-hidden rounded-[22px] border bg-card transition-[box-shadow,border-color] duration-300 ${
         isPremium
           ? "border-accent/45 shadow-[0_8px_30px_-12px_oklch(0.72_0.18_55/0.45)] sm:group-hover:shadow-[0_16px_44px_-12px_oklch(0.72_0.18_55/0.6)]"
           : "border-accent/15 shadow-[0_4px_24px_-14px_oklch(0_0_0/0.7)] sm:group-hover:border-accent/35 sm:group-hover:shadow-[0_14px_40px_-14px_oklch(0.72_0.18_55/0.4)]"
@@ -79,6 +80,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               {assigned.slice(0, 3).map((b) => (
                 <span
                   key={b.assignmentId ?? b.id}
+                  data-product-badge
                   className={`inline-flex animate-[fade-in_0.4s_ease-out] items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[7px] font-semibold uppercase leading-none tracking-wide shadow-sm shadow-black/30 md:gap-1 md:px-2 md:py-[3px] md:text-[8px] lg:gap-1.5 lg:px-3 lg:py-1 lg:text-sm ${badgeAnimationClass(b.animation)}`}
                   style={{
                     backgroundColor: b.backgroundColor || b.color,
@@ -96,6 +98,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               {labels.map((b) => (
                 <span
                   key={b.key}
+                  data-product-badge
                   className={`inline-flex animate-[fade-in_0.4s_ease-out] items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[7px] font-semibold uppercase leading-none tracking-wide shadow-sm shadow-black/30 md:gap-1 md:px-2 md:py-[3px] md:text-[8px] lg:gap-1.5 lg:px-3 lg:py-1 lg:text-sm ${b.className}`}
                 >
                   <span aria-hidden className="text-[8px] md:text-[9px] lg:text-[15px]">{b.emoji}</span>
@@ -142,70 +145,70 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
       </Link>
 
       {/* INFO */}
-      <div className="relative flex flex-1 flex-col px-3 pb-3 pt-2">
+        <div data-product-copy className="product-copy relative flex flex-1 flex-col px-3 pb-3 pt-2">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
           {/* Title — max 2 lines */}
-          <h3 className="line-clamp-2 h-[2.6em] text-[15px] font-semibold leading-[1.3] tracking-[-0.01em] text-foreground/95 transition-colors group-hover:text-accent">
+          <h3 className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[15px] font-semibold leading-[1.3] text-foreground/95 transition-colors group-hover:text-accent">
             {product.name}
           </h3>
         </Link>
 
         {/* Rating + social proof */}
-        <div className="mt-1 flex h-[16px] items-center gap-2">
+        <div className="product-meta-flow mt-1 flex h-[16px] items-center gap-2">
           {product.reviews > 0 ? (
             <span className="inline-flex items-center gap-1">
               <Star className="size-3.5 fill-accent text-accent" />
-              <span className="text-[12px] font-semibold tabular-nums text-foreground">{product.rating.toFixed(1)}</span>
-              <span className="font-mono text-[10px] text-muted-foreground/70">({product.reviews.toLocaleString()})</span>
+              <span className="product-typography product-rating-text text-[12px] font-semibold tabular-nums text-foreground">{product.rating.toFixed(1)}</span>
+              <span className="product-typography product-rating-text font-mono text-[10px] text-muted-foreground/70">({product.reviews.toLocaleString()})</span>
             </span>
           ) : (
-            <span className="text-[11px] font-medium text-accent/90">New Product</span>
+            <span className="product-typography product-rating-text text-[11px] font-medium text-accent/90">New Product</span>
           )}
           {product.soldCount > 0 && (
-            <span className="text-[10px] font-medium text-muted-foreground/80">🔥 {formatSold(product.soldCount)} sold</span>
+            <span className="product-typography product-rating-text text-[10px] font-medium text-muted-foreground/80">🔥 {formatSold(product.soldCount)} sold</span>
           )}
         </div>
 
         {/* Price */}
-        <div className="mt-1.5 flex min-h-[34px] flex-col justify-center">
+        <div className="product-price-flow mt-1.5 flex min-h-[34px] flex-col justify-center">
           <Price
             value={price}
-            className="block font-display text-[20px] font-bold leading-none tracking-[-0.02em] tabular-nums text-foreground"
+            className="block font-display text-[20px] font-bold leading-none tabular-nums text-foreground"
           />
           {originalPrice && discount ? (
             <span className="mt-1 flex items-center gap-1.5 leading-none">
               <Price value={originalPrice} className="block font-mono text-[10px] tabular-nums text-muted-foreground/55 line-through" />
-              <span className="font-mono text-[10px] font-semibold text-accent">{discount}% OFF</span>
+              <span className="product-typography product-price-text font-mono text-[10px] font-semibold text-accent">{discount}% OFF</span>
             </span>
           ) : (
-            <span aria-hidden className="mt-1 block text-[10px] leading-none invisible">.</span>
+            <span aria-hidden className="product-typography mt-1 block text-[10px] leading-none invisible">.</span>
           )}
         </div>
 
         {/* Trust + stock — single line each, height reserved */}
         <div className="mt-1.5 flex h-[16px] items-center justify-between gap-2">
           {freeShipping ? (
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300/90">
+            <span className="product-typography inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300/90">
               <Check className="size-3" strokeWidth={2.5} /> Free Shipping
             </span>
           ) : product.returnEligible ? (
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300/90">
+            <span className="product-typography inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300/90">
               <Check className="size-3" strokeWidth={2.5} /> Easy Returns
             </span>
           ) : (
-            <span aria-hidden className="text-[10px]">&nbsp;</span>
+            <span aria-hidden className="product-typography text-[10px]">&nbsp;</span>
           )}
           {lowStock ? (
-            <span className="text-[10px] font-semibold text-orange-300">⚠ Only {product.stockQuantity} left</span>
+            <span className="product-typography text-[10px] font-semibold text-orange-300">⚠ Only {product.stockQuantity} left</span>
           ) : product.inStock ? (
-            <span className="text-[10px] font-medium text-muted-foreground/70">In Stock</span>
+            <span className="product-typography text-[10px] font-medium text-muted-foreground/70">In Stock</span>
           ) : null}
         </div>
 
         {/* Add to cart — 48px; switches to quantity selector once in cart */}
         <div className="mt-2.5">
           {!product.inStock ? (
-            <span className="inline-flex h-12 w-full items-center justify-center rounded-full border border-white/10 bg-muted/40 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="product-typography inline-flex h-12 w-full items-center justify-center rounded-full border border-white/10 bg-muted/40 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Sold Out
             </span>
           ) : cartQty > 0 && !justAdded ? (
@@ -213,15 +216,15 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               <button
                 onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty - 1); }}
                 aria-label="Decrease quantity"
-                className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15 active:scale-90"
+                className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
               >
                 <Minus className="size-4" strokeWidth={2.5} />
               </button>
-              <span className="min-w-7 text-center text-sm font-bold tabular-nums text-foreground">{cartQty}</span>
+              <span className="product-typography min-w-7 text-center text-sm font-bold tabular-nums text-foreground">{cartQty}</span>
               <button
                 onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty + 1); }}
                 aria-label="Increase quantity"
-                className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15 active:scale-90"
+                className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
               >
                 <Plus className="size-4" strokeWidth={2.5} />
               </button>
@@ -230,7 +233,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
             <button
               onClick={handleAdd}
               aria-label={`Add ${product.name} to cart`}
-              className={`relative inline-flex h-12 w-full items-center justify-center gap-1.5 overflow-hidden rounded-full text-[13px] font-semibold tracking-[-0.01em] transition-transform duration-200 active:scale-[0.97] ${
+              className={`product-typography relative inline-flex h-12 w-full items-center justify-center gap-1.5 overflow-hidden rounded-full text-[13px] font-semibold duration-200 ${
                 justAdded
                   ? "bg-emerald-500 text-black"
                   : "bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] text-black shadow-[var(--shadow-ember)] hover:brightness-[1.05]"
