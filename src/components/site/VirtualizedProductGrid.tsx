@@ -89,11 +89,7 @@ function IncrementalGrid<T>({
 
   return (
     <>
-      <div className={className}>
-        {shown.map((item, i) => (
-          <div key={keyFor(item, i)}>{renderItem(item, i)}</div>
-        ))}
-      </div>
+      <div className={className}>{shown.map((item, i) => renderItem(item, i))}</div>
       {visible < items.length && (
         <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />
       )}
