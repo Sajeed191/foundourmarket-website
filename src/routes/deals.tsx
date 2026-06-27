@@ -299,15 +299,8 @@ function DealsPage() {
               items={visibleProducts}
               cols={{ base: 2, lg: 4 }}
               className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 [grid-auto-rows:1fr]"
-              renderItem={(p: Product) => (
-                <div
-                  key={p.id ?? p.slug}
-                  data-product-card-frame
-                  className="h-full [&>*]:h-full"
-                >
-                  <ProductCard product={p} forceBadge={p.flashDeal ? "flash_deal" : "hot_deal"} />
-                </div>
-              )}
+              getKey={(p: Product) => p.id ?? p.slug}
+              renderItem={(p: Product) => <ProductCard product={p} forceBadge={p.flashDeal ? "flash_deal" : "hot_deal"} />}
             />
           </section>
 

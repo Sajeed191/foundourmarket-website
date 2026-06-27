@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { getResponsiveImage } from "@/lib/product-images";
 
 type Props = {
@@ -14,11 +14,14 @@ type Props = {
 };
 
 /**
- * Device-aware product image: serves WebP via srcset (320/640/960/1280),
- * downloads only the size the viewport needs, and blurs up from a tiny LQIP
- * placeholder. Below-the-fold instances lazy-load by default.
+ * Stable, keyed product image.
+ *
+ * React must never reuse a decoded <img> DOM node for a different product while
+ * sorting/filtering/incrementally loading. The key includes the src and intrinsic
+ * dimensions so stale bitmaps cannot appear in another card. Loading is fully
+ * lazy/async for non-LCP cards and opacity is the only transition.
  */
-export function ProductImage({
+function ProductImageImpl({
   src,
   alt,
   sizes = "(min-width: 1024px) 300px, (min-width: 640px) 45vw, 76vw",
@@ -31,15 +34,11 @@ export function ProductImage({
   const [loaded, setLoaded] = useState(false);
   const nodeRef = useRef<HTMLImageElement | null>(null);
 
-  // When the src changes, reset only the opacity state. The <img> below is also
-  // keyed by src so React never reuses a decoded DOM image between products.
   useEffect(() => {
     const node = nodeRef.current;
     setLoaded(Boolean(node?.complete && node.naturalWidth > 0));
   }, [src]);
 
-  // Callback ref: if the new keyed image is already complete by mount (cached /
-  // decoded before React attached onLoad), reveal it immediately.
   const imgRef = useCallback((node: HTMLImageElement | null) => {
     nodeRef.current = node;
     if (!node) return;
@@ -56,7 +55,6 @@ export function ProductImage({
         /* decode aborted (node replaced) or failed — onLoad/onError will handle */
       },
     );
-    // Stash a canceller so a later ref call (node swap) invalidates this decode.
     (node as HTMLImageElement & { __cancelDecode?: () => void }).__cancelDecode = () => {
       cancelled = true;
     };
@@ -85,9 +83,12 @@ export function ProductImage({
         fetchPriority={priority ? "high" : "low"}
         decoding="async"
         onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
         data-product-image
         className={`${className} ${loaded ? "opacity-100" : "opacity-0"}`}
       />
     </>
   );
 }
+
+export const ProductImage = memo(ProductImageImpl);
