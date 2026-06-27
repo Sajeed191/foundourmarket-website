@@ -1381,7 +1381,7 @@ function ContinueShopping({ items }: { items: ContinueItem[] }) {
     <div className="-mx-4 sm:mx-0">
       <div
         data-product-grid
-        className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-4 sm:px-0 pb-3 pt-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        className="flex items-start gap-3 overflow-x-auto snap-x snap-mandatory px-4 sm:px-0 pb-3 pt-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         style={{
           scrollPaddingLeft: "1rem",
           scrollPaddingRight: "1rem",
