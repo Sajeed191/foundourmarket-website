@@ -256,8 +256,8 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
           <h3 data-product-text className={TITLE_CLASS}>{product.name}</h3>
         </Link>
 
-        {/* Rating — 8px below title */}
-        <div className="mt-2 flex min-w-0 items-center gap-1.5 overflow-hidden">
+        {/* Rating — 6px below title */}
+        <div className="mt-1.5 flex min-w-0 items-center gap-1.5 overflow-hidden">
           {product.reviews > 0 ? (
             <span className="inline-flex min-w-0 items-center gap-1.5">
               <Star className="size-4 shrink-0 fill-accent text-accent" />
