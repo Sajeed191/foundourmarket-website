@@ -40,7 +40,7 @@ export function productIdentity(product: Product): string {
    Android-safe clamp (the global .product-title-text rule disables
    -webkit-line-clamp). */
 const TITLE_CLASS =
-  "product-typography product-title-text block h-[2.6em] overflow-hidden break-words text-[20px] font-bold leading-[1.3] text-white";
+  "product-typography product-title-text block h-[2.6em] overflow-hidden break-words text-[16px] font-bold leading-[1.3] text-white sm:text-[20px]";
 
 /**
  * Premium badge styles keyed by normalized label. Subtle gradients, soft
@@ -242,7 +242,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
       <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block" aria-label={product.name}>
         <div
           data-product-media
-          className="relative aspect-square w-full overflow-hidden rounded-t-[26px] bg-white p-[14px]"
+          className="relative h-[150px] w-full overflow-hidden rounded-t-[26px] bg-white p-[14px] sm:h-auto sm:aspect-square"
         >
           <ProductImage
             src={product.image}
@@ -259,7 +259,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
       </Link>
 
       {/* Details — flex column, 16px padding, 8px gap. */}
-      <div data-product-copy className="product-copy flex flex-1 flex-col gap-2 p-4">
+      <div data-product-copy className="product-copy flex flex-1 flex-col gap-1.5 p-3 sm:gap-2 sm:p-4">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block min-w-0">
           <h3 data-product-text className={TITLE_CLASS}>{product.name}</h3>
         </Link>
