@@ -16,6 +16,7 @@ import { ExecutiveSummaryPanel } from "@/components/admin/ExecutiveSummaryPanel"
 import { ExecutiveQuickCard } from "@/components/admin/ExecutiveQuickCard";
 import { SegmentedTabs } from "@/components/admin/SegmentedTabs";
 import { AdminCustomersTab } from "@/components/admin/AdminCustomersTab";
+import { AdminNavDrawer } from "@/components/admin/AdminNavDrawer";
 import { AnimatePresence, motion } from "framer-motion";
 import { LayoutDashboard } from "lucide-react";
 
