@@ -171,7 +171,7 @@ export function VirtualizedProductGrid<T>({
   // missing paint and broken textures. Use one stable normal-flow grid instead.
   if (isAndroid && big) {
     return (
-      <div ref={parentRef} data-product-grid className={className}>
+      <div ref={parentRef} data-product-grid data-android-grid="normal-flow" className={className}>
         {items.map((item, i) => renderItem(item, i))}
       </div>
     );
@@ -206,10 +206,11 @@ export function VirtualizedProductGrid<T>({
     <div
       ref={parentRef}
       data-product-grid
+        data-virtual-grid
       style={{
         position: "relative",
         height: rowVirtualizer.getTotalSize(),
-        contain: "layout paint style",
+          contain: isAndroid ? "none" : "layout paint style",
       }}
     >
       {rowVirtualizer.getVirtualItems().map((vRow) => {
@@ -221,6 +222,7 @@ export function VirtualizedProductGrid<T>({
             key={rowKey?.id ?? rowKey?.slug ?? vRow.key}
             data-index={vRow.index}
             ref={rowVirtualizer.measureElement}
+            data-virtual-row
             style={{
               position: "absolute",
               top: 0,
@@ -235,7 +237,7 @@ export function VirtualizedProductGrid<T>({
               // Desktop-only path. Paint containment keeps row repaints isolated;
               // we deliberately omit `will-change`/`backface-visibility` here to
               // avoid promoting an extra compositor layer per row.
-              contain: "layout paint style",
+              contain: isAndroid ? "none" : "layout paint style",
             }}
           >
             {rowItems.map((item, i) => renderItem(item, start + i))}
