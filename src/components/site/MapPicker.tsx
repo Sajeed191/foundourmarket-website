@@ -284,6 +284,31 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
 
   const locateMe = () => acquireLocation(false);
 
+  // Auto-detect the user's location when the picker opens (only when the form
+  // didn't pass an explicit initial coordinate). Runs once after mount.
+  useEffect(() => {
+    const hasInitial = typeof initial?.lat === "number" && typeof initial?.lng === "number";
+    if (!hasInitial) {
+      const t = setTimeout(() => acquireLocation(true), 250);
+      return () => {
+        clearTimeout(t);
+        if (watchRef.current !== null) {
+          navigator.geolocation?.clearWatch(watchRef.current);
+          watchRef.current = null;
+        }
+      };
+    }
+    return () => {
+      if (watchRef.current !== null) {
+        navigator.geolocation?.clearWatch(watchRef.current);
+        watchRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+
 
   const confirm = async () => {
     setConfirming(true);
