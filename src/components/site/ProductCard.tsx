@@ -40,28 +40,32 @@ export function productIdentity(product: Product): string {
    Android-safe clamp (the global .product-title-text rule disables
    -webkit-line-clamp). */
 const TITLE_CLASS =
-  "product-typography product-title-text block h-[2.5em] overflow-hidden break-words text-[18px] font-bold leading-[1.25] text-foreground";
+  "product-typography product-title-text block h-[2.6em] overflow-hidden break-words text-[20px] font-bold leading-[1.3] text-white";
 
 /**
- * Reference-exact badge colors keyed by normalized label. Solid pills, white
- * text (black on the light Bestseller pill). No gradients, transparency, glow.
+ * Premium badge styles keyed by normalized label. Subtle gradients, soft
+ * shadow and a slight glossy top sheen. White text, compact 24px pills.
  */
-const BADGE_COLORS: Record<string, { bg: string; fg: string }> = {
-  TRENDING: { bg: "#FF8A00", fg: "#FFFFFF" },
-  "FLASH SALE": { bg: "#FF3B30", fg: "#FFFFFF" },
-  "HOT DEAL": { bg: "#FF5A1F", fg: "#FFFFFF" },
-  "FAST SELLING": { bg: "#C93CFF", fg: "#FFFFFF" },
-  PREMIUM: { bg: "#143CFF", fg: "#FFFFFF" },
-  "LIMITED STOCK": { bg: "#F4B400", fg: "#000000" },
-  NEW: { bg: "#1ED760", fg: "#FFFFFF" },
-  BESTSELLER: { bg: "#FFD54F", fg: "#000000" },
-  "BEST SELLER": { bg: "#FFD54F", fg: "#000000" },
+const BADGE_GRADIENTS: Record<string, { bg: string; fg: string }> = {
+  TRENDING: { bg: "linear-gradient(135deg,#FFA52E 0%,#FF7A00 100%)", fg: "#FFFFFF" },
+  "FLASH SALE": { bg: "linear-gradient(135deg,#FF5A52 0%,#E11D1D 100%)", fg: "#FFFFFF" },
+  "HOT DEAL": { bg: "linear-gradient(135deg,#FF7A3D 0%,#FF2D2D 100%)", fg: "#FFFFFF" },
+  "FAST SELLING": { bg: "linear-gradient(135deg,#C45CFF 0%,#7A1FE0 100%)", fg: "#FFFFFF" },
+  PREMIUM: { bg: "linear-gradient(135deg,#2B3A67 0%,#0E1530 100%)", fg: "#FFFFFF" },
+  NEW: { bg: "linear-gradient(135deg,#34E07A 0%,#10A64A 100%)", fg: "#FFFFFF" },
+  BESTSELLER: { bg: "linear-gradient(135deg,#FFD964 0%,#F4B400 100%)", fg: "#000000" },
+  "BEST SELLER": { bg: "linear-gradient(135deg,#FFD964 0%,#F4B400 100%)", fg: "#000000" },
+  "LIMITED STOCK": { bg: "linear-gradient(135deg,#FFC940 0%,#F49B00 100%)", fg: "#000000" },
 };
 
 function badgeStyle(label: string, fallback?: CSSProperties): CSSProperties {
-  const c = BADGE_COLORS[label.trim().toUpperCase()];
-  if (c) return { backgroundColor: c.bg, color: c.fg, border: "none" };
-  return fallback ?? {};
+  const c = BADGE_GRADIENTS[label.trim().toUpperCase()];
+  const base: CSSProperties = {
+    boxShadow: "0 2px 6px rgba(0,0,0,0.28)",
+    border: "none",
+  };
+  if (c) return { ...base, background: c.bg, color: c.fg };
+  return { ...base, ...(fallback ?? {}) };
 }
 
 function toAssignedBadge(b: RenderBadge): CardBadge {
@@ -74,9 +78,8 @@ function toAssignedBadge(b: RenderBadge): CardBadge {
     // grids. Admin animation settings are preserved outside listing cards.
     className: "",
     style: badgeStyle(b.label, {
-      backgroundColor: b.backgroundColor || b.color,
+      background: b.backgroundColor || b.color,
       color: b.textColor,
-      border: b.borderColor ? `1px solid ${b.borderColor}` : undefined,
     }),
   };
 }
@@ -85,12 +88,12 @@ function ProductBadgesImpl({ badges }: { badges: CardBadge[] }) {
   if (badges.length === 0) return null;
   const visible = badges.slice(0, 3);
   return (
-    <div className="absolute left-2.5 top-2.5 z-10 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1 overflow-hidden">
+    <div className="absolute left-2.5 top-2.5 z-10 flex max-w-[calc(100%-3.75rem)] flex-col items-start gap-1.5 overflow-hidden">
       {visible.map((b) => (
         <span
           key={b.id}
           data-product-badge
-          className={`inline-flex h-[22px] min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full px-2.5 text-[10px] font-bold uppercase leading-none tracking-[0.3px] ${b.className ?? ""}`}
+          className={`inline-flex h-6 min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full px-3 text-[12px] font-bold uppercase leading-none tracking-[0.3px] ${b.className ?? ""}`}
           style={b.style ?? badgeStyle(b.label)}
         >
           {b.emoji && <span aria-hidden className="shrink-0">{b.emoji}</span>}
@@ -121,10 +124,10 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
     <button
       onClick={onClick}
       aria-label={saved ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
-      style={{ backgroundColor: "rgba(70,70,70,0.65)", backdropFilter: "blur(10px)" }}
-      className={`absolute right-2.5 top-2.5 z-10 grid h-9 w-9 place-items-center rounded-full text-white shadow-md transition-colors ${saved ? "text-accent" : "hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
+      style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
+      className={`absolute right-3 top-3 z-10 grid h-[46px] w-[46px] place-items-center rounded-full text-white transition-colors ${saved ? "text-accent" : "hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
     >
-      <Heart className={`size-[18px] ${saved ? "fill-accent" : ""}`} />
+      <Heart className={`size-5 ${saved ? "fill-accent" : ""}`} />
     </button>
   );
 }
@@ -141,8 +144,8 @@ function QuickViewButtonImpl({ name, onOpen }: { name: string; onOpen: () => voi
     <button
       onClick={onClick}
       aria-label={`Quick view ${name}`}
-      style={{ backgroundColor: "rgba(70,70,70,0.65)", backdropFilter: "blur(10px)" }}
-      className="absolute bottom-2.5 right-2.5 z-10 grid h-9 w-9 place-items-center rounded-full text-white transition-colors hover:text-accent"
+      style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
+      className="absolute bottom-3 right-3 z-10 grid h-[42px] w-[42px] place-items-center rounded-full text-white transition-colors hover:text-accent"
     >
       <Eye className="size-[18px]" />
     </button>
@@ -162,11 +165,12 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
     window.setTimeout(() => setJustAdded(false), 800);
   }, [add, product.slug]);
 
-  const gradient = "linear-gradient(135deg, #FF8A00 0%, #FF6A00 100%)";
+  const gradient = "linear-gradient(135deg, #FFA52E 0%, #FF6A00 100%)";
+  const glow = "0 6px 18px rgba(255,122,0,0.35)";
 
   if (!product.inStock) {
     return (
-      <span data-product-text className="product-typography inline-flex h-[50px] w-full items-center justify-center rounded-full border border-border bg-muted font-mono text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
+      <span data-product-text className="product-typography inline-flex h-[54px] w-full items-center justify-center rounded-full border border-border bg-muted font-mono text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
         Sold Out
       </span>
     );
@@ -174,12 +178,12 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
 
   if (qty > 0 && !justAdded) {
     return (
-      <div className="flex h-[50px] w-full items-center justify-between rounded-full px-2" style={{ background: gradient }}>
-        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty - 1); }} aria-label="Decrease quantity" className="grid size-10 place-items-center rounded-full text-black">
+      <div className="flex h-[54px] w-full items-center justify-between rounded-full px-2" style={{ background: gradient, boxShadow: glow }}>
+        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty - 1); }} aria-label="Decrease quantity" className="grid size-11 place-items-center rounded-full text-black active:scale-95 transition-transform">
           <Minus className="size-5" strokeWidth={2.5} />
         </button>
         <span data-product-text className="product-typography min-w-7 text-center text-lg font-bold tabular-nums text-black">{qty}</span>
-        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty + 1); }} aria-label="Increase quantity" className="grid size-10 place-items-center rounded-full text-black">
+        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty + 1); }} aria-label="Increase quantity" className="grid size-11 place-items-center rounded-full text-black active:scale-95 transition-transform">
           <Plus className="size-5" strokeWidth={2.5} />
         </button>
       </div>
@@ -190,10 +194,10 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
     <button
       onClick={onAdd}
       aria-label={`Add ${product.name} to cart`}
-      style={justAdded ? undefined : { background: gradient }}
-      className={`product-typography inline-flex h-[50px] w-full items-center justify-center gap-1.5 rounded-full text-[18px] font-bold transition-[filter] hover:brightness-105 ${justAdded ? "bg-emerald-500 text-black" : "text-black"}`}
+      style={justAdded ? undefined : { background: gradient, boxShadow: glow }}
+      className={`product-typography inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full text-[18px] font-bold transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97] ${justAdded ? "bg-emerald-500 text-black" : "text-black"}`}
     >
-      {justAdded ? <><Check className="size-5" /> Added</> : <><Plus className="size-5" strokeWidth={2.75} /> Add to Cart</>}
+      {justAdded ? <><Check className="size-6" /> Added</> : <><Plus className="size-6" strokeWidth={2.75} /> Add to Cart</>}
     </button>
   );
 }
@@ -228,14 +232,18 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
     <article
       data-product-card
       data-product-id={identity}
-      style={{ backgroundColor: "#111214", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 6px 18px rgba(0,0,0,0.25)" }}
-      className="product-card-shell relative flex h-full flex-col overflow-hidden rounded-[22px]"
+      style={{ backgroundColor: "#111111", boxShadow: "0 8px 24px rgba(0,0,0,0.35)" }}
+      className="product-card-shell relative flex h-full flex-col overflow-hidden rounded-[26px]"
     >
       <ProductCardAdminControlsGate product={product} />
 
-      {/* Image — sits directly inside the card top, no frame/box. 12px padding. */}
-      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block p-3 pb-0" aria-label={product.name}>
-        <div data-product-media className="relative h-[160px] w-full overflow-hidden sm:h-[210px] lg:h-[250px]">
+      {/* Image IS the top section. White bg, 1:1, contain, 14px padding,
+          rounded only on the top corners to blend into the card. */}
+      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block" aria-label={product.name}>
+        <div
+          data-product-media
+          className="relative aspect-square w-full overflow-hidden rounded-t-[26px] bg-white p-[14px]"
+        >
           <ProductImage
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
@@ -250,43 +258,41 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
         </div>
       </Link>
 
-      {/* Content — single continuous surface, no inner border. 12px padding. */}
-      <div data-product-copy className="product-copy flex flex-1 flex-col px-3 pb-3 pt-2.5">
+      {/* Details — flex column, 16px padding, 8px gap. */}
+      <div data-product-copy className="product-copy flex flex-1 flex-col gap-2 p-4">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block min-w-0">
           <h3 data-product-text className={TITLE_CLASS}>{product.name}</h3>
         </Link>
 
-        {/* Rating — 6px below title */}
-        <div className="mt-1.5 flex min-w-0 items-center gap-1.5 overflow-hidden">
+        {/* Rating */}
+        <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
           {product.reviews > 0 ? (
             <span className="inline-flex min-w-0 items-center gap-1.5">
-              <Star className="size-4 shrink-0 fill-accent text-accent" />
-              <span data-product-text className="product-typography product-rating-text text-[15px] font-semibold tabular-nums text-foreground">{product.rating.toFixed(1)}</span>
-              <span data-product-text className="product-typography product-rating-text truncate text-[13px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
+              <Star className="size-[18px] shrink-0 fill-accent text-accent" />
+              <span data-product-text className="product-typography product-rating-text text-[17px] font-semibold tabular-nums text-white">{product.rating.toFixed(1)}</span>
+              <span data-product-text className="product-typography product-rating-text truncate text-[14px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
             </span>
           ) : (
-            <span data-product-text className="product-typography product-rating-text text-[13px] font-medium text-accent">New Product</span>
+            <span data-product-text className="product-typography product-rating-text text-[14px] font-medium text-accent">New Product</span>
           )}
           {product.soldCount > 0 && (
-            <span data-product-text className="product-typography product-rating-text truncate text-[11px] font-medium text-muted-foreground">🔥 {formatSold(product.soldCount)} sold</span>
+            <span data-product-text className="product-typography product-rating-text truncate text-[12px] font-medium text-muted-foreground">🔥 {formatSold(product.soldCount)} sold</span>
           )}
         </div>
 
-        {/* Price — 6px below rating */}
-        <div className="mt-1.5 product-price-flow flex min-w-0 flex-col overflow-hidden">
-          <Price value={price} className="block truncate font-display text-[34px] font-extrabold leading-none tabular-nums text-foreground" />
+        {/* Price — current, old price, discount on one line. */}
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 overflow-hidden">
+          <Price value={price} className="shrink-0 font-display text-[34px] font-extrabold leading-none tabular-nums text-white" />
           {originalPrice && discount ? (
-            <div className="mt-1 flex min-w-0 items-center gap-2 overflow-hidden">
-              <Price value={originalPrice} className="block shrink-0 text-[13px] tabular-nums text-muted-foreground line-through" />
-              <span data-product-text className="product-typography product-price-text truncate text-[13px] font-bold leading-none text-accent">{discount}% OFF</span>
-            </div>
-          ) : (
-            <span aria-hidden data-product-text className="product-typography mt-1 block text-[13px] leading-none invisible">.</span>
-          )}
+            <>
+              <Price value={originalPrice} className="shrink-0 text-[15px] tabular-nums text-muted-foreground line-through" />
+              <span data-product-text className="product-typography product-price-text truncate text-[15px] font-bold leading-none text-accent">{discount}% OFF</span>
+            </>
+          ) : null}
         </div>
 
-        {/* Shipping row — 8px below price block */}
-        <div className="mt-2 flex min-w-0 items-center justify-between gap-2 overflow-hidden">
+        {/* Shipping row — one line, never wraps. */}
+        <div className="flex min-w-0 items-center justify-between gap-2 overflow-hidden">
           {freeShipping ? (
             <span data-product-text className="product-typography inline-flex min-w-0 items-center gap-1.5 truncate text-[14px] font-medium text-emerald-400">
               <Check className="size-4 shrink-0" strokeWidth={2.5} /> <span className="truncate">Free Shipping</span>
@@ -307,8 +313,8 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
           )}
         </div>
 
-        {/* Button — 12px above content, pinned to bottom to keep equal heights */}
-        <div className="mt-auto pt-3">
+        {/* Button — 16px above, pinned to bottom for equal heights. */}
+        <div className="mt-auto pt-4">
           <AddToCartButton product={product} />
         </div>
       </div>
