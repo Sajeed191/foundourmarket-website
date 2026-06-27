@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { detectAndroid } from "@/lib/use-low-end-device";
 
 /**
  * Defers mounting of its children until the placeholder scrolls near the
@@ -19,7 +20,7 @@ export function LazyMount({
   id?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(() => detectAndroid());
   useEffect(() => {
     const el = ref.current;
     if (!el || show) return;

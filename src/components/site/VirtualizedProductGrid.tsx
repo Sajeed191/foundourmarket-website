@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { shouldUseIncrementalRendering } from "@/lib/use-low-end-device";
+import { detectAndroid, shouldUseIncrementalRendering } from "@/lib/use-low-end-device";
 
 type Cols = { base: number; sm?: number; md?: number; lg?: number; xl?: number };
 
@@ -112,11 +112,15 @@ export function VirtualizedProductGrid<T>({
 }: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
-  // Capability + browser-based decision (not RAM alone): Android browsers and
-  // very constrained devices fall back to the transform-free incremental grid.
+  // Capability + browser-based decision (not RAM alone): Android browsers avoid
+  // virtualization entirely; constrained non-Android devices use incremental.
   const [useIncremental, setUseIncremental] = useState(() => {
     if (typeof window === "undefined") return false;
     return shouldUseIncrementalRendering();
+  });
+  const [isAndroid, setIsAndroid] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return detectAndroid();
   });
   // Track the container's distance from the document top as LIVE state. The
   // window virtualizer needs this as `scrollMargin` to place rows correctly.
@@ -124,6 +128,7 @@ export function VirtualizedProductGrid<T>({
 
   useEffect(() => {
     setUseIncremental(shouldUseIncrementalRendering());
+    setIsAndroid(detectAndroid());
   }, []);
 
   useEffect(() => {
@@ -155,8 +160,19 @@ export function VirtualizedProductGrid<T>({
     scrollMargin: offsetTop,
   });
 
-  // Android / constrained devices (or any non-virtualized large list):
-  // transform-free incremental grid in normal document flow.
+  // Physical Android fix: do not append product-card batches during fast scroll.
+  // Even without virtualization, IntersectionObserver-driven DOM insertion can
+  // race Android Chrome/WebView tile invalidation and produce black blocks,
+  // missing paint and broken textures. Use one stable normal-flow grid instead.
+  if (isAndroid && big) {
+    return (
+      <div ref={parentRef} data-product-grid className={className}>
+        {items.map((item, i) => renderItem(item, i))}
+      </div>
+    );
+  }
+
+  // Constrained non-Android devices: transform-free incremental grid.
   if (useIncremental && big) {
     return (
       <div ref={parentRef} data-product-grid>

@@ -924,8 +924,88 @@ html[data-android="true"] * {
   /* Never let app code force-promote a layer that the compositor then fails to
      repaint on Android fast scroll. */
   will-change: auto !important;
+  filter: none !important;
   backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  perspective: none !important;
+}
+
+html[data-android="true"] *,
+html[data-android="true"] *::before,
+html[data-android="true"] *::after {
+  content-visibility: visible !important;
+}
+
+html[data-android="true"] body,
+html[data-android="true"] [data-app-shell],
+html[data-android="true"] [data-app-content] {
+  overflow-x: clip !important;
+  isolation: auto !important;
+  contain: none !important;
+}
+
+html[data-android="true"] .cv-auto {
+  content-visibility: visible !important;
+  contain-intrinsic-size: none !important;
+}
+
+html[data-android="true"] .hero-rise,
+html[data-android="true"] .hero-rise-h1,
+html[data-android="true"] .animate-fade-up,
+html[data-android="true"] .animate-float,
+html[data-android="true"] .animate-float-soft,
+html[data-android="true"] .animate-glow,
+html[data-android="true"] .animate-orb,
+html[data-android="true"] .animate-ambient,
+html[data-android="true"] .animate-sheen,
+html[data-android="true"] .animate-flame-pulse,
+html[data-android="true"] .animate-scale-in,
+html[data-android="true"] .deep-link-flash,
+html[data-android="true"] .chat-typing-dot,
+html[data-android="true"] .animate-chat-slide-up,
+html[data-android="true"] .animate-chat-bubble-in {
+  animation: none !important;
+}
+
+html[data-android="true"] .glass,
+html[data-android="true"] .glass-strong,
+html[data-android="true"] [class*="backdrop-blur"],
+html[data-android="true"] [class*="blur-"],
+html[data-android="true"] [class*="mix-blend"],
+html[data-android="true"] [style*="mask"],
+html[data-android="true"] [style*="filter"] {
+  filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  mask-image: none !important;
+}
+
+html[data-android="true"] [data-app-header] {
+  position: static !important;
+  transform: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transition: none !important;
+  will-change: auto !important;
+  contain: none !important;
+  isolation: auto !important;
+}
+
+html[data-android="true"] [data-app-header] nav,
+html[data-android="true"] [data-app-bottom-nav],
+html[data-android="true"] [data-app-bottom-nav] *,
+html[data-android="true"] [role="region"][aria-label="Announcements"] {
+  filter: none !important;
+  backdrop-filter: none !important;
+  transform-style: flat !important;
+  will-change: auto !important;
+  contain: none !important;
+  isolation: auto !important;
+  transition-property: color, background-color, border-color, opacity !important;
+}
+
+html[data-android="true"] [data-search-sticky] {
+  display: none !important;
 }
 /* Drop hover/active scale flourishes that thrash compositing during scroll. */
 html[data-android="true"] .group:hover .group-hover\:scale-\[1\.08\],
@@ -1001,6 +1081,7 @@ html[data-android="true"] [data-product-image] {
   filter: none !important;
   will-change: auto !important;
   transition-property: opacity !important;
+  opacity: 1 !important;
 }
 
 /* Product-card text pipeline hardening for Android Chrome/WebView/Samsung.

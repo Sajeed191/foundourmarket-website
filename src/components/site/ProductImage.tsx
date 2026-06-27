@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getResponsiveImage } from "@/lib/product-images";
+import { detectAndroid } from "@/lib/use-low-end-device";
 
 type Props = {
   src: string;
@@ -28,7 +29,8 @@ export function ProductImage({
   height = 600,
 }: Props) {
   const responsive = getResponsiveImage(src);
-  const [loaded, setLoaded] = useState(false);
+  const [android, setAndroid] = useState(() => detectAndroid());
+  const [loaded, setLoaded] = useState(() => detectAndroid());
 
   // When the src changes on a recycled/reused element (e.g. a virtualized grid
   // row pointing at a new product), reset the loaded flag so the new image
@@ -36,7 +38,9 @@ export function ProductImage({
   // Combined with key={src} on the <img>, the previous DOM node is destroyed
   // and a fresh one created — no stale pixels can survive on Android fast scroll.
   useEffect(() => {
-    setLoaded(false);
+    const nextAndroid = detectAndroid();
+    setAndroid(nextAndroid);
+    setLoaded(nextAndroid);
   }, [src]);
 
   // Callback ref: cancel any decode tied to a stale node and, if the new image
@@ -67,7 +71,7 @@ export function ProductImage({
 
   return (
     <>
-      {!loaded && (
+      {!android && !loaded && (
         <div
           aria-hidden
           data-product-image-placeholder
@@ -86,10 +90,10 @@ export function ProductImage({
         height={height}
         loading={priority ? "eager" : "lazy"}
         fetchPriority={priority ? "high" : "low"}
-        decoding="async"
+        decoding={android ? "sync" : "async"}
         onLoad={() => setLoaded(true)}
         data-product-image
-        className={`${className} ${loaded ? "opacity-100" : "opacity-0"}`}
+        className={`${className} ${loaded || android ? "opacity-100" : "opacity-0"}`}
       />
     </>
   );
