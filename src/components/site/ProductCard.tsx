@@ -117,10 +117,10 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
     <button
       onClick={onClick}
       aria-label={saved ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
-      style={{ backgroundColor: "rgba(70,70,70,0.65)" }}
-      className={`absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full border text-white shadow-md backdrop-blur-md transition-colors ${saved ? "border-accent text-accent" : "border-white/25 hover:border-accent hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
+      style={{ backgroundColor: "rgba(70,70,70,0.72)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+      className={`absolute right-3 top-3 grid h-11 w-11 place-items-center rounded-full text-white shadow-md transition-colors ${saved ? "text-accent" : "hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
     >
-      <Heart className={`size-4 ${saved ? "fill-accent" : ""}`} />
+      <Heart className={`size-5 ${saved ? "fill-accent" : ""}`} />
     </button>
   );
 }
@@ -137,9 +137,10 @@ function QuickViewButtonImpl({ name, onOpen }: { name: string; onOpen: () => voi
     <button
       onClick={onClick}
       aria-label={`Quick view ${name}`}
-      className="absolute bottom-2 right-2 grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/60 text-white transition-colors hover:border-accent hover:text-accent"
+      style={{ backgroundColor: "rgba(70,70,70,0.72)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+      className="absolute bottom-3 right-3 grid h-11 w-11 place-items-center rounded-full text-white transition-colors hover:text-accent"
     >
-      <Eye className="size-4" />
+      <Eye className="size-5" />
     </button>
   );
 }
