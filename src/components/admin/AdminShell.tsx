@@ -15,9 +15,9 @@ import { ThemeMenu } from "@/components/site/ThemeMenu";
 import { useAdminSupportUnread } from "@/lib/use-support-unread";
 import { useCustomerIntelSummary } from "@/lib/use-customer-intel-summary";
 
-type Role = "admin" | "super_admin" | "manager" | "support" | "fulfillment" | "warehouse_staff" | "editor";
+export type Role = "admin" | "super_admin" | "manager" | "support" | "fulfillment" | "warehouse_staff" | "editor";
 
-type NavItem = {
+export type NavItem = {
   to: string;
   search?: Record<string, string>;
   label: string;
@@ -25,7 +25,7 @@ type NavItem = {
   roles?: Role[];
 };
 
-const NAV: { group: string; items: NavItem[] }[] = [
+export const NAV: { group: string; items: NavItem[] }[] = [
   {
     group: "Overview",
     items: [
