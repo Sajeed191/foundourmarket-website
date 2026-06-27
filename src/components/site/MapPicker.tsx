@@ -200,14 +200,90 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
     }
   };
 
-  const locateMe = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => flyTo(pos.coords.latitude, pos.coords.longitude),
-      () => {},
-      { enableHighAccuracy: true, timeout: 5000 },
-    );
-  };
+  // Robust GPS acquisition: high-accuracy getCurrentPosition, retry once, then
+  // fall back to watchPosition until a fix arrives. `silent` skips toasts for
+  // the automatic on-open attempt.
+  const acquireLocation = useCallback(
+    (silent = false) => {
+      if (!navigator.geolocation) {
+        if (!silent)
+          toast.error(
+            "Location is not supported on this device. Please choose a location manually.",
+          );
+        return;
+      }
+      setLocating(true);
+      // Clear any existing watcher before starting a new attempt.
+      if (watchRef.current !== null) {
+        navigator.geolocation.clearWatch(watchRef.current);
+        watchRef.current = null;
+      }
+
+      const opts: PositionOptions = {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      };
+
+      const onSuccess = (pos: GeolocationPosition) => {
+        if (watchRef.current !== null) {
+          navigator.geolocation.clearWatch(watchRef.current);
+          watchRef.current = null;
+        }
+        setLocating(false);
+        flyTo(pos.coords.latitude, pos.coords.longitude, 17);
+        if (!silent) toast.success("Current location updated.");
+      };
+
+      const startWatch = () => {
+        watchRef.current = navigator.geolocation.watchPosition(
+          onSuccess,
+          () => {
+            if (watchRef.current !== null) {
+              navigator.geolocation.clearWatch(watchRef.current);
+              watchRef.current = null;
+            }
+            setLocating(false);
+            if (!silent)
+              toast.error(
+                "Unable to get your current location. Please enable Location services or choose a location manually.",
+              );
+          },
+          opts,
+        );
+      };
+
+      const attempt = (isRetry: boolean) => {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (err) => {
+            // Permission denied: don't hammer with retries/watch.
+            if (err.code === err.PERMISSION_DENIED) {
+              setLocating(false);
+              if (!silent)
+                toast.error(
+                  "Location permission denied. Please enable Location services or choose a location manually.",
+                );
+              return;
+            }
+            if (!isRetry) {
+              attempt(true);
+            } else {
+              startWatch();
+            }
+          },
+          opts,
+        );
+      };
+
+      attempt(false);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lowEnd],
+  );
+
+  const locateMe = () => acquireLocation(false);
+
 
   const confirm = async () => {
     setConfirming(true);
