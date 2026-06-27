@@ -1373,11 +1373,6 @@ function CompactSupportCard({
 
 type ContinueItem = { product: Product; badge: "cart" | "saved" | "viewed" };
 
-const CONTINUE_BADGE: Record<ContinueItem["badge"], { label: string; icon: string }> = {
-  cart: { label: "In Cart", icon: "🛒" },
-  saved: { label: "Saved", icon: "❤️" },
-  viewed: { label: "Recently Viewed", icon: "👀" },
-};
 
 function ContinueShopping({ items }: { items: ContinueItem[] }) {
   const shown = items.slice(0, 9);
@@ -1394,16 +1389,12 @@ function ContinueShopping({ items }: { items: ContinueItem[] }) {
           overscrollBehaviorX: "contain",
         }}
       >
-        {shown.map(({ product, badge }) => (
+        {shown.map(({ product }) => (
           <div
             key={product.id ?? product.slug}
             data-product-card-frame
             className="relative snap-start shrink-0 w-[44%] min-[420px]:w-[40%] sm:w-[240px]"
           >
-            <span className="product-typography pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm">
-              <span aria-hidden>{CONTINUE_BADGE[badge].icon}</span>
-              {CONTINUE_BADGE[badge].label}
-            </span>
             <ProductCard product={product} />
           </div>
         ))}
