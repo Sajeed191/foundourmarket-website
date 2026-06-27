@@ -1203,7 +1203,8 @@ html[data-android="true"] .product-card-shell {
 
 html[data-android="true"] [data-product-grid] > *,
 html[data-android="true"] [data-product-card-frame],
-html[data-android="true"] [data-product-card-frame] > * {
+html[data-android="true"] [data-product-card-frame] > *,
+html[data-android="true"] [data-product-card-frame] img {
   contain: none !important;
   transform: initial !important;
   translate: none !important;
@@ -1211,6 +1212,15 @@ html[data-android="true"] [data-product-card-frame] > * {
   rotate: none !important;
   will-change: auto !important;
   isolation: auto !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-android="true"] [data-product-card-frame] {
+  overflow: visible !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  mask-image: none !important;
 }
 
 /* Framer Motion / Reveal wrappers were the remaining root cause: product cards
