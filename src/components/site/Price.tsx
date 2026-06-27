@@ -37,5 +37,5 @@ export function Price({
     );
   }
 
-  return <span className={className}>{format(value)}</span>;
+  return <span className={cn("product-typography product-price-text", className)}>{format(value)}</span>;
 }

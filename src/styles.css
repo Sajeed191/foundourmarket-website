@@ -963,6 +963,75 @@ html[data-android="true"] .group {
   -webkit-backface-visibility: visible !important;
 }
 
+/* Product-card text pipeline hardening for Android Chrome/WebView/Samsung.
+   The corruption screenshot showed normal card/image/button geometry but price
+   glyphs repainting repeatedly downward, which points to text being rasterized
+   inside a transformed/promoted ancestor. Product title, rating, price, stock
+   and CTA text must stay in normal document flow and must never be promoted. */
+html[data-android="true"] [data-product-card],
+html[data-android="true"] .product-card-shell,
+html[data-android="true"] [data-product-copy],
+html[data-android="true"] .product-copy,
+html[data-android="true"] .product-meta-flow,
+html[data-android="true"] .product-price-flow {
+  transform: none !important;
+  translate: none !important;
+  rotate: none !important;
+  scale: none !important;
+  will-change: auto !important;
+  contain: none !important;
+  isolation: auto !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  backface-visibility: visible !important;
+  -webkit-backface-visibility: visible !important;
+}
+
+html[data-android="true"] .product-typography,
+html[data-android="true"] .product-price-text,
+html[data-android="true"] .product-title-text,
+html[data-android="true"] .product-rating-text,
+html[data-android="true"] [data-product-badge] {
+  position: static;
+  transform: none !important;
+  translate: none !important;
+  rotate: none !important;
+  scale: none !important;
+  will-change: auto !important;
+  contain: none !important;
+  isolation: auto !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  animation: none !important;
+  transition-property: color, background-color, border-color !important;
+  opacity: 1;
+  backface-visibility: visible !important;
+  -webkit-backface-visibility: visible !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+html[data-android="true"] [data-product-badge] {
+  position: relative;
+}
+
+html[data-android="true"] .product-card-shell:hover,
+html[data-android="true"] .product-card-shell:active,
+html[data-android="true"] .card-premium:hover,
+html[data-android="true"] .card-premium:active,
+html[data-android="true"] .product-card-glass:hover,
+html[data-android="true"] .product-card-glass:active,
+html[data-android="true"] .card-elevated:hover,
+html[data-android="true"] .card-elevated:active,
+html[data-android="true"] .card-ambient:hover,
+html[data-android="true"] .card-ambient:active,
+html[data-android="true"] .glow-border:hover,
+html[data-android="true"] .glow-border:active {
+  transform: none !important;
+}
+
 /* =====================================================================
    THEME SYSTEM — System / Dark / Grey / Light
    Dark is the default (defined in :root above). The ThemeProvider sets
