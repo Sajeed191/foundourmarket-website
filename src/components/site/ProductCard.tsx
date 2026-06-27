@@ -57,8 +57,8 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
 
   const allBadges = !forceBadge && assigned.length > 0 ? assigned : labels;
-  const visibleBadges = allBadges.slice(0, 3);
-  const extraBadges = Math.max(0, allBadges.length - 3);
+  const visibleBadges = allBadges.slice(0, 2);
+  const extraBadges = Math.max(0, allBadges.length - 2);
 
   const androidStaticCard = (
       <article
