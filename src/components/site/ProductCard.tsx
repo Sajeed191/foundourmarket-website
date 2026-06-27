@@ -42,7 +42,10 @@ function toAssignedBadge(b: RenderBadge): CardBadge {
     id: b.assignmentId ?? b.id,
     label: b.label,
     emoji: b.emoji,
-    className: badgeAnimationClass(b.animation),
+    // Product-listing badges are intentionally static: transform/keyframe badge
+    // animations caused cross-browser paint invalidation while scrolling large
+    // grids. Admin animation settings are preserved outside listing cards.
+    className: "",
     style: {
       backgroundColor: b.backgroundColor || b.color,
       color: b.textColor,
@@ -53,7 +56,7 @@ function toAssignedBadge(b: RenderBadge): CardBadge {
 
 function ProductBadgesImpl({ badges }: { badges: CardBadge[] }) {
   if (badges.length === 0) return null;
-  const visible = badges.slice(0, 3);
+  const visible = badges.slice(0, 2);
   const extra = Math.max(0, badges.length - visible.length);
   return (
     <div className="absolute left-2 top-2 flex max-w-[calc(100%-3.75rem)] flex-nowrap items-center gap-1 overflow-hidden">
