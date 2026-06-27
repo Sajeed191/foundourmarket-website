@@ -125,9 +125,9 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
       onClick={onClick}
       aria-label={saved ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
       style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
-      className={`absolute right-3 top-3 z-10 grid h-[46px] w-[46px] place-items-center rounded-full text-white transition-colors ${saved ? "text-accent" : "hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
+      className={`absolute right-3 top-3 z-10 grid h-[36px] w-[36px] sm:h-[46px] sm:w-[46px] place-items-center rounded-full text-white transition-colors ${saved ? "text-accent" : "hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
     >
-      <Heart className={`size-5 ${saved ? "fill-accent" : ""}`} />
+      <Heart className={`size-4 sm:size-5 ${saved ? "fill-accent" : ""}`} />
     </button>
   );
 }
@@ -145,9 +145,9 @@ function QuickViewButtonImpl({ name, onOpen }: { name: string; onOpen: () => voi
       onClick={onClick}
       aria-label={`Quick view ${name}`}
       style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
-      className="absolute bottom-3 right-3 z-10 grid h-[42px] w-[42px] place-items-center rounded-full text-white transition-colors hover:text-accent"
+      className="absolute bottom-3 right-3 z-10 grid h-[32px] w-[32px] sm:h-[42px] sm:w-[42px] place-items-center rounded-full text-white transition-colors hover:text-accent"
     >
-      <Eye className="size-[18px]" />
+      <Eye className="size-4 sm:size-[18px]" />
     </button>
   );
 }
