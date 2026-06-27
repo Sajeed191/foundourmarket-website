@@ -36,7 +36,7 @@ export function productIdentity(product: Product): string {
 }
 
 const TITLE_CLASS =
-  "product-typography product-title-text block h-[2.6em] overflow-hidden break-words text-[17px] font-bold leading-[1.3] text-foreground";
+  "product-typography product-title-text block h-[2.7em] overflow-hidden break-words text-[18px] font-bold leading-[1.35] text-foreground";
 
 function toAssignedBadge(b: RenderBadge): CardBadge {
   return {
@@ -64,7 +64,7 @@ function ProductBadgesImpl({ badges }: { badges: CardBadge[] }) {
         <span
           key={b.id}
           data-product-badge
-          className={`inline-flex h-[19px] min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full bg-accent/15 px-2 text-[10px] font-bold uppercase leading-none tracking-wide text-accent ${b.className ?? ""}`}
+          className={`inline-flex h-[22px] min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full bg-accent/15 px-2.5 text-[10px] font-bold uppercase leading-none tracking-wide text-accent ${b.className ?? ""}`}
           style={b.style}
         >
           {b.emoji && <span aria-hidden className="shrink-0">{b.emoji}</span>}
@@ -95,7 +95,8 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
     <button
       onClick={onClick}
       aria-label={saved ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
-      className={`absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full border bg-black/55 text-white transition-colors ${saved ? "border-accent text-accent" : "border-white/25 hover:border-accent hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
+      style={{ backgroundColor: "rgba(70,70,70,0.65)" }}
+      className={`absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full border text-white shadow-md backdrop-blur-md transition-colors ${saved ? "border-accent text-accent" : "border-white/25 hover:border-accent hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
     >
       <Heart className={`size-4 ${saved ? "fill-accent" : ""}`} />
     </button>
