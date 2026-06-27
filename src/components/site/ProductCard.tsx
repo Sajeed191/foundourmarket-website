@@ -268,15 +268,15 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
         <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
           {product.reviews > 0 ? (
             <span className="inline-flex min-w-0 items-center gap-1.5">
-              <Star className="size-[18px] shrink-0 fill-accent text-accent" />
-              <span data-product-text className="product-typography product-rating-text text-[17px] font-semibold tabular-nums text-white">{product.rating.toFixed(1)}</span>
-              <span data-product-text className="product-typography product-rating-text truncate text-[14px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
+              <Star className="size-[14px] sm:size-[18px] shrink-0 fill-accent text-accent" />
+              <span data-product-text className="product-typography product-rating-text text-[13px] sm:text-[17px] font-semibold tabular-nums text-white">{product.rating.toFixed(1)}</span>
+              <span data-product-text className="product-typography product-rating-text truncate text-[11px] sm:text-[14px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
             </span>
           ) : (
-            <span data-product-text className="product-typography product-rating-text text-[14px] font-medium text-accent">New Product</span>
+            <span data-product-text className="product-typography product-rating-text text-[11px] sm:text-[14px] font-medium text-accent">New Product</span>
           )}
           {product.soldCount > 0 && (
-            <span data-product-text className="product-typography product-rating-text truncate text-[12px] font-medium text-muted-foreground">🔥 {formatSold(product.soldCount)} sold</span>
+            <span data-product-text className="product-typography product-rating-text truncate text-[10px] sm:text-[12px] font-medium text-muted-foreground">🔥 {formatSold(product.soldCount)} sold</span>
           )}
         </div>
 
