@@ -931,6 +931,9 @@ html[data-android="true"] .group:hover .group-hover\:scale-\[1\.08\],
 html[data-android="true"] .sm\:hover\:scale-\[1\.02\]:hover,
 html[data-android="true"] .active\:scale-\[0\.99\]:active {
   transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
 }
 /* Lighter shadows = cheaper repaint, fewer stale-tile artifacts. */
 html[data-android="true"] .product-card-glass,
