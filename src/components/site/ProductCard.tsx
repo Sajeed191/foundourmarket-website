@@ -88,12 +88,12 @@ function ProductBadgesImpl({ badges }: { badges: CardBadge[] }) {
   if (badges.length === 0) return null;
   const visible = badges.slice(0, 3);
   return (
-    <div className="absolute left-2.5 top-2.5 z-10 flex max-w-[calc(100%-3.75rem)] flex-col items-start gap-1.5 overflow-hidden">
+    <div className="absolute left-2 top-2 z-10 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1 overflow-hidden">
       {visible.map((b) => (
         <span
           key={b.id}
           data-product-badge
-          className={`inline-flex h-6 min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full px-3 text-[12px] font-bold uppercase leading-none tracking-[0.3px] ${b.className ?? ""}`}
+          className={`inline-flex h-5 w-fit min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full px-2.5 text-[11px] font-bold uppercase leading-none tracking-[0.4px] ${b.className ?? ""}`}
           style={b.style ?? badgeStyle(b.label)}
         >
           {b.emoji && <span aria-hidden className="shrink-0">{b.emoji}</span>}
