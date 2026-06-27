@@ -25,7 +25,7 @@ type NavItem = {
   roles?: Role[];
 };
 
-const NAV: { group: string; items: NavItem[] }[] = [
+export const NAV: { group: string; items: NavItem[] }[] = [
   {
     group: "Overview",
     items: [
