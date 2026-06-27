@@ -1011,7 +1011,9 @@ html[data-android="true"] [data-product-image] {
 html[data-android="true"] [data-product-card],
 html[data-android="true"] .product-card-shell,
 html[data-android="true"] [data-product-copy],
+html[data-android="true"] [data-product-copy] *,
 html[data-android="true"] .product-copy,
+html[data-android="true"] .product-copy *,
 html[data-android="true"] .product-meta-flow,
 html[data-android="true"] .product-price-flow {
   transform: initial !important;
@@ -1028,6 +1030,17 @@ html[data-android="true"] .product-price-flow {
   transition-duration: 0s !important;
   backface-visibility: visible !important;
   -webkit-backface-visibility: visible !important;
+}
+
+html[data-android="true"] [data-product-copy] a,
+html[data-android="true"] [data-product-copy] span,
+html[data-android="true"] [data-product-copy] h1,
+html[data-android="true"] [data-product-copy] h2,
+html[data-android="true"] [data-product-copy] h3,
+html[data-android="true"] [data-product-copy] p {
+  position: static !important;
+  transition-property: none !important;
+  transition-duration: 0s !important;
 }
 
 html[data-android="true"] [data-product-card],
