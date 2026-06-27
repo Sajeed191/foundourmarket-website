@@ -1319,4 +1319,11 @@ html[data-low-end="true"] .premium-back-btn:hover { box-shadow: none; }
     aspect-ratio: auto;
     height: 120px;
   }
+  /* Prevent flex row from stretching shorter cards (removes empty space below Add to Cart) */
+  .cs-compact {
+    align-self: flex-start;
+  }
+  .cs-compact .product-card-shell {
+    height: auto;
+  }
 }
