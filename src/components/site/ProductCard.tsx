@@ -40,7 +40,7 @@ export function productIdentity(product: Product): string {
    Android-safe clamp (the global .product-title-text rule disables
    -webkit-line-clamp). */
 const TITLE_CLASS =
-  "product-typography product-title-text block h-[2.6em] overflow-hidden break-words text-[18px] font-bold leading-[1.3] text-foreground";
+  "product-typography product-title-text block h-[2.5em] overflow-hidden break-words text-[18px] font-bold leading-[1.25] text-foreground";
 
 /**
  * Reference-exact badge colors keyed by normalized label. Solid pills, white
