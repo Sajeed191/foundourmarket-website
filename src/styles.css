@@ -913,6 +913,18 @@ html[data-low-end="true"] .sm\:hover\:scale-\[1\.02\]:hover {
    positioned while text glyph tiles (price/title/rating/stock) repaint in stale
    scroll locations. We strip layer promotion from the entire product-card text
    chain and keep typography in normal document flow. */
+[data-product-card-static-fallback] {
+  display: none !important;
+}
+
+html[data-android="true"] [data-product-card-static-fallback] {
+  display: flex !important;
+}
+
+html[data-android="true"] [data-android-rich-card] {
+  display: none !important;
+}
+
 html[data-android="true"] * {
   /* Never let app code force-promote a layer that the compositor then fails to
      repaint on Android fast scroll. */
