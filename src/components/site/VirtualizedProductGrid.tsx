@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { detectAndroid } from "@/lib/use-low-end-device";
 
 type Cols = { base: number; sm?: number; md?: number; lg?: number; xl?: number };
 
@@ -35,13 +36,70 @@ function gapForWidth(w: number): number {
 }
 
 /**
- * Window-virtualized product grid. Renders only the rows near the viewport
- * (plus a small overscan), keeping the DOM tiny even for catalogs with
- * hundreds of products — critical for 2–4GB Android devices where a large
- * card count causes jank and memory pressure.
+
+ * Android / low-end rendering path: NO virtualization, NO transform offsets,
+ * NO promoted compositor layers. Items render in normal document flow inside a
+ * plain CSS grid and are revealed incrementally in small batches via an
+ * IntersectionObserver sentinel. This sidesteps the Android Chrome/WebView
+ * compositor bug where transform-positioned, layer-promoted virtual rows fail
+ * to invalidate during fast scroll (ghosting / duplicated cards / glitch
+ * lines). SEO is preserved — real items are rendered, just grown over time.
+ */
+function IncrementalGrid<T>({
+  items,
+  renderItem,
+  className,
+  batchSize,
+}: {
+  items: T[];
+  renderItem: (item: T, index: number) => React.ReactNode;
+  className?: string;
+  batchSize: number;
+}) {
+  const [visible, setVisible] = useState(() => Math.min(items.length, batchSize));
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Reset the window when the dataset changes (filter/sort/navigation).
+  useEffect(() => {
+    setVisible(Math.min(items.length, batchSize));
+  }, [items, batchSize]);
+
+  useEffect(() => {
+    if (visible >= items.length) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisible((v) => Math.min(items.length, v + batchSize));
+        }
+      },
+      { rootMargin: "800px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visible, items.length, batchSize]);
+
+  const shown = items.slice(0, visible);
+
+  return (
+    <>
+      <div className={className}>{shown.map((item, i) => renderItem(item, i))}</div>
+      {visible < items.length && (
+        <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />
+      )}
+    </>
+  );
+}
+
+/**
+ * Adaptive product grid.
  *
- * Small lists fall back to a plain responsive grid so layout/SSR stay
- * identical to before and there is zero virtualization overhead.
+ * - Desktop / high-performance browsers: window virtualization keeps the DOM
+ *   tiny for large catalogs.
+ * - Android (Chrome / WebView / Samsung Internet): switches to a transform-free
+ *   incremental grid to eliminate GPU compositor corruption on fast scroll.
+ * - Small lists everywhere: a plain responsive grid (also the SSR output).
  */
 export function VirtualizedProductGrid<T>({
   items,
@@ -54,13 +112,14 @@ export function VirtualizedProductGrid<T>({
 }: Props<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const [isAndroid, setIsAndroid] = useState(false);
   // Track the container's distance from the document top as LIVE state. The
   // window virtualizer needs this as `scrollMargin` to place rows correctly.
-  // Reading `parentRef.current.offsetTop` only at render time goes stale when
-  // content above the grid reflows (lazy images decoding, async banners) — on
-  // Android that stale offset mis-positions rows so they overlap previously
-  // painted rows, which reads as duplicated / ghosted cards.
   const [offsetTop, setOffsetTop] = useState(0);
+
+  useEffect(() => {
+    setIsAndroid(detectAndroid());
+  }, []);
 
   useEffect(() => {
     const el = parentRef.current;
@@ -77,7 +136,9 @@ export function VirtualizedProductGrid<T>({
     return () => ro.disconnect();
   }, []);
 
-  const shouldVirtualize = items.length > virtualizeThreshold && width > 0;
+  const big = items.length > virtualizeThreshold;
+  // Only the desktop / non-Android path uses the transform-based virtualizer.
+  const shouldVirtualize = big && width > 0 && !isAndroid;
   const colCount = useMemo(() => colsForWidth(cols, width || 1280), [cols, width]);
   const gap = gapForWidth(width || 1280);
   const rowCount = Math.ceil(items.length / colCount);
@@ -88,6 +149,21 @@ export function VirtualizedProductGrid<T>({
     overscan,
     scrollMargin: offsetTop,
   });
+
+  // Android (or any non-virtualized large list): transform-free incremental grid.
+  if (isAndroid && big) {
+    return (
+      <div ref={parentRef}>
+        <IncrementalGrid
+          items={items}
+          renderItem={renderItem}
+          className={className}
+          // ~30 cards per batch keeps memory and paint cost low on 2–4GB phones.
+          batchSize={30}
+        />
+      </div>
+    );
+  }
 
   // Fallback: plain responsive grid (also the SSR / first-paint output).
   if (!shouldVirtualize) {
@@ -104,17 +180,12 @@ export function VirtualizedProductGrid<T>({
       style={{
         position: "relative",
         height: rowVirtualizer.getTotalSize(),
-        // Isolate paint/layout for the scroll body so the compositor only
-        // repaints the rows that actually change.
         contain: "layout paint style",
       }}
     >
       {rowVirtualizer.getVirtualItems().map((vRow) => {
         const start = vRow.index * colCount;
         const rowItems = items.slice(start, start + colCount);
-        // Stable key derived from the row's actual content (not the virtual
-        // index) so React never reuses a row's DOM node for a different set of
-        // products — preventing recycled nodes from showing stale cards.
         const rowKey = (rowItems[0] as { id?: string | number; slug?: string } | undefined);
         return (
           <div
@@ -132,13 +203,10 @@ export function VirtualizedProductGrid<T>({
               gap,
               paddingBottom: gap,
               alignItems: "stretch",
-              // Per-row paint containment + an explicit compositor layer. This
-              // is the key fix for Android Chrome/WebView "ghost row" artifacts:
-              // without it, the GPU fails to invalidate the old tile when a row
-              // is repositioned during fast scroll, leaving duplicated cards.
+              // Desktop-only path. Paint containment keeps row repaints isolated;
+              // we deliberately omit `will-change`/`backface-visibility` here to
+              // avoid promoting an extra compositor layer per row.
               contain: "layout paint style",
-              willChange: "transform",
-              backfaceVisibility: "hidden",
             }}
           >
             {rowItems.map((item, i) => renderItem(item, start + i))}

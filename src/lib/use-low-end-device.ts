@@ -35,3 +35,24 @@ export function useLowEndDevice(): boolean {
   }, []);
   return low;
 }
+
+/**
+ * Detects Android Chrome / WebView / Samsung Internet. These browsers share a
+ * compositor bug where many promoted layers (transform + will-change + contain:
+ * paint) fail to invalidate during fast scroll, producing ghosted/duplicated
+ * cards and horizontal glitch lines. We use this to switch the product grid to
+ * a transform-free incremental rendering strategy on Android. SSR-safe.
+ */
+export function detectAndroid(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
+export function useIsAndroid(): boolean {
+  const [android, setAndroid] = useState(false);
+  useEffect(() => {
+    setAndroid(detectAndroid());
+  }, []);
+  return android;
+}
+
