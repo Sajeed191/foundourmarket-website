@@ -285,8 +285,8 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
           )}
         </div>
 
-        {/* Shipping row — 10px below price block */}
-        <div className="mt-2.5 flex min-w-0 items-center justify-between gap-2 overflow-hidden">
+        {/* Shipping row — 8px below price block */}
+        <div className="mt-2 flex min-w-0 items-center justify-between gap-2 overflow-hidden">
           {freeShipping ? (
             <span data-product-text className="product-typography inline-flex min-w-0 items-center gap-1.5 truncate text-[14px] font-medium text-emerald-400">
               <Check className="size-4 shrink-0" strokeWidth={2.5} /> <span className="truncate">Free Shipping</span>
