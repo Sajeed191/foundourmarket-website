@@ -29,8 +29,9 @@ export function ProductImage({
   height = 600,
 }: Props) {
   const responsive = getResponsiveImage(src);
-  const [android, setAndroid] = useState(() => detectAndroid());
-  const [loaded, setLoaded] = useState(() => detectAndroid());
+  const [android, setAndroid] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [canShowPlaceholder, setCanShowPlaceholder] = useState(false);
 
   // When the src changes on a recycled/reused element (e.g. a virtualized grid
   // row pointing at a new product), reset the loaded flag so the new image
@@ -42,6 +43,7 @@ export function ProductImage({
     const nextAndroid = detectAndroid();
     setAndroid(nextAndroid);
     setLoaded(nextAndroid);
+    setCanShowPlaceholder(!nextAndroid);
   }, [src]);
 
   // Callback ref: cancel any decode tied to a stale node and, if the new image
@@ -76,7 +78,7 @@ export function ProductImage({
 
   return (
     <>
-      {!android && !loaded && (
+      {canShowPlaceholder && !loaded && (
         <div
           aria-hidden
           data-product-image-placeholder
