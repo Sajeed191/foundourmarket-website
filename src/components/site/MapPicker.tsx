@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { toast } from "sonner";
 import { Loader2, Search, MapPin, ArrowLeft, Check, Crosshair, AlertCircle } from "lucide-react";
 
 export type MapPickResult = {
@@ -64,6 +65,8 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<{ name: string; lat: number; lng: number }[]>([]);
   const [confirming, setConfirming] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const watchRef = useRef<number | null>(null);
   const [center, setCenter] = useState<[number, number]>([
     initial?.lat ?? DEFAULT_CENTER[0],
     initial?.lng ?? DEFAULT_CENTER[1],
@@ -170,8 +173,9 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const flyTo = (lat: number, lng: number) => {
-    mapRef.current?.setView([lat, lng], 16, { animate: !lowEnd });
+  const flyTo = (lat: number, lng: number, zoom = 17) => {
+    mapRef.current?.setView([lat, lng], zoom, { animate: !lowEnd });
+    setCenter([lat, lng]);
     refreshPreview(lat, lng);
   };
 
@@ -196,14 +200,115 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
     }
   };
 
-  const locateMe = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => flyTo(pos.coords.latitude, pos.coords.longitude),
-      () => {},
-      { enableHighAccuracy: true, timeout: 5000 },
-    );
-  };
+  // Robust GPS acquisition: high-accuracy getCurrentPosition, retry once, then
+  // fall back to watchPosition until a fix arrives. `silent` skips toasts for
+  // the automatic on-open attempt.
+  const acquireLocation = useCallback(
+    (silent = false) => {
+      if (!navigator.geolocation) {
+        if (!silent)
+          toast.error(
+            "Location is not supported on this device. Please choose a location manually.",
+          );
+        return;
+      }
+      setLocating(true);
+      // Clear any existing watcher before starting a new attempt.
+      if (watchRef.current !== null) {
+        navigator.geolocation.clearWatch(watchRef.current);
+        watchRef.current = null;
+      }
+
+      const opts: PositionOptions = {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      };
+
+      const onSuccess = (pos: GeolocationPosition) => {
+        if (watchRef.current !== null) {
+          navigator.geolocation.clearWatch(watchRef.current);
+          watchRef.current = null;
+        }
+        setLocating(false);
+        flyTo(pos.coords.latitude, pos.coords.longitude, 17);
+        if (!silent) toast.success("Current location updated.");
+      };
+
+      const startWatch = () => {
+        watchRef.current = navigator.geolocation.watchPosition(
+          onSuccess,
+          () => {
+            if (watchRef.current !== null) {
+              navigator.geolocation.clearWatch(watchRef.current);
+              watchRef.current = null;
+            }
+            setLocating(false);
+            if (!silent)
+              toast.error(
+                "Unable to get your current location. Please enable Location services or choose a location manually.",
+              );
+          },
+          opts,
+        );
+      };
+
+      const attempt = (isRetry: boolean) => {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (err) => {
+            // Permission denied: don't hammer with retries/watch.
+            if (err.code === err.PERMISSION_DENIED) {
+              setLocating(false);
+              if (!silent)
+                toast.error(
+                  "Location permission denied. Please enable Location services or choose a location manually.",
+                );
+              return;
+            }
+            if (!isRetry) {
+              attempt(true);
+            } else {
+              startWatch();
+            }
+          },
+          opts,
+        );
+      };
+
+      attempt(false);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lowEnd],
+  );
+
+  const locateMe = () => acquireLocation(false);
+
+  // Auto-detect the user's location when the picker opens (only when the form
+  // didn't pass an explicit initial coordinate). Runs once after mount.
+  useEffect(() => {
+    const hasInitial = typeof initial?.lat === "number" && typeof initial?.lng === "number";
+    if (!hasInitial) {
+      const t = setTimeout(() => acquireLocation(true), 250);
+      return () => {
+        clearTimeout(t);
+        if (watchRef.current !== null) {
+          navigator.geolocation?.clearWatch(watchRef.current);
+          watchRef.current = null;
+        }
+      };
+    }
+    return () => {
+      if (watchRef.current !== null) {
+        navigator.geolocation?.clearWatch(watchRef.current);
+        watchRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+
 
   const confirm = async () => {
     setConfirming(true);
@@ -338,15 +443,30 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
         <button
           type="button"
           onClick={locateMe}
+          disabled={locating}
           aria-label="Use my current location"
-          className="absolute right-4 z-[1200] grid size-12 place-items-center rounded-full border border-accent/40 bg-card text-accent shadow-lg"
+          aria-busy={locating}
+          className="absolute right-4 z-[1200] grid size-12 place-items-center rounded-full border border-accent/40 bg-card text-accent shadow-lg disabled:opacity-70"
           style={{
             bottom: `calc(${snap}% + 1rem)`,
             transition: dragging ? "none" : "bottom 0.2s ease",
           }}
         >
-          <Crosshair className="size-5" />
+          {locating ? (
+            <Loader2 className="size-5 animate-spin" />
+          ) : (
+            <Crosshair className="size-5" />
+          )}
         </button>
+        {/* Detecting banner */}
+        {locating && (
+          <div className="pointer-events-none absolute left-1/2 top-4 z-[1200] -translate-x-1/2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-lg backdrop-blur">
+              <Loader2 className="size-3.5 animate-spin text-accent" />
+              Detecting your location…
+            </span>
+          </div>
+        )}
 
         {/* Draggable bottom sheet */}
         <div
@@ -430,11 +550,15 @@ export default function MapPicker({ initial, lowEnd, onConfirm, onCancel }: Prop
             <button
               type="button"
               onClick={confirm}
-              disabled={confirming}
+              disabled={confirming || locating}
               className={`inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-accent text-[12px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110 disabled:opacity-60 ${lowEnd ? "" : "shadow-[0_0_30px_-8px_var(--color-accent)]"}`}
             >
-              {confirming ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-              Confirm this location
+              {confirming || locating ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Check className="size-4" />
+              )}
+              {locating ? "Detecting your location…" : "Confirm this location"}
             </button>
           </div>
         </div>
