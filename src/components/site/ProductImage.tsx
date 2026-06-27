@@ -99,7 +99,7 @@ export function ProductImage({
         decoding={android ? "sync" : "async"}
         onLoad={() => setLoaded(true)}
         data-product-image
-        className={`${className} ${android ? "!opacity-100 !transition-none" : loaded ? "opacity-100" : "opacity-0"}`}
+        className={`${className} ${android ? "!opacity-100 !transition-none" : !canShowPlaceholder || loaded ? "opacity-100" : "opacity-0"}`}
       />
     </>
   );
