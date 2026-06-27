@@ -93,7 +93,7 @@ function ProductBadgesImpl({ badges }: { badges: CardBadge[] }) {
         <span
           key={b.id}
           data-product-badge
-          className={`inline-flex h-5 w-fit min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full px-2.5 text-[11px] font-bold uppercase leading-none tracking-[0.4px] ${b.className ?? ""}`}
+          className={`inline-flex h-4 sm:h-5 w-fit min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full px-2 sm:px-2.5 text-[9px] sm:text-[11px] font-bold uppercase leading-none tracking-[0.4px] ${b.className ?? ""}`}
           style={b.style ?? badgeStyle(b.label)}
         >
           {b.emoji && <span aria-hidden className="shrink-0">{b.emoji}</span>}
