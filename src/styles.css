@@ -868,7 +868,7 @@ html[data-low-end="true"] [data-decorative] {
 /* Disable hover scale / transform flourishes that thrash compositing. */
 html[data-low-end="true"] .group:hover .group-hover\:scale-\[1\.08\],
 html[data-low-end="true"] .sm\:hover\:scale-\[1\.02\]:hover {
-  transform: none !important;
+  transform: initial !important;
 }
 
 
@@ -930,7 +930,7 @@ html[data-android="true"] * {
 html[data-android="true"] .group:hover .group-hover\:scale-\[1\.08\],
 html[data-android="true"] .sm\:hover\:scale-\[1\.02\]:hover,
 html[data-android="true"] .active\:scale-\[0\.99\]:active {
-  transform: none !important;
+  transform: initial !important;
 }
 /* Lighter shadows = cheaper repaint, fewer stale-tile artifacts. */
 html[data-android="true"] .product-card-glass,
@@ -974,7 +974,7 @@ html[data-android="true"] [data-product-copy],
 html[data-android="true"] .product-copy,
 html[data-android="true"] .product-meta-flow,
 html[data-android="true"] .product-price-flow {
-  transform: none !important;
+  transform: initial !important;
   will-change: auto !important;
   contain: none !important;
   isolation: auto !important;
@@ -992,7 +992,7 @@ html[data-android="true"] :where(div, section, article):has(> [data-product-card
 html[data-android="true"] :where(div, section, article):has(> .product-card-shell),
 html[data-android="true"] [data-product-card-frame],
 html[data-android="true"] [data-product-grid] {
-  transform: none !important;
+  transform: initial !important;
   opacity: 1 !important;
   will-change: auto !important;
   contain: none !important;
@@ -1010,7 +1010,7 @@ html[data-android="true"] [data-product-card] [class*="scale-"],
 html[data-android="true"] [data-product-card] [class*="translate-"],
 html[data-android="true"] [data-product-card] [class*="rotate-"],
 html[data-android="true"] [data-product-card] [class*="transform"] {
-  transform: none !important;
+  transform: initial !important;
   will-change: auto !important;
 }
 
