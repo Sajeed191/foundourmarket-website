@@ -1,0 +1,1 @@
+UPDATE public.homepage_sections SET eyebrow = '' WHERE key IN ('trending','new_arrivals');
