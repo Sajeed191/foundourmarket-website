@@ -213,12 +213,12 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
       <ProductCardAdminControlsGate product={product} />
 
       {/* IMAGE */}
-      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block">
-        <div data-product-media className="relative aspect-square overflow-hidden rounded-t-[22px] bg-black/40">
+      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block p-3 pb-1">
+        <div data-product-media className="relative aspect-square overflow-hidden rounded-2xl bg-black/40">
           <ProductImage
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
-            className="relative h-full w-full object-cover transition-opacity duration-500"
+            className="relative h-full w-full object-contain transition-opacity duration-500"
           />
 
           {/* Premium fade overlay */}
