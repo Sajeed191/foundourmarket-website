@@ -69,15 +69,15 @@ function FallbackSection({ featured }: { featured: Product[] }) {
         {featured.length > 0 && (
           <div className="relative mt-7">
             <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent mb-3">Featured Picks</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            <div data-product-grid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
               {featured.map((p) => (
-                <Link key={p.slug} to="/products/$slug" params={{ slug: p.slug }} className="block group text-left">
-                  <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10">
+                <Link key={p.slug} to="/products/$slug" params={{ slug: p.slug }} data-product-card data-android-static-card className="block group text-left">
+                  <div data-product-media className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10">
                     {p.image && (
-                      <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-cover group-active:scale-105 transition-transform" />
+                      <img data-product-image src={p.image} alt={p.name} loading="lazy" decoding="sync" className="w-full h-full object-cover" />
                     )}
                   </div>
-                  <p className="mt-1.5 text-[11px] font-medium truncate">{p.name}</p>
+                  <p data-product-text className="product-typography product-title-text mt-1.5 text-[11px] font-medium truncate">{p.name}</p>
                   <Price value={priceOf(p)} className="text-xs font-display font-semibold text-accent tabular-nums" />
                 </Link>
               ))}
@@ -175,7 +175,7 @@ export function FlashDeals() {
         </div>
 
         {/* 2x2 grid on mobile, 4-up on desktop — exactly 4 featured deals. */}
-        <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div data-product-grid className="relative grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {items.map((i) => {
             const p = i.product;
             // Region-resolved regular selling price (INR/USD per market).
@@ -196,26 +196,31 @@ export function FlashDeals() {
                 key={p.slug}
                 to="/products/$slug"
                 params={{ slug: p.slug }}
+                data-product-card
+                data-android-static-card
                 onClick={() => trackFlashDealEvent("click", i.dealId, p.slug)}
                 className="flex flex-col group min-w-0"
               >
-                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10">
+                <div data-product-media className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10">
                   {p.image && (
                     <img
+                      data-product-image
                       src={p.image}
                       alt={p.name}
                       loading="lazy"
-                      className="w-full h-full object-cover group-active:scale-105 transition-transform"
+                      decoding="sync"
+                      className="w-full h-full object-cover"
                     />
                   )}
                   <span
+                    data-product-badge
                     className={`absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase leading-none tracking-wide shadow-sm shadow-black/30 ${dealBadge.className}`}
                   >
                     <span aria-hidden>{dealBadge.emoji}</span>
                     {dealBadge.label}
                   </span>
                   {off > 0 && (
-                    <span className="absolute top-1.5 right-1.5 inline-flex items-center rounded-full bg-accent text-black text-[9px] font-bold font-mono px-2 py-0.5 shadow-[var(--shadow-ember)]">
+                    <span data-product-badge className="absolute top-1.5 right-1.5 inline-flex items-center rounded-full bg-accent text-black text-[9px] font-bold font-mono px-2 py-0.5 shadow-[var(--shadow-ember)]">
                       -{off}%
                     </span>
                   )}
@@ -225,7 +230,7 @@ export function FlashDeals() {
                     </div>
                   )}
                 </div>
-                <p className="mt-2 text-[11px] font-medium truncate">{p.name}</p>
+                <p data-product-text className="product-typography product-title-text mt-2 text-[11px] font-medium truncate">{p.name}</p>
                 <div className="flex items-baseline gap-1.5 flex-wrap">
                   <Price value={displayPrice} className="text-xs font-display font-semibold text-accent tabular-nums" />
                   {hasFlash && (
@@ -233,7 +238,7 @@ export function FlashDeals() {
                   )}
                 </div>
                 {showOnlyLeft && (
-                  <p className="text-[9px] font-mono uppercase tracking-wider text-accent/90 mt-auto pt-0.5">
+                  <p data-product-text className="product-typography text-[9px] font-mono uppercase tracking-wider text-accent/90 mt-auto pt-0.5">
                     Only {p.stockQuantity} left
                   </p>
                 )}
