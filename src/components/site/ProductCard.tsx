@@ -312,21 +312,21 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
 
 
       {/* INFO */}
-        <div data-product-copy className="product-copy flex flex-1 flex-col px-3 pb-3 pt-2">
+        <div data-product-copy className="product-copy flex flex-1 flex-col px-3.5 pb-3.5 pt-3">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
           {/* Title — max 2 lines */}
-          <h3 data-product-text className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[15px] font-semibold leading-[1.3] text-foreground transition-colors group-hover:text-accent">
+          <h3 data-product-text className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[16px] font-semibold leading-[1.3] text-foreground transition-colors group-hover:text-accent">
             {product.name}
           </h3>
         </Link>
 
         {/* Rating + social proof */}
-        <div className="product-meta-flow mt-1 flex h-[16px] items-center gap-2">
+        <div className="product-meta-flow mt-2 flex h-[16px] items-center gap-2">
           {product.reviews > 0 ? (
             <span className="inline-flex items-center gap-1">
               <Star className="size-3.5 fill-accent text-accent" />
               <span data-product-text className="product-typography product-rating-text text-[12px] font-semibold tabular-nums text-foreground">{product.rating.toFixed(1)}</span>
-              <span data-product-text className="product-typography product-rating-text font-mono text-[10px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
+              <span data-product-text className="product-typography product-rating-text font-mono text-[11px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
             </span>
           ) : (
             <span data-product-text className="product-typography product-rating-text text-[11px] font-medium text-accent">New Product</span>
@@ -337,64 +337,62 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
         </div>
 
         {/* Price */}
-        <div className="product-price-flow mt-2 flex min-h-[34px] flex-col justify-center">
-          <div className="flex items-baseline gap-2">
-            <Price
-              value={price}
-              className="block font-display text-[21px] font-bold leading-none tabular-nums text-foreground"
-            />
-            {originalPrice && discount ? (
-              <Price value={originalPrice} className="block font-mono text-[11px] tabular-nums text-muted-foreground line-through" />
-            ) : null}
-          </div>
+        <div className="product-price-flow mt-2 flex min-h-[40px] flex-col justify-center">
+          <Price
+            value={price}
+            className="block font-display text-[32px] font-bold leading-none tabular-nums text-foreground"
+          />
           {originalPrice && discount ? (
-            <span data-product-text className="product-typography product-price-text mt-1 inline-flex w-fit items-center rounded-md bg-accent/12 px-1.5 py-0.5 font-mono text-[10px] font-bold leading-none text-accent">{discount}% OFF</span>
+            <div className="mt-1.5 flex items-center gap-2">
+              <Price value={originalPrice} className="block font-mono text-[12px] tabular-nums text-muted-foreground line-through" />
+              <span data-product-text className="product-typography product-price-text font-mono text-[12px] font-bold leading-none text-accent">{discount}% OFF</span>
+            </div>
           ) : (
-            <span aria-hidden data-product-text className="product-typography mt-1 block text-[10px] leading-none invisible">.</span>
+            <span aria-hidden data-product-text className="product-typography mt-1.5 block text-[12px] leading-none invisible">.</span>
           )}
         </div>
 
 
         {/* Trust + stock — single line each, height reserved */}
-        <div className="mt-1.5 flex h-[16px] items-center justify-between gap-2">
+        <div className="mt-2.5 flex h-[16px] items-center justify-between gap-2">
           {freeShipping ? (
-            <span data-product-text className="product-typography inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300">
+            <span data-product-text className="product-typography inline-flex items-center gap-1 text-[11px] font-medium text-emerald-300">
               <Check className="size-3" strokeWidth={2.5} /> Free Shipping
             </span>
           ) : product.returnEligible ? (
-            <span data-product-text className="product-typography inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300">
+            <span data-product-text className="product-typography inline-flex items-center gap-1 text-[11px] font-medium text-emerald-300">
               <Check className="size-3" strokeWidth={2.5} /> Easy Returns
             </span>
           ) : (
-            <span aria-hidden data-product-text className="product-typography text-[10px]">&nbsp;</span>
+            <span aria-hidden data-product-text className="product-typography text-[11px]">&nbsp;</span>
           )}
           {lowStock ? (
-            <span data-product-text className="product-typography text-[10px] font-semibold text-orange-300">⚠ Only {product.stockQuantity} left</span>
+            <span data-product-text className="product-typography text-[11px] font-semibold text-orange-300">⚠ Only {product.stockQuantity} left</span>
           ) : product.inStock ? (
-            <span data-product-text className="product-typography text-[10px] font-medium text-muted-foreground">In Stock</span>
+            <span data-product-text className="product-typography text-[11px] font-medium text-muted-foreground">In Stock</span>
           ) : null}
         </div>
 
-        {/* Add to cart — 48px; switches to quantity selector once in cart */}
-        <div className="mt-2.5">
+        {/* Add to cart — 52px; switches to quantity selector once in cart */}
+        <div className="mt-3.5">
           {!product.inStock ? (
-            <span data-product-text className="product-typography inline-flex h-12 w-full items-center justify-center rounded-full border border-white/10 bg-muted/40 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span data-product-text className="product-typography inline-flex h-[52px] w-full items-center justify-center rounded-full border border-white/10 bg-muted/40 font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Sold Out
             </span>
           ) : cartQty > 0 && !justAdded ? (
-            <div className="flex h-12 w-full items-center justify-between rounded-full border border-accent/40 bg-accent/10 px-1.5">
+            <div className="flex h-[52px] w-full items-center justify-between rounded-full border border-accent/40 bg-accent/10 px-2">
               <button
                 onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty - 1); }}
                 aria-label="Decrease quantity"
-                className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
+                className="grid size-10 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
               >
                 <Minus className="size-4" strokeWidth={2.5} />
               </button>
-              <span data-product-text className="product-typography min-w-7 text-center text-sm font-bold tabular-nums text-foreground">{cartQty}</span>
+              <span data-product-text className="product-typography min-w-7 text-center text-base font-bold tabular-nums text-foreground">{cartQty}</span>
               <button
                 onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty + 1); }}
                 aria-label="Increase quantity"
-                className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
+                className="grid size-10 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
               >
                 <Plus className="size-4" strokeWidth={2.5} />
               </button>
@@ -403,20 +401,21 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
             <button
               onClick={handleAdd}
               aria-label={`Add ${product.name} to cart`}
-              className={`product-typography relative inline-flex h-12 w-full items-center justify-center gap-1.5 overflow-hidden rounded-full text-[13px] font-semibold duration-200 ${
+              className={`product-typography relative inline-flex h-[52px] w-full items-center justify-center gap-1.5 overflow-hidden rounded-full text-[15px] font-bold duration-200 ${
                 justAdded
                   ? "bg-emerald-500 text-black"
-                  : "bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] text-black shadow-[var(--shadow-ember)] hover:brightness-[1.05]"
+                  : "bg-accent text-accent-foreground hover:brightness-[1.05]"
               }`}
             >
               {justAdded ? (
-                <><Check className="size-4" /> Added</>
+                <><Check className="size-5" /> Added</>
               ) : (
-                <><Plus className="size-4" strokeWidth={2.5} /> Add to Cart</>
+                <><Plus className="size-5" strokeWidth={2.75} /> Add to Cart</>
               )}
             </button>
           )}
         </div>
+
       </div>
 
       <QuickViewDialog product={product} open={quickOpen} onOpenChange={setQuickOpen} />
