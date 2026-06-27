@@ -868,7 +868,7 @@ html[data-low-end="true"] [data-decorative] {
 /* Disable hover scale / transform flourishes that thrash compositing. */
 html[data-low-end="true"] .group:hover .group-hover\:scale-\[1\.08\],
 html[data-low-end="true"] .sm\:hover\:scale-\[1\.02\]:hover {
-  transform: none !important;
+  transform: initial !important;
 }
 
 
@@ -930,7 +930,10 @@ html[data-android="true"] * {
 html[data-android="true"] .group:hover .group-hover\:scale-\[1\.08\],
 html[data-android="true"] .sm\:hover\:scale-\[1\.02\]:hover,
 html[data-android="true"] .active\:scale-\[0\.99\]:active {
-  transform: none !important;
+  transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
 }
 /* Lighter shadows = cheaper repaint, fewer stale-tile artifacts. */
 html[data-android="true"] .product-card-glass,
@@ -974,7 +977,7 @@ html[data-android="true"] [data-product-copy],
 html[data-android="true"] .product-copy,
 html[data-android="true"] .product-meta-flow,
 html[data-android="true"] .product-price-flow {
-  transform: none !important;
+  transform: initial !important;
   translate: none !important;
   scale: none !important;
   rotate: none !important;
@@ -983,6 +986,9 @@ html[data-android="true"] .product-price-flow {
   isolation: auto !important;
   filter: none !important;
   mix-blend-mode: normal !important;
+  animation: none !important;
+  transition-property: none !important;
+  transition-duration: 0s !important;
   backface-visibility: visible !important;
   -webkit-backface-visibility: visible !important;
 }
@@ -995,7 +1001,7 @@ html[data-android="true"] :where(div, section, article):has(> [data-product-card
 html[data-android="true"] :where(div, section, article):has(> .product-card-shell),
 html[data-android="true"] [data-product-card-frame],
 html[data-android="true"] [data-product-grid] {
-  transform: none !important;
+  transform: initial !important;
   translate: none !important;
   scale: none !important;
   rotate: none !important;
@@ -1009,6 +1015,16 @@ html[data-android="true"] [data-product-grid] {
   -webkit-backface-visibility: visible !important;
 }
 
+html[data-android="true"] [data-app-shell] {
+  isolation: auto !important;
+  contain: none !important;
+  transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
+  will-change: auto !important;
+}
+
 /* Disable transform utility classes inside product cards on Android. Image zooms,
    active button scales and quick-view translations are decorative; keeping them
    can promote the card subtree and cause stale text tiles while scrolling. */
@@ -1016,18 +1032,21 @@ html[data-android="true"] [data-product-card] [class*="scale-"],
 html[data-android="true"] [data-product-card] [class*="translate-"],
 html[data-android="true"] [data-product-card] [class*="rotate-"],
 html[data-android="true"] [data-product-card] [class*="transform"] {
-  transform: none !important;
+  transform: initial !important;
   translate: none !important;
   scale: none !important;
   rotate: none !important;
   will-change: auto !important;
 }
 
+html[data-android="true"] [data-product-text],
+html[data-android="true"] [data-product-text] *,
 html[data-android="true"] .product-typography,
 html[data-android="true"] .product-price-text,
 html[data-android="true"] .product-title-text,
 html[data-android="true"] .product-rating-text {
-  transform: none !important;
+  position: static !important;
+  transform: initial !important;
   translate: none !important;
   scale: none !important;
   rotate: none !important;
@@ -1039,7 +1058,8 @@ html[data-android="true"] .product-rating-text {
   -webkit-backdrop-filter: none !important;
   mix-blend-mode: normal !important;
   animation: none !important;
-  transition-property: color, background-color, border-color !important;
+  transition-property: none !important;
+  transition-duration: 0s !important;
   opacity: 1 !important;
   backface-visibility: visible !important;
   -webkit-backface-visibility: visible !important;
@@ -1054,7 +1074,7 @@ html[data-android="true"] .product-rating-text {
 }
 
 html[data-android="true"] [data-product-badge] {
-  transform: none !important;
+  transform: initial !important;
   translate: none !important;
   scale: none !important;
   rotate: none !important;
@@ -1080,7 +1100,10 @@ html[data-android="true"] .card-ambient:hover,
 html[data-android="true"] .card-ambient:active,
 html[data-android="true"] .glow-border:hover,
 html[data-android="true"] .glow-border:active {
-  transform: none !important;
+  transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
 }
 
 /* =====================================================================
