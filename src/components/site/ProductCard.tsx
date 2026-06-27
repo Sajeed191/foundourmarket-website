@@ -174,7 +174,7 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
 
   if (qty > 0 && !justAdded) {
     return (
-      <div className="flex h-[56px] w-full items-center justify-between rounded-full px-2" style={{ background: gradient }}>
+      <div className="flex h-[50px] w-full items-center justify-between rounded-full px-2" style={{ background: gradient }}>
         <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty - 1); }} aria-label="Decrease quantity" className="grid size-10 place-items-center rounded-full text-black">
           <Minus className="size-5" strokeWidth={2.5} />
         </button>
