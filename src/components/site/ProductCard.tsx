@@ -132,7 +132,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
 
         <div data-product-copy className="android-static-product-copy flex flex-1 flex-col px-3.5 pb-3.5 pt-3">
           <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
-            <h3 data-product-text className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[16px] font-semibold leading-[1.3] text-foreground">
+            <h3 data-product-text className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[17px] font-bold leading-[1.3] text-foreground">
               {product.name}
             </h3>
           </Link>
