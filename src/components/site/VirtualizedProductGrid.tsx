@@ -139,8 +139,8 @@ export function VirtualizedProductGrid<T>({
   }, []);
 
   const big = items.length > virtualizeThreshold;
-  // Only the desktop / non-Android path uses the transform-based virtualizer.
-  const shouldVirtualize = big && width > 0 && !isAndroid;
+  // Only the desktop / capable-browser path uses the transform-based virtualizer.
+  const shouldVirtualize = big && width > 0 && !useIncremental;
   const colCount = useMemo(() => colsForWidth(cols, width || 1280), [cols, width]);
   const gap = gapForWidth(width || 1280);
   const rowCount = Math.ceil(items.length / colCount);
