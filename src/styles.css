@@ -1027,6 +1027,25 @@ html[data-android="true"] [role="region"][aria-label="Announcements"] {
   transition-property: color, background-color, border-color, opacity !important;
 }
 
+html[data-android="true"] [data-app-bottom-nav] {
+  position: static !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: calc(var(--mobile-safe-bottom) + 0.75rem) !important;
+}
+
+html[data-android="true"] [data-app-bottom-nav] ul,
+html[data-android="true"] [data-app-bottom-nav] li,
+html[data-android="true"] [data-app-bottom-nav] a,
+html[data-android="true"] [data-app-bottom-nav] span,
+html[data-android="true"] [data-app-bottom-nav] svg {
+  transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
+  transition-property: color, background-color, border-color, opacity !important;
+  box-shadow: none !important;
+}
+
 html[data-android="true"] [data-app-header],
 html[data-android="true"] [data-app-header] *,
 html[data-android="true"] [data-app-bottom-nav],
