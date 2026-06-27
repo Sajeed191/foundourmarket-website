@@ -379,6 +379,7 @@ function RootComponent() {
   );
 
   const lowEnd = useLowEndDevice();
+  const isAndroid = useIsAndroid();
 
   useEffect(() => {
     installChunkRecovery();
@@ -389,8 +390,10 @@ function RootComponent() {
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.dataset.lowEnd = lowEnd ? "true" : "false";
+      // Android Chrome/WebView/Samsung Internet compositor mitigation flag.
+      document.documentElement.dataset.android = isAndroid ? "true" : "false";
     }
-  }, [lowEnd]);
+  }, [lowEnd, isAndroid]);
   useEffect(() => {
     startPerfMonitoring();
   }, []);
