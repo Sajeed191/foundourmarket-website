@@ -975,11 +975,17 @@ html[data-android="true"] .product-copy,
 html[data-android="true"] .product-meta-flow,
 html[data-android="true"] .product-price-flow {
   transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
   will-change: auto !important;
   contain: none !important;
   isolation: auto !important;
   filter: none !important;
   mix-blend-mode: normal !important;
+  animation: none !important;
+  transition-property: none !important;
+  transition-duration: 0s !important;
   backface-visibility: visible !important;
   -webkit-backface-visibility: visible !important;
 }
@@ -993,6 +999,9 @@ html[data-android="true"] :where(div, section, article):has(> .product-card-shel
 html[data-android="true"] [data-product-card-frame],
 html[data-android="true"] [data-product-grid] {
   transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
   opacity: 1 !important;
   will-change: auto !important;
   contain: none !important;
@@ -1011,14 +1020,23 @@ html[data-android="true"] [data-product-card] [class*="translate-"],
 html[data-android="true"] [data-product-card] [class*="rotate-"],
 html[data-android="true"] [data-product-card] [class*="transform"] {
   transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
   will-change: auto !important;
 }
 
+html[data-android="true"] [data-product-text],
+html[data-android="true"] [data-product-text] *,
 html[data-android="true"] .product-typography,
 html[data-android="true"] .product-price-text,
 html[data-android="true"] .product-title-text,
 html[data-android="true"] .product-rating-text {
+  position: static !important;
   transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
   will-change: auto !important;
   contain: none !important;
   isolation: auto !important;
@@ -1027,7 +1045,8 @@ html[data-android="true"] .product-rating-text {
   -webkit-backdrop-filter: none !important;
   mix-blend-mode: normal !important;
   animation: none !important;
-  transition-property: color, background-color, border-color !important;
+  transition-property: none !important;
+  transition-duration: 0s !important;
   opacity: 1 !important;
   backface-visibility: visible !important;
   -webkit-backface-visibility: visible !important;
@@ -1043,6 +1062,9 @@ html[data-android="true"] .product-rating-text {
 
 html[data-android="true"] [data-product-badge] {
   transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
   will-change: auto !important;
   contain: none !important;
   filter: none !important;
@@ -1066,6 +1088,9 @@ html[data-android="true"] .card-ambient:active,
 html[data-android="true"] .glow-border:hover,
 html[data-android="true"] .glow-border:active {
   transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
 }
 
 /* =====================================================================
