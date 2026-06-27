@@ -64,10 +64,10 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
       <article
         data-product-card
         data-android-static-card
-        className="android-static-product-card flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card"
+        className="android-static-product-card flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_4px_20px_-12px_oklch(0_0_0/0.7)]"
       >
         <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block p-3">
-          <div data-product-media className="android-static-product-media relative aspect-square w-full overflow-hidden rounded-2xl bg-muted">
+          <div data-product-media className="android-static-product-media relative aspect-square w-full overflow-hidden rounded-[18px] bg-white">
             <img
               data-product-image
               src={product.image}
@@ -79,40 +79,65 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               className="block h-full w-full object-contain"
             />
             {visibleBadges.length > 0 && (
-              <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1">
+              <div className="absolute left-2 top-2 flex flex-nowrap items-center gap-1">
                 {visibleBadges.map((b) => (
                   <span
                     key={("assignmentId" in b ? b.assignmentId : undefined) ?? ("key" in b ? b.key : b.id)}
                     data-product-badge
-                    className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-1 text-[9px] font-bold uppercase leading-none tracking-wide text-accent"
+                    className="inline-flex h-[19px] items-center gap-1 whitespace-nowrap rounded-full bg-accent/15 px-2 text-[10px] font-bold uppercase leading-none tracking-wide text-accent"
                   >
                     {b.emoji && <span aria-hidden>{b.emoji}</span>}
                     {b.label}
                   </span>
                 ))}
                 {extraBadges > 0 && (
-                  <span data-product-badge className="inline-flex items-center rounded-full bg-accent/15 px-2 py-1 text-[9px] font-bold leading-none text-accent">
+                  <span data-product-badge className="inline-flex h-[19px] items-center whitespace-nowrap rounded-full bg-accent/15 px-2 text-[10px] font-bold leading-none text-accent">
                     +{extraBadges}
                   </span>
                 )}
               </div>
             )}
+
+            {/* Wishlist — top-right inside image */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                toggle(product.slug);
+                if (!saved) setJustSaved(true);
+                window.setTimeout(() => setJustSaved(false), 600);
+              }}
+              aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+              className={`absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full border bg-black/45 ${saved ? "border-accent text-accent" : "border-white/25 text-white"}`}
+            >
+              <Heart className={`size-4 ${saved ? "fill-accent text-accent" : ""}`} />
+            </button>
+
+            {/* Quick view — bottom-right inside image */}
+            <button
+              onClick={(e) => { e.preventDefault(); setQuickOpen(true); }}
+              aria-label={`Quick view ${product.name}`}
+              className="absolute bottom-2 right-2 grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/55 text-white"
+            >
+              <Eye className="size-4" />
+            </button>
           </div>
         </Link>
 
-        <div data-product-copy className="android-static-product-copy flex flex-1 flex-col px-3.5 pb-3.5 pt-1">
+
+
+        <div data-product-copy className="android-static-product-copy flex flex-1 flex-col px-3.5 pb-3.5 pt-3">
           <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
-            <h3 data-product-text className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[15px] font-semibold leading-[1.3] text-foreground">
+            <h3 data-product-text className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[16px] font-semibold leading-[1.3] text-foreground">
               {product.name}
             </h3>
           </Link>
 
-          <div className="mt-1.5 flex h-[16px] items-center gap-2">
+          <div className="mt-2 flex h-[16px] items-center gap-2">
             {product.reviews > 0 ? (
               <span className="inline-flex items-center gap-1">
                 <Star className="size-3.5 fill-accent text-accent" />
                 <span data-product-text className="product-typography product-rating-text text-[12px] font-semibold tabular-nums text-foreground">{product.rating.toFixed(1)}</span>
-                <span data-product-text className="product-typography product-rating-text font-mono text-[10px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
+                <span data-product-text className="product-typography product-rating-text font-mono text-[11px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
               </span>
             ) : (
               <span data-product-text className="product-typography product-rating-text text-[11px] font-medium text-accent">New Product</span>
@@ -122,65 +147,49 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
             )}
           </div>
 
-          <div className="mt-2 flex min-h-[34px] flex-col justify-center">
-            <div className="flex items-baseline gap-2">
-              <Price value={price} className="block font-display text-[21px] font-bold leading-none tabular-nums text-foreground" />
-              {originalPrice && discount ? (
-                <Price value={originalPrice} className="block font-mono text-[11px] tabular-nums text-muted-foreground line-through" />
-              ) : null}
-            </div>
+          <div className="mt-2 flex min-h-[40px] flex-col justify-center">
+            <Price value={price} className="block font-display text-[32px] font-bold leading-none tabular-nums text-foreground" />
             {originalPrice && discount ? (
-              <span data-product-text className="product-typography mt-1 inline-flex w-fit items-center rounded-md bg-accent/12 px-1.5 py-0.5 font-mono text-[10px] font-bold leading-none text-accent">{discount}% OFF</span>
+              <div className="mt-1.5 flex items-center gap-2">
+                <Price value={originalPrice} className="block font-mono text-[12px] tabular-nums text-muted-foreground line-through" />
+                <span data-product-text className="product-typography font-mono text-[12px] font-bold leading-none text-accent">{discount}% OFF</span>
+              </div>
             ) : (
-              <span aria-hidden data-product-text className="product-typography mt-1 block text-[10px] leading-none invisible">.</span>
+              <span aria-hidden data-product-text className="product-typography mt-1.5 block text-[12px] leading-none invisible">.</span>
             )}
           </div>
 
-          <div className="mt-2 flex h-[16px] items-center justify-between gap-2">
+          <div className="mt-2.5 flex h-[16px] items-center justify-between gap-2">
             {freeShipping ? (
-              <span data-product-text className="product-typography inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300">
+              <span data-product-text className="product-typography inline-flex items-center gap-1 text-[11px] font-medium text-emerald-300">
                 <Check className="size-3" strokeWidth={2.5} /> Free Shipping
               </span>
             ) : product.returnEligible ? (
-              <span data-product-text className="product-typography inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300">
+              <span data-product-text className="product-typography inline-flex items-center gap-1 text-[11px] font-medium text-emerald-300">
                 <Check className="size-3" strokeWidth={2.5} /> Easy Returns
               </span>
             ) : (
-              <span aria-hidden data-product-text className="product-typography text-[10px]">&nbsp;</span>
+              <span aria-hidden data-product-text className="product-typography text-[11px]">&nbsp;</span>
             )}
             {lowStock ? (
-              <span data-product-text className="product-typography text-[10px] font-semibold text-orange-300">⚠ Only {product.stockQuantity} left</span>
+              <span data-product-text className="product-typography text-[11px] font-semibold text-orange-300">⚠ Only {product.stockQuantity} left</span>
             ) : product.inStock ? (
-              <span data-product-text className="product-typography text-[10px] font-medium text-muted-foreground">In Stock</span>
+              <span data-product-text className="product-typography text-[11px] font-medium text-muted-foreground">In Stock</span>
             ) : null}
           </div>
 
-
-          <div className="mt-2.5 flex items-center gap-2">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                toggle(product.slug);
-                if (!saved) setJustSaved(true);
-                window.setTimeout(() => setJustSaved(false), 600);
-              }}
-              aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-border bg-muted text-foreground"
-            >
-              <Heart className={`size-4 ${saved ? "fill-accent text-accent" : ""}`} />
-            </button>
-
+          <div className="mt-3.5">
             {!product.inStock ? (
-              <span data-product-text className="product-typography inline-flex h-12 flex-1 items-center justify-center rounded-full border border-border bg-muted font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span data-product-text className="product-typography inline-flex h-[52px] w-full items-center justify-center rounded-full border border-border bg-muted font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Sold Out
               </span>
             ) : cartQty > 0 && !justAdded ? (
-              <div className="flex h-12 flex-1 items-center justify-between rounded-full border border-accent/40 bg-accent/10 px-1.5">
-                <button onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty - 1); }} aria-label="Decrease quantity" className="grid size-9 place-items-center rounded-full text-accent">
+              <div className="flex h-[52px] w-full items-center justify-between rounded-full border border-accent/40 bg-accent/10 px-2">
+                <button onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty - 1); }} aria-label="Decrease quantity" className="grid size-10 place-items-center rounded-full text-accent">
                   <Minus className="size-4" strokeWidth={2.5} />
                 </button>
-                <span data-product-text className="product-typography min-w-7 text-center text-sm font-bold tabular-nums text-foreground">{cartQty}</span>
-                <button onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty + 1); }} aria-label="Increase quantity" className="grid size-9 place-items-center rounded-full text-accent">
+                <span data-product-text className="product-typography min-w-7 text-center text-base font-bold tabular-nums text-foreground">{cartQty}</span>
+                <button onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty + 1); }} aria-label="Increase quantity" className="grid size-10 place-items-center rounded-full text-accent">
                   <Plus className="size-4" strokeWidth={2.5} />
                 </button>
               </div>
@@ -188,12 +197,13 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               <button
                 onClick={handleAdd}
                 aria-label={`Add ${product.name} to cart`}
-                className={`product-typography inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full text-[13px] font-semibold ${justAdded ? "bg-emerald-500 text-black" : "bg-accent text-accent-foreground"}`}
+                className={`product-typography inline-flex h-[52px] w-full items-center justify-center gap-1.5 rounded-full text-[15px] font-bold ${justAdded ? "bg-emerald-500 text-black" : "bg-accent text-accent-foreground"}`}
               >
-                {justAdded ? <><Check className="size-4" /> Added</> : <><Plus className="size-4" strokeWidth={2.5} /> Add to Cart</>}
+                {justAdded ? <><Check className="size-5" /> Added</> : <><Plus className="size-5" strokeWidth={2.75} /> Add to Cart</>}
               </button>
             )}
           </div>
+
         </div>
       </article>
   );
@@ -204,7 +214,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
       <div
       data-product-card
       data-android-rich-card
-      className={`group product-card-shell relative flex h-full flex-col overflow-visible rounded-[22px] border bg-card transition-[box-shadow,border-color] duration-300 ${
+      className={`group product-card-shell relative flex h-full flex-col overflow-visible rounded-[24px] border bg-card transition-[box-shadow,border-color] duration-300 ${
         isPremium
           ? "border-accent/45 shadow-[0_8px_30px_-12px_oklch(0.72_0.18_55/0.45)] sm:group-hover:shadow-[0_16px_44px_-12px_oklch(0.72_0.18_55/0.6)]"
           : "border-accent/15 shadow-[0_4px_24px_-14px_oklch(0_0_0/0.7)] sm:group-hover:border-accent/35 sm:group-hover:shadow-[0_14px_40px_-14px_oklch(0.72_0.18_55/0.4)]"
@@ -213,27 +223,24 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
       <ProductCardAdminControlsGate product={product} />
 
       {/* IMAGE */}
-      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block p-3 pb-1">
-        <div data-product-media className="relative aspect-square overflow-hidden rounded-2xl bg-black/40">
+      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block p-3">
+        <div data-product-media className="relative aspect-square overflow-hidden rounded-[18px] bg-white">
           <ProductImage
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
             className="relative h-full w-full object-contain transition-opacity duration-500"
           />
 
-          {/* Premium fade overlay */}
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-80" />
-
           {/* Top-left — inside a dedicated section (forceBadge) show ONLY that
               section's single badge; elsewhere admin-assigned custom badges take
               priority, else auto badges. Compact horizontal pills, max 3 + overflow. */}
           {!forceBadge && assigned.length > 0 ? (
-            <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1">
-              {assigned.slice(0, 2).map((b) => (
+            <div className="absolute left-2 top-2 flex flex-nowrap items-center gap-1">
+              {assigned.slice(0, 3).map((b) => (
                 <span
                   key={b.assignmentId ?? b.id}
                   data-product-badge
-                  className={`inline-flex animate-[fade-in_0.4s_ease-out] items-center gap-1 rounded-full px-2 py-1 text-[9px] font-bold uppercase leading-none tracking-wide shadow-sm shadow-black/30 ${badgeAnimationClass(b.animation)}`}
+                  className={`inline-flex h-[19px] animate-[fade-in_0.4s_ease-out] items-center gap-1 whitespace-nowrap rounded-full px-2 text-[10px] font-bold uppercase leading-none tracking-wide shadow-sm shadow-black/30 ${badgeAnimationClass(b.animation)}`}
                   style={{
                     backgroundColor: b.backgroundColor || b.color,
                     color: b.textColor,
@@ -244,30 +251,30 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
                   {b.label}
                 </span>
               ))}
-              {assigned.length > 2 && (
-                <span data-product-badge className="inline-flex items-center rounded-full bg-accent/15 px-2 py-1 text-[9px] font-bold leading-none text-accent">+{assigned.length - 2}</span>
+              {assigned.length > 3 && (
+                <span data-product-badge className="inline-flex h-[19px] items-center whitespace-nowrap rounded-full bg-accent/15 px-2 text-[10px] font-bold leading-none text-accent">+{assigned.length - 3}</span>
               )}
             </div>
           ) : labels.length > 0 ? (
-            <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1">
-              {labels.slice(0, 2).map((b) => (
+            <div className="absolute left-2 top-2 flex flex-nowrap items-center gap-1">
+              {labels.slice(0, 3).map((b) => (
                 <span
                   key={b.key}
                   data-product-badge
-                  className={`inline-flex animate-[fade-in_0.4s_ease-out] items-center gap-1 rounded-full px-2 py-1 text-[9px] font-bold uppercase leading-none tracking-wide shadow-sm shadow-black/30 ${b.className}`}
+                  className={`inline-flex h-[19px] animate-[fade-in_0.4s_ease-out] items-center gap-1 whitespace-nowrap rounded-full px-2 text-[10px] font-bold uppercase leading-none tracking-wide shadow-sm shadow-black/30 ${b.className}`}
                 >
                   <span aria-hidden>{b.emoji}</span>
                   {b.label}
                 </span>
               ))}
-              {labels.length > 2 && (
-                <span data-product-badge className="inline-flex items-center rounded-full bg-accent/15 px-2 py-1 text-[9px] font-bold leading-none text-accent">+{labels.length - 2}</span>
+              {labels.length > 3 && (
+                <span data-product-badge className="inline-flex h-[19px] items-center whitespace-nowrap rounded-full bg-accent/15 px-2 text-[10px] font-bold leading-none text-accent">+{labels.length - 3}</span>
               )}
             </div>
           ) : null}
 
 
-          {/* Wishlist — smaller, inset, glass */}
+          {/* Wishlist — top-right, circular 40px */}
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -278,47 +285,48 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               }
             }}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
-            className={`absolute right-3 top-3 grid size-7 place-items-center rounded-full border shadow-lg shadow-black/40 transition-colors duration-300 ${
+            className={`absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full border shadow-lg shadow-black/30 transition-colors duration-300 ${
               justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""
             } ${
               saved
                 ? "border-accent bg-accent/25 text-accent"
-                : "border-white/25 bg-black/40 text-white hover:border-accent hover:bg-accent/25 hover:text-accent"
+                : "border-white/30 bg-black/45 text-white hover:border-accent hover:bg-accent/25 hover:text-accent"
             }`}
           >
-            <Heart className={`size-3.5 transition-colors duration-300 ${saved ? "fill-accent" : ""}`} />
+            <Heart className={`size-4 transition-colors duration-300 ${saved ? "fill-accent" : ""}`} />
           </button>
 
-          {/* Quick view — reveals on hover (desktop) / always tappable (mobile) */}
+          {/* Quick view — bottom-right, circular 40px */}
           <button
             onClick={(e) => {
               e.preventDefault();
               setQuickOpen(true);
             }}
             aria-label={`Quick view ${product.name}`}
-            className="absolute bottom-3 right-3 grid size-7 place-items-center rounded-full border border-white/25 bg-black/65 text-white shadow-lg shadow-black/40 transition-colors duration-300 hover:border-accent hover:text-accent sm:opacity-0 sm:group-hover:opacity-100"
+            className="absolute bottom-2 right-2 grid h-10 w-10 place-items-center rounded-full border border-white/30 bg-black/55 text-white shadow-lg shadow-black/30 transition-colors duration-300 hover:border-accent hover:text-accent sm:opacity-0 sm:group-hover:opacity-100"
           >
-            <Eye className="size-3.5" />
+            <Eye className="size-4" />
           </button>
         </div>
       </Link>
 
+
       {/* INFO */}
-        <div data-product-copy className="product-copy flex flex-1 flex-col px-3 pb-3 pt-2">
+        <div data-product-copy className="product-copy flex flex-1 flex-col px-3.5 pb-3.5 pt-3">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
           {/* Title — max 2 lines */}
-          <h3 data-product-text className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[15px] font-semibold leading-[1.3] text-foreground transition-colors group-hover:text-accent">
+          <h3 data-product-text className="product-typography product-title-text line-clamp-2 h-[2.6em] text-[16px] font-semibold leading-[1.3] text-foreground transition-colors group-hover:text-accent">
             {product.name}
           </h3>
         </Link>
 
         {/* Rating + social proof */}
-        <div className="product-meta-flow mt-1 flex h-[16px] items-center gap-2">
+        <div className="product-meta-flow mt-2 flex h-[16px] items-center gap-2">
           {product.reviews > 0 ? (
             <span className="inline-flex items-center gap-1">
               <Star className="size-3.5 fill-accent text-accent" />
               <span data-product-text className="product-typography product-rating-text text-[12px] font-semibold tabular-nums text-foreground">{product.rating.toFixed(1)}</span>
-              <span data-product-text className="product-typography product-rating-text font-mono text-[10px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
+              <span data-product-text className="product-typography product-rating-text font-mono text-[11px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
             </span>
           ) : (
             <span data-product-text className="product-typography product-rating-text text-[11px] font-medium text-accent">New Product</span>
@@ -329,64 +337,62 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
         </div>
 
         {/* Price */}
-        <div className="product-price-flow mt-2 flex min-h-[34px] flex-col justify-center">
-          <div className="flex items-baseline gap-2">
-            <Price
-              value={price}
-              className="block font-display text-[21px] font-bold leading-none tabular-nums text-foreground"
-            />
-            {originalPrice && discount ? (
-              <Price value={originalPrice} className="block font-mono text-[11px] tabular-nums text-muted-foreground line-through" />
-            ) : null}
-          </div>
+        <div className="product-price-flow mt-2 flex min-h-[40px] flex-col justify-center">
+          <Price
+            value={price}
+            className="block font-display text-[32px] font-bold leading-none tabular-nums text-foreground"
+          />
           {originalPrice && discount ? (
-            <span data-product-text className="product-typography product-price-text mt-1 inline-flex w-fit items-center rounded-md bg-accent/12 px-1.5 py-0.5 font-mono text-[10px] font-bold leading-none text-accent">{discount}% OFF</span>
+            <div className="mt-1.5 flex items-center gap-2">
+              <Price value={originalPrice} className="block font-mono text-[12px] tabular-nums text-muted-foreground line-through" />
+              <span data-product-text className="product-typography product-price-text font-mono text-[12px] font-bold leading-none text-accent">{discount}% OFF</span>
+            </div>
           ) : (
-            <span aria-hidden data-product-text className="product-typography mt-1 block text-[10px] leading-none invisible">.</span>
+            <span aria-hidden data-product-text className="product-typography mt-1.5 block text-[12px] leading-none invisible">.</span>
           )}
         </div>
 
 
         {/* Trust + stock — single line each, height reserved */}
-        <div className="mt-1.5 flex h-[16px] items-center justify-between gap-2">
+        <div className="mt-2.5 flex h-[16px] items-center justify-between gap-2">
           {freeShipping ? (
-            <span data-product-text className="product-typography inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300">
+            <span data-product-text className="product-typography inline-flex items-center gap-1 text-[11px] font-medium text-emerald-300">
               <Check className="size-3" strokeWidth={2.5} /> Free Shipping
             </span>
           ) : product.returnEligible ? (
-            <span data-product-text className="product-typography inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300">
+            <span data-product-text className="product-typography inline-flex items-center gap-1 text-[11px] font-medium text-emerald-300">
               <Check className="size-3" strokeWidth={2.5} /> Easy Returns
             </span>
           ) : (
-            <span aria-hidden data-product-text className="product-typography text-[10px]">&nbsp;</span>
+            <span aria-hidden data-product-text className="product-typography text-[11px]">&nbsp;</span>
           )}
           {lowStock ? (
-            <span data-product-text className="product-typography text-[10px] font-semibold text-orange-300">⚠ Only {product.stockQuantity} left</span>
+            <span data-product-text className="product-typography text-[11px] font-semibold text-orange-300">⚠ Only {product.stockQuantity} left</span>
           ) : product.inStock ? (
-            <span data-product-text className="product-typography text-[10px] font-medium text-muted-foreground">In Stock</span>
+            <span data-product-text className="product-typography text-[11px] font-medium text-muted-foreground">In Stock</span>
           ) : null}
         </div>
 
-        {/* Add to cart — 48px; switches to quantity selector once in cart */}
-        <div className="mt-2.5">
+        {/* Add to cart — 52px; switches to quantity selector once in cart */}
+        <div className="mt-3.5">
           {!product.inStock ? (
-            <span data-product-text className="product-typography inline-flex h-12 w-full items-center justify-center rounded-full border border-white/10 bg-muted/40 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span data-product-text className="product-typography inline-flex h-[52px] w-full items-center justify-center rounded-full border border-white/10 bg-muted/40 font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Sold Out
             </span>
           ) : cartQty > 0 && !justAdded ? (
-            <div className="flex h-12 w-full items-center justify-between rounded-full border border-accent/40 bg-accent/10 px-1.5">
+            <div className="flex h-[52px] w-full items-center justify-between rounded-full border border-accent/40 bg-accent/10 px-2">
               <button
                 onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty - 1); }}
                 aria-label="Decrease quantity"
-                className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
+                className="grid size-10 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
               >
                 <Minus className="size-4" strokeWidth={2.5} />
               </button>
-              <span data-product-text className="product-typography min-w-7 text-center text-sm font-bold tabular-nums text-foreground">{cartQty}</span>
+              <span data-product-text className="product-typography min-w-7 text-center text-base font-bold tabular-nums text-foreground">{cartQty}</span>
               <button
                 onClick={(e) => { e.preventDefault(); setQty(product.slug, cartQty + 1); }}
                 aria-label="Increase quantity"
-                className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
+                className="grid size-10 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15"
               >
                 <Plus className="size-4" strokeWidth={2.5} />
               </button>
@@ -395,20 +401,21 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
             <button
               onClick={handleAdd}
               aria-label={`Add ${product.name} to cart`}
-              className={`product-typography relative inline-flex h-12 w-full items-center justify-center gap-1.5 overflow-hidden rounded-full text-[13px] font-semibold duration-200 ${
+              className={`product-typography relative inline-flex h-[52px] w-full items-center justify-center gap-1.5 overflow-hidden rounded-full text-[15px] font-bold duration-200 ${
                 justAdded
                   ? "bg-emerald-500 text-black"
-                  : "bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] text-black shadow-[var(--shadow-ember)] hover:brightness-[1.05]"
+                  : "bg-accent text-accent-foreground hover:brightness-[1.05]"
               }`}
             >
               {justAdded ? (
-                <><Check className="size-4" /> Added</>
+                <><Check className="size-5" /> Added</>
               ) : (
-                <><Plus className="size-4" strokeWidth={2.5} /> Add to Cart</>
+                <><Plus className="size-5" strokeWidth={2.75} /> Add to Cart</>
               )}
             </button>
           )}
         </div>
+
       </div>
 
       <QuickViewDialog product={product} open={quickOpen} onOpenChange={setQuickOpen} />
