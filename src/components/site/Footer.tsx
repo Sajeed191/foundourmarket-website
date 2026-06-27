@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 
 import { Instagram, Twitter, Facebook, Youtube, ChevronDown, Mail, MessageCircle } from "lucide-react";
+import { BUILD_ID } from "@/lib/build-version";
 
 /** Footer column that collapses into an accordion on mobile, always open on desktop. */
 function FooterSection({ title, children }: { title: string; children: React.ReactNode }) {
