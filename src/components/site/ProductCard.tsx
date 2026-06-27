@@ -191,7 +191,7 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
       onClick={onAdd}
       aria-label={`Add ${product.name} to cart`}
       style={justAdded ? undefined : { background: gradient }}
-      className={`product-typography inline-flex h-[56px] w-full items-center justify-center gap-1.5 rounded-full text-[18px] font-bold transition-[filter] hover:brightness-105 ${justAdded ? "bg-emerald-500 text-black" : "text-black"}`}
+      className={`product-typography inline-flex h-[50px] w-full items-center justify-center gap-1.5 rounded-full text-[18px] font-bold transition-[filter] hover:brightness-105 ${justAdded ? "bg-emerald-500 text-black" : "text-black"}`}
     >
       {justAdded ? <><Check className="size-5" /> Added</> : <><Plus className="size-5" strokeWidth={2.75} /> Add to Cart</>}
     </button>
