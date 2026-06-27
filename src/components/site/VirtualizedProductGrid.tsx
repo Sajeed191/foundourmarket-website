@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { detectAndroid } from "@/lib/use-low-end-device";
+import { shouldUseIncrementalRendering } from "@/lib/use-low-end-device";
 
 type Cols = { base: number; sm?: number; md?: number; lg?: number; xl?: number };
 
