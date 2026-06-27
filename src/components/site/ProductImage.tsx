@@ -29,14 +29,15 @@ export function ProductImage({
   height = 600,
 }: Props) {
   const responsive = getResponsiveImage(src);
-  const [android, setAndroid] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [android, setAndroid] = useState(() => detectAndroid());
+  const [loaded, setLoaded] = useState(() => detectAndroid());
 
   // When the src changes on a recycled/reused element (e.g. a virtualized grid
   // row pointing at a new product), reset the loaded flag so the new image
   // fades in cleanly instead of briefly showing the previous product's photo.
   // Combined with key={src} on the <img>, the previous DOM node is destroyed
-  // and a fresh one created — no stale pixels can survive on Android fast scroll.
+    // and Android skips the fade/placeholder path completely so no stale GPU
+    // texture upload can overlap a fast fling scroll.
   useEffect(() => {
     const nextAndroid = detectAndroid();
     setAndroid(nextAndroid);
@@ -50,6 +51,10 @@ export function ProductImage({
   // underneath — which reads as a duplicated/ghosted image on low-end devices.
   const imgRef = useCallback((node: HTMLImageElement | null) => {
     if (!node) return;
+    if (detectAndroid()) {
+      setLoaded(true);
+      return;
+    }
     if (node.complete && node.naturalWidth > 0) {
       setLoaded(true);
       return;
@@ -80,7 +85,6 @@ export function ProductImage({
         />
       )}
       <img
-        key={src}
         ref={imgRef}
         src={src}
         srcSet={responsive?.srcset}
@@ -93,7 +97,7 @@ export function ProductImage({
         decoding={android ? "sync" : "async"}
         onLoad={() => setLoaded(true)}
         data-product-image
-        className={`${className} ${loaded || android ? "opacity-100" : "opacity-0"}`}
+        className={`${className} ${android ? "!opacity-100 !transition-none" : loaded ? "opacity-100" : "opacity-0"}`}
       />
     </>
   );
