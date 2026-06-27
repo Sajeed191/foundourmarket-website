@@ -1018,7 +1018,7 @@ html[data-android="true"] .product-typography,
 html[data-android="true"] .product-price-text,
 html[data-android="true"] .product-title-text,
 html[data-android="true"] .product-rating-text {
-  transform: none !important;
+  transform: initial !important;
   will-change: auto !important;
   contain: none !important;
   isolation: auto !important;
@@ -1042,7 +1042,7 @@ html[data-android="true"] .product-rating-text {
 }
 
 html[data-android="true"] [data-product-badge] {
-  transform: none !important;
+  transform: initial !important;
   will-change: auto !important;
   contain: none !important;
   filter: none !important;
@@ -1065,7 +1065,7 @@ html[data-android="true"] .card-ambient:hover,
 html[data-android="true"] .card-ambient:active,
 html[data-android="true"] .glow-border:hover,
 html[data-android="true"] .glow-border:active {
-  transform: none !important;
+  transform: initial !important;
 }
 
 /* =====================================================================
