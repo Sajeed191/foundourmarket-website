@@ -232,7 +232,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
     <article
       data-product-card
       data-product-id={identity}
-      style={{ backgroundColor: "#111111", boxShadow: "0 8px 24px rgba(0,0,0,0.35)" }}
+      style={{ backgroundColor: "#111111", border: "1px solid rgba(255,138,0,0.35)", boxShadow: "0 8px 24px rgba(0,0,0,0.35)" }}
       className="product-card-shell relative flex h-full flex-col overflow-hidden rounded-[26px]"
     >
       <ProductCardAdminControlsGate product={product} />
