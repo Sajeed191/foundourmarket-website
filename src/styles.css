@@ -1118,6 +1118,22 @@ html[data-android="true"] [data-product-media] {
   will-change: auto !important;
 }
 
+html[data-android="true"] [data-product-media] a,
+html[data-android="true"] [data-product-media] button,
+html[data-android="true"] [data-product-media] span,
+html[data-android="true"] [data-product-media] svg,
+html[data-android="true"] [data-product-media] [data-product-badge] {
+  transform: initial !important;
+  translate: none !important;
+  scale: none !important;
+  rotate: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  will-change: auto !important;
+  animation: none !important;
+  transition-property: color, background-color, border-color, opacity !important;
+}
+
 html[data-android="true"] [data-product-image-placeholder] {
   display: none !important;
   animation: none !important;
