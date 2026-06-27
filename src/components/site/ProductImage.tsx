@@ -29,9 +29,10 @@ export function ProductImage({
   height = 600,
 }: Props) {
   const responsive = getResponsiveImage(src);
-  const [android, setAndroid] = useState(() => detectAndroid());
-  const [loaded, setLoaded] = useState(() => detectAndroid());
-  const [canShowPlaceholder, setCanShowPlaceholder] = useState(() => !detectAndroid());
+  const initialAndroid = detectAndroid();
+  const [android, setAndroid] = useState(initialAndroid);
+  const [loaded, setLoaded] = useState(initialAndroid);
+  const [canShowPlaceholder, setCanShowPlaceholder] = useState(!initialAndroid);
 
   // When the src changes on a recycled/reused element (e.g. a virtualized grid
   // row pointing at a new product), reset the loaded flag so the new image
