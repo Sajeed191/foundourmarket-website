@@ -66,7 +66,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
           <ProductImage
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
-            className="relative h-full w-full object-cover [transition:opacity_500ms_ease,transform_700ms_cubic-bezier(0.16,1,0.3,1)] sm:group-hover:scale-[1.08]"
+            className="relative h-full w-full object-cover transition-opacity duration-500"
           />
 
           {/* Premium fade overlay */}
@@ -119,15 +119,15 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               }
             }}
             aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
-            className={`absolute right-3 top-3 grid size-7 place-items-center rounded-full border shadow-lg shadow-black/40 transition-all duration-300 active:scale-90 ${
+            className={`absolute right-3 top-3 grid size-7 place-items-center rounded-full border shadow-lg shadow-black/40 transition-colors duration-300 ${
               justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""
             } ${
               saved
-                ? "scale-110 border-accent bg-accent/25 text-accent"
-                : "border-white/25 bg-black/40 text-white hover:scale-110 hover:border-accent hover:bg-accent/25 hover:text-accent"
+                ? "border-accent bg-accent/25 text-accent"
+                : "border-white/25 bg-black/40 text-white hover:border-accent hover:bg-accent/25 hover:text-accent"
             }`}
           >
-            <Heart className={`size-3.5 transition-all duration-300 ${saved ? "scale-110 fill-accent" : ""}`} />
+            <Heart className={`size-3.5 transition-colors duration-300 ${saved ? "fill-accent" : ""}`} />
           </button>
 
           {/* Quick view — reveals on hover (desktop) / always tappable (mobile) */}
@@ -137,7 +137,7 @@ function ProductCardImpl({ product, context = "default", forceBadge }: { product
               setQuickOpen(true);
             }}
             aria-label={`Quick view ${product.name}`}
-            className="absolute bottom-3 right-3 grid size-7 place-items-center rounded-full border border-white/25 bg-black/65 text-white shadow-lg shadow-black/40 transition-all duration-300 hover:border-accent hover:text-accent active:scale-90 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+            className="absolute bottom-3 right-3 grid size-7 place-items-center rounded-full border border-white/25 bg-black/65 text-white shadow-lg shadow-black/40 transition-colors duration-300 hover:border-accent hover:text-accent sm:opacity-0 sm:group-hover:opacity-100"
           >
             <Eye className="size-3.5" />
           </button>
