@@ -1,4 +1,4 @@
-import { Suspense, lazy, type ReactNode } from "react";
+import { Suspense, lazy, type HTMLAttributes, type ReactNode } from "react";
 import { useIsAndroid, useLowEndDevice } from "@/lib/use-low-end-device";
 
 /**
@@ -23,11 +23,12 @@ export function Reveal({
   children,
   className,
   delay = 0,
+  ...props
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
-}) {
+} & Omit<HTMLAttributes<HTMLDivElement>, "children">) {
   const lowEnd = useLowEndDevice();
   const android = useIsAndroid();
   // On Android and constrained devices (≤4GB RAM / few cores / reduced-motion) skip
@@ -36,11 +37,11 @@ export function Reveal({
   // fast scroll. Content still renders fully — only the entrance animation is
   // dropped on the devices that can't afford it.
   if (android || lowEnd) {
-    return <div className={className}>{children}</div>;
+    return <div className={className} {...props}>{children}</div>;
   }
   return (
-    <Suspense fallback={<div className={className}>{children}</div>}>
-      <MotionReveal className={className} delay={delay}>
+    <Suspense fallback={<div className={className} {...props}>{children}</div>}>
+      <MotionReveal className={className} delay={delay} {...props}>
         {children}
       </MotionReveal>
     </Suspense>
