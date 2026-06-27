@@ -228,14 +228,14 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
     <article
       data-product-card
       data-product-id={identity}
-      style={{ backgroundColor: "#111214", border: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 8px 24px rgba(0,0,0,0.28)" }}
-      className="product-card-shell relative flex h-full flex-col overflow-hidden rounded-[24px]"
+      style={{ backgroundColor: "#111214", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 6px 18px rgba(0,0,0,0.25)" }}
+      className="product-card-shell relative flex h-full flex-col overflow-hidden rounded-[22px]"
     >
       <ProductCardAdminControlsGate product={product} />
 
-      {/* Image — padded so it never touches the card edges; white rounded frame */}
-      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block p-3" aria-label={product.name}>
-        <div data-product-media className="relative h-[180px] w-full overflow-hidden rounded-[18px] bg-white sm:h-[220px] lg:h-[260px]">
+      {/* Image — sits directly inside the card top, no frame/box. 12px padding. */}
+      <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block p-3 pb-0" aria-label={product.name}>
+        <div data-product-media className="relative h-[160px] w-full overflow-hidden sm:h-[210px] lg:h-[250px]">
           <ProductImage
             src={product.image}
             alt={`${product.name} — ${product.tagline || product.category}`}
@@ -250,8 +250,8 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
         </div>
       </Link>
 
-      {/* Content — single continuous surface, no inner border. 14px side padding. */}
-      <div data-product-copy className="product-copy flex flex-1 flex-col px-3.5 pb-3.5 pt-3.5">
+      {/* Content — single continuous surface, no inner border. 12px padding. */}
+      <div data-product-copy className="product-copy flex flex-1 flex-col px-3 pb-3 pt-2.5">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block min-w-0">
           <h3 data-product-text className={TITLE_CLASS}>{product.name}</h3>
         </Link>
