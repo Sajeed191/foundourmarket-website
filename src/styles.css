@@ -984,10 +984,44 @@ html[data-android="true"] .badge-anim-slide,
 html[data-android="true"] .badge-anim-flash,
 html[data-android="true"] .badge-anim-shine::after,
 html[data-android="true"] .deep-link-flash,
+html[data-android="true"] .animate-orb-breathe,
+html[data-android="true"] .cta-sweep::after,
 html[data-android="true"] .chat-typing-dot,
 html[data-android="true"] .animate-chat-slide-up,
 html[data-android="true"] .animate-chat-bubble-in {
   animation: none !important;
+}
+
+html[data-android="true"] .animate-orb {
+  display: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+html[data-android="true"] .orb-hidden {
+  transform: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+html[data-android="true"] .border-glow::before,
+html[data-low-end="true"] .border-glow::before {
+  animation: none !important;
+  background: none !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+}
+
+html[data-android="true"] .badge-anim-glow,
+html[data-low-end="true"] .badge-anim-glow {
+  animation: none !important;
+  filter: none !important;
+}
+
+html[data-android="true"] .noise-layer::before,
+html[data-low-end="true"] .noise-layer::before {
+  display: none !important;
 }
 
 html[data-android="true"] .glass,
@@ -1015,6 +1049,7 @@ html[data-android="true"] [data-app-header] {
 }
 
 html[data-android="true"] [data-app-header] nav,
+html[data-android="true"] [data-app-header] *,
 html[data-android="true"] [data-app-bottom-nav],
 html[data-android="true"] [data-app-bottom-nav] *,
 html[data-android="true"] [role="region"][aria-label="Announcements"] {
