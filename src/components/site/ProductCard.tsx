@@ -57,26 +57,20 @@ function toAssignedBadge(b: RenderBadge): CardBadge {
 
 function ProductBadgesImpl({ badges }: { badges: CardBadge[] }) {
   if (badges.length === 0) return null;
-  const visible = badges.slice(0, 2);
-  const extra = Math.max(0, badges.length - visible.length);
+  const visible = badges.slice(0, 3);
   return (
-    <div className="absolute left-2 top-2 flex max-w-[calc(100%-3.75rem)] flex-nowrap items-center gap-1 overflow-hidden">
+    <div className="absolute left-2 top-2 flex max-w-[calc(100%-3.25rem)] flex-col items-start gap-1 overflow-hidden">
       {visible.map((b) => (
         <span
           key={b.id}
           data-product-badge
-          className={`inline-flex h-[19px] min-w-0 max-w-[76px] items-center gap-1 truncate whitespace-nowrap rounded-full bg-accent/15 px-2 text-[10px] font-bold uppercase leading-none tracking-wide text-accent ${b.className ?? ""}`}
+          className={`inline-flex h-[19px] min-w-0 max-w-full items-center gap-1 whitespace-nowrap rounded-full bg-accent/15 px-2 text-[10px] font-bold uppercase leading-none tracking-wide text-accent ${b.className ?? ""}`}
           style={b.style}
         >
           {b.emoji && <span aria-hidden className="shrink-0">{b.emoji}</span>}
           <span className="truncate">{b.label}</span>
         </span>
       ))}
-      {extra > 0 && (
-        <span data-product-badge className="inline-flex h-[19px] shrink-0 items-center whitespace-nowrap rounded-full bg-accent/15 px-2 text-[10px] font-bold leading-none text-accent">
-          +{extra}
-        </span>
-      )}
     </div>
   );
 }
