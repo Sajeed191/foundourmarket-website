@@ -34,7 +34,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ShareDialog } from "@/components/site/ShareDialog";
 import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
 import { safeInternalPath } from "@/lib/safe-redirect";
-import { useLowEndDevice, useIsAndroid } from "@/lib/use-low-end-device";
+import { detectAndroidWebView, useLowEndDevice, useIsAndroid } from "@/lib/use-low-end-device";
 import { startPerfMonitoring } from "@/lib/perf-monitor";
 import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
@@ -403,6 +403,10 @@ function RootComponent() {
       document.documentElement.dataset.lowEnd = lowEnd ? "true" : "false";
       // Android Chrome/WebView/Samsung Internet compositor mitigation flag.
       document.documentElement.dataset.android = isAndroid ? "true" : "false";
+      const ua = navigator.userAgent || "";
+      const androidWebView = detectAndroidWebView();
+      document.documentElement.dataset.androidWebview = androidWebView ? "true" : "false";
+      document.documentElement.dataset.androidChrome = isAndroid && !androidWebView && /Chrome/i.test(ua) ? "true" : "false";
     }
   }, [lowEnd, isAndroid]);
   useEffect(() => {
