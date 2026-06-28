@@ -85,9 +85,11 @@ function ProductImageImpl({
   const ffImageDecoding = useFlag("imageDecoding");
   const activeBisectTest = useActiveBisectTest();
   const bisectOverrideEnabled = useBisectOverrideEnabled();
-  const disableSrcset = bisectOverrideEnabled && activeBisectTest === "product-image-srcset";
-  const disableLazyLoading = bisectOverrideEnabled && activeBisectTest === "product-image-lazy-loading";
-  const disableAsyncDecoding = bisectOverrideEnabled && activeBisectTest === "product-image-decoding-async";
+  const bisectSrcset = activeBisectTest === "product-image-srcset";
+  const bisectLazyLoading = activeBisectTest === "product-image-lazy-loading";
+  const bisectAsyncDecoding = activeBisectTest === "product-image-decoding-async";
+  const forceSrcsetOn = bisectSrcset && !bisectOverrideEnabled;
+  const forceSrcsetOff = bisectSrcset && bisectOverrideEnabled;
   // Bundled demo assets ship a build-time srcset; real (storage-hosted) product
   // images get an on-the-fly resized srcset so we never download the original.
   const bundled = getResponsiveImage(src);
@@ -100,7 +102,7 @@ function ProductImageImpl({
       : ultraLowEndAndroid
         ? getStorageResponsive(src, { widths: [160, 240, 320, 480], fallbackWidth: 320, quality: 54 })
       : getStorageResponsive(src);
-  const srcset = androidGpuSafeMode || disableSrcset ? undefined : bundled?.srcset ?? storage?.srcset;
+  const srcset = forceSrcsetOff || (androidGpuSafeMode && !forceSrcsetOn) ? undefined : bundled?.srcset ?? storage?.srcset;
   const resolvedSrc = androidGpuSafeMode ? (storage?.src ?? bundled?.safeSrc ?? src) : (storage?.src ?? src);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const activeSrcRef = useRef(resolvedSrc);
@@ -189,9 +191,9 @@ function ProductImageImpl({
       alt={alt}
       width={width}
       height={height}
-      loading={disableLazyLoading ? "eager" : androidGpuSafeMode ? "lazy" : (!ffLazyLoading || priority ? "eager" : "lazy")}
+      loading={bisectLazyLoading ? (bisectOverrideEnabled ? "eager" : "lazy") : androidGpuSafeMode ? "lazy" : (!ffLazyLoading || priority ? "eager" : "lazy")}
       fetchPriority={androidGpuSafeMode ? "low" : priority ? "high" : "low"}
-      decoding={disableAsyncDecoding ? "sync" : androidGpuSafeMode ? "async" : ffImageDecoding ? "async" : "sync"}
+      decoding={bisectAsyncDecoding ? (bisectOverrideEnabled ? "sync" : "async") : androidGpuSafeMode ? "async" : ffImageDecoding ? "async" : "sync"}
       data-product-image
       data-android-static-image={androidGpuSafeMode ? "true" : undefined}
       suppressHydrationWarning

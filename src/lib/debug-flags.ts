@@ -43,6 +43,7 @@ export type DebugFlag = (typeof DEBUG_FLAGS)[number];
 export type BisectTest = {
   id: string;
   property: string;
+  enabledValue: string;
   disabledValue: string;
   selector: string;
   component: string;
@@ -68,6 +69,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-card-overflow",
     property: "overflow",
+    enabledValue: "hidden",
     disabledValue: "visible",
     selector: "[data-product-card]",
     component: "ProductCard",
@@ -77,6 +79,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-media-overflow",
     property: "overflow",
+    enabledValue: "hidden",
     disabledValue: "visible",
     selector: "[data-product-media]",
     component: "AdaptiveProductMedia",
@@ -86,6 +89,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-title-overflow",
     property: "overflow",
+    enabledValue: "hidden",
     disabledValue: "visible",
     selector: ".product-title-text",
     component: "ProductCard title",
@@ -95,6 +99,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "card-frame-content-visibility",
     property: "content-visibility",
+    enabledValue: "auto",
     disabledValue: "visible",
     selector: "[data-product-card-frame]",
     component: "VirtualizedProductGrid card frame",
@@ -104,6 +109,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "card-frame-contain",
     property: "contain",
+    enabledValue: "layout paint style",
     disabledValue: "none",
     selector: "[data-product-card-frame]",
     component: "VirtualizedProductGrid card frame",
@@ -113,6 +119,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "card-frame-isolation",
     property: "isolation",
+    enabledValue: "isolate",
     disabledValue: "auto",
     selector: "[data-product-card-frame]",
     component: "VirtualizedProductGrid card frame",
@@ -122,6 +129,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-shell-contain",
     property: "contain",
+    enabledValue: "layout paint style",
     disabledValue: "none",
     selector: ".product-card-shell",
     component: "ProductCard shell",
@@ -131,6 +139,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-shell-isolation",
     property: "isolation",
+    enabledValue: "isolate",
     disabledValue: "auto",
     selector: ".product-card-shell",
     component: "ProductCard shell",
@@ -140,6 +149,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-media-contain",
     property: "contain",
+    enabledValue: "layout paint style",
     disabledValue: "none",
     selector: "[data-product-media]",
     component: "AdaptiveProductMedia",
@@ -149,6 +159,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-media-isolation",
     property: "isolation",
+    enabledValue: "isolate",
     disabledValue: "auto",
     selector: "[data-product-media]",
     component: "AdaptiveProductMedia",
@@ -158,6 +169,7 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-image-transition",
     property: "transition",
+    enabledValue: "transform 300ms ease-out, opacity 300ms ease-out",
     disabledValue: "none",
     selector: "[data-product-image]",
     component: "ProductImage",
@@ -167,29 +179,32 @@ export const BISECT_TESTS: BisectTest[] = [
   {
     id: "product-image-srcset",
     property: "srcSet",
+    enabledValue: "responsive srcSet",
     disabledValue: "undefined",
     selector: "ProductImage prop",
     component: "ProductImage",
     file: "src/components/site/ProductImage.tsx",
-    line: 186,
+    line: 187,
   },
   {
     id: "product-image-lazy-loading",
     property: "loading",
+    enabledValue: "lazy",
     disabledValue: "eager",
     selector: "ProductImage prop",
     component: "ProductImage",
     file: "src/components/site/ProductImage.tsx",
-    line: 191,
+    line: 192,
   },
   {
     id: "product-image-decoding-async",
     property: "decoding",
+    enabledValue: "async",
     disabledValue: "sync",
     selector: "ProductImage prop",
     component: "ProductImage",
     file: "src/components/site/ProductImage.tsx",
-    line: 193,
+    line: 194,
   },
 ];
 
@@ -257,7 +272,7 @@ function applyDom() {
   }
   let style = document.getElementById(BISECT_STYLE_ID) as HTMLStyleElement | null;
   const test = activeBisectTest ? BISECT_TESTS.find((t) => t.id === activeBisectTest) : null;
-  if (!test || !bisectOverrideEnabled) {
+  if (!test) {
     style?.remove();
     return;
   }
@@ -270,7 +285,8 @@ function applyDom() {
     style.id = BISECT_STYLE_ID;
     document.head.appendChild(style);
   }
-  style.textContent = `${test.selector}{${test.property}:${test.disabledValue} !important;}`;
+  const value = bisectOverrideEnabled ? test.disabledValue : test.enabledValue;
+  style.textContent = `${test.selector}{${test.property}:${value} !important;}`;
 }
 
 function persist() {

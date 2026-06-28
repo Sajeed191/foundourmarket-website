@@ -212,6 +212,7 @@ function BisectRecorder({ activeId, overrideEnabled, log }: { activeId: string; 
       <Row k="component" v={test.component} />
       <Row k="file" v={test.file} />
       <Row k="line" v={String(test.line)} />
+      <Row k="enabled" v={test.enabledValue} />
       <Row k="disabled" v={test.disabledValue} />
       <label style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
         <span>{overrideEnabled ? "Feature OFF for selected property" : "Feature ON / production value"}</span>
