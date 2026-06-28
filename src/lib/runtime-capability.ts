@@ -73,7 +73,7 @@ export function getWebGLRenderer(): string | null {
  * GPUs. Mid-range Mali/Adreno on 4–6GB phones are NOT flagged here — they
  * render the premium UI fine and are governed at runtime instead.
  */
-function isWeakGpu(renderer: string | null): boolean {
+export function isWeakGpu(renderer: string | null): boolean {
   if (!renderer) return false;
   const r = renderer.toLowerCase();
   return (
