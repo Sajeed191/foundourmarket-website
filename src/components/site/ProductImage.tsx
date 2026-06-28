@@ -21,11 +21,6 @@ type Props = {
   debugId?: string;
 };
 
-const TRANSPARENT_PIXEL =
-  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-
-let safeDecodeChain: Promise<void> = Promise.resolve();
-
 // Diagnostic A/B: `?imgtest=static` makes ProductImage behave exactly like the
 // plain <img> tags on /gpu-test — final src assigned once, no placeholder, no
 // IntersectionObserver, no decode queue, no img.decode(), no post-mount src
@@ -49,41 +44,7 @@ function detectImgTestStatic(): boolean {
   return value;
 }
 
-function enqueueSafeImageDecode(
-  img: HTMLImageElement,
-  src: string,
-  onDone?: () => void,
-  options?: { loading?: "eager" | "lazy"; decoding?: "async" | "sync" },
-) {
-  let cancelled = false;
-  let started = false;
 
-  safeDecodeChain = safeDecodeChain
-    .catch(() => undefined)
-    .then(async () => {
-      if (cancelled || !img.isConnected) return;
-      started = true;
-      img.loading = options?.loading ?? "lazy";
-      img.decoding = options?.decoding ?? "async";
-      img.fetchPriority = "low";
-      img.src = src;
-      try {
-        if (typeof img.decode === "function") await img.decode();
-      } catch {
-        // Decoding may reject when Chrome evicts/cancels the request. The image
-        // element remains valid and the browser can still paint it after load.
-      }
-      if (!cancelled && img.isConnected) onDone?.();
-    });
-
-  return () => {
-    cancelled = true;
-    // A queued-but-not-started image has no network/texture work yet. Once an
-    // image has begun decoding, avoid src churn because Mali/MediaTek Chrome is
-    // exactly where rapid texture teardown causes black/colored rectangles.
-    if (!started && img.isConnected) img.src = TRANSPARENT_PIXEL;
-  };
-}
 
 /**
  * Stable, keyed product image.
@@ -262,46 +223,13 @@ function ProductImageImpl({
     };
   }, [imgTestStatic, resolvedSrc]);
 
-  useEffect(() => {
-    if (imgTestStatic) return; // static diagnostic: no IO / decode queue
-    if (!androidGpuSafeMode) return;
-    const img = imgRef.current;
-    if (!img) return;
-    let cancelDecode: (() => void) | null = null;
-    let queued = false;
-
-    const queue = () => {
-      if (queued || activeSrcRef.current !== resolvedSrc) return;
-      queued = true;
-      cancelDecode = enqueueSafeImageDecode(img, resolvedSrc, handleLoad, {
-        loading: loadingMode,
-        decoding: decodingMode,
-      });
-    };
-
-    if (typeof IntersectionObserver === "undefined") {
-      queue();
-      return () => cancelDecode?.();
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          queue();
-          observer.disconnect();
-        } else if (!queued) {
-          cancelDecode?.();
-          cancelDecode = null;
-        }
-      },
-      { rootMargin: "160px 0px", threshold: 0.01 },
-    );
-    observer.observe(img);
-    return () => {
-      observer.disconnect();
-      cancelDecode?.();
-    };
-  }, [androidGpuSafeMode, decodingMode, handleLoad, imgTestStatic, loadingMode, resolvedSrc]);
+  // NOTE: Android GPU Safe Mode previously rendered a transparent 1×1 GIF and
+  // relied on an IntersectionObserver to swap in the real src. That created a
+  // deadlock on Android: the transparent GIF collapses the box to 0×0, a
+  // zero-area element never reports `isIntersecting`, so the real src was never
+  // restored and the image stayed blank forever. The real `resolvedSrc` is now
+  // assigned directly in render with native `loading="lazy"`, which preserves
+  // lazy loading + decoding without the broken swap. No effect needed here.
 
   // Debug harness: render a flat placeholder instead of an <img> to rule the
   // product image element out as the corruption source.
@@ -342,7 +270,7 @@ function ProductImageImpl({
     <img
       key={`${resolvedSrc}|${width}x${height}`}
       ref={imgRef}
-      src={androidGpuSafeMode ? TRANSPARENT_PIXEL : resolvedSrc}
+      src={resolvedSrc}
       srcSet={srcset}
       sizes={srcset ? sizes : undefined}
       alt={alt}
