@@ -162,19 +162,17 @@ export function detectAndroidGpuSafeMode(): boolean {
   const flagged = domFlag("androidGpuSafeMode");
   if (flagged !== null) return flagged;
   if (!detectAndroid()) return false;
-  const { mem, cores, saveData, reduced, memKnown } = constrainedSignals();
-  // Genuinely-weak signals only. We intentionally do NOT enable Safe Mode just
-  // because `deviceMemory` is absent: Chrome on Android frequently omits/caps
-  // this value (it buckets to powers of two, max 8), so a perfectly capable
-  // 4–6GB phone reports `4` or nothing. Treating "unknown memory" as weak swept
-  // capable mid-range phones into the most aggressive flat path, where the hero
-  // image was deprioritized and never painted (blank-hero bug). Safe Mode now
-  // requires a real constraint signal.
-  void memKnown;
+  const { cores, saveData, reduced } = constrainedSignals();
+  // RAM-free. Safe Mode is the most aggressive flat path, so it is reserved for
+  // genuine signals only: explicit Save-Data / Reduced-Motion intent, a very
+  // weak CPU (≤2 cores), or a known-weak GPU. Devices reporting ≤4GB (or hiding
+  // deviceMemory) are NO LONGER forced here — capable 4–6GB Android phones keep
+  // the full premium experience and are governed at runtime by measured FPS.
   return (
     saveData ||
     reduced ||
-    (typeof mem === "number" && mem > 0 && mem <= 4 && typeof cores === "number" && cores > 0 && cores <= 4)
+    (typeof cores === "number" && cores > 0 && cores <= 2) ||
+    isWeakGpu(getWebGLRenderer())
   );
 }
 
