@@ -91,7 +91,7 @@ function ProductImageImpl({
   // memory pressure, frequently never decodes/paints → the "blank hero on
   // low-RAM Android" bug. Only NON-priority images stay lazy in safe mode.
   const loadingMode = renderSafe ? "eager" : bisectLazyLoading ? (bisectOverrideEnabled ? "eager" : "lazy") : priority ? "eager" : androidGpuSafeMode ? "lazy" : (!ffLazyLoading ? "eager" : "lazy");
-  const decodingMode = renderSafe ? "sync" : bisectAsyncDecoding ? (bisectOverrideEnabled ? "sync" : "async") : androidGpuSafeMode ? "async" : ffImageDecoding ? "async" : "sync";
+  const decodingMode = renderSafe ? "sync" : bisectAsyncDecoding ? (bisectOverrideEnabled ? "sync" : "async") : priority ? "async" : androidGpuSafeMode ? "async" : ffImageDecoding ? "async" : "sync";
   const storage = bundled || renderSafe
     ? null
     : androidGpuSafeMode
