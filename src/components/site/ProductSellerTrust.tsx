@@ -78,7 +78,7 @@ const COMPARISON_ROWS = [
 
 export function ProductComparison({ product }: { product: Product }) {
   return (
-    <section className="mx-auto mt-12 max-w-3xl px-4 sm:px-6 lg:px-8">
+    <section className="mx-auto mt-2 max-w-3xl px-4 sm:px-6 lg:px-8">
       <h2 className="text-center text-lg font-display font-semibold tracking-tight sm:text-2xl">
         Why customers choose this product
       </h2>
