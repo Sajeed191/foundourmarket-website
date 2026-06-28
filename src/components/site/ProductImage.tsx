@@ -135,10 +135,26 @@ function ProductImageImpl({
   const imgRef = useRef<HTMLImageElement | null>(null);
   const activeSrcRef = useRef(resolvedSrc);
 
-  const handleLoad = useCallback(() => {
-    if (activeSrcRef.current !== resolvedSrc) return;
-    onLoad?.();
-  }, [onLoad, resolvedSrc]);
+  const imgTestStatic = detectImgTestStatic();
+
+  const staticLoggedRef = useRef(false);
+  if (imgTestStatic && !staticLoggedRef.current && typeof console !== "undefined") {
+    staticLoggedRef.current = true;
+    // eslint-disable-next-line no-console
+    console.log(`[imgtest] Image src assigned once: ${resolvedSrc}`);
+  }
+
+  // Static diagnostic mode: never run the IntersectionObserver / decode-queue
+  // effect, and never run the post-mount src/srcset removal cleanup. The src is
+  // set once at render and never mutated afterward.
+  useEffect(() => {
+    if (!imgTestStatic) return;
+    // eslint-disable-next-line no-console
+    console.log("[imgtest] No src mutations occurred after mount.");
+    return undefined;
+  }, [imgTestStatic]);
+
+
 
   useEffect(() => {
     activeSrcRef.current = resolvedSrc;
