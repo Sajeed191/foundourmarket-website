@@ -37,6 +37,7 @@ import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
 import { safeInternalPath } from "@/lib/safe-redirect";
 import { detectAndroidWebView, detectRenderSafe, useLowEndDevice, useIsAndroid, useUltraLowEndAndroid, useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
 import { startPerfMonitoring } from "@/lib/perf-monitor";
+import { startCapabilityGovernor } from "@/lib/runtime-capability";
 import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
 import { installStartupDiagnostics, logDiagnostic, useRenderDiagnostics } from "@/lib/startup-diagnostics";
