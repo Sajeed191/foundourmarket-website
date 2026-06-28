@@ -75,7 +75,7 @@ function SubcategoryPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 mobile-page-clearance md:pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-2 sm:pt-12 sm:pb-0">
       <nav className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-5">
         <Link to="/" className="hover:text-foreground">Shop</Link>
         <span className="mx-2">/</span>
