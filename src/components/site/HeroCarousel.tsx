@@ -188,8 +188,8 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
               const isCenter = rel === 0;
               const sign = rel === 0 ? 0 : rel < 0 ? -1 : 1;
 
-              // 3 cards per side on mobile, 4 on tablet/desktop.
-              const maxDepth = isMobile ? 3 : 4;
+              // Cards per side scale with device tier (see `perf`).
+              const maxDepth = perf.maxDepth;
 
               // Progressive depth tables (index 0 == first side card).
               const POS = [0.0, 0.62, 1.12, 1.55, 1.92];
@@ -206,7 +206,8 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
               const xFactor = isCenter ? 0 : sign * (parked ? 2.3 : POS[di]);
               const scale = parked ? SCALE[Math.min(maxDepth, 4)] : SCALE[di];
               const opacity = onStage ? OPACITY[di] : 0;
-              const blur = isCenter || lowEnd ? 0 : onStage ? BLUR[di] : BLUR[Math.min(maxDepth, 4)];
+              const rawBlur = onStage ? BLUR[di] : BLUR[Math.min(maxDepth, 4)];
+              const blur = isCenter || lowEnd ? 0 : Math.round(rawBlur * perf.blurScale);
               const rot = isCenter ? 0 : sign * -(di * 4);
               const darken = isCenter ? 0 : Math.min(0.12 * di, 0.5);
               const visible = onStage || parked;
