@@ -37,6 +37,7 @@ import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
 import { safeInternalPath } from "@/lib/safe-redirect";
 import { detectAndroidWebView, detectRenderSafe, useLowEndDevice, useIsAndroid, useUltraLowEndAndroid, useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
 import { startPerfMonitoring } from "@/lib/perf-monitor";
+import { startCapabilityGovernor } from "@/lib/runtime-capability";
 import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
 import { installStartupDiagnostics, logDiagnostic, useRenderDiagnostics } from "@/lib/startup-diagnostics";
@@ -287,7 +288,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         // Android before CSS paints so product text never spends one frame inside
         // transform/will-change layers during hydration.
         children:
-          "(function(){var d=document.documentElement;var ua='';var a=false;var wv=false;try{ua=navigator.userAgent||'';a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));var rawMem=navigator.deviceMemory;var m=Number(rawMem||0);var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var memKnown=typeof rawMem==='number'&&rawMem>0;var low=r||s||(memKnown&&m<=4)||(c>0&&c<=4)||(a&&!memKnown);var gpuSafe=a&&(s||r||(memKnown&&m<=4&&c>0&&c<=4));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',low?'true':'false');d.setAttribute('data-android-gpu-safe-mode',gpuSafe?'true':'false');var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){try{ua=ua||(navigator.userAgent||'');a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',a?'true':'false');d.setAttribute('data-android-gpu-safe-mode','false');}catch(y){}d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
+          "(function(){var d=document.documentElement;var ua='';var a=false;var wv=false;try{ua=navigator.userAgent||'';a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var low=r||s||(c>0&&c<=2);var gpuSafe=a&&(s||r||(c>0&&c<=2));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',low?'true':'false');d.setAttribute('data-android-gpu-safe-mode',gpuSafe?'true':'false');var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){try{ua=ua||(navigator.userAgent||'');a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end','false');d.setAttribute('data-android-gpu-safe-mode','false');}catch(y){}d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
       },
       {
         // Diagnostic render=safe kill-switch: set data-render-safe before CSS
@@ -300,7 +301,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         // Ultra Low-End Android compositor kill-switch. Kept as a separate tiny
         // script so it can run before CSS paint without changing the theme init.
         children:
-          "(function(){try{var d=document.documentElement;var ua=navigator.userAgent||'';var a=/Android/i.test(ua);var rawMem=navigator.deviceMemory;var m=Number(rawMem||0);var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var memKnown=typeof rawMem==='number'&&rawMem>0;var gpuSafe=a&&(s||r||(memKnown&&m<=4&&c>0&&c<=4));d.setAttribute('data-ultra-low-end',gpuSafe?'true':'false');d.setAttribute('data-android-gpu-safe-mode',gpuSafe?'true':'false');}catch(e){try{document.documentElement.setAttribute('data-ultra-low-end','false');document.documentElement.setAttribute('data-android-gpu-safe-mode','false');}catch(x){}}})();",
+          "(function(){try{var d=document.documentElement;var ua=navigator.userAgent||'';var a=/Android/i.test(ua);var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var gpuSafe=a&&(s||r||(c>0&&c<=2));d.setAttribute('data-ultra-low-end',gpuSafe?'true':'false');d.setAttribute('data-android-gpu-safe-mode',gpuSafe?'true':'false');}catch(e){try{document.documentElement.setAttribute('data-ultra-low-end','false');document.documentElement.setAttribute('data-android-gpu-safe-mode','false');}catch(x){}}})();",
       },
       {
         // Diagnostic compositortest=off kill-switch: when ?compositortest=off is
@@ -531,6 +532,11 @@ function RootComponent() {
   useEffect(() => {
     if (androidGpuSafeMode) return;
     startPerfMonitoring();
+    // Live capability governor: measures real FPS / long tasks and trims only
+    // expensive effects (blur/shadow/3D/particles) if the device can't sustain
+    // smooth rendering — never hides images or hero animations. Runs on every
+    // capable device (incl. 4–6GB Android) so degradation is performance-driven.
+    startCapabilityGovernor();
   }, [androidGpuSafeMode]);
   useEffect(() => {
     if (lowEnd || isAndroid || androidGpuSafeMode) return;

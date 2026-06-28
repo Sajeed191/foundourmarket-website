@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getWebGLRenderer, isWeakGpu } from "@/lib/runtime-capability";
 
 /**
  * Detects constrained devices so expensive effects (per-element motion layers,
@@ -44,6 +45,21 @@ function constrainedSignals(): { mem?: number; cores?: number; saveData: boolean
   };
 }
 
+/**
+ * Capability gate (RAM-free). A device is treated as "reduced" ONLY for genuine,
+ * non-coarse signals: explicit Save-Data / Reduced-Motion intent, a very weak
+ * CPU (≤2 cores), or a known weak GPU. RAM is deliberately NOT consulted — it is
+ * bucketed/undefined on Android and wrongly demotes capable 4–6GB phones. Real
+ * performance problems are handled at runtime by the capability governor
+ * (data-degrade-effects), not by guessing from RAM.
+ */
+function reducedByCapability(): boolean {
+  const { cores, saveData, reduced } = constrainedSignals();
+  if (reduced || saveData) return true;
+  if (typeof cores === "number" && cores > 0 && cores <= 2) return true;
+  return false;
+}
+
 export function detectLowEndDevice(): boolean {
   return detect();
 }
@@ -83,17 +99,12 @@ function detect(): boolean {
   if (typeof navigator === "undefined") return false;
   const flagged = domFlag("lowEnd");
   if (flagged !== null) return flagged;
-  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-  const cores = navigator.hardwareConcurrency;
-  const android = detectAndroid();
-  const { reduced, saveData } = constrainedSignals();
-  if (reduced) return true;
-  if (saveData) return true;
-  if (typeof mem === "number" && mem > 0 && mem <= 4) return true;
-  if (typeof cores === "number" && cores > 0 && cores <= 4) return true;
-  // Some Android Chrome builds hide deviceMemory. On those devices, start in
-  // safe mode instead of briefly mounting blur/3D layers before hooks update.
-  if (android && typeof mem !== "number") return true;
+  // RAM-free capability gate. We no longer demote a device just because it
+  // reports ≤4GB or hides deviceMemory — those are coarse/undefined on Android
+  // and swept capable 4–6GB phones into the flat path. Only genuine constraints
+  // (reduced-motion, save-data, ≤2 cores, known-weak GPU) qualify here.
+  if (reducedByCapability()) return true;
+  if (isWeakGpu(getWebGLRenderer())) return true;
   return false;
 }
 
@@ -151,19 +162,17 @@ export function detectAndroidGpuSafeMode(): boolean {
   const flagged = domFlag("androidGpuSafeMode");
   if (flagged !== null) return flagged;
   if (!detectAndroid()) return false;
-  const { mem, cores, saveData, reduced, memKnown } = constrainedSignals();
-  // Genuinely-weak signals only. We intentionally do NOT enable Safe Mode just
-  // because `deviceMemory` is absent: Chrome on Android frequently omits/caps
-  // this value (it buckets to powers of two, max 8), so a perfectly capable
-  // 4–6GB phone reports `4` or nothing. Treating "unknown memory" as weak swept
-  // capable mid-range phones into the most aggressive flat path, where the hero
-  // image was deprioritized and never painted (blank-hero bug). Safe Mode now
-  // requires a real constraint signal.
-  void memKnown;
+  const { cores, saveData, reduced } = constrainedSignals();
+  // RAM-free. Safe Mode is the most aggressive flat path, so it is reserved for
+  // genuine signals only: explicit Save-Data / Reduced-Motion intent, a very
+  // weak CPU (≤2 cores), or a known-weak GPU. Devices reporting ≤4GB (or hiding
+  // deviceMemory) are NO LONGER forced here — capable 4–6GB Android phones keep
+  // the full premium experience and are governed at runtime by measured FPS.
   return (
     saveData ||
     reduced ||
-    (typeof mem === "number" && mem > 0 && mem <= 4 && typeof cores === "number" && cores > 0 && cores <= 4)
+    (typeof cores === "number" && cores > 0 && cores <= 2) ||
+    isWeakGpu(getWebGLRenderer())
   );
 }
 
@@ -250,31 +259,23 @@ export type DeviceTier = "high" | "mid" | "low";
 /**
  * Three-tier device-capability classifier for adaptively scaling expensive
  * visual effects (visible card count, blur strength, glow, shadows, animation).
+ * RAM-free — based on CPU cores + GPU + explicit user intent only.
  *
- *   low  — ≤4GB RAM, ≤4 cores, OR prefers-reduced-motion. Minimal blur, no
- *          heavy glow, simplest animations.
- *   high — ≥8GB RAM AND ≥8 cores (and no reduced-motion). Full effects.
- *   mid  — everything in between. Medium blur, reduced shadows.
+ *   low  — genuine constraint: reduced-motion, save-data, ≤2 cores, weak GPU.
+ *          Minimal blur, no heavy glow, simplest animations.
+ *   high — ≥8 cores and no weak-GPU/constraint signal. Full effects.
+ *   mid  — everything in between (incl. typical 4–6GB phones). Medium blur.
  *
  * SSR-safe: assumes "high" until mounted so SSR + first paint stay rich, then
- * downgrades on the client once real capabilities are known.
+ * downgrades on the client once real capabilities are known. The runtime
+ * governor (data-degrade-effects) can further trim effects if measured FPS drops.
  */
 function detectTier(): DeviceTier {
   if (typeof navigator === "undefined") return "high";
   if (detect()) return "low";
-  const reduced =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  if (reduced) return "low";
-  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   const cores = navigator.hardwareConcurrency;
-  if ((typeof mem === "number" && mem > 0 && mem <= 4) ||
-      (typeof cores === "number" && cores > 0 && cores <= 4)) {
-    return "low";
-  }
-  const memHigh = typeof mem !== "number" || mem === 0 || mem >= 8;
   const coresHigh = typeof cores !== "number" || cores === 0 || cores >= 8;
-  if (memHigh && coresHigh) return "high";
+  if (coresHigh) return "high";
   return "mid";
 }
 
