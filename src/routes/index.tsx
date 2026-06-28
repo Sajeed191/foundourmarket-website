@@ -447,11 +447,10 @@ function Home() {
         {(() => {
           const collage = (trending.length ? trending : bestSellers).slice(0, 4);
           const chips = [
-            { icon: Truck, label: "Free Shipping" },
-            { icon: Zap, label: "Flash Deals" },
-            { icon: ShieldCheck, label: "Secure Payments" },
-            { icon: Star, label: "Trusted Sellers" },
-            { icon: Gift, label: "Daily Offers" },
+            { label: "Free Shipping" },
+            { label: "Secure Payments" },
+            { label: "Trusted Sellers" },
+            { label: "Easy Returns" },
           ];
           return (
         <div
