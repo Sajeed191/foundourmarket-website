@@ -31,6 +31,7 @@ const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 export function HeroCarousel({ featured, trending, bestSellers, newArrivals, children }: Props) {
   const lowEnd = useLowEndDevice();
   const isMobile = useIsMobile();
+  const tier = useDeviceTier();
 
   const items = useMemo(() => {
     const pool =
