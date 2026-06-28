@@ -50,7 +50,6 @@ function ProductImageImpl({
       img.onerror = null;
       img.removeAttribute("srcset");
       img.removeAttribute("src");
-      try { img.load(); } catch { /* ignore */ }
     };
   }, [src]);
 
