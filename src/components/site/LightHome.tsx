@@ -56,37 +56,90 @@ export function LightHome({
 
   return (
     <main className="bg-background text-foreground">
-      {/* Hero — static heading + simple search */}
-      <section className="px-4 pt-6 pb-5 max-w-3xl mx-auto text-center">
-        <h1 className="text-2xl font-display tracking-tight">
-          FoundOurMarket™
+      <TrustBadgesStrip />
+
+      {/* Hero — static, low-end friendly (no transforms / blur / heavy shadows) */}
+      <section className="px-4 pt-6 pb-7 max-w-3xl mx-auto">
+        {/* LIVE status pill */}
+        <div className="flex items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-center">
+          <span className="size-2 rounded-full bg-accent" aria-hidden />
+          <span className="text-[11px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+            Live · 180+ Countries · 2.4K Products
+          </span>
+        </div>
+
+        {/* Headline */}
+        <h1 className="mt-6 text-center text-4xl sm:text-5xl font-display font-bold leading-[1.05] tracking-tight">
+          Whatever you need.
+          <br />
+          <span className="text-accent">All in one place.</span>
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Everything You Need — All in One Place 🌍
+
+        {/* Subtitle */}
+        <p className="mt-4 text-center text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
+          A premium independent marketplace, sourcing top-quality products from
+          across the world — delivered with cinematic precision.
         </p>
 
-        <form onSubmit={submit} className="mt-4 flex items-stretch gap-2">
+        {/* Search */}
+        <form onSubmit={submit} className="mt-6 flex items-stretch gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products..."
+              placeholder="Find 'ceramic mug'..."
               aria-label="Search products"
-              className="w-full h-12 rounded-xl border border-border bg-card pl-10 pr-3 text-base outline-none focus:border-accent"
+              className="w-full h-14 rounded-full border border-border bg-card pl-11 pr-3 text-base outline-none focus:border-accent"
             />
           </div>
           <button
             type="submit"
-            className="h-12 px-5 rounded-xl bg-accent text-accent-foreground text-sm font-semibold active:opacity-80"
+            className="h-14 px-6 rounded-full bg-accent text-accent-foreground text-sm font-bold active:opacity-80"
           >
             Search
           </button>
         </form>
+
+        {/* CTAs */}
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <Link
+            to="/products"
+            className="h-14 grid place-items-center rounded-full bg-accent text-accent-foreground text-sm font-bold active:opacity-80"
+          >
+            Shop Now
+          </Link>
+          <Link
+            to="/categories"
+            className="h-14 grid place-items-center rounded-full border border-border bg-card text-sm font-bold active:opacity-80"
+          >
+            Browse Categories
+          </Link>
+        </div>
+
+        {/* Trust tiles */}
+        <div className="mt-5 grid grid-cols-3 gap-3">
+          {[
+            { title: "Global", sub: "Shipping" },
+            { title: "Secure", sub: "Checkout" },
+            { title: "Easy", sub: "Returns" },
+          ].map((t) => (
+            <div
+              key={t.title}
+              className="rounded-2xl border border-border bg-card px-3 py-4"
+            >
+              <div className="text-lg font-display font-bold leading-none">
+                {t.title}
+              </div>
+              <div className="mt-1 text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
+                {t.sub}
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <TrustBadgesStrip />
 
       {/* Categories — plain tiles */}
       {categories.length > 0 && (
