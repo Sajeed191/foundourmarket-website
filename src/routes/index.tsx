@@ -175,7 +175,7 @@ function ProductSection({
   return (
     <SectionTracker
       sectionKey={sectionKey}
-      className={`px-4 sm:px-6 ${prominent ? "py-5 sm:py-8" : "py-4 sm:py-7"} max-w-7xl mx-auto scroll-mt-24 block`}
+      className={`px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto scroll-mt-24 block`}
     >
       <SectionHeader
         eyebrow={eyebrow}
