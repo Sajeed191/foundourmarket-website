@@ -109,7 +109,7 @@ function DealsPage() {
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-0 md:pb-24">
       {/* Ambient cinematic backdrop */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="orb animate-orb -top-[10%] left-[10%] size-[60vw] max-w-[520px]" style={{ background: "var(--gradient-ember)" }} />
