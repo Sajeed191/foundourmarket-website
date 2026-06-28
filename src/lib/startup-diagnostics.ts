@@ -11,6 +11,7 @@ declare global {
 
 let installed = false;
 let fetchPatched = false;
+let compositorDiagnosticsInstalled = false;
 
 function cleanUrl(input: unknown): string {
   try {
@@ -152,6 +153,82 @@ function logServiceWorkerState(): void {
     .catch((error) => logDiagnostic("service-worker-read-failed", { error: reasonText(error) }));
 }
 
+function isUltraLowEndAndroid(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.documentElement.dataset.ultraLowEnd === "true";
+}
+
+function installCompositorDiagnostics(): void {
+  if (compositorDiagnosticsInstalled || typeof window === "undefined" || typeof document === "undefined") return;
+  compositorDiagnosticsInstalled = true;
+
+  const snapshot = (label: string) => {
+    if (!isUltraLowEndAndroid()) return;
+    const selector = [
+      "[style*='transform']",
+      "[style*='filter']",
+      "[style*='backdrop']",
+      "[style*='will-change']",
+      "[class*='translate']",
+      "[class*='scale']",
+      "[class*='rotate']",
+      "[class*='blur']",
+      "[class*='backdrop-blur']",
+      "[class*='animate-']",
+      "[class*='shadow-']",
+    ].join(",");
+    logDiagnostic("compositor-snapshot", {
+      label,
+      candidates: document.querySelectorAll(selector).length,
+      productCards: document.querySelectorAll("[data-product-card]").length,
+      productImages: document.querySelectorAll("[data-product-image]").length,
+    });
+  };
+
+  const scheduleSnapshot = (label: string) => {
+    const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(() => snapshot(label), { timeout: 2000 });
+    else window.setTimeout(() => snapshot(label), 750);
+  };
+
+  document.addEventListener(
+    "webglcontextlost",
+    (event) => {
+      logDiagnostic("gpu-context-lost", {
+        target: (event.target as Element | null)?.tagName ?? "unknown",
+      });
+    },
+    true,
+  );
+  document.addEventListener(
+    "webglcontextrestored",
+    (event) => {
+      logDiagnostic("gpu-context-restored", {
+        target: (event.target as Element | null)?.tagName ?? "unknown",
+      });
+    },
+    true,
+  );
+
+  window.addEventListener("pageshow", () => scheduleSnapshot("pageshow"));
+  window.addEventListener("orientationchange", () => scheduleSnapshot("orientationchange"));
+  document.addEventListener(
+    "error",
+    (event) => {
+      const target = event.target as HTMLImageElement | null;
+      if (target?.matches?.("[data-product-image]")) {
+        logDiagnostic("product-image-error", {
+          src: cleanUrl(target.currentSrc || target.src),
+          naturalWidth: target.naturalWidth,
+          naturalHeight: target.naturalHeight,
+        });
+      }
+    },
+    true,
+  );
+  scheduleSnapshot("startup");
+}
+
 export function installStartupDiagnostics(): void {
   if (installed || typeof window === "undefined") return;
   installed = true;
@@ -176,6 +253,7 @@ export function installStartupDiagnostics(): void {
 
   patchFetch();
   logServiceWorkerState();
+  installCompositorDiagnostics();
   logMemory("startup");
 
   window.addEventListener("error", (event) => {
