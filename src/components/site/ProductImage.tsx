@@ -47,30 +47,30 @@ function ProductImageImpl({
   const activeSrcRef = useRef(resolvedSrc);
 
   useEffect(() => {
-    activeSrcRef.current = src;
+    activeSrcRef.current = resolvedSrc;
     return () => {
       activeSrcRef.current = "";
       const img = imgRef.current;
-      if (!img || img.getAttribute("src") !== src) return;
+      if (!img || img.getAttribute("src") !== resolvedSrc) return;
       img.onload = null;
       img.onerror = null;
       img.removeAttribute("srcset");
       img.removeAttribute("src");
     };
-  }, [src]);
+  }, [resolvedSrc]);
 
   const handleLoad = useCallback(() => {
-    if (activeSrcRef.current !== src) return;
+    if (activeSrcRef.current !== resolvedSrc) return;
     onLoad?.();
-  }, [onLoad, src]);
+  }, [onLoad, resolvedSrc]);
 
   return (
     <img
-      key={`${src}|${width}x${height}`}
+      key={`${resolvedSrc}|${width}x${height}`}
       ref={imgRef}
-      src={src}
-      srcSet={responsive?.srcset}
-      sizes={responsive ? sizes : undefined}
+      src={resolvedSrc}
+      srcSet={srcset}
+      sizes={srcset ? sizes : undefined}
       alt={alt}
       width={width}
       height={height}
