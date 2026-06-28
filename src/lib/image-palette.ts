@@ -7,6 +7,9 @@
 // Results are cached per-src so we never recompute for the same image, and a
 // module-level in-flight map dedupes concurrent extractions.
 
+import { isStorageObjectUrl, resizedStorageImage } from "@/lib/storage-image";
+
+
 export type ImagePalette = {
   /** Detected background color of the image (its outer-edge color). */
   primary: string;
