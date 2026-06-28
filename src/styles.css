@@ -2118,3 +2118,12 @@ html[data-gpu-unsafe="true"] .card-premium:hover,
 html[data-gpu-unsafe="true"] .card-elevated:hover {
   box-shadow: 0 8px 24px -12px oklch(0 0 0 / 0.6) !important;
 }
+
+/* 6. Decorative blurred glow layers (aria-hidden orbs/halos using Tailwind
+      blur-* utilities or inline filter:blur) → drop the blur, keep a faint
+      gradient. These full-bleed blur layers are the heaviest Mali GPU buffers. */
+html[data-gpu-unsafe="true"] [aria-hidden="true"][class*="blur-"],
+html[data-gpu-unsafe="true"] [aria-hidden="true"][style*="blur("] {
+  filter: none !important;
+  opacity: 0.18 !important;
+}
