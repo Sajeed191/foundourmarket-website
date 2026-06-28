@@ -181,11 +181,16 @@ export function RegionProvider({ children }: { children: ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Read any cached suggestion immediately (avoids flash on reload).
+  // Apply any previously-stored region choice immediately after mount. This is
+  // a post-hydration update (safe — runs after the first client render matches
+  // the server), so returning shoppers snap to their correct currency without
+  // a hydration mismatch.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const cached = localStorage.getItem(LS_KEY) as MarketRegion | null;
-    if (cached === "india" || cached === "international") setMarket(cached);
+    const prev = getPreviousChoice();
+    if (prev === "india" || prev === "international") {
+      hadCachedChoice.current = true;
+      setMarket(prev);
+    }
   }, []);
 
   // Watchdog failsafe: detection runs against an edge server function that can
