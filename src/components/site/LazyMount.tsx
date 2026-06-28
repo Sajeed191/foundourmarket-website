@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { detectAndroidGpuSafeMode } from "@/lib/use-low-end-device";
 
 /**
  * Defers mounting of its children until the placeholder scrolls near the
@@ -30,6 +31,12 @@ export function LazyMount({
 
   useEffect(() => {
     if (show) return;
+    if (detectAndroidGpuSafeMode()) {
+      // GPU Safe Mode must avoid observer-driven reveal/animation paths. Mount
+      // sections in normal document flow and let CSS/DOM stay completely static.
+      setShow(true);
+      return;
+    }
     const el = ref.current;
     if (!el) {
       setShow(true);

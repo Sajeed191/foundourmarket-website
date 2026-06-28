@@ -1,5 +1,5 @@
 import { Suspense, lazy, type ReactNode } from "react";
-import { useIsAndroid, useLowEndDevice } from "@/lib/use-low-end-device";
+import { useAndroidGpuSafeMode, useIsAndroid, useLowEndDevice } from "@/lib/use-low-end-device";
 
 /**
  * Reveal / AnimatedCounter — public API used across the homepage.
@@ -32,6 +32,7 @@ export function Reveal({
 }) {
   const lowEnd = useLowEndDevice();
   const android = useIsAndroid();
+  const gpuSafe = useAndroidGpuSafeMode();
 
   // Product cards must never sit inside a transformed/opacity reveal layer. On
   // Android Chromium/WebView/Samsung this can leave stale glyph tiles while the
@@ -46,7 +47,7 @@ export function Reveal({
   // GPU compositing artifacts (ghosted images, stacked cards, flicker) during
   // fast scroll. Content still renders fully — only the entrance animation is
   // dropped on the devices that can't afford it.
-  if (android || lowEnd) {
+  if (gpuSafe || android || lowEnd) {
     return <div className={className}>{children}</div>;
   }
   return (
@@ -71,11 +72,12 @@ export function AnimatedCounter({
 }) {
   const lowEnd = useLowEndDevice();
   const android = useIsAndroid();
+  const gpuSafe = useAndroidGpuSafeMode();
   // Fixed en-US grouping so SSR (worker) and client render identical text
   // (avoids a hydration mismatch from locale-dependent toLocaleString()).
   const formatted =
     (decimals > 0 ? to.toFixed(decimals) : Math.round(to).toLocaleString("en-US")) + suffix;
-  if (android || lowEnd) return <span>{formatted}</span>;
+  if (gpuSafe || android || lowEnd) return <span>{formatted}</span>;
   return (
     <Suspense fallback={<span>{formatted}</span>}>
       <MotionCounter to={to} suffix={suffix} duration={duration} decimals={decimals} />

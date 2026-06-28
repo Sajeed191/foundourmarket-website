@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { getResponsiveImage } from "@/lib/product-images";
 import { getStorageResponsive } from "@/lib/storage-image";
-import { detectUltraLowEndAndroid } from "@/lib/use-low-end-device";
+import { detectAndroidGpuSafeMode, detectUltraLowEndAndroid } from "@/lib/use-low-end-device";
 import { useFlag } from "@/lib/use-debug-flag";
 
 type Props = {
@@ -18,6 +18,46 @@ type Props = {
   style?: CSSProperties;
   onLoad?: () => void;
 };
+
+const TRANSPARENT_PIXEL =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
+let safeDecodeChain: Promise<void> = Promise.resolve();
+
+function enqueueSafeImageDecode(
+  img: HTMLImageElement,
+  src: string,
+  onDone?: () => void,
+) {
+  let cancelled = false;
+  let started = false;
+
+  safeDecodeChain = safeDecodeChain
+    .catch(() => undefined)
+    .then(async () => {
+      if (cancelled || !img.isConnected) return;
+      started = true;
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.fetchPriority = "low";
+      img.src = src;
+      try {
+        if (typeof img.decode === "function") await img.decode();
+      } catch {
+        // Decoding may reject when Chrome evicts/cancels the request. The image
+        // element remains valid and the browser can still paint it after load.
+      }
+      if (!cancelled && img.isConnected) onDone?.();
+    });
+
+  return () => {
+    cancelled = true;
+    // A queued-but-not-started image has no network/texture work yet. Once an
+    // image has begun decoding, avoid src churn because Mali/MediaTek Chrome is
+    // exactly where rapid texture teardown causes black/colored rectangles.
+    if (!started && img.isConnected) img.src = TRANSPARENT_PIXEL;
+  };
+}
 
 /**
  * Stable, keyed product image.
@@ -47,15 +87,23 @@ function ProductImageImpl({
   // images get an on-the-fly resized srcset so we never download the original.
   const bundled = getResponsiveImage(src);
   const ultraLowEndAndroid = detectUltraLowEndAndroid();
+  const androidGpuSafeMode = detectAndroidGpuSafeMode();
   const storage = bundled
     ? null
-    : ultraLowEndAndroid
-      ? getStorageResponsive(src, { widths: [160, 240, 320, 480], fallbackWidth: 320, quality: 54 })
+    : androidGpuSafeMode
+      ? getStorageResponsive(src, { widths: [160, 240, 288], fallbackWidth: 288, quality: 52 })
+      : ultraLowEndAndroid
+        ? getStorageResponsive(src, { widths: [160, 240, 320, 480], fallbackWidth: 320, quality: 54 })
       : getStorageResponsive(src);
-  const srcset = bundled?.srcset ?? storage?.srcset;
-  const resolvedSrc = storage?.src ?? src;
+  const srcset = androidGpuSafeMode ? undefined : bundled?.srcset ?? storage?.srcset;
+  const resolvedSrc = androidGpuSafeMode ? (storage?.src ?? bundled?.safeSrc ?? src) : (storage?.src ?? src);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const activeSrcRef = useRef(resolvedSrc);
+
+  const handleLoad = useCallback(() => {
+    if (activeSrcRef.current !== resolvedSrc) return;
+    onLoad?.();
+  }, [onLoad, resolvedSrc]);
 
   useEffect(() => {
     activeSrcRef.current = resolvedSrc;
@@ -66,7 +114,7 @@ function ProductImageImpl({
       // the user is scrolling. That pattern matches the real-device symptoms
       // (colored blocks / black flashes / smeared stale text), so keep the DOM
       // node inert and let the browser release the resource naturally.
-      if (detectUltraLowEndAndroid()) return;
+      if (detectAndroidGpuSafeMode() || detectUltraLowEndAndroid()) return;
       const img = imgRef.current;
       if (!img || img.getAttribute("src") !== resolvedSrc) return;
       img.onload = null;
@@ -76,10 +124,42 @@ function ProductImageImpl({
     };
   }, [resolvedSrc]);
 
-  const handleLoad = useCallback(() => {
-    if (activeSrcRef.current !== resolvedSrc) return;
-    onLoad?.();
-  }, [onLoad, resolvedSrc]);
+  useEffect(() => {
+    if (!androidGpuSafeMode) return;
+    const img = imgRef.current;
+    if (!img) return;
+    let cancelDecode: (() => void) | null = null;
+    let queued = false;
+
+    const queue = () => {
+      if (queued || activeSrcRef.current !== resolvedSrc) return;
+      queued = true;
+      cancelDecode = enqueueSafeImageDecode(img, resolvedSrc, handleLoad);
+    };
+
+    if (typeof IntersectionObserver === "undefined") {
+      queue();
+      return () => cancelDecode?.();
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          queue();
+          observer.disconnect();
+        } else if (!queued) {
+          cancelDecode?.();
+          cancelDecode = null;
+        }
+      },
+      { rootMargin: "160px 0px", threshold: 0.01 },
+    );
+    observer.observe(img);
+    return () => {
+      observer.disconnect();
+      cancelDecode?.();
+    };
+  }, [androidGpuSafeMode, handleLoad, resolvedSrc]);
 
   // Debug harness: render a flat placeholder instead of an <img> to rule the
   // product image element out as the corruption source.
@@ -98,16 +178,18 @@ function ProductImageImpl({
     <img
       key={`${resolvedSrc}|${width}x${height}`}
       ref={imgRef}
-      src={resolvedSrc}
+      src={androidGpuSafeMode ? TRANSPARENT_PIXEL : resolvedSrc}
       srcSet={srcset}
       sizes={srcset ? sizes : undefined}
       alt={alt}
       width={width}
       height={height}
-      loading={!ffLazyLoading || priority ? "eager" : "lazy"}
-      fetchPriority={priority ? "high" : undefined}
-      decoding={ffImageDecoding ? "async" : "sync"}
+      loading={androidGpuSafeMode ? "lazy" : (!ffLazyLoading || priority ? "eager" : "lazy")}
+      fetchPriority={androidGpuSafeMode ? "low" : priority ? "high" : "low"}
+      decoding={androidGpuSafeMode ? "async" : ffImageDecoding ? "async" : "sync"}
       data-product-image
+      data-android-static-image={androidGpuSafeMode ? "true" : undefined}
+      suppressHydrationWarning
       style={style}
       onLoad={handleLoad}
       className={className}

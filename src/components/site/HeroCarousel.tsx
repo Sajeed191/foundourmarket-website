@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { ProductImage } from "@/components/site/ProductImage";
 import { useImagePalette } from "@/lib/use-image-palette";
-import { useLowEndDevice, useDeviceTier, useUltraLowEndAndroid } from "@/lib/use-low-end-device";
+import { useAndroidGpuSafeMode, useLowEndDevice, useDeviceTier, useUltraLowEndAndroid } from "@/lib/use-low-end-device";
 import { useFlag } from "@/lib/use-debug-flag";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Product } from "@/lib/products";
@@ -41,6 +41,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
   });
   const lowEnd = useLowEndDevice();
   const ultraLowEndAndroid = useUltraLowEndAndroid();
+  const androidGpuSafeMode = useAndroidGpuSafeMode();
   const ffJsAnimations = useFlag("jsAnimations");
   const isMobile = useIsMobile();
   const tier = useDeviceTier();
@@ -78,7 +79,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
   // burns CPU/battery animating frames the user can't see.
   const offscreenRef = useRef(false);
   useEffect(() => {
-    if (lowEnd || ultraLowEndAndroid) return;
+    if (androidGpuSafeMode || lowEnd || ultraLowEndAndroid) return;
     const el = stageRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
@@ -89,27 +90,27 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [lowEnd, ultraLowEndAndroid]);
+  }, [androidGpuSafeMode, lowEnd, ultraLowEndAndroid]);
 
   // Auto-rotate.
   useEffect(() => {
-    if (lowEnd || ultraLowEndAndroid || !ffJsAnimations) return;
+    if (androidGpuSafeMode || lowEnd || ultraLowEndAndroid || !ffJsAnimations) return;
     if (items.length <= 1) return;
     const id = window.setInterval(() => {
       if (pausedRef.current || offscreenRef.current) return;
       setIndex((i) => (i + 1) % items.length);
     }, ROTATE_MS);
     return () => window.clearInterval(id);
-  }, [items.length, lowEnd, ultraLowEndAndroid, ffJsAnimations]);
+  }, [items.length, androidGpuSafeMode, lowEnd, ultraLowEndAndroid, ffJsAnimations]);
 
 
   const current = items[index];
-  const { palette } = useImagePalette(ultraLowEndAndroid ? null : current?.image);
+  const { palette } = useImagePalette((androidGpuSafeMode || ultraLowEndAndroid) ? null : current?.image);
 
   // Preload only the immediate next + previous images (per spec). Off-screen
   // cards beyond these are lazy-loaded by the browser via <ProductImage>.
   useEffect(() => {
-    if (lowEnd || ultraLowEndAndroid) return;
+    if (androidGpuSafeMode || lowEnd || ultraLowEndAndroid) return;
     if (items.length <= 1) return;
     const n = items.length;
     [items[(index + 1) % n], items[(index - 1 + n) % n]].forEach((p) => {
@@ -118,7 +119,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
         img.src = p.image;
       }
     });
-  }, [index, items, lowEnd, ultraLowEndAndroid]);
+  }, [index, items, androidGpuSafeMode, lowEnd, ultraLowEndAndroid]);
 
   const primary = palette.primary || "#ffffff";
   const ambient = `color-mix(in srgb, ${primary} 38%, transparent)`;
@@ -174,6 +175,46 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
       go(1);
     }
   };
+
+  if (androidGpuSafeMode) {
+    const p = items[0];
+    return (
+      <div className="relative mx-auto max-w-[1280px]" data-android-static-hero="true">
+        <div className="relative z-10 flex flex-col items-center text-center pt-6 sm:pt-9">
+          <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-accent/35 bg-card px-3.5 text-[10px] font-mono uppercase tracking-[0.22em] text-foreground">
+            <Sparkles className="size-3 text-accent" /> Global Marketplace
+          </span>
+          <h2 className="mt-4 font-display font-semibold tracking-tight text-balance text-[clamp(1.5rem,5.5vw,2.1rem)] leading-[1.1]">
+            Discover Premium Products
+          </h2>
+          <p className="mt-2 max-w-md text-sm sm:text-base text-muted-foreground text-balance">
+            Trusted products from verified sellers worldwide.
+          </p>
+
+          {p && (
+            <Link
+              key={`${p.id ?? p.slug}:safe-hero`}
+              to="/products/$slug"
+              params={{ slug: p.slug }}
+              className="mt-6 block w-[min(68vw,260px)] rounded-3xl border border-accent/20 bg-card p-2"
+            >
+              <ProductImage
+                src={p.image}
+                alt={p.name}
+                width={288}
+                height={288}
+                priority={false}
+                sizes="288px"
+                className="block aspect-square w-full rounded-2xl object-cover object-center"
+              />
+              <p className="mt-3 line-clamp-2 text-sm font-medium leading-snug text-foreground">{p.name}</p>
+            </Link>
+          )}
+        </div>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="relative mx-auto max-w-[1280px]">

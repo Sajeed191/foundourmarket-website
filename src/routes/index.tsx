@@ -30,6 +30,7 @@ import { useFlag } from "@/lib/use-debug-flag";
 import { SearchButton } from "@/components/site/SearchButton";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
+import { useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
 
 import { FlashDeals } from "@/components/site/FlashDeals";
 import { TrustBadgesStrip } from "@/components/site/TrustBadgesStrip";
@@ -66,6 +67,20 @@ function useRotatingPlaceholder(active: boolean) {
     return () => clearInterval(id);
   }, [active]);
   return PLACEHOLDERS[idx];
+}
+
+function useScrolledOnce(active: boolean) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    if (!active || scrolled) return;
+    const onScroll = () => {
+      if (window.scrollY > 240) setScrolled(true);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [active, scrolled]);
+  return !active || scrolled;
 }
 
 import { Reveal } from "@/components/site/Reveal";
@@ -161,7 +176,7 @@ const SECTION_EMPTY_COPY: Record<string, string> = {
    When no products carry the section's badge, an elegant empty state renders
    instead of hiding the section. */
 function ProductSection({
-  sectionKey, eyebrow, title, icon, products, isAdmin, active, viewAllTo, prominent = false, minHeight = 260,
+  sectionKey, eyebrow, title, icon, products, isAdmin, active, viewAllTo, prominent = false, minHeight = 260, limit = 4,
 }: {
   sectionKey: string;
   eyebrow: string;
@@ -173,11 +188,12 @@ function ProductSection({
   viewAllTo: string;
   prominent?: boolean;
   minHeight?: number;
+  limit?: number;
 }) {
   // Only the admin-controlled active toggle hides the section. An empty product
   // list now shows an elegant message rather than disappearing.
   if (!active && !isAdmin) return null;
-  const preview = products.slice(0, 4);
+  const preview = products.slice(0, limit);
   const isEmpty = preview.length === 0;
   // Section-specific badge: inside a dedicated section, each card shows only
   // that section's badge.
@@ -391,6 +407,8 @@ function Home() {
   const ffFlashDeals = useFlag("flashDeals");
   const ffProductGrid = useFlag("productGrid");
   const ffCarousels = useFlag("carousels");
+  const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const safeModeScrolled = useScrolledOnce(androidGpuSafeMode);
   const { products, loading: productsLoading } = useProducts();
   const { categories: publicCategories } = useCategories();
   const { sections } = useHomepageSections();
@@ -405,7 +423,7 @@ function Home() {
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [searching, setSearching] = useState(false);
-  const rotatingPlaceholder = useRotatingPlaceholder(!searchFocused && !query);
+  const rotatingPlaceholder = useRotatingPlaceholder(!androidGpuSafeMode && !searchFocused && !query);
 
   const goSearch = (q: string) => {
     setSearching(true);
@@ -523,7 +541,7 @@ function Home() {
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setTimeout(() => setSearchFocused(false), 120)}
-                placeholder={rotatingPlaceholder}
+                placeholder={androidGpuSafeMode ? PLACEHOLDERS[0] : rotatingPlaceholder}
                 aria-label="Search products"
                 className="w-full h-14 sm:h-16 bg-transparent rounded-full pl-14 sm:pl-16 pr-[120px] sm:pr-[140px] text-base sm:text-[17px] font-medium tracking-[-0.01em] focus:outline-none placeholder:font-medium placeholder:text-muted-foreground/65 placeholder:tracking-[-0.01em]"
               />
@@ -685,9 +703,11 @@ function Home() {
 
       <CinematicDivider />
 
-      <LazyMount minHeight={360}>
-        {ffFlashDeals && <FlashDeals />}
-      </LazyMount>
+      {(!androidGpuSafeMode || safeModeScrolled) && (
+        <LazyMount minHeight={360}>
+          {ffFlashDeals && <FlashDeals />}
+        </LazyMount>
+      )}
 
 
 
@@ -709,27 +729,32 @@ function Home() {
             viewAllTo="/products/trending"
             prominent
             minHeight={320}
+            limit={androidGpuSafeMode ? 4 : 4}
           />
-          <ProductSection
-            sectionKey="new_arrivals"
-            eyebrow={sections.new_arrivals.eyebrow}
-            title={sections.new_arrivals.title}
-            icon={Sparkles}
-            products={newArrivals}
-            isAdmin={isProductAdmin}
-            active={sections.new_arrivals.active}
-            viewAllTo="/products/new-arrivals"
-          />
-          <ProductSection
-            sectionKey="best_sellers"
-            eyebrow={sections.best_sellers.eyebrow}
-            title={sections.best_sellers.title}
-            icon={Award}
-            products={bestSellers}
-            isAdmin={isProductAdmin}
-            active={sections.best_sellers.active}
-            viewAllTo="/products/best-sellers"
-          />
+          {(!androidGpuSafeMode || safeModeScrolled) && (
+            <>
+              <ProductSection
+                sectionKey="new_arrivals"
+                eyebrow={sections.new_arrivals.eyebrow}
+                title={sections.new_arrivals.title}
+                icon={Sparkles}
+                products={newArrivals}
+                isAdmin={isProductAdmin}
+                active={sections.new_arrivals.active}
+                viewAllTo="/products/new-arrivals"
+              />
+              <ProductSection
+                sectionKey="best_sellers"
+                eyebrow={sections.best_sellers.eyebrow}
+                title={sections.best_sellers.title}
+                icon={Award}
+                products={bestSellers}
+                isAdmin={isProductAdmin}
+                active={sections.best_sellers.active}
+                viewAllTo="/products/best-sellers"
+              />
+            </>
+          )}
         </>
       ))}
 
@@ -746,7 +771,7 @@ function Home() {
           <LazyMount minHeight={240}>
             <>
               {/* Mobile: compact swipeable carousel with dots + autorotate */}
-              {ffCarousels && <TestimonialsCarousel items={testimonials} />}
+              {ffCarousels && !androidGpuSafeMode && <TestimonialsCarousel items={testimonials} />}
 
               {/* Desktop: compact grid */}
               <div className="hidden md:grid grid-cols-3 gap-5">
