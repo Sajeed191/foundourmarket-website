@@ -158,7 +158,7 @@ export function shouldUseIncrementalRendering(): boolean {
 }
 
 export function useIsAndroid(): boolean {
-  const [android, setAndroid] = useState(() => domFlag("android") ?? detectAndroid());
+  const [android, setAndroid] = useState(false);
   useEffect(() => {
     setAndroid(detectAndroid());
   }, []);
