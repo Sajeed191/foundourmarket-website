@@ -100,9 +100,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
         />
         {/* warm orange anchor glow so the brand accent always reads */}
         <div className="absolute left-1/2 -top-[28%] -translate-x-1/2 size-[360px] sm:size-[460px] rounded-full blur-[100px] opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.30), transparent 70%)" }} />
-        {/* dark gradient overlays for a premium, immersive frame */}
-        <div className="absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-background/90 to-transparent" />
-        <div className="absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-background/90 to-transparent" />
+        {/* subtle bottom fade only — sides stay uniform with the page background */}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/80 to-transparent" />
       </div>
 
