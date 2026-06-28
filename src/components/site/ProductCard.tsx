@@ -4,7 +4,7 @@ import type { CSSProperties, MouseEvent } from "react";
 import { Heart, Plus, Check, Star, Minus, Eye } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { type BadgeKey } from "@/lib/badges";
-import { useVisibleBadges, type BadgeContext } from "@/lib/badge-visibility";
+import { useVisibleBadges, useBadgeEngine, type BadgeContext } from "@/lib/badge-visibility";
 import { useProductBadges, type RenderBadge } from "@/lib/use-product-badges";
 import { useRegion } from "@/lib/region";
 import { useCartActions, useCartQty } from "@/lib/cart";
@@ -66,6 +66,19 @@ function badgeStyle(label: string, fallback?: CSSProperties): CSSProperties {
   };
   if (c) return { ...base, background: c.bg, color: c.fg };
   return { ...base, ...(fallback ?? {}) };
+}
+
+/** Detects whether an admin-assigned badge is a Flash Deal / Hot Deal promo. */
+function assignedFlashKey(b: RenderBadge): "flash_deal" | "hot_deal" | null {
+  const key = (b.badgeKey || "").toLowerCase();
+  const label = (b.label || "").trim().toUpperCase();
+  if (key.includes("flash") || label === "FLASH SALE" || label === "FLASH DEAL") return "flash_deal";
+  if (key.includes("hot") || label === "HOT DEAL") return "hot_deal";
+  return null;
+}
+
+function isAssignedFlashBadge(b: RenderBadge): boolean {
+  return assignedFlashKey(b) !== null;
 }
 
 function toAssignedBadge(b: RenderBadge): CardBadge {
@@ -225,18 +238,32 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
   const freeShipping = shippingFee <= 0;
   const labels = useVisibleBadges(product, context, forceBadge);
   const assigned = useProductBadges(product.slug);
+  const engine = useBadgeEngine();
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
   const identity = productIdentity(product);
 
   const badges = useMemo<CardBadge[]>(() => {
-    if (!forceBadge && assigned.length > 0) return assigned.map(toAssignedBadge);
+    if (!forceBadge && assigned.length > 0) {
+      // Flash/Hot promotional badges are exclusive to the currently-selected
+      // Flash Deal rotation — hide them everywhere for non-selected products and
+      // show only the single balanced badge for selected ones.
+      const flashActive = engine.activeFlashSlugs.has(product.slug);
+      const chosenFlash = engine.flashBadgeBySlug.get(product.slug) ?? null;
+      const gated = assigned.filter((b) => {
+        if (!isAssignedFlashBadge(b)) return true;
+        if (!flashActive || !chosenFlash) return false;
+        return assignedFlashKey(b) === chosenFlash;
+      });
+      return gated.map(toAssignedBadge);
+    }
     return labels.map((b) => ({
       id: b.key,
       label: b.label,
       emoji: b.emoji,
       className: b.className,
     }));
-  }, [assigned, forceBadge, labels]);
+  }, [assigned, forceBadge, labels, engine, product.slug]);
+
 
   const openQuickView = useCallback(() => setQuickOpen(true), []);
 

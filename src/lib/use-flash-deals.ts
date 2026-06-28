@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/lib/use-products";
 import type { Product } from "@/lib/products";
 import { useRotationNonce } from "@/lib/use-rotation-nonce";
-import { flashWindowSeed, orderWindowSeed, seededShuffle } from "@/lib/rotation-windows";
+import { flashWindowSeed, seededShuffle } from "@/lib/rotation-windows";
 
 /** Maximum products visibly promoted as Flash Deals at any one time. */
 const FLASH_VISIBLE_MAX = 10;
@@ -98,11 +98,11 @@ export function useFlashDeals() {
     return map;
   }, [deals, now]);
 
-  // Which products are eligible to show as Flash Deals rotates every 6 hours
-  // (12AM / 6AM / 12PM / 6PM IST). The visible order inside that set reshuffles
-  // every 2 hours. The manual reshuffle nonce lets admins re-randomize instantly.
+  // The eligible set is freshly shuffled and the first 10 picked at each 6-hour
+  // window (12AM / 6AM / 12PM / 6PM IST). The selection and its order then stay
+  // cached/stable until the next scheduled refresh — no per-load recalculation.
+  // The manual reshuffle nonce lets admins re-randomize instantly.
   const flashSeed = flashWindowSeed(now) + rotationNonce;
-  const orderSeed = orderWindowSeed(now) + rotationNonce;
 
 
 
@@ -130,11 +130,11 @@ export function useFlashDeals() {
       });
     }
 
-    // Pick the eligible subset for this 6h window (max 10), then reshuffle that
-    // subset's display order every 2h. Excluded eligible products keep their
-    // Flash/Hot badges in the database but are hidden publicly until selected.
-    const selected = seededShuffle(active, flashSeed).slice(0, FLASH_VISIBLE_MAX);
-    const ordered = seededShuffle(selected, orderSeed);
+    // Shuffle the full eligible pool for this 6h window, then pick the first 10.
+    // Order stays cached until the next scheduled refresh. Excluded eligible
+    // products keep their Flash/Hot flags in the database but are hidden
+    // publicly (no Flash/Hot badge anywhere) until selected.
+    const ordered = seededShuffle(active, flashSeed).slice(0, FLASH_VISIBLE_MAX);
 
     if (typeof window !== "undefined") {
       // eslint-disable-next-line no-console
@@ -144,7 +144,7 @@ export function useFlashDeals() {
     }
 
     return ordered;
-  }, [products, liveDealByProductId, flashSeed, orderSeed, now]);
+  }, [products, liveDealByProductId, flashSeed, now]);
 
 
   return { items, loading, now, products };
