@@ -100,7 +100,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
       setIndex((i) => (i + 1) % items.length);
     }, ROTATE_MS);
     return () => window.clearInterval(id);
-  }, [items.length, lowEnd, ultraLowEndAndroid]);
+  }, [items.length, lowEnd, ultraLowEndAndroid, ffJsAnimations]);
 
 
   const current = items[index];
