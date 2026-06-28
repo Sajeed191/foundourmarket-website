@@ -605,7 +605,7 @@ function RootComponent() {
                             />
                             <Toaster position="bottom-center" richColors />
                             <ShareDialog />
-                            <DebugPanel />క
+                            <DebugPanel />
                           </div>
                           </BadgeEngineProvider>
                         </LayoutMetricsProvider>
