@@ -1,13 +1,23 @@
 import { useEffect, useState } from "react";
 import {
+  BISECT_TESTS,
   DEBUG_FLAGS,
   FLAG_LABELS,
+  clearBisectLog,
+  getActiveBisectTest,
   getAllFlags,
+  getBisectOverrideEnabled,
+  getBisectLog,
   isDebugEnabled,
+  recordBisectObservation,
   resetFlags,
+  setActiveBisectTest,
+  setBisectOverrideEnabled,
   setAll,
   setFlag,
   subscribe,
+  type BisectObservation,
+  type BisectPhase,
   type DebugFlag,
 } from "@/lib/debug-flags";
 import {
@@ -27,12 +37,18 @@ export function DebugPanel() {
   const [shown, setShown] = useState(false);
   const [flags, setFlags] = useState(() => getAllFlags());
   const [diag, setDiag] = useState<Diagnostics>(() => getDiagnostics());
+  const [activeBisect, setActiveBisectState] = useState<string | null>(() => getActiveBisectTest());
+  const [bisectOverride, setBisectOverrideState] = useState(() => getBisectOverrideEnabled());
+  const [bisectLog, setBisectLog] = useState<BisectObservation[]>(() => getBisectLog());
 
   useEffect(() => {
     setShown(isDebugEnabled());
     const unFlags = subscribe(() => {
       setFlags(getAllFlags());
       setShown(isDebugEnabled());
+      setActiveBisectState(getActiveBisectTest());
+      setBisectOverrideState(getBisectOverrideEnabled());
+      setBisectLog(getBisectLog());
     });
     const unDiag = subscribeDiagnostics(() => setDiag(getDiagnostics()));
     return () => {
@@ -120,6 +136,44 @@ export function DebugPanel() {
               marginTop: 10,
               paddingTop: 10,
               borderTop: "1px solid #333",
+            }}
+          >
+            <div style={{ color: "#f97316", fontWeight: 800, marginBottom: 6 }}>
+              Realme A/B bisect — one property only
+            </div>
+            <select
+              value={activeBisect ?? ""}
+              onChange={(e) => setActiveBisectTest(e.target.value || null)}
+              style={{
+                width: "100%",
+                background: "#111",
+                color: "#fff",
+                border: "1px solid #444",
+                borderRadius: 6,
+                padding: 6,
+                marginBottom: 6,
+              }}
+            >
+              <option value="">No single-property override</option>
+              {BISECT_TESTS.map((test) => (
+                <option key={test.id} value={test.id}>
+                  {test.property} · {test.component}
+                </option>
+              ))}
+            </select>
+            {activeBisect && (
+              <BisectRecorder activeId={activeBisect} overrideEnabled={bisectOverride} log={bisectLog} />
+            )}
+            <button type="button" onClick={() => clearBisectLog()} style={{ ...btn, width: "100%", marginTop: 6 }}>
+              Clear bisect log
+            </button>
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              paddingTop: 10,
+              borderTop: "1px solid #333",
               lineHeight: 1.5,
             }}
           >
@@ -145,6 +199,54 @@ export function DebugPanel() {
         </div>
       )}
     </div>
+  );
+}
+
+function BisectRecorder({ activeId, overrideEnabled, log }: { activeId: string; overrideEnabled: boolean; log: BisectObservation[] }) {
+  const test = BISECT_TESTS.find((t) => t.id === activeId);
+  if (!test) return null;
+  const rows = log.filter((item) => item.id === activeId).slice(-3);
+  return (
+    <div style={{ border: "1px solid #222", borderRadius: 8, padding: 8, lineHeight: 1.35 }}>
+      <Row k="property" v={test.property} />
+      <Row k="component" v={test.component} />
+      <Row k="file" v={test.file} />
+      <Row k="line" v={String(test.line)} />
+      <Row k="enabled" v={test.enabledValue} />
+      <Row k="disabled" v={test.disabledValue} />
+      <label style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
+        <span>{overrideEnabled ? "Feature OFF for selected property" : "Feature ON / production value"}</span>
+        <input
+          type="checkbox"
+          checked={overrideEnabled}
+          onChange={(e) => setBisectOverrideEnabled(e.target.checked)}
+        />
+      </label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 8 }}>
+        <RecordButton id={activeId} phase="feature-on-before" corruption={true} label="1 ON: corrupt" />
+        <RecordButton id={activeId} phase="feature-on-before" corruption={false} label="1 ON: clean" />
+        <RecordButton id={activeId} phase="feature-off-after" corruption={true} label="2 OFF: corrupt" />
+        <RecordButton id={activeId} phase="feature-off-after" corruption={false} label="2 OFF: clean" />
+        <RecordButton id={activeId} phase="feature-on-return" corruption={true} label="3 ON again: corrupt" />
+        <RecordButton id={activeId} phase="feature-on-return" corruption={false} label="3 ON again: clean" />
+      </div>
+      <div style={{ marginTop: 8, color: "#aaa" }}>
+        Attach Realme phone photos separately: before, after, return.
+      </div>
+      {rows.map((row) => (
+        <div key={`${row.phase}:${row.at}`} style={{ fontSize: 11, color: row.corruption ? "#ff8a8a" : "#8affb1" }}>
+          {row.phase}: corruption {row.corruption ? "YES" : "NO"}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecordButton({ id, phase, corruption, label }: { id: string; phase: BisectPhase; corruption: boolean; label: string }) {
+  return (
+    <button type="button" onClick={() => recordBisectObservation(id, phase, corruption)} style={btn}>
+      {label}
+    </button>
   );
 }
 
