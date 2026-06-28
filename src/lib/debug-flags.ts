@@ -33,6 +33,7 @@ export const DEBUG_FLAGS = [
   "cssFilters",
   "backdropFilters",
   "blurEffects",
+  "overflowClipping",
   "gpuTransforms",
   "jsAnimations",
 ] as const;
@@ -59,6 +60,7 @@ export const FLAG_LABELS: Record<DebugFlag, string> = {
   cssFilters: "CSS Filters",
   backdropFilters: "Backdrop Filters",
   blurEffects: "Blur Effects",
+  overflowClipping: "Overflow Clipping",
   gpuTransforms: "GPU Transforms",
   jsAnimations: "JS Animations (rAF)",
 };
