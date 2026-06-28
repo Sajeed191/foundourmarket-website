@@ -409,6 +409,7 @@ function Home() {
   const ffProductGrid = useFlag("productGrid");
   const ffCarousels = useFlag("carousels");
   const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const lightweight = useLightweightHome();
   const safeModeScrolled = useScrolledOnce(androidGpuSafeMode);
   const { products, loading: productsLoading } = useProducts();
   const { categories: publicCategories } = useCategories();
