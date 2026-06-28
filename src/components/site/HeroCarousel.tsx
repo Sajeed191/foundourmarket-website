@@ -107,7 +107,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
 
         {/* ── product showcase ── */}
         <div
-          className="relative mt-5 sm:mt-7 w-[200px] sm:w-[260px] aspect-square"
+          className="relative mt-5 sm:mt-7 w-[240px] sm:w-[300px] aspect-square"
           onMouseEnter={() => { pausedRef.current = true; }}
           onMouseLeave={() => { pausedRef.current = false; }}
         >
