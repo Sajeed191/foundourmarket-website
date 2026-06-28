@@ -173,7 +173,10 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
 
           {/* ── FOREGROUND: main floating glass product card ── */}
           {items.length === 0 ? (
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[250px] sm:size-[310px] rounded-[28px] glass-strong ring-1 ring-white/12 animate-pulse" />
+            <div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[28px] glass-strong ring-1 ring-white/12 animate-pulse"
+              style={{ width: "var(--card)", height: "var(--card)" }}
+            />
           ) : (
             items.map((p, i) => {
               const isCenter = i === index;
@@ -184,8 +187,12 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                   params={{ slug: p.slug }}
                   aria-hidden={!isCenter}
                   tabIndex={isCenter ? 0 : -1}
-                  className={`group absolute left-1/2 top-1/2 -ml-[125px] -mt-[125px] sm:-ml-[155px] sm:-mt-[155px] size-[250px] sm:size-[310px] overflow-hidden rounded-[28px] glass-strong ring-1 ring-white/15 ${isCenter ? "shadow-[var(--shadow-float),0_0_80px_-16px_oklch(0.74_0.19_49/0.55)]" : ""} ${isCenter && !lowEnd ? "animate-float-soft" : ""}`}
+                  className={`group absolute left-1/2 top-1/2 overflow-hidden rounded-[28px] glass-strong ring-1 ring-white/15 ${isCenter ? "shadow-[var(--shadow-float),0_0_80px_-16px_oklch(0.74_0.19_49/0.55)]" : ""} ${isCenter && !lowEnd ? "animate-float-soft" : ""}`}
                   style={{
+                    width: "var(--card)",
+                    height: "var(--card)",
+                    marginLeft: "calc(var(--card) / -2)",
+                    marginTop: "calc(var(--card) / -2)",
                     transform: isCenter ? "translateY(0) scale(1)" : "translateY(10px) scale(0.96)",
                     opacity: isCenter ? 1 : 0,
                     filter: isCenter || lowEnd ? "blur(0px)" : "blur(6px)",
@@ -213,6 +220,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                     width={560}
                     height={560}
                     priority={i === 0}
+                    sizes="(min-width: 640px) 310px, 78vw"
                     className="relative z-[1] block size-full object-contain object-center p-[7%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                   />
                 </Link>
