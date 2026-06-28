@@ -4,6 +4,8 @@ import {
   DEBUG_FLAGS,
   FLAG_LABELS,
   clearBisectLog,
+  downloadBisectReport,
+  evaluateBisect,
   getActiveBisectTest,
   getAllFlags,
   getBisectOverrideEnabled,
@@ -20,6 +22,7 @@ import {
   type BisectPhase,
   type DebugFlag,
 } from "@/lib/debug-flags";
+
 import {
   getDiagnostics,
   subscribeDiagnostics,
