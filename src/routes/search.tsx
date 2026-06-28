@@ -487,6 +487,22 @@ function SearchPage() {
         </div>
       )}
 
+      {/* "Did you mean…?" — recover from typos with one tap */}
+      {suggestion && search.q && (
+        <div className="mb-6 sm:mb-8 flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Did you mean</span>
+          <button
+            onClick={() => { setQuery(suggestion); update({ q: suggestion }); }}
+            className="font-semibold text-accent underline underline-offset-4 hover:brightness-110"
+          >
+            {suggestion}
+          </button>
+          <span className="text-muted-foreground">?</span>
+        </div>
+      )}
+
+
+
       <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-6 lg:gap-8">
         {/* Desktop sidebar — applies instantly */}
         <aside className="hidden lg:block">
