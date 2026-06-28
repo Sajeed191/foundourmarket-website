@@ -33,6 +33,8 @@ function ProductImageImpl({
   priority = false,
   width = 800,
   height = 600,
+  style,
+  onLoad,
 }: Props) {
   const responsive = getResponsiveImage(src);
 
@@ -49,6 +51,8 @@ function ProductImageImpl({
       fetchPriority={priority ? "high" : "low"}
       decoding="async"
       data-product-image
+      style={style}
+      onLoad={onLoad}
       className={className}
     />
   );
