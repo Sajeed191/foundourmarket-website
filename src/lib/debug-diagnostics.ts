@@ -188,8 +188,34 @@ export function installDebugDiagnostics() {
   d.deviceMemoryGb =
     (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null;
   d.hardwareConcurrency = navigator.hardwareConcurrency ?? null;
+  parseUserAgent(navigator.userAgent);
 
   readGpu();
+  patchCreateImageBitmap();
+
+  // Cumulative Layout Shift counter (CLS-style entries).
+  try {
+    const lspo = new PerformanceObserver((list) => {
+      d.layoutShiftCount += list.getEntries().length;
+      notify();
+    });
+    lspo.observe({ entryTypes: ["layout-shift"] });
+  } catch {
+    /* layout-shift unsupported */
+  }
+
+  // Paint timing entries (first-paint / first-contentful-paint + any reported).
+  try {
+    const ppo = new PerformanceObserver((list) => {
+      d.paintCount += list.getEntries().length;
+      notify();
+    });
+    ppo.observe({ entryTypes: ["paint"] });
+  } catch {
+    /* paint unsupported */
+  }
+
+
 
   // Global image decode failure capture.
   window.addEventListener(
