@@ -319,7 +319,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
       {/* Details — flex column, 16px padding, 8px gap. */}
       <div data-product-copy className="product-copy flex flex-1 flex-col gap-1 p-3 sm:gap-2 sm:p-4">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block min-w-0">
-          <h3 data-product-text className={TITLE_CLASS}>{product.name}</h3>
+          <h3 data-product-text className={TITLE_CLASS}><HighlightText text={product.name} query={highlight} /></h3>
         </Link>
 
         {/* Rating */}
