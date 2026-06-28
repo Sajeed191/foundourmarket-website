@@ -166,7 +166,7 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
   }, [add, product.slug]);
 
   const gradient = "linear-gradient(135deg, #FFA52E 0%, #FF6A00 100%)";
-  const glow = "0 2px 6px rgba(255,122,0,0.08)";
+  const glow = "0 6px 18px -4px rgba(255,122,0,0.45)";
 
   if (!product.inStock) {
     return (
