@@ -671,7 +671,7 @@ function ProductPage() {
                   <CheckCircle2 className="size-3" /> In stock
                 </span>
               )}
-              {effectiveSku && <span className="text-muted-foreground/60">SKU: {effectiveSku}</span>}
+              
             </div>
 
             {/* Variants */}
