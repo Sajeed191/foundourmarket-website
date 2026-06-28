@@ -934,6 +934,80 @@ html[data-low-end="true"] .sm\:hover\:scale-\[1\.02\]:hover {
 }
 
 
+/* =====================================================================
+   LOW-END ANDROID SAFE MODE  (authoritative)
+   Activated on <html data-low-end="true"> — set synchronously before first
+   paint by the inline boot script in __root.tsx for devices reporting
+   <=4GB RAM, <=4 logical cores, or prefers-reduced-motion. This single block
+   strips every GPU-compositor-heavy effect that triggers the colored glitch
+   bands, ghosted/duplicated text, partial redraws and black-screen flashes
+   seen on constrained Android GPUs. Capable devices never get the attribute
+   and keep the full premium design untouched.
+   ===================================================================== */
+
+/* 1. Kill all filters, backdrop-filters, blur and blends across the tree.
+      These are the single biggest source of compositor tile corruption. */
+html[data-low-end="true"] *,
+html[data-low-end="true"] *::before,
+html[data-low-end="true"] *::after {
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  text-shadow: none !important;
+}
+
+/* 2. Remove 3D rendering contexts, perspective and persistent GPU layers.
+      Flattening avoids stale/duplicated layer tiles during fling-scroll. */
+html[data-low-end="true"] *,
+html[data-low-end="true"] *::before,
+html[data-low-end="true"] *::after {
+  perspective: none !important;
+  -webkit-perspective: none !important;
+  transform-style: flat !important;
+  -webkit-transform-style: flat !important;
+  will-change: auto !important;
+  backface-visibility: visible !important;
+  -webkit-backface-visibility: visible !important;
+}
+
+/* 3. Stop every continuous animation and ongoing transition. One-shot
+      reveals collapse to their final state instantly (no flicker). */
+html[data-low-end="true"] *,
+html[data-low-end="true"] *::before,
+html[data-low-end="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* 4. Drop multi-layer glow shadows down to one cheap soft shadow. */
+html[data-low-end="true"] .glass,
+html[data-low-end="true"] .glass-strong,
+html[data-low-end="true"] .product-card-glass,
+html[data-low-end="true"] .card-premium,
+html[data-low-end="true"] .card-elevated,
+html[data-low-end="true"] .card-ambient,
+html[data-low-end="true"] .card-outline {
+  box-shadow: var(--shadow-soft) !important;
+}
+
+/* 5. Remove purely decorative floating glow / orb / parallax layers. */
+html[data-low-end="true"] [data-decorative],
+html[data-low-end="true"] .orb,
+html[data-low-end="true"] [data-parallax] {
+  display: none !important;
+}
+
+/* 6. Neutralise hover/transform flourishes that thrash the compositor. */
+html[data-low-end="true"] .group:hover .group-hover\:scale-\[1\.08\],
+html[data-low-end="true"] .sm\:hover\:scale-\[1\.02\]:hover {
+  transform: none !important;
+}
+
+
 /* Floating support orb hide/show on scroll direction */
 .orb-hidden { animation: none !important; transform: translateY(160%); opacity: 0; pointer-events: none; }
 
