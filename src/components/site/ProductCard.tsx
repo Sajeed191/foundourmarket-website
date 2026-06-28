@@ -21,7 +21,33 @@ type ProductCardProps = {
   context?: BadgeContext;
   forceBadge?: BadgeKey | null;
   priority?: boolean;
+  /** When set, occurrences of this term in the title are highlighted. */
+  highlight?: string;
 };
+
+/** Highlight matched search terms within a piece of text. */
+function HighlightText({ text, query }: { text: string; query?: string }) {
+  const terms = (query ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter((t) => t.length >= 2)
+    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  if (terms.length === 0) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${terms.join("|")})`, "gi"));
+  const lower = terms.map((t) => t.toLowerCase());
+  return (
+    <>
+      {parts.map((part, i) =>
+        lower.includes(part.toLowerCase()) ? (
+          <mark key={i} className="bg-accent/25 text-accent rounded-[3px] px-0.5">{part}</mark>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
 
 type CardBadge = {
   id: string;
