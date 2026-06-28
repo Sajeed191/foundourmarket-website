@@ -498,7 +498,7 @@ function RootComponent() {
                               className={
                                 hideSiteChrome
                                   ? "flex-1"
-                                  : isAccountHomeRoute
+                                  : isAccountHomeRoute || isSearchRoute
                                     ? "flex-1 account-footer-gapless md:pb-0"
                                     : "flex-1 mobile-page-clearance md:pb-0"
                               }
