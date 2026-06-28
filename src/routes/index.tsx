@@ -30,7 +30,8 @@ import { useFlag } from "@/lib/use-debug-flag";
 import { SearchButton } from "@/components/site/SearchButton";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
-import { useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
+import { useAndroidGpuSafeMode, useLightweightHome } from "@/lib/use-low-end-device";
+import { LightHome } from "@/components/site/LightHome";
 
 import { FlashDeals } from "@/components/site/FlashDeals";
 import { TrustBadgesStrip } from "@/components/site/TrustBadgesStrip";
@@ -408,6 +409,7 @@ function Home() {
   const ffProductGrid = useFlag("productGrid");
   const ffCarousels = useFlag("carousels");
   const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const lightweight = useLightweightHome();
   const safeModeScrolled = useScrolledOnce(androidGpuSafeMode);
   const { products, loading: productsLoading } = useProducts();
   const { categories: publicCategories } = useCategories();
@@ -495,6 +497,23 @@ function Home() {
   // Desktop hero uses a curated featured product image (see assets/hero-product).
   const trendingChips = ["Wireless earbuds", "Smart watch", "Linen shirt", "Ceramic mug", "Air fryer"];
 
+
+  // Constrained devices get the lightweight static homepage. All data hooks
+  // above have already run, so this early return keeps hook order stable while
+  // swapping only the presentation. Business logic, search, cart and wishlist
+  // (via ProductCard) remain identical.
+  if (lightweight) {
+    return (
+      <LightHome
+        categories={homeCategories}
+        categoryCounts={categoryCounts}
+        trending={trending}
+        newArrivals={newArrivals}
+        bestSellers={bestSellers}
+        productsLoading={productsLoading}
+      />
+    );
+  }
 
   return (
     <>
