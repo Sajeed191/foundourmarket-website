@@ -162,6 +162,7 @@ function ProductImageImpl({
 
 
   useEffect(() => {
+    if (imgTestStatic) return; // static diagnostic: never mutate src after mount
     activeSrcRef.current = resolvedSrc;
     return () => {
       activeSrcRef.current = "";
