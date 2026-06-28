@@ -21,11 +21,6 @@ type Props = {
   debugId?: string;
 };
 
-const TRANSPARENT_PIXEL =
-  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-
-let safeDecodeChain: Promise<void> = Promise.resolve();
-
 // Diagnostic A/B: `?imgtest=static` makes ProductImage behave exactly like the
 // plain <img> tags on /gpu-test — final src assigned once, no placeholder, no
 // IntersectionObserver, no decode queue, no img.decode(), no post-mount src
