@@ -15,6 +15,7 @@ import { AdaptiveProductMedia } from "@/components/site/AdaptiveProductMedia";
 import { QuickViewDialog } from "@/components/site/QuickViewDialog";
 import { formatSold } from "@/lib/format-sold";
 import { useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
+import { detectLayoutTestSimple } from "@/lib/layout-test";
 
 type ProductCardProps = {
   product: Product;
