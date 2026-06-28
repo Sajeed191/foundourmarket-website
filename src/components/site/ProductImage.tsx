@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { getResponsiveImage } from "@/lib/product-images";
 import { getStorageResponsive } from "@/lib/storage-image";
 import { detectAndroidGpuSafeMode, detectUltraLowEndAndroid } from "@/lib/use-low-end-device";
-import { useActiveBisectTest, useFlag } from "@/lib/use-debug-flag";
+import { useActiveBisectTest, useBisectOverrideEnabled, useFlag } from "@/lib/use-debug-flag";
 
 type Props = {
   src: string;
@@ -84,9 +84,10 @@ function ProductImageImpl({
   const ffLazyLoading = useFlag("lazyLoading");
   const ffImageDecoding = useFlag("imageDecoding");
   const activeBisectTest = useActiveBisectTest();
-  const disableSrcset = activeBisectTest === "product-image-srcset";
-  const disableLazyLoading = activeBisectTest === "product-image-lazy-loading";
-  const disableAsyncDecoding = activeBisectTest === "product-image-decoding-async";
+  const bisectOverrideEnabled = useBisectOverrideEnabled();
+  const disableSrcset = bisectOverrideEnabled && activeBisectTest === "product-image-srcset";
+  const disableLazyLoading = bisectOverrideEnabled && activeBisectTest === "product-image-lazy-loading";
+  const disableAsyncDecoding = bisectOverrideEnabled && activeBisectTest === "product-image-decoding-async";
   // Bundled demo assets ship a build-time srcset; real (storage-hosted) product
   // images get an on-the-fly resized srcset so we never download the original.
   const bundled = getResponsiveImage(src);
