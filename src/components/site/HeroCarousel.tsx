@@ -60,14 +60,16 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
   const current = items[index];
   const { palette } = useImagePalette(current?.image);
 
-  // Preload the next image for a seamless transition.
+  // Preload the next and previous images for a seamless, jump-free transition.
   useEffect(() => {
     if (items.length <= 1) return;
-    const next = items[(index + 1) % items.length];
-    if (next?.image) {
-      const img = new Image();
-      img.src = next.image;
-    }
+    const n = items.length;
+    [items[(index + 1) % n], items[(index - 1 + n) % n]].forEach((p) => {
+      if (p?.image) {
+        const img = new Image();
+        img.src = p.image;
+      }
+    });
   }, [index, items]);
 
   const primary = palette.primary || "#ffffff";
