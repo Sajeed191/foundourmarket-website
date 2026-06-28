@@ -262,46 +262,13 @@ function ProductImageImpl({
     };
   }, [imgTestStatic, resolvedSrc]);
 
-  useEffect(() => {
-    if (imgTestStatic) return; // static diagnostic: no IO / decode queue
-    if (!androidGpuSafeMode) return;
-    const img = imgRef.current;
-    if (!img) return;
-    let cancelDecode: (() => void) | null = null;
-    let queued = false;
-
-    const queue = () => {
-      if (queued || activeSrcRef.current !== resolvedSrc) return;
-      queued = true;
-      cancelDecode = enqueueSafeImageDecode(img, resolvedSrc, handleLoad, {
-        loading: loadingMode,
-        decoding: decodingMode,
-      });
-    };
-
-    if (typeof IntersectionObserver === "undefined") {
-      queue();
-      return () => cancelDecode?.();
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          queue();
-          observer.disconnect();
-        } else if (!queued) {
-          cancelDecode?.();
-          cancelDecode = null;
-        }
-      },
-      { rootMargin: "160px 0px", threshold: 0.01 },
-    );
-    observer.observe(img);
-    return () => {
-      observer.disconnect();
-      cancelDecode?.();
-    };
-  }, [androidGpuSafeMode, decodingMode, handleLoad, imgTestStatic, loadingMode, resolvedSrc]);
+  // NOTE: Android GPU Safe Mode previously rendered a transparent 1×1 GIF and
+  // relied on an IntersectionObserver to swap in the real src. That created a
+  // deadlock on Android: the transparent GIF collapses the box to 0×0, a
+  // zero-area element never reports `isIntersecting`, so the real src was never
+  // restored and the image stayed blank forever. The real `resolvedSrc` is now
+  // assigned directly in render with native `loading="lazy"`, which preserves
+  // lazy loading + decoding without the broken swap. No effect needed here.
 
   // Debug harness: render a flat placeholder instead of an <img> to rule the
   // product image element out as the corruption source.
