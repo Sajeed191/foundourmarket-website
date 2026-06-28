@@ -28,14 +28,15 @@ export function TrustBadgesStrip() {
         {ITEMS.map(({ icon: Icon, label }) => (
           <div
             key={label}
-            className="flex flex-col items-center gap-1.5 rounded-xl glass px-1.5 py-2.5 ring-1 ring-white/5 text-center"
+            className="group flex flex-col items-center gap-1.5 rounded-xl glass px-1.5 py-2.5 ring-1 ring-white/5 text-center transition-all duration-300 hover:-translate-y-0.5 hover:ring-accent/30 hover:shadow-[0_0_18px_-6px_oklch(0.74_0.19_49/0.45)]"
           >
-            <Icon className="size-4 text-accent shrink-0" strokeWidth={2} />
+            <Icon className="size-4 text-accent shrink-0 transition-transform duration-300 group-hover:scale-110" strokeWidth={2} />
             <span className="text-[9px] sm:text-[11px] font-medium leading-tight text-white/90">
               {label}
             </span>
           </div>
         ))}
+
       </div>
 
       {/* Desktop — premium monochrome credibility strip with separators */}
