@@ -1952,26 +1952,41 @@ html[data-render-safe="true"] *::after {
   animation: none !important;
   transition: none !important;
   transform: none !important;
-  translate: none !important;
-  rotate: none !important;
-  scale: none !important;
   perspective: none !important;
   transform-style: flat !important;
   backface-visibility: visible !important;
   will-change: auto !important;
   filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   contain: none !important;
   content-visibility: visible !important;
   contain-intrinsic-size: auto !important;
   clip-path: none !important;
-  mask: none !important;
-  -webkit-mask: none !important;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
   box-shadow: none !important;
   text-shadow: none !important;
   mix-blend-mode: normal !important;
   isolation: auto !important;
+  mask: none !important;
+  -webkit-mask: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
 }
+
+/* IMPORTANT: backdrop-filter must NOT be neutralised with the literal value
+   `none`. Lightning CSS minifies `backdrop-filter: none !important` away
+   entirely (it treats `none` as the redundant initial value), even with
+   `!important` and even on class selectors — which left `.glass-strong`
+   un-overridden while the page still reported render-safe. We instead use the
+   CSS-wide keyword `initial` (which resolves to `none` for backdrop-filter but
+   is preserved by the minifier), scoped to every glass/backdrop utility, and
+   also make the surface opaque so no backdrop sampling can occur. */
+html[data-render-safe="true"] .glass,
+html[data-render-safe="true"] .glass-strong,
+html[data-render-safe="true"] [class*="backdrop-blur"],
+html[data-render-safe="true"] [style*="backdropFilter"],
+html[data-render-safe="true"] [style*="backdrop-filter"] {
+  background-color: color-mix(in srgb, var(--color-background) 94%, black) !important;
+  backdrop-filter: initial !important;
+  -webkit-backdrop-filter: initial !important;
+}
+
+
