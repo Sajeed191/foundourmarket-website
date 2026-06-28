@@ -184,6 +184,7 @@ export function LiveChat() {
       setOperatorTyping(false);
       setOperatorJoined(true);
       setMessages((prev) => [...prev, m]);
+      if (!openRef.current) setUnread((c) => c + 1);
     });
     const offTyping = onOperatorTyping((t) => setOperatorTyping(t));
     const offAvail = onAvailabilityChange((a) => setAvailability(a));
