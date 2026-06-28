@@ -284,12 +284,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         // No-FOUC theme init: resolve the stored theme preference (default
-        // "system") and set data-theme/.dark before first paint. Also mark
-        // Android before CSS paints so product text never spends one frame inside
-        // transform/will-change layers during hydration.
+        // "system") and set data-theme/.dark before first paint.
         children:
-          "(function(){var d=document.documentElement;var ua='';var a=false;var wv=false;try{ua=navigator.userAgent||'';a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var low=r||s||(c>0&&c<=2);var gpuSafe=a&&(s||r||(c>0&&c<=2));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',low?'true':'false');d.setAttribute('data-android-gpu-safe-mode',gpuSafe?'true':'false');var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){try{ua=ua||(navigator.userAgent||'');a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end','false');d.setAttribute('data-android-gpu-safe-mode','false');}catch(y){}d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
+          "(function(){var d=document.documentElement;try{var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
       },
+
       {
         type: "application/ld+json",
         children: JSON.stringify({
