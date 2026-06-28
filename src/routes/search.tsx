@@ -542,11 +542,9 @@ function SearchPage() {
         </div>
       </div>
 
-
-      {/* Recently viewed — real per-user history, hides itself when empty */}
-      <div className="-mx-4 sm:-mx-6">
-        <RecentlyViewed />
-      </div>
+    </div>
+  );
+}
     </div>
   );
 }
