@@ -16,7 +16,9 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const ROTATE_MS = 4000;
+const ROTATE_MS = 3000;
+// Apple/Stripe-style premium easing for the showcase crossfade.
+const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 /**
  * Premium rotating hero showcase. Picks real products (Featured → Trending →
