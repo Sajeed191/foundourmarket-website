@@ -7,6 +7,9 @@
 // Results are cached per-src so we never recompute for the same image, and a
 // module-level in-flight map dedupes concurrent extractions.
 
+import { isStorageObjectUrl, resizedStorageImage } from "@/lib/storage-image";
+
+
 export type ImagePalette = {
   /** Detected background color of the image (its outer-edge color). */
   primary: string;
@@ -139,7 +142,9 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
       }
     };
     img.onerror = () => finish(FALLBACK_PALETTE);
-    img.src = src;
+    // Sample a tiny resized variant (storage URLs only) so edge-color detection
+    // never downloads the full-resolution original just to draw a 32px canvas.
+    img.src = isStorageObjectUrl(src) ? resizedStorageImage(src, 64, 70) : src;
   });
 
   inflight.set(src, promise);
