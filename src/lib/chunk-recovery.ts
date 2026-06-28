@@ -19,8 +19,15 @@ import type { ComponentType } from "react";
  * never loop on a truly broken build.
  */
 
-const RELOAD_FLAG = "fom_chunk_reload_at";
-const RELOAD_COOLDOWN_MS = 30_000;
+// Shared, persistent boot-attempt counter (also used by the pre-React inline
+// recovery script in __root.tsx). Time-based cooldowns alone do NOT stop the
+// reload loop seen on low-RAM Android devices: a renderer OOM crash reloads the
+// tab (frequently wiping sessionStorage), so a time guard resets and recovery
+// fires forever. A persistent COUNT in localStorage with a hard cap guarantees
+// the loop terminates and a graceful error UI is shown instead.
+const BOOT_KEY = "fom_boot_attempts";
+const BOOT_WINDOW_MS = 60_000;
+const BOOT_MAX_RELOADS = 2;
 
 function isChunkLoadError(reason: unknown): boolean {
   const msg =
