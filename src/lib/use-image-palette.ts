@@ -31,6 +31,12 @@ export function useImagePalette(src: string | null | undefined) {
   const [ready, setReady] = useState<boolean>(constrained || initial != null);
 
   useEffect(() => {
+    // Constrained devices never sample: skip the second decode + canvas memory.
+    if (constrained) {
+      setPalette(FALLBACK_PALETTE);
+      setReady(true);
+      return;
+    }
     if (!src) {
       setPalette(FALLBACK_PALETTE);
       setReady(false);
