@@ -20,6 +20,15 @@ const ROTATE_MS = 3000;
 // Apple/Stripe-style premium easing for the showcase crossfade.
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
+// Scattered depth slots for the blurred background products. Sizes/positions in px
+// are chosen so they peek around — never behind/covering — the centered main card.
+const BG_SLOTS = [
+  { key: "tl", size: 150, x: -250, y: -150, rot: -11, blur: 16, opacity: 0.22, glow: true },
+  { key: "tr", size: 130, x: 130, y: -160, rot: 9, blur: 18, opacity: 0.18, glow: false },
+  { key: "bl", size: 120, x: -210, y: 50, rot: 7, blur: 18, opacity: 0.18, glow: false },
+  { key: "br", size: 160, x: 110, y: 40, rot: 12, blur: 16, opacity: 0.22, glow: true },
+] as const;
+
 /**
  * Premium rotating hero showcase. Picks real products (Featured → Trending →
  * Best Sellers → New Arrivals), rotates every 4s with a cinematic fade/zoom/
@@ -105,9 +114,9 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
           Trusted products from verified sellers worldwide.
         </p>
 
-        {/* ── clean single-product showcase ── */}
+        {/* ── premium floating glass showcase with blurred depth layer ── */}
         <div
-          className="relative mt-6 sm:mt-8 w-full max-w-[440px] sm:max-w-[560px] h-[280px] sm:h-[340px] select-none overflow-hidden"
+          className="relative mt-6 sm:mt-8 w-full max-w-[480px] sm:max-w-[600px] h-[300px] sm:h-[360px] select-none overflow-hidden [perspective:1200px]"
           role="group"
           aria-roledescription="carousel"
           aria-label="Featured products"
@@ -117,23 +126,56 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
           {/* soft halo behind the stage */}
           <div
             aria-hidden
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[110%] rounded-full blur-3xl opacity-70"
-            style={{ background: `radial-gradient(circle, ${ambient}, transparent 70%)`, transition: "background 700ms ease" }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[120%] rounded-full blur-3xl opacity-70"
+            style={{ background: `radial-gradient(circle, ${ambient}, transparent 70%)`, transition: "background 800ms ease" }}
           />
 
+          {/* ── BACKGROUND: blurred real product images for depth ── */}
+          {!lowEnd && items.length > 1 && (
+            <div aria-hidden className="pointer-events-none absolute inset-0 z-[1]">
+              {BG_SLOTS.map((slot, s) => {
+                // Pick a real product that isn't the current center, cycling with index.
+                const offset = ((index + s + 1) % items.length);
+                const bg = items[offset];
+                if (!bg?.image || bg.id === current?.id) return null;
+                return (
+                  <div
+                    key={`${slot.key}-${bg.id}`}
+                    className="absolute left-1/2 top-1/2 overflow-hidden rounded-[22px] animate-fade-in"
+                    style={{
+                      width: slot.size,
+                      height: slot.size,
+                      marginLeft: slot.x,
+                      marginTop: slot.y,
+                      transform: `rotate(${slot.rot}deg)`,
+                      opacity: slot.opacity,
+                      filter: `blur(${slot.blur}px)`,
+                      transition: `transform 800ms ${EASE}, opacity 800ms ${EASE}, filter 800ms ${EASE}`,
+                      willChange: "transform, opacity, filter",
+                    }}
+                  >
+                    {slot.glow && (
+                      <div className="absolute inset-0 rounded-[22px]" style={{ background: "radial-gradient(circle at 50% 40%, oklch(0.74 0.19 49 / 0.35), transparent 70%)" }} />
+                    )}
+                    <ProductImage
+                      src={bg.image}
+                      alt=""
+                      width={300}
+                      height={300}
+                      className="block size-full object-contain object-center p-[10%]"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── FOREGROUND: main floating glass product card ── */}
           {items.length === 0 ? (
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[240px] sm:size-[300px] rounded-[24px] glass-strong ring-1 ring-white/12 animate-pulse" />
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[250px] sm:size-[310px] rounded-[28px] glass-strong ring-1 ring-white/12 animate-pulse" />
           ) : (
             items.map((p, i) => {
-              const n = items.length;
-              // Relative position: 0 = center, -1 = left, 1 = right, others hidden.
-              let rel = i - index;
-              if (rel > n / 2) rel -= n;
-              if (rel < -n / 2) rel += n;
-              const isCenter = rel === 0;
-              const isSide = rel === -1 || rel === 1;
-              const visible = isCenter || (isSide && !lowEnd);
-
+              const isCenter = i === index;
               return (
                 <Link
                   key={p.id}
@@ -141,33 +183,36 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                   params={{ slug: p.slug }}
                   aria-hidden={!isCenter}
                   tabIndex={isCenter ? 0 : -1}
-                  className={`group absolute left-1/2 top-1/2 -ml-[120px] -mt-[120px] sm:-ml-[150px] sm:-mt-[150px] size-[240px] sm:size-[300px] overflow-hidden rounded-[24px] glass-strong ring-1 ring-white/15 ${isCenter ? "shadow-[var(--shadow-float),0_0_70px_-16px_oklch(0.74_0.19_49/0.6)]" : "shadow-[var(--shadow-float)]"} ${isCenter && !lowEnd ? "animate-float-soft" : ""}`}
+                  className={`group absolute left-1/2 top-1/2 -ml-[125px] -mt-[125px] sm:-ml-[155px] sm:-mt-[155px] size-[250px] sm:size-[310px] overflow-hidden rounded-[28px] glass-strong ring-1 ring-white/15 ${isCenter ? "shadow-[var(--shadow-float),0_0_80px_-16px_oklch(0.74_0.19_49/0.55)]" : ""} ${isCenter && !lowEnd ? "animate-float-soft" : ""}`}
                   style={{
-                    transform: isCenter
-                      ? "scale(1)"
-                      : `translateX(${rel * 130}px) scale(0.78) rotate(${rel * 6}deg)`,
-                    opacity: isCenter ? 1 : isSide ? 0.55 : 0,
-                    filter: isCenter || lowEnd ? "blur(0px)" : isSide ? "blur(14px)" : "blur(8px)",
-                    zIndex: isCenter ? 3 : isSide ? 1 : 0,
+                    transform: isCenter ? "translateY(0) scale(1)" : "translateY(10px) scale(0.96)",
+                    opacity: isCenter ? 1 : 0,
+                    filter: isCenter || lowEnd ? "blur(0px)" : "blur(6px)",
+                    zIndex: isCenter ? 5 : 0,
                     pointerEvents: isCenter ? "auto" : "none",
-                    visibility: visible ? "visible" : "hidden",
+                    visibility: isCenter ? "visible" : "hidden",
                     background: palette.background,
                     transition: lowEnd
                       ? "opacity 300ms ease"
-                      : `transform 700ms ${EASE}, opacity 700ms ${EASE}, filter 700ms ${EASE}`,
+                      : `transform 800ms ${EASE}, opacity 800ms ${EASE}, filter 800ms ${EASE}`,
                     willChange: "transform, opacity, filter",
                   }}
                 >
                   {isCenter && (
-                    <div className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                    <>
+                      {/* glossy top sheen */}
+                      <div className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                      {/* gentle reflection at the base */}
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
+                    </>
                   )}
                   <ProductImage
                     src={p.image}
                     alt={p.name}
-                    width={520}
-                    height={520}
+                    width={560}
+                    height={560}
                     priority={i === 0}
-                    className="relative z-[1] block size-full object-contain object-center p-[8%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                    className="relative z-[1] block size-full object-contain object-center p-[7%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                   />
                 </Link>
               );
