@@ -104,6 +104,7 @@ function ProductImageImpl({
   height = 600,
   style,
   onLoad,
+  debugId,
 }: Props) {
   // Debug harness flags for image-subsystem isolation.
   const ffProductImages = useFlag("productImages");
