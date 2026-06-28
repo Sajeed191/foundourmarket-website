@@ -31,7 +31,7 @@ export function LazyMount({
 
   useEffect(() => {
     if (show) return;
-    if (detectAndroidGpuSafeMode()) {
+    if (detectRenderSafe() || detectAndroidGpuSafeMode()) {
       // GPU Safe Mode must avoid observer-driven reveal/animation paths. Mount
       // sections in normal document flow and let CSS/DOM stay completely static.
       setShow(true);
