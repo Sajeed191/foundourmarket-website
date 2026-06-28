@@ -10,18 +10,25 @@ import {
   getAllFlags,
   getBisectOverrideEnabled,
   getBisectLog,
+  RUNNER_STEPS,
+  getRunnerState,
   isDebugEnabled,
   recordBisectObservation,
+  recordRunnerResult,
   resetFlags,
   setActiveBisectTest,
   setBisectOverrideEnabled,
   setAll,
   setFlag,
+  startRunner,
+  stopRunner,
   subscribe,
   type BisectObservation,
   type BisectPhase,
   type DebugFlag,
+  type RunnerState,
 } from "@/lib/debug-flags";
+
 
 import {
   getDiagnostics,
@@ -43,6 +50,7 @@ export function DebugPanel() {
   const [activeBisect, setActiveBisectState] = useState<string | null>(() => getActiveBisectTest());
   const [bisectOverride, setBisectOverrideState] = useState(() => getBisectOverrideEnabled());
   const [bisectLog, setBisectLog] = useState<BisectObservation[]>(() => getBisectLog());
+  const [runner, setRunner] = useState<RunnerState>(() => getRunnerState());
 
   useEffect(() => {
     setShown(isDebugEnabled());
@@ -52,7 +60,9 @@ export function DebugPanel() {
       setActiveBisectState(getActiveBisectTest());
       setBisectOverrideState(getBisectOverrideEnabled());
       setBisectLog(getBisectLog());
+      setRunner(getRunnerState());
     });
+
     const unDiag = subscribeDiagnostics(() => setDiag(getDiagnostics()));
     return () => {
       unFlags();
@@ -102,6 +112,9 @@ export function DebugPanel() {
             padding: 12,
           }}
         >
+          <GuidedRunner runner={runner} diag={diag} />
+
+
           <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
             <button type="button" onClick={() => setAll(true)} style={btn}>
               All ON
@@ -269,9 +282,118 @@ function RecordButton({ id, phase, corruption, label }: { id: string; phase: Bis
   );
 }
 
+function phaseLabel(phase: BisectPhase): string {
+  if (phase === "feature-on-before") return "Phase 1 — feature ON";
+  if (phase === "feature-off-after") return "Phase 2 — feature OFF";
+  return "Phase 3 — feature ON again";
+}
+
+function GuidedRunner({ runner, diag }: { runner: RunnerState; diag: Diagnostics }) {
+  const { active, index, phase, step, confirmed, finished } = runner;
+
+  if (confirmed) {
+    const primary = confirmed.features[0];
+    const test = primary.kind === "bisect" ? BISECT_TESTS.find((t) => t.id === primary.id) : null;
+    return (
+      <div style={{ marginBottom: 10, border: "1px solid #2a5", borderRadius: 8, padding: 10, background: "#08160c" }}>
+        <div style={{ color: "#8affb1", fontWeight: 800, marginBottom: 4 }}>✅ CONFIRMED CULPRIT</div>
+        <div style={{ color: "#fff" }}>{confirmed.label}</div>
+        {test && (
+          <div style={{ fontSize: 11, color: "#cbe", marginTop: 4, lineHeight: 1.4 }}>
+            {test.property} · {test.component}
+            <br />
+            {test.file}:{test.line}
+          </div>
+        )}
+        <div style={{ fontSize: 11, color: "#9ad", marginTop: 6 }}>
+          Testing stopped automatically. Download the report, then I’ll apply the minimal fix.
+        </div>
+        <button type="button" onClick={() => downloadBisectReport(diag)} style={{ ...btn, width: "100%", marginTop: 8, background: "#f97316", color: "#111", fontWeight: 800 }}>
+          ⬇ Download JSON report
+        </button>
+        <button type="button" onClick={() => stopRunner()} style={{ ...btn, width: "100%", marginTop: 6 }}>
+          End runner
+        </button>
+      </div>
+    );
+  }
+
+  if (finished) {
+    return (
+      <div style={{ marginBottom: 10, border: "1px solid #a52", borderRadius: 8, padding: 10, background: "#160c08" }}>
+        <div style={{ color: "#ffcf8a", fontWeight: 800, marginBottom: 4 }}>
+          No single or two-feature culprit reproduced A/B/A
+        </div>
+        <div style={{ fontSize: 11, color: "#cba", lineHeight: 1.4 }}>
+          Every priority feature and combination was tested. Download the report so we can decide next steps.
+        </div>
+        <button type="button" onClick={() => downloadBisectReport(diag)} style={{ ...btn, width: "100%", marginTop: 8, background: "#f97316", color: "#111", fontWeight: 800 }}>
+          ⬇ Download JSON report
+        </button>
+        <button type="button" onClick={() => startRunner()} style={{ ...btn, width: "100%", marginTop: 6 }}>
+          Restart runner
+        </button>
+      </div>
+    );
+  }
+
+  if (!active) {
+    return (
+      <div style={{ marginBottom: 10, border: "1px solid #f97316", borderRadius: 8, padding: 10 }}>
+        <div style={{ color: "#f97316", fontWeight: 800, marginBottom: 4 }}>Guided culprit hunt</div>
+        <div style={{ fontSize: 11, color: "#aaa", lineHeight: 1.4 }}>
+          Tests the 19 highest-probability causes in priority order, one feature at a time
+          (ON → OFF → ON). Auto-skips on failure, auto-stops on the first confirmed culprit,
+          then falls back to two-feature combos.
+        </div>
+        <button type="button" onClick={() => startRunner()} style={{ ...btn, width: "100%", marginTop: 8, background: "#f97316", color: "#111", fontWeight: 800 }}>
+          ▶ Start guided runner
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 10, border: "1px solid #f97316", borderRadius: 8, padding: 10 }}>
+      <div style={{ color: "#f97316", fontWeight: 800, marginBottom: 2 }}>
+        Guided runner · {index + 1}/{RUNNER_STEPS.length}
+      </div>
+      <div style={{ color: "#fff", fontWeight: 700 }}>{step?.label}</div>
+      {step?.combo && (
+        <div style={{ fontSize: 11, color: "#ffcf8a" }}>two-feature combination</div>
+      )}
+      <div style={{ fontSize: 12, color: "#9ad", margin: "6px 0" }}>{phaseLabel(phase)}</div>
+      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6, lineHeight: 1.35 }}>
+        Look at the Realme screen now. Is the corruption visible in this state?
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => recordRunnerResult(true)}
+          style={{ ...btn, background: "#3a1010", border: "1px solid #a33", color: "#ff9a9a" }}
+        >
+          Corruption: YES
+        </button>
+        <button
+          type="button"
+          onClick={() => recordRunnerResult(false)}
+          style={{ ...btn, background: "#0e2a16", border: "1px solid #2a5", color: "#8affb1" }}
+        >
+          Corruption: NO
+        </button>
+      </div>
+      <button type="button" onClick={() => stopRunner()} style={{ ...btn, width: "100%", marginTop: 6 }}>
+        Stop runner
+      </button>
+    </div>
+  );
+}
+
+
 function Verdict({ log }: { log: BisectObservation[] }) {
   // Re-evaluate against the live log so the verdict updates as you record.
   void log;
+
   const confirmed = evaluateBisect().filter((e) => e.confirmedRootCause);
   if (confirmed.length === 0) {
     return (
