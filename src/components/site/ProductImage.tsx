@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { getResponsiveImage } from "@/lib/product-images";
 import { getStorageResponsive } from "@/lib/storage-image";
+import { detectUltraLowEndAndroid } from "@/lib/use-low-end-device";
 
 type Props = {
   src: string;
@@ -50,6 +51,12 @@ function ProductImageImpl({
     activeSrcRef.current = resolvedSrc;
     return () => {
       activeSrcRef.current = "";
+      // On ultra low-end Android, aggressively removing src/srcset during card
+      // recycling can force Chrome to tear down and recreate image textures while
+      // the user is scrolling. That pattern matches the real-device symptoms
+      // (colored blocks / black flashes / smeared stale text), so keep the DOM
+      // node inert and let the browser release the resource naturally.
+      if (detectUltraLowEndAndroid()) return;
       const img = imgRef.current;
       if (!img || img.getAttribute("src") !== resolvedSrc) return;
       img.onload = null;
