@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { ProductImage } from "@/components/site/ProductImage";
 import { useImagePalette } from "@/lib/use-image-palette";
-import { useLowEndDevice } from "@/lib/use-low-end-device";
+import { useLowEndDevice, useDeviceTier } from "@/lib/use-low-end-device";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Product } from "@/lib/products";
 
