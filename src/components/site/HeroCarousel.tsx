@@ -129,14 +129,15 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                   params={{ slug: p.slug }}
                   aria-hidden={!active}
                   tabIndex={active ? 0 : -1}
-                  className={`group absolute inset-0 overflow-hidden rounded-[24px] glass-strong ring-1 ring-white/15 shadow-[var(--shadow-float),0_0_60px_-18px_oklch(0.74_0.19_49/0.6)] ${active ? "z-[2]" : "z-0"} ${active && !lowEnd ? "animate-hero-product animate-float-soft" : ""}`}
+                  className={`group absolute inset-0 overflow-hidden rounded-[24px] glass-strong ring-1 ring-white/15 shadow-[var(--shadow-float),0_0_60px_-18px_oklch(0.74_0.19_49/0.6)] ${active ? "z-[2]" : "z-0"} ${active && !lowEnd ? "animate-float-soft" : ""}`}
                   style={{
                     opacity: active ? 1 : 0,
-                    transform: active ? "scale(1)" : "scale(0.94)",
-                    filter: active ? "blur(0)" : "blur(6px)",
-                    transition: "opacity 700ms ease, transform 700ms ease, filter 700ms ease",
+                    transform: active ? "scale(1) translateY(0)" : "scale(0.96) translateY(12px)",
+                    filter: active ? "blur(0)" : "blur(8px)",
+                    transition: `opacity 800ms ${EASE}, transform 800ms ${EASE}, filter 800ms ${EASE}`,
                     pointerEvents: active ? "auto" : "none",
                     background: palette.background,
+                    willChange: "opacity, transform, filter",
                   }}
                 >
                   <div className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
