@@ -240,19 +240,33 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
               const visible = onStage || parked;
               const di = Math.min(depth, 5);
 
-              // Equal-spacing queue: each step is a fixed fraction of card width
-              // so cards form an evenly-spaced line, not a stack.
-              const STEP = isMobile ? 0.5 : 0.62;
-              const xUnits = sign * di * STEP;
+              // ── Cinematic size pattern ──
+              // Explicit per-position scale tables so products grow smoothly
+              // toward the center: S→M→L→XL(center)→L→M→S.
+              //   mobile  (3/side): XL, L,  M,  S
+              //   desktop (4/side): XL, L,  M,  MS, S
+              const SCALE = isMobile
+                ? [1.0, 0.8, 0.62, 0.48]
+                : [1.0, 0.85, 0.7, 0.58, 0.48];
+              const last = SCALE.length - 1;
+              const scale = SCALE[Math.min(di, last)];
 
-              // Progressive depth falloff.
-              const scale = Math.max(0.62, 1 - di * 0.1);
-              const opacity = onStage ? Math.max(0.25, 1 - di * 0.2) : 0;
-              const rawBlur = isCenter ? 0 : Math.min(4 + (di - 1) * 5, 24);
+              // Equal-spacing queue: cumulative center-to-center distance based
+              // on adjacent card sizes so gaps stay even as cards shrink.
+              const GAP = isMobile ? 0.56 : 0.66;
+              let units = 0;
+              for (let k = 1; k <= di; k++) {
+                units += ((SCALE[Math.min(k - 1, last)] + SCALE[Math.min(k, last)]) / 2) * GAP;
+              }
+              const xUnits = sign * units;
+
+              // Progressive depth falloff (blur / opacity / brightness / rotateY).
+              const opacity = onStage ? Math.max(0.3, 1 - di * 0.18) : 0;
+              const rawBlur = isCenter ? 0 : Math.min(3 + (di - 1) * 4, 22);
               const blur = isCenter || lowEnd ? 0 : Math.round(rawBlur * perf.blurScale);
-              const gray = isCenter ? 0 : Math.min(0.15 + di * 0.12, 0.5);
-              const bright = isCenter ? 1 : Math.max(0.6, 1 - di * 0.1);
-              const rotateY = isCenter ? 0 : sign * -22;
+              const gray = isCenter ? 0 : Math.min(0.12 + di * 0.1, 0.45);
+              const bright = isCenter ? 1.05 : Math.max(0.62, 1 - di * 0.1);
+              const rotateY = isCenter ? 0 : sign * -24;
 
               return (
                 <Link
