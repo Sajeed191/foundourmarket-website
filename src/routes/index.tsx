@@ -455,28 +455,20 @@ function Home() {
           <p>A premium independent marketplace, sourcing top-quality products from across the world.</p>
         </div>
 
-        {(() => {
-          const chips = [
-            { label: "Free Shipping" },
-            { label: "Secure Payments" },
-            { label: "Easy Returns" },
-            { label: "Trusted Sellers" },
-            { label: "24/7 Support" },
-          ];
-          return (
         <HeroCarousel
+
           featured={featured}
           trending={trending}
           bestSellers={bestSellers}
           newArrivals={newArrivals}
         >
-          {/* ── search bar ── */}
+          {/* ── premium glass search bar (iOS / Arc style) ── */}
           <form
             className="relative z-10 mx-auto mt-7 sm:mt-8 max-w-2xl"
             onSubmit={(e) => { e.preventDefault(); nav({ to: "/search", search: { q: query } }); }}
           >
-            <div className={`relative glass-strong rounded-full ring-1 transition-all duration-200 ${searchFocused ? "ring-accent/35 shadow-[0_0_0_3px_oklch(0.74_0.19_49/0.08),var(--shadow-float)]" : "ring-white/12 shadow-[var(--shadow-float)]"}`}>
-              <Search className={`absolute left-5 top-1/2 -translate-y-1/2 size-5 transition-colors ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
+            <div className={`relative glass-strong rounded-full ring-1 transition-all duration-300 ${searchFocused ? "ring-accent/40 shadow-[0_0_0_4px_oklch(0.74_0.19_49/0.10),0_0_28px_-6px_oklch(0.74_0.19_49/0.45),var(--shadow-float)]" : "ring-white/12 shadow-[var(--shadow-float)]"}`}>
+              <Search className={`absolute left-5 top-1/2 -translate-y-1/2 size-5 transition-colors duration-300 ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
               <input
                 type="text"
                 value={query}
@@ -485,25 +477,21 @@ function Home() {
                 onBlur={() => setSearchFocused(false)}
                 placeholder={rotatingPlaceholder}
                 aria-label="Search products"
-                className="w-full min-h-[54px] bg-transparent rounded-full pl-12 pr-28 sm:pr-32 py-4 text-base focus:outline-none placeholder:text-muted-foreground/60"
+                className="w-full min-h-[54px] bg-transparent rounded-full pl-12 pr-16 py-4 text-base focus:outline-none placeholder:text-muted-foreground/60"
               />
-              <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 font-semibold px-5 sm:px-6 py-3 rounded-full text-xs uppercase tracking-widest text-accent-foreground transition-all duration-200 hover:brightness-110 shadow-[var(--shadow-ember)]" style={{ background: "var(--gradient-ember)" }}>
-                Search
+              {/* Embedded circular gradient search icon button */}
+              <button
+                type="submit"
+                aria-label="Search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center size-11 rounded-full text-accent-foreground transition-all duration-200 hover:brightness-110 hover:scale-105 active:scale-95 shadow-[var(--shadow-ember)]"
+                style={{ background: "var(--gradient-ember)" }}
+              >
+                <Search className="size-5" strokeWidth={2.4} />
               </button>
             </div>
           </form>
-
-          {/* ── feature chips ── */}
-          <div className="relative z-10 mt-4 flex flex-wrap items-center justify-center gap-2 animate-fade-in">
-            {chips.map((c) => (
-              <span key={c.label} className="inline-flex items-center gap-1.5 rounded-full glass px-3.5 py-2 text-[11px] font-medium text-muted-foreground ring-1 ring-white/10">
-                <Check className="size-3.5 text-accent" /> {c.label}
-              </span>
-            ))}
-          </div>
         </HeroCarousel>
-          );
-        })()}
+
       </section>
 
 
