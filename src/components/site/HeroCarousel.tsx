@@ -144,11 +144,13 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                 return (
                   <div
                     key={`${slot.key}-${bg.id}`}
-                    className="absolute left-1/2 top-1/2 size-[230px] sm:size-[290px] overflow-hidden rounded-[26px] glass-strong ring-1 ring-white/10"
+                    className="absolute left-1/2 top-1/2 overflow-hidden rounded-[26px] glass-strong ring-1 ring-white/10"
                     style={{
-                      marginLeft: -115,
-                      marginTop: -115,
-                      transform: `translate3d(${slot.x}px, 0, 0) scale(0.78) rotate(${slot.rot}deg)`,
+                      width: "calc(var(--card) * 0.92)",
+                      height: "calc(var(--card) * 0.92)",
+                      marginLeft: "calc(var(--card) * -0.46)",
+                      marginTop: "calc(var(--card) * -0.46)",
+                      transform: `translate3d(calc(var(--card) * ${slot.xFactor}), 0, 0) scale(0.78) rotate(${slot.rot}deg)`,
                       opacity: 0.3,
                       filter: "blur(12px)",
                       transition: `transform 800ms ${EASE}, opacity 800ms ${EASE}, filter 800ms ${EASE}`,
@@ -160,6 +162,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                       alt=""
                       width={300}
                       height={300}
+                      loading="lazy"
                       className="block size-full object-contain object-center p-[12%]"
                     />
                   </div>
