@@ -213,7 +213,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
         {/* ── premium queue-style 3D carousel ── */}
         <div
           ref={stageRef}
-          className="hero-stage relative mt-6 sm:mt-8 w-full max-w-none select-none overflow-hidden touch-pan-y outline-none [perspective:1600px]"
+          className={`hero-stage relative mt-6 sm:mt-8 w-full max-w-none select-none overflow-hidden touch-pan-y outline-none ${lowEnd ? "" : "[perspective:1600px]"}`}
           style={{
             height: "calc(var(--card) + 72px)",
             WebkitMaskImage:
