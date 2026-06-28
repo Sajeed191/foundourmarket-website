@@ -14,8 +14,6 @@ import { Price } from "@/components/site/Price";
 import { AdaptiveProductMedia } from "@/components/site/AdaptiveProductMedia";
 import { QuickViewDialog } from "@/components/site/QuickViewDialog";
 import { formatSold } from "@/lib/format-sold";
-import { useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
-import { detectLayoutTestSimple } from "@/lib/layout-test";
 
 type ProductCardProps = {
   product: Product;
@@ -163,7 +161,6 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
   const saved = useWishlistSaved(slug);
   const { toggle } = useWishlistActions();
   const [justSaved, setJustSaved] = useState(false);
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
 
   const onClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -179,8 +176,8 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
     <button
       onClick={onClick}
       aria-label={saved ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
-      style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: androidGpuSafeMode ? undefined : "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: androidGpuSafeMode ? undefined : "0 2px 8px rgba(0,0,0,0.25)" }}
-      className={`absolute right-3 top-3 z-10 grid h-[36px] w-[36px] sm:h-[46px] sm:w-[46px] place-items-center rounded-full text-white ${androidGpuSafeMode ? "" : "transition-colors"} ${saved ? "text-accent" : androidGpuSafeMode ? "" : "hover:text-accent"} ${justSaved && !androidGpuSafeMode ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
+      style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
+      className={`absolute right-3 top-3 z-10 grid h-[36px] w-[36px] sm:h-[46px] sm:w-[46px] place-items-center rounded-full text-white transition-colors ${saved ? "text-accent" : "hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
     >
       <Heart className={`size-4 sm:size-5 ${saved ? "fill-accent" : ""}`} />
     </button>
@@ -189,7 +186,6 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
 const WishlistButton = memo(WishlistButtonImpl);
 
 function QuickViewButtonImpl({ name, onOpen }: { name: string; onOpen: () => void }) {
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
   const onClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -200,8 +196,8 @@ function QuickViewButtonImpl({ name, onOpen }: { name: string; onOpen: () => voi
     <button
       onClick={onClick}
       aria-label={`Quick view ${name}`}
-      style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: androidGpuSafeMode ? undefined : "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: androidGpuSafeMode ? undefined : "0 2px 8px rgba(0,0,0,0.25)" }}
-      className={`absolute right-3 top-[52px] sm:top-[64px] z-10 grid h-[36px] w-[36px] sm:h-[46px] sm:w-[46px] place-items-center rounded-full text-white ${androidGpuSafeMode ? "" : "transition-colors hover:text-accent"}`}
+      style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
+      className={`absolute right-3 top-[52px] sm:top-[64px] z-10 grid h-[36px] w-[36px] sm:h-[46px] sm:w-[46px] place-items-center rounded-full text-white ${"transition-colors hover:text-accent"}`}
     >
       <Eye className="size-4 sm:size-[18px]" />
     </button>
@@ -213,7 +209,6 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
   const qty = useCartQty(product.slug);
   const { add, setQty } = useCartActions();
   const [justAdded, setJustAdded] = useState(false);
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
 
   const onAdd = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -223,7 +218,7 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
   }, [add, product.slug]);
 
   const gradient = "linear-gradient(135deg, #FFA52E 0%, #FF6A00 100%)";
-  const glow = androidGpuSafeMode ? undefined : "0 6px 18px -4px rgba(255,122,0,0.45)";
+  const glow = "0 6px 18px -4px rgba(255,122,0,0.45)";
 
   if (!product.inStock) {
     return (
@@ -236,11 +231,11 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
   if (qty > 0 && !justAdded) {
     return (
       <div className="flex h-[46px] sm:h-[52px] w-full items-center justify-between rounded-full px-2" style={{ background: gradient, boxShadow: glow }}>
-        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty - 1); }} aria-label="Decrease quantity" className={`grid size-11 place-items-center rounded-full text-black ${androidGpuSafeMode ? "" : "active:scale-95 transition-transform"}`}>
+        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty - 1); }} aria-label="Decrease quantity" className={`grid size-11 place-items-center rounded-full text-black ${"active:scale-95 transition-transform"}`}>
           <Minus className="size-5" strokeWidth={2.5} />
         </button>
         <span data-product-text className="product-typography min-w-7 text-center text-lg font-bold tabular-nums text-black">{qty}</span>
-        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty + 1); }} aria-label="Increase quantity" className={`grid size-11 place-items-center rounded-full text-black ${androidGpuSafeMode ? "" : "active:scale-95 transition-transform"}`}>
+        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty + 1); }} aria-label="Increase quantity" className={`grid size-11 place-items-center rounded-full text-black ${"active:scale-95 transition-transform"}`}>
           <Plus className="size-5" strokeWidth={2.5} />
         </button>
       </div>
@@ -252,7 +247,7 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
       onClick={onAdd}
       aria-label={`Add ${product.name} to cart`}
       style={justAdded ? undefined : { background: gradient, boxShadow: glow }}
-      className={`product-typography inline-flex h-[46px] sm:h-[52px] w-full items-center justify-center gap-2 rounded-full text-[14px] sm:text-[16px] font-bold ${androidGpuSafeMode ? "" : "transition-[filter,transform] duration-150 hover:brightness-105 hover:-translate-y-0.5 active:scale-[0.97]"} ${justAdded ? "bg-emerald-500 text-black" : "text-black"}`}
+      className={`product-typography inline-flex h-[46px] sm:h-[52px] w-full items-center justify-center gap-2 rounded-full text-[14px] sm:text-[16px] font-bold ${"transition-[filter,transform] duration-150 hover:brightness-105 hover:-translate-y-0.5 active:scale-[0.97]"} ${justAdded ? "bg-emerald-500 text-black" : "text-black"}`}
     >
       {justAdded ? <><Check className="size-5 sm:size-6" /> Added</> : <><Plus className="size-5 sm:size-6" strokeWidth={2.75} /> Add to Cart</>}
     </button>
@@ -273,7 +268,6 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
   const engine = useBadgeEngine();
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
   const identity = productIdentity(product);
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
 
   const badges = useMemo<CardBadge[]>(() => {
     if (!forceBadge && assigned.length > 0) {
@@ -300,106 +294,6 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
 
   const openQuickView = useCallback(() => setQuickOpen(true), []);
 
-  const layoutTest = detectLayoutTestSimple();
-
-  useEffect(() => {
-    if (!layoutTest || typeof document === "undefined") return;
-    const id = window.setTimeout(() => {
-      const card = document.querySelector('[data-product-card][data-layouttest="simple"]');
-      if (!card) return;
-      const cs = getComputedStyle(card);
-      // eslint-disable-next-line no-console
-      console.log("[layouttest] computed product card styles", {
-        overflow: cs.overflow,
-        borderRadius: cs.borderRadius,
-        clipPath: cs.clipPath,
-        mask: cs.mask || cs.webkitMask,
-        isolation: cs.isolation,
-        position: cs.position,
-        zIndex: cs.zIndex,
-        display: cs.display,
-      });
-      const clipped = cs.overflow !== "visible";
-      const rounded = cs.borderRadius !== "0px";
-      // eslint-disable-next-line no-console
-      console.log(
-        `[layouttest] no overflow clipping: ${!clipped} | no rounded corners: ${!rounded}`,
-      );
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, [layoutTest]);
-
-
-  if (layoutTest) {
-    // Plain rectangular card: no overflow clipping, radius, clip-path, masks,
-    // isolation, stacking context, overlays, or shadows. Same data/images/text.
-    return (
-      <article
-        data-product-card
-        data-product-id={identity}
-        data-layouttest="simple"
-        style={{
-          backgroundColor: "#111111",
-          border: "1px solid rgba(255,138,0,0.18)",
-          overflow: "visible",
-          borderRadius: 0,
-          clipPath: "none",
-          WebkitMask: "none",
-          mask: "none",
-          isolation: "auto",
-          contain: "none",
-          boxShadow: "none",
-          filter: "none",
-          position: "static",
-          zIndex: "auto",
-        }}
-        className="flex h-full flex-col"
-      >
-        <Link to="/products/$slug" params={{ slug: product.slug }} className="block" aria-label={product.name}>
-          <AdaptiveProductMedia
-            key={`${identity}:media:${product.image}`}
-            src={product.image}
-            alt={`${product.name} — ${product.tagline || product.category}`}
-            priority={priority}
-            plain
-          />
-        </Link>
-
-        <div data-product-copy className="product-copy flex flex-1 flex-col gap-1 p-3 sm:gap-2 sm:p-4">
-          <Link to="/products/$slug" params={{ slug: product.slug }} className="block min-w-0">
-            <h3 data-product-text className={TITLE_CLASS}><HighlightText text={product.name} query={highlight} /></h3>
-          </Link>
-          <div className="flex min-w-0 items-center gap-1.5">
-            {product.reviews > 0 ? (
-              <span className="inline-flex min-w-0 items-center gap-1.5">
-                <Star className="size-[14px] sm:size-[18px] shrink-0 fill-accent text-accent" />
-                <span data-product-text className="product-typography product-rating-text text-[13px] sm:text-[17px] font-semibold tabular-nums text-white">{product.rating.toFixed(1)}</span>
-                <span data-product-text className="product-typography product-rating-text truncate text-[11px] sm:text-[14px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
-              </span>
-            ) : (
-              <span data-product-text className="product-typography product-rating-text text-[11px] sm:text-[14px] font-medium text-accent">New Product</span>
-            )}
-            {product.soldCount > 0 && (
-              <span data-product-text className="product-typography product-rating-text truncate text-[10px] sm:text-[12px] font-medium text-muted-foreground">🔥 {formatSold(product.soldCount)} sold</span>
-            )}
-          </div>
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <Price value={price} className="shrink-0 font-display text-[22px] font-extrabold leading-none tabular-nums text-white sm:text-[30px]" />
-            {originalPrice && discount ? (
-              <div className="flex min-w-0 items-baseline gap-2">
-                <Price value={originalPrice} className="shrink-0 text-[12px] tabular-nums text-muted-foreground line-through sm:text-[15px]" />
-                <span data-product-text className="product-typography product-price-text truncate text-[12px] font-bold leading-none text-accent sm:text-[15px]">{discount}% OFF</span>
-              </div>
-            ) : null}
-          </div>
-          <div className="pt-1.5 sm:pt-4">
-            <AddToCartButton product={product} />
-          </div>
-        </div>
-      </article>
-    );
-  }
-
   return (
     <article
       key={identity}
@@ -407,7 +301,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
       data-product-id={identity}
       data-render-token={identity}
       style={{ backgroundColor: "#111111", border: "1px solid rgba(255,138,0,0.18)" }}
-      className={`product-card-shell group relative flex h-full flex-col overflow-hidden rounded-[22px] ${androidGpuSafeMode ? "" : "shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:shadow-[0_10px_32px_-6px_rgba(255,138,0,0.4)]"}`}
+      className={`product-card-shell group relative flex h-full flex-col overflow-hidden rounded-[22px] ${"shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:shadow-[0_10px_32px_-6px_rgba(255,138,0,0.4)]"}`}
     >
       <ProductCardAdminControlsGate product={product} />
 

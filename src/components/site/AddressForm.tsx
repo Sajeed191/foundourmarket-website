@@ -9,7 +9,6 @@ import { type Address, type AddressInput, type AddressType } from "@/lib/use-add
 import { validateIndianPincode } from "@/lib/address.functions";
 import { PhoneInput } from "@/components/site/PhoneInput";
 import { useRegion } from "@/lib/region";
-import { useLowEndDevice } from "@/lib/use-low-end-device";
 import type { MapPickResult } from "@/components/site/MapPicker";
 
 // Leaflet + its CSS only download when the customer opens "Select on Map".
@@ -119,7 +118,6 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
   const [phoneValid, setPhoneValid] = useState<boolean>(!!initial?.phone);
   const [pinState, setPinState] = useState<"idle" | "checking" | "valid" | "unverified" | "unsupported">("idle");
   const [geoBusy, setGeoBusy] = useState(false);
-  const lowEnd = useLowEndDevice();
   // Which premium mode the customer last used to fill the address.
   const [mode, setMode] = useState<"gps" | "map" | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
@@ -598,7 +596,6 @@ export function AddressForm({ initial, onSubmit, onCancel, submitLabel = "Save a
         >
           <MapPicker
             initial={{ lat: form.latitude, lng: form.longitude }}
-            lowEnd={lowEnd}
             onConfirm={onMapConfirm}
             onCancel={() => setMapOpen(false)}
           />

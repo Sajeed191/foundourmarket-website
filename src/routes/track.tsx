@@ -15,7 +15,6 @@ import { useRegion } from "@/lib/region";
 import { safeExternalUrl } from "@/lib/safe-redirect";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
-import { useUltraLowEndAndroid } from "@/lib/use-low-end-device";
 
 export const Route = createFileRoute("/track")({
   head: () => ({
@@ -87,7 +86,6 @@ function TrackPage() {
   const [tick, setTick] = useState(0);
   const prevStatusRef = useRef<string | null>(null);
   const { slugs: recentSlugs } = useRecentlyViewed();
-  const ultraLowEndAndroid = useUltraLowEndAndroid();
 
   useEffect(() => {
     try {
@@ -192,10 +190,10 @@ function TrackPage() {
 
   // 1s ticker so the "updated Ns ago" badge stays fresh
   useEffect(() => {
-    if (!active || ultraLowEndAndroid) return;
+    if (!active) return;
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
-  }, [active, ultraLowEndAndroid]);
+  }, [active]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();

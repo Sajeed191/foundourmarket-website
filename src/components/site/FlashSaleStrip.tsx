@@ -7,7 +7,6 @@ import { Price } from "@/components/site/Price";
 import { useRegion } from "@/lib/region";
 import { AdminProductOverlay } from "@/components/admin/AdminProductOverlay";
 import { ProductImage } from "@/components/site/ProductImage";
-import { useLowEndDevice } from "@/lib/use-low-end-device";
 
 type FlashSale = {
   id: string;
@@ -40,9 +39,8 @@ export function FlashSaleStrip() {
   const [sale, setSale] = useState<FlashSale | null>(null);
   const { products } = useProducts();
   const { priceOf } = useRegion();
-  const lowEnd = useLowEndDevice();
   
-  const countdown = useCountdown(sale?.ends_at ?? null, lowEnd);
+  const countdown = useCountdown(sale?.ends_at ?? null, false);
 
   useEffect(() => {
     let active = true;
@@ -73,7 +71,7 @@ export function FlashSaleStrip() {
   return (
     <section className="px-4 sm:px-6 py-8 sm:py-10 max-w-7xl mx-auto">
       <div className="relative rounded-3xl overflow-hidden border border-accent/30 bg-gradient-to-br from-accent/10 via-card to-card p-4 sm:p-6">
-        {!lowEnd && (
+        {(
           <div
             aria-hidden
             className="absolute -top-16 -right-16 size-56 rounded-full blur-3xl opacity-40"
@@ -82,7 +80,7 @@ export function FlashSaleStrip() {
         )}
         <div className="relative flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2 min-w-0">
-            <div className={`size-9 grid place-items-center rounded-xl bg-accent text-accent-foreground shadow-[var(--shadow-ember)] shrink-0 ${lowEnd ? "" : "animate-flame-pulse"}`}>
+            <div className={`size-9 grid place-items-center rounded-xl bg-accent text-accent-foreground shadow-[var(--shadow-ember)] shrink-0 animate-flame-pulse`}>
               <Flame className="size-4" />
             </div>
             <div className="min-w-0">

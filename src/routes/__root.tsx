@@ -35,13 +35,12 @@ import { Toaster } from "@/components/ui/sonner";
 import { ShareDialog } from "@/components/site/ShareDialog";
 import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
 import { safeInternalPath } from "@/lib/safe-redirect";
-import { detectAndroidWebView, detectRenderSafe, useLowEndDevice, useIsAndroid, useUltraLowEndAndroid, useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
 import { startPerfMonitoring } from "@/lib/perf-monitor";
 import { startCapabilityGovernor } from "@/lib/runtime-capability";
 import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
-import { installStartupDiagnostics, logDiagnostic, useRenderDiagnostics } from "@/lib/startup-diagnostics";
-import { initDebugFlags, getFlag, isDebugEnabled } from "@/lib/debug-flags";
+import { installStartupDiagnostics, useRenderDiagnostics } from "@/lib/startup-diagnostics";
+import { initDebugFlags, getFlag } from "@/lib/debug-flags";
 import { installDebugDiagnostics, patchImageDecode } from "@/lib/debug-diagnostics";
 import { DebugPanel } from "@/components/site/DebugPanel";
 
@@ -284,61 +283,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         // No-FOUC theme init: resolve the stored theme preference (default
-        // "system") and set data-theme/.dark before first paint. Also mark
-        // Android before CSS paints so product text never spends one frame inside
-        // transform/will-change layers during hydration.
+        // "system") and set data-theme/.dark before first paint.
         children:
-          "(function(){var d=document.documentElement;var ua='';var a=false;var wv=false;try{ua=navigator.userAgent||'';a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var low=r||s||(c>0&&c<=2);var gpuSafe=a&&(s||r||(c>0&&c<=2));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',low?'true':'false');d.setAttribute('data-android-gpu-safe-mode',gpuSafe?'true':'false');var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){try{ua=ua||(navigator.userAgent||'');a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end','false');d.setAttribute('data-android-gpu-safe-mode','false');}catch(y){}d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
+          "(function(){var d=document.documentElement;try{var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
       },
-      {
-        // GPU-compositor safety gate (root cause of the Android corruption).
-        // Reads the unmasked WebGL renderer synchronously before first paint and
-        // flags GPUs whose Chrome drivers corrupt compositor tiles when many
-        // backdrop-filter / large blur / mix-blend layers stack: Mali (Redmi
-        // 14C / Oppo F9 / Narzo 20 all fail), plus software/very-old renderers.
-        // Adreno (e.g. Realme 5 Pro = Adreno 616) stays full-fat. This is
-        // feature/GPU detection — NOT RAM-based. CSS keyed on data-gpu-unsafe
-        // swaps GPU-heavy effects for CPU-friendly equivalents while keeping
-        // images, lazy loading and the premium dark look intact.
-        children:
-          "(function(){var d=document.documentElement;function rd(){try{var c=document.createElement('canvas');var gl=c.getContext('webgl')||c.getContext('experimental-webgl');if(!gl)return '';var e=gl.getExtension('WEBGL_debug_renderer_info');var s=e?gl.getParameter(e.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);return (s||'').toString();}catch(x){return '';}}try{var r=rd();var rl=r.toLowerCase();var unsafe=/mali/.test(rl)||/swiftshader|software|llvmpipe/.test(rl)||/powervr sgx/.test(rl)||/videocore/.test(rl);d.setAttribute('data-gpu-renderer',r||'unknown');d.setAttribute('data-gpu-unsafe',unsafe?'true':'false');}catch(y){d.setAttribute('data-gpu-unsafe','false');}})();",
-      },
-      {
-        // ?gpudebug=1 — console rendering diagnostics. Logs GPU renderer, approx
-        // compositor layer count, active CSS/backdrop filters, mix-blend count,
-        // FPS, long tasks, paint count and layout shifts. Zero cost otherwise.
-        children:
-          "(function(){try{if(new URLSearchParams(location.search).get('gpudebug')!=='1')return;var d=document.documentElement;var st={fps:0,longTasks:0,longTaskMax:0,paints:0,shifts:0};try{new PerformanceObserver(function(l){for(var e of l.getEntries()){st.longTasks++;if(e.duration>st.longTaskMax)st.longTaskMax=Math.round(e.duration);}}).observe({entryTypes:['longtask']});}catch(e){}try{new PerformanceObserver(function(l){st.paints+=l.getEntries().length;}).observe({entryTypes:['paint']});}catch(e){}try{new PerformanceObserver(function(l){st.shifts+=l.getEntries().length;}).observe({entryTypes:['layout-shift']});}catch(e){}var f=0,last=performance.now();(function tick(){f++;var n=performance.now();if(n-last>=1000){st.fps=Math.round(f*1000/(n-last));f=0;last=n;}requestAnimationFrame(tick);})();function scan(){var els=document.querySelectorAll('*');var lim=Math.min(els.length,4000);var layers=0,filters=0,backdrops=0,blends=0;for(var i=0;i<lim;i++){var cs;try{cs=getComputedStyle(els[i]);}catch(e){continue;}var fl=cs.filter,bf=cs.backdropFilter||cs.webkitBackdropFilter,tf=cs.transform,wc=cs.willChange,mb=cs.mixBlendMode;if(fl&&fl!=='none')filters++;if(bf&&bf!=='none')backdrops++;if(mb&&mb!=='normal')blends++;if((fl&&fl!=='none')||(bf&&bf!=='none')||(tf&&tf!=='none')||(wc&&wc!=='auto')||(mb&&mb!=='normal'))layers++;}return{gpuRenderer:d.getAttribute('data-gpu-renderer'),gpuUnsafe:d.getAttribute('data-gpu-unsafe'),compositorLayers:layers,cssFilters:filters,backdropFilters:backdrops,mixBlend:blends,fps:st.fps,longTasks:st.longTasks,longTaskMaxMs:st.longTaskMax,paints:st.paints,layoutShifts:st.shifts};}function log(){console.log('%c[gpudebug]','color:#f80;font-weight:bold',scan());}setTimeout(log,1200);setInterval(log,3000);window.__gpudebug=scan;}catch(e){}})();",
-      },
-      {
-        // Diagnostic render=safe kill-switch: set data-render-safe before CSS
-        // paint when ?render=safe is present so the global CSS strips every
-        // compositor-triggering feature on the very first frame.
-        children:
-          "(function(){try{if(new URLSearchParams(location.search).get('render')!=='safe')return;var d=document.documentElement;d.setAttribute('data-render-safe','true');var s=document.createElement('style');s.setAttribute('data-render-safe-style','');s.textContent='html[data-render-safe=\"true\"] *,html[data-render-safe=\"true\"] *::before,html[data-render-safe=\"true\"] *::after{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;filter:none !important;transform:none !important;will-change:auto !important;contain:none !important;content-visibility:visible !important;clip-path:none !important;mask:none !important;-webkit-mask:none !important;mask-image:none !important;-webkit-mask-image:none !important;}';(document.head||d).appendChild(s);var norm=function(img){try{if(img.getAttribute('srcset'))img.removeAttribute('srcset');if(img.getAttribute('sizes'))img.removeAttribute('sizes');if(img.getAttribute('loading')!=='eager')img.setAttribute('loading','eager');if(img.getAttribute('decoding')!=='sync')img.setAttribute('decoding','sync');}catch(e){}};var sweep=function(){var l=document.images;for(var i=0;i<l.length;i++)norm(l[i]);};sweep();if(typeof MutationObserver!=='undefined'){var mo=new MutationObserver(function(muts){for(var i=0;i<muts.length;i++){var m=muts[i];if(m.type==='attributes'&&m.target&&m.target.tagName==='IMG'){norm(m.target);continue;}var an=m.addedNodes||[];for(var j=0;j<an.length;j++){var n=an[j];if(n.tagName==='IMG')norm(n);else if(n.querySelectorAll){var inner=n.querySelectorAll('img');for(var k=0;k<inner.length;k++)norm(inner[k]);}}}});mo.observe(d,{childList:true,subtree:true,attributes:true,attributeFilter:['loading','decoding','srcset','sizes']});}document.addEventListener('DOMContentLoaded',sweep);}catch(e){}})();",
-      },
-      {
-        // Ultra Low-End Android compositor kill-switch. Kept as a separate tiny
-        // script so it can run before CSS paint without changing the theme init.
-        children:
-          "(function(){try{var d=document.documentElement;var ua=navigator.userAgent||'';var a=/Android/i.test(ua);var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var gpuSafe=a&&(s||r||(c>0&&c<=2));d.setAttribute('data-ultra-low-end',gpuSafe?'true':'false');d.setAttribute('data-android-gpu-safe-mode',gpuSafe?'true':'false');}catch(e){try{document.documentElement.setAttribute('data-ultra-low-end','false');document.documentElement.setAttribute('data-android-gpu-safe-mode','false');}catch(x){}}})();",
-      },
-      {
-        // Diagnostic compositortest=off kill-switch: when ?compositortest=off is
-        // present, neutralize every sticky/fixed compositor-promoted layer to
-        // determine whether the corruption is driven by Chrome's handling of
-        // sticky/fixed layers rather than page content. Pure A/B diagnostic.
-        children:
-          "(function(){try{if(new URLSearchParams(location.search).get('compositortest')!=='off')return;var d=document.documentElement;d.setAttribute('data-compositortest','off');var st=document.createElement('style');st.setAttribute('data-compositortest-style','');st.textContent='html[data-compositortest=\"off\"] *,html[data-compositortest=\"off\"] *::before,html[data-compositortest=\"off\"] *::after{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}html[data-compositortest=\"off\"] [data-comp-static]{position:static !important;top:auto !important;left:auto !important;right:auto !important;bottom:auto !important;z-index:auto !important;filter:none !important;transform:none !important;will-change:auto !important;contain:none !important;}html[data-compositortest=\"off\"] [data-comp-hidden]{display:none !important;}';(document.head||d).appendChild(st);var logged=false;var apply=function(){var els=document.querySelectorAll('*');var report=[];for(var i=0;i<els.length;i++){var el=els[i];var cs;try{cs=getComputedStyle(el);}catch(e){continue;}var pos=cs.position;var bf=cs.backdropFilter||cs.webkitBackdropFilter||'none';var fl=cs.filter||'none';var tf=cs.transform||'none';if(pos==='sticky'||pos==='fixed'||(bf&&bf!=='none')||(fl&&fl!=='none')||(tf&&tf!=='none')){report.push({tag:el.tagName.toLowerCase(),id:el.id||'',cls:(el.className&&el.className.toString?el.className.toString():'').slice(0,40),position:pos,backdropFilter:bf,filter:fl,transform:tf});}if(pos==='sticky')el.setAttribute('data-comp-static','');else if(pos==='fixed')el.setAttribute('data-comp-hidden','');}if(!logged){logged=true;console.log('compositortest=off enabled');if(console.table)console.table(report);else console.log(report);}};var verify=function(){var bad=[];var nodes=document.querySelectorAll('[data-comp-static],[data-comp-hidden]');for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.hasAttribute('data-comp-hidden'))continue;var cs;try{cs=getComputedStyle(el);}catch(e){continue;}if(cs.position==='sticky'||cs.position==='fixed'||((cs.backdropFilter||cs.webkitBackdropFilter||'none')!=='none')||(cs.filter!=='none')||(cs.transform!=='none')){bad.push({tag:el.tagName.toLowerCase(),position:cs.position,backdropFilter:cs.backdropFilter||cs.webkitBackdropFilter,filter:cs.filter,transform:cs.transform});}}if(bad.length===0)console.log('compositortest=off verified: no sticky/fixed/backdrop-filter/filter/transform remaining on targeted elements');else{console.warn('compositortest=off verification FAILED for '+bad.length+' element(s):');if(console.table)console.table(bad);else console.log(bad);}};var sweep=function(){apply();verify();};if(typeof MutationObserver!=='undefined'){var mo=new MutationObserver(function(){sweep();});mo.observe(d,{childList:true,subtree:true});}document.addEventListener('DOMContentLoaded',sweep);setTimeout(sweep,600);setTimeout(sweep,2000);sweep();}catch(e){}})();",
-      },
-      {
-        // Diagnostic painttest=software kill-switch: when ?painttest=software is
-        // present, strip every compositor/stacking-context trigger globally to
-        // approximate software painting without changing Chrome flags. Then scan
-        // the DOM and report counts per category (all expected to be zero).
-        children:
-          "(function(){try{if(new URLSearchParams(location.search).get('painttest')!=='software')return;var d=document.documentElement;d.setAttribute('data-painttest','software');var st=document.createElement('style');st.setAttribute('data-painttest-style','');st.textContent='html[data-painttest=\"software\"] *,html[data-painttest=\"software\"] *::before,html[data-painttest=\"software\"] *::after{transform:none !important;filter:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;animation:none !important;transition:none !important;will-change:auto !important;contain:none !important;content-visibility:visible !important;isolation:auto !important;perspective:none !important;clip-path:none !important;mask:none !important;-webkit-mask:none !important;mix-blend-mode:normal !important;}html[data-painttest=\"software\"] [data-paint-static]{position:static !important;top:auto !important;left:auto !important;right:auto !important;bottom:auto !important;}html[data-painttest=\"software\"] [data-paint-noz]{z-index:auto !important;}html[data-painttest=\"software\"] [data-paint-scroll]{overflow:visible !important;}';(document.head||d).appendChild(st);var logged=false;var apply=function(){var els=document.querySelectorAll('*');for(var i=0;i<els.length;i++){var el=els[i];if(el===d)continue;var cs;try{cs=getComputedStyle(el);}catch(e){continue;}if(cs.position==='sticky'||cs.position==='fixed')el.setAttribute('data-paint-static','');var z=cs.zIndex;if(z&&z!=='auto'&&!isNaN(parseInt(z,10))&&parseInt(z,10)>0)el.setAttribute('data-paint-noz','');if(el!==document.body&&(cs.overflow!=='visible'||cs.overflowX!=='visible'||cs.overflowY!=='visible'))el.setAttribute('data-paint-scroll','');}};var report=function(){var els=document.querySelectorAll('*');var r={transforms:0,filters:0,backdropFilters:0,contain:0,willChange:0,stickyFixed:0,nonAutoZ:0};for(var i=0;i<els.length;i++){var el=els[i];var cs;try{cs=getComputedStyle(el);}catch(e){continue;}if(cs.transform&&cs.transform!=='none')r.transforms++;if(cs.filter&&cs.filter!=='none')r.filters++;var bf=cs.backdropFilter||cs.webkitBackdropFilter;if(bf&&bf!=='none')r.backdropFilters++;if(cs.contain&&cs.contain!=='none')r.contain++;if(cs.willChange&&cs.willChange!=='auto')r.willChange++;if(cs.position==='sticky'||cs.position==='fixed')r.stickyFixed++;var z=cs.zIndex;if(z&&z!=='auto'&&!isNaN(parseInt(z,10))&&parseInt(z,10)>0)r.nonAutoZ++;}if(!logged){logged=true;console.log('painttest=software enabled');}if(console.table)console.table(r);else console.log(r);};var sweep=function(){apply();report();};if(typeof MutationObserver!=='undefined'){var mo=new MutationObserver(function(){sweep();});mo.observe(d,{childList:true,subtree:true});}document.addEventListener('DOMContentLoaded',sweep);setTimeout(sweep,600);setTimeout(sweep,2000);sweep();}catch(e){}})();",
-      },
+
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -401,8 +350,6 @@ function DeferredShell({
   hideLiveChat?: boolean;
 }) {
   const [ready, setReady] = useState(false);
-  const isAndroid = useIsAndroid();
-  const ultraLowEndAndroid = useUltraLowEndAndroid();
   useEffect(() => {
     const ric = (
       window as unknown as {
@@ -421,15 +368,7 @@ function DeferredShell({
     return () => clearTimeout(t);
   }, []);
 
-  if (!ready || ultraLowEndAndroid) return null;
-
-  if (isAndroid) {
-    return (
-      <Suspense fallback={null}>
-        <RegionSelectModal />
-      </Suspense>
-    );
-  }
+  if (!ready) return null;
 
   return (
     <Suspense fallback={null}>
@@ -503,20 +442,13 @@ function RootComponent() {
     () => typeof window !== "undefined" && hasOAuthReturnParams(),
   );
 
-  const lowEnd = useLowEndDevice();
-  const isAndroid = useIsAndroid();
-  const ultraLowEndAndroid = useUltraLowEndAndroid();
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
-
   useEffect(() => {
     initDebugFlags();
-    if (isDebugEnabled() || !androidGpuSafeMode) {
-      installDebugDiagnostics();
-      patchImageDecode();
-    }
+    installDebugDiagnostics();
+    patchImageDecode();
     installStartupDiagnostics();
     installChunkRecovery();
-    if (!detectRenderSafe() && !androidGpuSafeMode && getFlag("serviceWorker") && getFlag("pwa")) registerServiceWorker();
+    if (getFlag("serviceWorker") && getFlag("pwa")) registerServiceWorker();
     logBuildVersion();
     // React mounted successfully. Clear the persistent boot-attempt counter a
     // few seconds after a stable render so the auto-reload cap only ever counts
@@ -525,43 +457,18 @@ function RootComponent() {
       (window as unknown as { __fomBootOk?: () => void }).__fomBootOk?.();
     }, 6000);
     return () => window.clearTimeout(t);
-  }, [androidGpuSafeMode]);
-  // Flag low-end devices on <html> so global CSS can drop GPU-expensive effects,
-  // and start dev-only runtime performance monitoring (long tasks / FPS / heap).
+  }, []);
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.dataset.lowEnd = lowEnd ? "true" : "false";
-      // Android Chrome/WebView/Samsung Internet compositor mitigation flag.
-      document.documentElement.dataset.android = isAndroid ? "true" : "false";
-      const ua = navigator.userAgent || "";
-      const androidWebView = detectAndroidWebView();
-      document.documentElement.dataset.androidWebview = androidWebView ? "true" : "false";
-      document.documentElement.dataset.androidChrome = isAndroid && !androidWebView && /Chrome/i.test(ua) ? "true" : "false";
-      document.documentElement.dataset.ultraLowEnd = ultraLowEndAndroid ? "true" : "false";
-      document.documentElement.dataset.androidGpuSafeMode = androidGpuSafeMode ? "true" : "false";
-      logDiagnostic("device-flags", {
-        lowEnd,
-        isAndroid,
-        ultraLowEndAndroid,
-        androidGpuSafeMode,
-        androidWebView,
-        androidChrome: isAndroid && !androidWebView && /Chrome/i.test(ua),
-      });
-    }
-  }, [lowEnd, isAndroid, ultraLowEndAndroid, androidGpuSafeMode]);
-  useEffect(() => {
-    if (androidGpuSafeMode) return;
     startPerfMonitoring();
     // Live capability governor: measures real FPS / long tasks and trims only
     // expensive effects (blur/shadow/3D/particles) if the device can't sustain
     // smooth rendering — never hides images or hero animations. Runs on every
     // capable device (incl. 4–6GB Android) so degradation is performance-driven.
     startCapabilityGovernor();
-  }, [androidGpuSafeMode]);
+  }, []);
   useEffect(() => {
-    if (lowEnd || isAndroid || androidGpuSafeMode) return;
     preloadCrisp();
-  }, [lowEnd, isAndroid, androidGpuSafeMode]);
+  }, []);
   // Bootstrap Google Analytics off the critical path (on idle / after paint) so
   // gtag.js never competes with hydration on the main thread during load.
   useEffect(() => {
