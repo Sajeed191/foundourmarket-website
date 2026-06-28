@@ -221,6 +221,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     scripts: [
       {
+        children:
+          "(function(){if(typeof window==='undefined')return;var key='fom-entry-recovery-at';var maxAge=30000;function isEntryFailure(x){var m='';try{m=typeof x==='string'?x:(x&&(x.message||x.reason&&x.reason.message||x.type||''))||'';}catch(e){}return /Failed to fetch dynamically imported module|virtual:tanstack-start-client-entry|vite:preloadError|Importing a module script failed|error loading dynamically imported module/i.test(String(m));}function recover(){try{var last=Number(sessionStorage.getItem(key)||0);if(Date.now()-last<maxAge)return;sessionStorage.setItem(key,String(Date.now()));}catch(e){}try{if('serviceWorker'in navigator)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister().catch(function(){});});}).catch(function(){});}catch(e){}try{if('caches'in window)caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}).catch(function(){});}catch(e){}var u=new URL(location.href);u.searchParams.set('_entry',Date.now().toString(36));location.replace(u.toString());}window.addEventListener('vite:preloadError',function(e){try{e.preventDefault();}catch(x){}recover();});window.addEventListener('unhandledrejection',function(e){if(isEntryFailure(e.reason)){try{e.preventDefault();}catch(x){}recover();}});window.addEventListener('error',function(e){var t=e&&e.target;var src=t&&(t.src||t.href)||'';if(isEntryFailure(e&&e.message)||isEntryFailure(src)){recover();}},true);})();",
+      },
+      {
         // No-FOUC theme init: resolve the stored theme preference (default
         // "system") and set data-theme/.dark before first paint. Also mark
         // Android before CSS paints so product text never spends one frame inside
