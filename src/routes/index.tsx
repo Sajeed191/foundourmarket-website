@@ -731,7 +731,7 @@ function Home() {
             viewAllTo="/products/best-sellers"
           />
         </>
-      )}
+      ))}
 
       <CinematicDivider />
 
