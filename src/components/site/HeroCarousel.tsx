@@ -105,42 +105,81 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
           Trusted products from verified sellers worldwide.
         </p>
 
-        {/* ── product showcase ── */}
+        {/* ── layered product showcase ── */}
         <div
-          className="relative mt-5 sm:mt-7 w-[240px] sm:w-[300px] aspect-square"
+          className="relative mt-6 sm:mt-8 w-full max-w-[440px] sm:max-w-[560px] h-[260px] sm:h-[320px] select-none"
+          style={{ perspective: "1200px" }}
           onMouseEnter={() => { pausedRef.current = true; }}
           onMouseLeave={() => { pausedRef.current = false; }}
         >
-          {/* soft halo behind the card */}
+          {/* soft halo behind the stage */}
           <div
             aria-hidden
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[120%] rounded-full blur-3xl opacity-70"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[110%] rounded-full blur-3xl opacity-70"
             style={{ background: `radial-gradient(circle, ${ambient}, transparent 70%)`, transition: "background 700ms ease" }}
           />
+
           {items.length === 0 ? (
-            <div className="size-full rounded-[24px] glass-strong ring-1 ring-white/12 animate-pulse" />
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[240px] sm:size-[300px] rounded-[24px] glass-strong ring-1 ring-white/12 animate-pulse" />
           ) : (
             items.map((p, i) => {
-              const active = i === index;
+              const len = items.length;
+              // relative position: 0 = center, 1 = right, len-1 = left, else hidden
+              const offset = (i - index + len) % len;
+              const isCenter = offset === 0;
+              const isRight = offset === 1 && len > 1;
+              const isLeft = offset === len - 1 && len > 2;
+              const visible = isCenter || isRight || isLeft;
+
+              // depth transform per role
+              let transform = "translate(-50%, -50%) scale(0.5)";
+              let opacity = 0;
+              let blur = "blur(14px)";
+              let z = 0;
+              if (isCenter) {
+                transform = "translate(-50%, -50%) scale(1) rotate(0deg)";
+                opacity = 1;
+                blur = "blur(0px)";
+                z = 3;
+              } else if (isRight) {
+                transform = lowEnd
+                  ? "translate(18%, -50%) scale(0.8)"
+                  : "translate(28%, -50%) scale(0.8) rotate(8deg)";
+                opacity = lowEnd ? 0.28 : 0.35;
+                blur = lowEnd ? "blur(0px)" : "blur(10px)";
+                z = 1;
+              } else if (isLeft) {
+                transform = lowEnd
+                  ? "translate(-118%, -50%) scale(0.8)"
+                  : "translate(-128%, -50%) scale(0.8) rotate(-8deg)";
+                opacity = lowEnd ? 0.28 : 0.35;
+                blur = lowEnd ? "blur(0px)" : "blur(10px)";
+                z = 1;
+              }
+
               return (
                 <Link
                   key={p.id}
                   to="/products/$slug"
                   params={{ slug: p.slug }}
-                  aria-hidden={!active}
-                  tabIndex={active ? 0 : -1}
-                  className={`group absolute inset-0 overflow-hidden rounded-[24px] glass-strong ring-1 ring-white/15 shadow-[var(--shadow-float),0_0_60px_-18px_oklch(0.74_0.19_49/0.6)] ${active ? "z-[2]" : "z-0"} ${active && !lowEnd ? "animate-float-soft" : ""}`}
+                  aria-hidden={!isCenter}
+                  tabIndex={isCenter ? 0 : -1}
+                  className={`group absolute left-1/2 top-1/2 size-[240px] sm:size-[300px] overflow-hidden rounded-[24px] glass-strong ring-1 ${isCenter ? "ring-white/15 shadow-[var(--shadow-float),0_0_70px_-16px_oklch(0.74_0.19_49/0.6)]" : "ring-white/8 shadow-[0_20px_50px_-20px_oklch(0_0_0/0.8),0_0_50px_-20px_oklch(0.74_0.19_49/0.5)]"} ${isCenter && !lowEnd ? "animate-float-soft" : ""}`}
                   style={{
-                    opacity: active ? 1 : 0,
-                    transform: active ? "scale(1) translateY(0)" : "scale(0.96) translateY(12px)",
-                    filter: active ? "blur(0)" : "blur(8px)",
-                    transition: `opacity 800ms ${EASE}, transform 800ms ${EASE}, filter 800ms ${EASE}`,
-                    pointerEvents: active ? "auto" : "none",
-                    background: palette.background,
-                    willChange: "opacity, transform, filter",
+                    transform,
+                    opacity,
+                    filter: blur,
+                    zIndex: z,
+                    pointerEvents: isCenter ? "auto" : "none",
+                    visibility: visible ? "visible" : "hidden",
+                    background: isCenter ? palette.background : undefined,
+                    transition: `transform 850ms ${EASE}, opacity 850ms ${EASE}, filter 850ms ${EASE}`,
+                    willChange: "transform, opacity, filter",
                   }}
                 >
-                  <div className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                  {isCenter && (
+                    <div className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                  )}
                   <ProductImage
                     src={p.image}
                     alt={p.name}
@@ -157,14 +196,20 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
 
         {/* product name + CTA */}
         {current && (
-          <div className="mt-4 min-h-[2.5rem] animate-fade-in" key={current.id}>
-            <p className="text-sm font-medium text-foreground line-clamp-1 max-w-[280px] mx-auto">{current.name}</p>
+          <div className="mt-5 min-h-[2.5rem] animate-fade-in" key={current.id}>
+            <p className="text-sm font-medium text-foreground line-clamp-2 max-w-[280px] mx-auto leading-snug">{current.name}</p>
             <Link
               to="/products/$slug"
               params={{ slug: current.slug }}
-              className="mt-2 inline-flex items-center justify-center gap-1.5 h-9 px-5 rounded-full bg-accent text-accent-foreground text-[12px] font-semibold tracking-wide transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
+              className="group relative mt-3 inline-flex items-center justify-center gap-1.5 h-10 px-6 rounded-full text-accent-foreground text-[12px] font-semibold tracking-wide overflow-hidden transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.97]"
+              style={{
+                background: "var(--gradient-ember, linear-gradient(135deg, oklch(0.78 0.18 55), oklch(0.68 0.2 38)))",
+                boxShadow: "0 8px 24px -8px oklch(0.74 0.19 49 / 0.7), inset 0 1px 0 oklch(1 0 0 / 0.25)",
+              }}
             >
-              View Product <ArrowRight className="size-3.5" />
+              <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+              <span className="relative">View Product</span>
+              <ArrowRight className="relative size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         )}
@@ -177,7 +222,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                 key={p.id}
                 aria-label={`Show product ${i + 1}`}
                 onClick={() => setIndex(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? "w-5 bg-accent" : "w-1.5 bg-white/25 hover:bg-white/40"}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? "w-5 bg-accent shadow-[0_0_10px_-2px_oklch(0.74_0.19_49/0.8)]" : "w-1.5 bg-white/25 hover:bg-white/40"}`}
               />
             ))}
           </div>
