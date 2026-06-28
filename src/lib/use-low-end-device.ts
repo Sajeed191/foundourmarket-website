@@ -98,17 +98,12 @@ function detect(): boolean {
   if (typeof navigator === "undefined") return false;
   const flagged = domFlag("lowEnd");
   if (flagged !== null) return flagged;
-  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-  const cores = navigator.hardwareConcurrency;
-  const android = detectAndroid();
-  const { reduced, saveData } = constrainedSignals();
-  if (reduced) return true;
-  if (saveData) return true;
-  if (typeof mem === "number" && mem > 0 && mem <= 4) return true;
-  if (typeof cores === "number" && cores > 0 && cores <= 4) return true;
-  // Some Android Chrome builds hide deviceMemory. On those devices, start in
-  // safe mode instead of briefly mounting blur/3D layers before hooks update.
-  if (android && typeof mem !== "number") return true;
+  // RAM-free capability gate. We no longer demote a device just because it
+  // reports ≤4GB or hides deviceMemory — those are coarse/undefined on Android
+  // and swept capable 4–6GB phones into the flat path. Only genuine constraints
+  // (reduced-motion, save-data, ≤2 cores, known-weak GPU) qualify here.
+  if (reducedByCapability()) return true;
+  if (isWeakGpu(getWebGLRenderer())) return true;
   return false;
 }
 
