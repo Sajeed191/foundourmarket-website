@@ -1,4 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
+import { detectRenderSafe } from "@/lib/use-low-end-device";
 
 type Cols = { base: number; sm?: number; md?: number; lg?: number; xl?: number };
 
