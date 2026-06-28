@@ -238,7 +238,9 @@ function detectTier(): DeviceTier {
 }
 
 export function useDeviceTier(): DeviceTier {
-  const [tier, setTier] = useState<DeviceTier>(detectTier);
+  // SSR-consistent baseline ("high" matches the server render); real tier is
+  // applied post-mount to keep hydration stable.
+  const [tier, setTier] = useState<DeviceTier>("high");
   useEffect(() => {
     setTier(detectTier());
     const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
