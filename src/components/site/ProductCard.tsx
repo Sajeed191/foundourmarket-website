@@ -232,17 +232,17 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
     <article
       data-product-card
       data-product-id={identity}
-      style={{ backgroundColor: "#111111", border: "1px solid rgba(255,138,0,0.35)", boxShadow: "0 8px 24px rgba(0,0,0,0.35)" }}
-      className="product-card-shell relative flex h-full flex-col overflow-hidden rounded-[26px]"
+      style={{ backgroundColor: "#111111", border: "1px solid rgba(255,138,0,0.18)" }}
+      className="product-card-shell group relative flex h-full flex-col overflow-hidden rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:shadow-[0_10px_32px_-6px_rgba(255,138,0,0.4)]"
     >
       <ProductCardAdminControlsGate product={product} />
 
-      {/* Image IS the top section. White bg, 1:1, contain, 14px padding,
+      {/* Image IS the top section. White bg, 1:1, contain, 12px padding,
           rounded only on the top corners to blend into the card. */}
       <Link to="/products/$slug" params={{ slug: product.slug }} className="relative block" aria-label={product.name}>
         <div
           data-product-media
-          className="relative aspect-square w-full overflow-hidden rounded-t-[26px] bg-white p-[0.5%]"
+          className="relative aspect-square w-full overflow-hidden rounded-t-[22px] bg-white p-3"
         >
           <ProductImage
             src={product.image}
@@ -250,7 +250,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
             width={800}
             height={800}
             priority={priority}
-            className="block h-full w-full object-cover object-center"
+            className="block h-full w-full object-contain object-center transition-transform duration-200 group-hover:scale-[1.03]"
           />
           <ProductBadges badges={badges} />
           <WishlistButton slug={product.slug} name={product.name} />
