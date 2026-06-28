@@ -302,6 +302,34 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
 
   const layoutTest = detectLayoutTestSimple();
 
+  useEffect(() => {
+    if (!layoutTest || typeof document === "undefined") return;
+    const id = window.setTimeout(() => {
+      const card = document.querySelector('[data-product-card][data-layouttest="simple"]');
+      if (!card) return;
+      const cs = getComputedStyle(card);
+      // eslint-disable-next-line no-console
+      console.log("[layouttest] computed product card styles", {
+        overflow: cs.overflow,
+        borderRadius: cs.borderRadius,
+        clipPath: cs.clipPath,
+        mask: cs.mask || cs.webkitMask,
+        isolation: cs.isolation,
+        position: cs.position,
+        zIndex: cs.zIndex,
+        display: cs.display,
+      });
+      const clipped = cs.overflow !== "visible";
+      const rounded = cs.borderRadius !== "0px";
+      // eslint-disable-next-line no-console
+      console.log(
+        `[layouttest] no overflow clipping: ${!clipped} | no rounded corners: ${!rounded}`,
+      );
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [layoutTest]);
+
+
   if (layoutTest) {
     // Plain rectangular card: no overflow clipping, radius, clip-path, masks,
     // isolation, stacking context, overlays, or shadows. Same data/images/text.
