@@ -134,11 +134,9 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                   params={{ slug: p.slug }}
                   aria-hidden={!isCenter}
                   tabIndex={isCenter ? 0 : -1}
-                  className={`group absolute left-1/2 top-1/2 size-[240px] sm:size-[300px] overflow-hidden rounded-[24px] glass-strong ring-1 ring-white/15 shadow-[var(--shadow-float),0_0_70px_-16px_oklch(0.74_0.19_49/0.6)] ${isCenter && !lowEnd ? "animate-float-soft" : ""}`}
+                  className={`group absolute left-1/2 top-1/2 -ml-[120px] -mt-[120px] sm:-ml-[150px] sm:-mt-[150px] size-[240px] sm:size-[300px] overflow-hidden rounded-[24px] glass-strong ring-1 ring-white/15 shadow-[var(--shadow-float),0_0_70px_-16px_oklch(0.74_0.19_49/0.6)] ${isCenter && !lowEnd ? "animate-float-soft" : ""}`}
                   style={{
-                    transform: isCenter
-                      ? "translate(-50%, -50%) scale(1)"
-                      : "translate(-50%, -50%) scale(0.92)",
+                    transform: isCenter ? "scale(1)" : "scale(0.92)",
                     opacity: isCenter ? 1 : 0,
                     filter: isCenter || lowEnd ? "blur(0px)" : "blur(8px)",
                     zIndex: isCenter ? 2 : 1,
