@@ -49,6 +49,7 @@ export function DebugPanel() {
   const [activeBisect, setActiveBisectState] = useState<string | null>(() => getActiveBisectTest());
   const [bisectOverride, setBisectOverrideState] = useState(() => getBisectOverrideEnabled());
   const [bisectLog, setBisectLog] = useState<BisectObservation[]>(() => getBisectLog());
+  const [runner, setRunner] = useState<RunnerState>(() => getRunnerState());
 
   useEffect(() => {
     setShown(isDebugEnabled());
@@ -58,7 +59,9 @@ export function DebugPanel() {
       setActiveBisectState(getActiveBisectTest());
       setBisectOverrideState(getBisectOverrideEnabled());
       setBisectLog(getBisectLog());
+      setRunner(getRunnerState());
     });
+
     const unDiag = subscribeDiagnostics(() => setDiag(getDiagnostics()));
     return () => {
       unFlags();
