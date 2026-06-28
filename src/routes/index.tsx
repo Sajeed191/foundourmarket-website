@@ -447,8 +447,8 @@ function Home() {
 
   return (
     <>
-      {/* Sticky announcement bar — homepage only */}
-      <AnnouncementBar />
+      {/* Hero starts immediately below the main navigation (announcement bar removed). */}
+
 
       {/* 2 · Premium rotating product showcase hero */}
       <section className="relative px-3 sm:px-6 lg:px-10 pt-4 sm:pt-7 pb-3 sm:pb-5 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
