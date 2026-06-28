@@ -545,6 +545,3 @@ function SearchPage() {
     </div>
   );
 }
-    </div>
-  );
-}
