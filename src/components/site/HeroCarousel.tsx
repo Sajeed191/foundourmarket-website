@@ -227,15 +227,12 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
             <Link
               to="/products/$slug"
               params={{ slug: current.slug }}
-              className="group relative mt-3 inline-flex items-center justify-center gap-1.5 h-10 px-6 rounded-full text-accent-foreground text-[12px] font-semibold tracking-wide overflow-hidden transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.97]"
-              style={{
-                background: "var(--gradient-ember, linear-gradient(135deg, oklch(0.78 0.18 55), oklch(0.68 0.2 38)))",
-                boxShadow: "0 8px 24px -8px oklch(0.74 0.19 49 / 0.7), inset 0 1px 0 oklch(1 0 0 / 0.25)",
-              }}
+              className="view-product-cta group relative mt-3 inline-flex h-11 items-center justify-center gap-1.5 overflow-hidden rounded-full px-6 text-[12px] font-semibold tracking-wide text-foreground outline-none transition-transform duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:scale-[0.98]"
             >
-              <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              <span className="relative">View Product</span>
-              <ArrowRight className="relative size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+              {/* periodic shine sweep */}
+              <span aria-hidden className="view-product-cta__shine pointer-events-none absolute inset-0 rounded-full" />
+              <span className="relative z-[1]">View Product</span>
+              <ArrowRight className="relative z-[1] size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         )}
