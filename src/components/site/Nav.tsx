@@ -194,8 +194,9 @@ export function Nav() {
         }}
         className="sticky top-0 z-50 px-[max(0.75rem,var(--mobile-safe-left))] sm:px-4 pt-[calc(var(--mobile-safe-top)+0.75rem)] sm:pt-[calc(var(--mobile-safe-top)+1rem)]"
       >
-        <nav className="max-w-7xl lg:max-w-[1480px] mx-auto rounded-2xl glass-strong shadow-[var(--shadow-float)] ring-1 ring-white/10 lg:ring-white/15 lg:shadow-[var(--shadow-float),0_0_50px_-22px_oklch(0.74_0.19_49/0.45)] lg:backdrop-blur-2xl transition-all">
-          <div className="flex items-center justify-start px-2 sm:px-5 lg:px-7 py-2 sm:py-2.5 lg:py-3.5 gap-1 sm:gap-2 lg:gap-3">
+        <nav className="max-w-7xl lg:max-w-[1480px] mx-auto rounded-[26px] glass-strong bg-gradient-to-b from-white/[0.06] to-black/30 shadow-[0_10px_40px_-18px_oklch(0_0_0/0.7)] ring-1 ring-white/10 lg:ring-white/15 lg:shadow-[0_16px_60px_-22px_oklch(0_0_0/0.75),0_0_50px_-22px_oklch(0.74_0.19_49/0.4)] backdrop-blur-2xl transition-all">
+          <div className="flex items-center justify-start px-2.5 sm:px-5 lg:px-7 py-2.5 sm:py-3 lg:py-4 gap-1 sm:gap-2 lg:gap-3">
+
             {/* Zone 1 — Hamburger (mobile only) */}
             <button
               onClick={() => setOpen(!open)}
@@ -210,7 +211,8 @@ export function Nav() {
               to="/"
               className="min-w-0 flex-1 md:flex-none flex items-center gap-2 sm:gap-2.5 -ml-0.5 md:ml-0 font-display tracking-tight font-semibold"
             >
-              <span className="shrink-0 relative inline-grid place-items-center size-8 sm:size-11 lg:size-12 rounded-2xl bg-black/40 ring-1 ring-accent/30 overflow-hidden shadow-[0_0_20px_-4px_var(--color-accent)]">
+              <span className="shrink-0 relative inline-grid place-items-center size-9 sm:size-11 lg:size-12 rounded-2xl bg-black/40 ring-1 ring-accent/40 overflow-hidden shadow-[0_0_24px_-4px_var(--color-accent),inset_0_1px_0_oklch(1_0_0/0.1)] transition-shadow duration-300 hover:shadow-[0_0_34px_-2px_var(--color-accent)]">
+                <span aria-hidden className="pointer-events-none absolute -inset-1 rounded-2xl bg-accent/25 blur-md -z-[1]" />
                 <img src={logoSrc} alt="FoundOurMarket logo" className="size-full object-cover" />
               </span>
               <span className="flex min-w-0 flex-col leading-none">
@@ -227,11 +229,11 @@ export function Nav() {
             <MegaMenu />
 
             {/* Zone 3 — Search • Notifications • Cart */}
-            <div className="shrink-0 ml-auto flex items-center gap-0.5 sm:gap-1">
+            <div className="shrink-0 ml-auto flex items-center gap-0.5 sm:gap-1.5">
               <button
                 onClick={() => setSearchOpen(true)}
                 aria-label="Search"
-                className="size-10 sm:size-11 rounded-xl grid place-items-center text-muted-foreground hover:text-foreground hover:bg-white/5 active:bg-accent/10 active:text-accent active:scale-95 transition-all duration-200"
+                className="size-10 sm:size-11 rounded-xl grid place-items-center text-muted-foreground hover:text-accent hover:bg-accent/10 hover:shadow-[0_0_18px_-6px_var(--color-accent)] active:bg-accent/15 active:text-accent active:scale-90 transition-all duration-200"
               >
                 <Search className="size-[18px]" />
               </button>
@@ -243,21 +245,22 @@ export function Nav() {
               <Link
                 to="/wishlist"
                 aria-label="Wishlist"
-                className="relative hidden sm:grid size-10 sm:size-11 rounded-xl place-items-center text-muted-foreground hover:text-foreground hover:bg-white/5 active:bg-accent/10 active:text-accent active:scale-95 transition-all duration-200"
+                className="relative hidden sm:grid size-10 sm:size-11 rounded-xl place-items-center text-muted-foreground hover:text-accent hover:bg-accent/10 hover:shadow-[0_0_18px_-6px_var(--color-accent)] active:bg-accent/15 active:text-accent active:scale-90 transition-all duration-200"
               >
                 <Heart className="size-[18px]" />
                 {wishSlugs.size > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono grid place-items-center">
-                    {wishSlugs.size}
+                  <span key={wishSlugs.size} className="absolute top-1 right-1 grid size-4 place-items-center rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono leading-none ring-2 ring-background shadow-[0_2px_6px_-1px_oklch(0.74_0.19_49/0.7)] animate-scale-in">
+                    {wishSlugs.size > 9 ? "9+" : wishSlugs.size}
                   </span>
                 )}
               </Link>
+
 
               {isAdmin && (
                 <Link
                   to="/admin"
                   aria-label="Admin"
-                  className="hidden sm:grid size-10 sm:size-11 rounded-xl place-items-center text-muted-foreground hover:text-foreground hover:bg-white/5 active:bg-accent/10 active:text-accent active:scale-95 transition-all duration-200"
+                  className="hidden sm:grid size-10 sm:size-11 rounded-xl place-items-center text-muted-foreground hover:text-accent hover:bg-accent/10 hover:shadow-[0_0_18px_-6px_var(--color-accent)] active:bg-accent/15 active:text-accent active:scale-90 transition-all duration-200"
                   title="Admin"
                 >
                   <LayoutDashboard className="size-[18px]" />
@@ -316,10 +319,10 @@ export function Nav() {
               <Link
                 to="/cart"
                 aria-label="Cart"
-                className="shrink-0 relative flex items-center justify-center gap-1 sm:gap-1.5 h-9 sm:h-10 min-w-9 sm:min-w-10 px-1.5 sm:px-3 rounded-xl bg-accent text-accent-foreground hover:brightness-110 active:scale-[0.97] transition-all shadow-[var(--shadow-ember)]"
+                className="shrink-0 relative flex items-center justify-center gap-1 sm:gap-1.5 h-10 sm:h-11 min-w-10 sm:min-w-11 px-2 sm:px-3.5 rounded-xl bg-accent text-accent-foreground hover:brightness-110 active:scale-[0.96] transition-all shadow-[var(--shadow-ember)]"
               >
                 <ShoppingBag className="size-[17px]" />
-                <span className="text-[11px] font-mono font-semibold">{count}</span>
+                <span key={count} className="text-[11px] font-mono font-semibold animate-scale-in">{count}</span>
               </Link>
             </div>
           </div>
