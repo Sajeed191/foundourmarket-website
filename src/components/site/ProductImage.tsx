@@ -39,6 +39,10 @@ function ProductImageImpl({
   style,
   onLoad,
 }: Props) {
+  // Debug harness flags for image-subsystem isolation.
+  const ffProductImages = useFlag("productImages");
+  const ffLazyLoading = useFlag("lazyLoading");
+  const ffImageDecoding = useFlag("imageDecoding");
   // Bundled demo assets ship a build-time srcset; real (storage-hosted) product
   // images get an on-the-fly resized srcset so we never download the original.
   const bundled = getResponsiveImage(src);
