@@ -6,11 +6,13 @@ import {
   clearBisectLog,
   getActiveBisectTest,
   getAllFlags,
+  getBisectOverrideEnabled,
   getBisectLog,
   isDebugEnabled,
   recordBisectObservation,
   resetFlags,
   setActiveBisectTest,
+  setBisectOverrideEnabled,
   setAll,
   setFlag,
   subscribe,
@@ -36,6 +38,7 @@ export function DebugPanel() {
   const [flags, setFlags] = useState(() => getAllFlags());
   const [diag, setDiag] = useState<Diagnostics>(() => getDiagnostics());
   const [activeBisect, setActiveBisectState] = useState<string | null>(() => getActiveBisectTest());
+  const [bisectOverride, setBisectOverrideState] = useState(() => getBisectOverrideEnabled());
   const [bisectLog, setBisectLog] = useState<BisectObservation[]>(() => getBisectLog());
 
   useEffect(() => {
@@ -44,6 +47,7 @@ export function DebugPanel() {
       setFlags(getAllFlags());
       setShown(isDebugEnabled());
       setActiveBisectState(getActiveBisectTest());
+      setBisectOverrideState(getBisectOverrideEnabled());
       setBisectLog(getBisectLog());
     });
     const unDiag = subscribeDiagnostics(() => setDiag(getDiagnostics()));
@@ -157,7 +161,9 @@ export function DebugPanel() {
                 </option>
               ))}
             </select>
-            {activeBisect && <BisectRecorder activeId={activeBisect} log={bisectLog} />}
+            {activeBisect && (
+              <BisectRecorder activeId={activeBisect} overrideEnabled={bisectOverride} log={bisectLog} />
+            )}
             <button type="button" onClick={() => clearBisectLog()} style={{ ...btn, width: "100%", marginTop: 6 }}>
               Clear bisect log
             </button>
@@ -196,7 +202,7 @@ export function DebugPanel() {
   );
 }
 
-function BisectRecorder({ activeId, log }: { activeId: string; log: BisectObservation[] }) {
+function BisectRecorder({ activeId, overrideEnabled, log }: { activeId: string; overrideEnabled: boolean; log: BisectObservation[] }) {
   const test = BISECT_TESTS.find((t) => t.id === activeId);
   if (!test) return null;
   const rows = log.filter((item) => item.id === activeId).slice(-3);
@@ -207,6 +213,14 @@ function BisectRecorder({ activeId, log }: { activeId: string; log: BisectObserv
       <Row k="file" v={test.file} />
       <Row k="line" v={String(test.line)} />
       <Row k="disabled" v={test.disabledValue} />
+      <label style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
+        <span>{overrideEnabled ? "Feature OFF for selected property" : "Feature ON / production value"}</span>
+        <input
+          type="checkbox"
+          checked={overrideEnabled}
+          onChange={(e) => setBisectOverrideEnabled(e.target.checked)}
+        />
+      </label>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 8 }}>
         <RecordButton id={activeId} phase="feature-on-before" corruption={true} label="1 ON: corrupt" />
         <RecordButton id={activeId} phase="feature-on-before" corruption={false} label="1 ON: clean" />
