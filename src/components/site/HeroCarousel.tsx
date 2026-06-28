@@ -190,7 +190,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
         <div
           ref={stageRef}
           className="hero-stage relative mt-6 sm:mt-8 w-full max-w-none select-none overflow-hidden touch-pan-y outline-none [perspective:1600px]"
-          style={{ ["--card" as string]: "clamp(88px, 32vw, 232px)", height: "calc(var(--card) + 56px)" }}
+          style={{ height: "calc(var(--card) + 72px)" }}
           role="group"
           aria-roledescription="carousel"
           aria-label="Featured products"
@@ -254,7 +254,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
 
               // Equal-spacing queue: cumulative center-to-center distance based
               // on adjacent card sizes so gaps stay even as cards shrink.
-              const GAP = isMobile ? 0.56 : 0.66;
+              const GAP = isMobile ? 0.46 : 0.54;
               let units = 0;
               for (let k = 1; k <= di; k++) {
                 units += ((SCALE[Math.min(k - 1, last)] + SCALE[Math.min(k, last)]) / 2) * GAP;
@@ -308,10 +308,10 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                   <ProductImage
                     src={p.image}
                     alt={isCenter ? p.name : ""}
-                    width={560}
-                    height={560}
+                    width={640}
+                    height={640}
                     priority={i === 0}
-                    sizes="(min-width: 640px) 232px, 32vw"
+                    sizes="(min-width: 1025px) 480px, (min-width: 768px) 50vw, 60vw"
                     className="relative z-[1] block size-full object-contain object-center p-[7%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                   />
                 </Link>
