@@ -41,7 +41,15 @@ function ProductImageImpl({
   // Bundled demo assets ship a build-time srcset; real (storage-hosted) product
   // images get an on-the-fly resized srcset so we never download the original.
   const bundled = getResponsiveImage(src);
-  const storage = bundled ? null : getStorageResponsive(src);
+  const ultraLowEndAndroid = detectUltraLowEndAndroid();
+  const storage = bundled
+    ? null
+    : getStorageResponsive(
+        src,
+        ultraLowEndAndroid
+          ? { widths: [160, 240, 320, 480], fallbackWidth: 320, quality: 54 }
+          : undefined,
+      );
   const srcset = bundled?.srcset ?? storage?.srcset;
   const resolvedSrc = storage?.src ?? src;
   const imgRef = useRef<HTMLImageElement | null>(null);
