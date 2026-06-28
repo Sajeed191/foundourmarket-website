@@ -530,6 +530,10 @@ export function initDebugFlags() {
   if (runnerActive) applyRunnerFeatures();
   applyDom();
   persist();
+  // Notify subscribers (e.g. DebugPanel) so the panel appears immediately after
+  // ?debug=1 is parsed. Child effects subscribe before this parent effect runs,
+  // so without this the panel would never re-render and stay hidden.
+  notify();
 }
 
 
