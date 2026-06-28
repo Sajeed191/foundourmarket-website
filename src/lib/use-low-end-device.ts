@@ -221,6 +221,7 @@ export function useLightweightHome(): boolean {
   // mismatch (see useLowEndDevice).
   const [light, setLight] = useState(false);
   useEffect(() => {
+    logDeviceDetection();
     setLight(detectLightweightHome());
     const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     if (!mq) return;
