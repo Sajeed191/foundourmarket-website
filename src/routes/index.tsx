@@ -483,10 +483,10 @@ function Home() {
               <button
                 type="submit"
                 aria-label="Search"
-                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-10 px-5 rounded-full text-accent-foreground text-[13px] font-semibold tracking-wide border-2 border-[oklch(0.45_0.16_45)] transition-all duration-200 hover:brightness-110 hover:scale-[1.03] active:scale-95 shadow-[var(--shadow-ember)]"
+                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-10 px-5 rounded-full text-accent-foreground text-[13px] font-semibold tracking-wide transition-all duration-200 hover:brightness-110 hover:scale-[1.03] active:scale-95 shadow-[var(--shadow-ember)]"
                 style={{ background: "var(--gradient-ember)" }}
               >
-                Search
+                <span style={{ WebkitTextStroke: "0.6px oklch(0.45 0.16 45)" }}>Search</span>
               </button>
             </div>
           </form>
