@@ -1044,14 +1044,17 @@ html[data-android="true"] .feature-card {
   will-change: auto !important;
 }
 
-/* Give every product card an isolated, opaque paint context so neighbouring
-   cards can never composite over one another (the root of overlapping text). */
+/* Give every product card a self-contained paint context so neighbouring cards
+   can never paint over one another (the root of overlapping/ghosted text).
+   Paint containment clips each card to its own box WITHOUT promoting it to a
+   GPU layer — avoiding the Android layer-invalidation bug that translateZ would
+   reintroduce. */
 html[data-android="true"] [data-product-card-frame],
 html[data-low-end="true"] [data-product-card-frame] {
-  contain: layout style;
+  contain: layout paint style;
   isolation: isolate;
-  transform: translateZ(0);
 }
+
 
 
 
