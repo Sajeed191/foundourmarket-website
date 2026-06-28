@@ -1,13 +1,12 @@
 import { memo, useEffect, useState } from "react";
 import { ProductImage } from "@/components/site/ProductImage";
 import { useImagePalette } from "@/lib/use-image-palette";
-import { useAndroidGpuSafeMode, useUltraLowEndAndroid } from "@/lib/use-low-end-device";
 
 type Props = {
   src: string;
   alt: string;
   priority?: boolean;
-  /** layouttest=simple: plain rectangle, no overflow/radius/isolation. */
+  /** Plain rectangle (no overflow clip / radius / palette background). */
   plain?: boolean;
   children?: React.ReactNode;
 };
@@ -23,35 +22,18 @@ type Props = {
  * Falls back to white when extraction is unavailable (SSR / CORS / failure).
  */
 function AdaptiveProductMediaImpl({ src, alt, priority = false, plain = false, children }: Props) {
-  const ultraLowEndAndroid = useUltraLowEndAndroid();
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
   const { palette, ready } = useImagePalette(src);
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   useEffect(() => setLoadedSrc(null), [src]);
   const imgLoaded = loadedSrc === src;
-  const safeStatic = ultraLowEndAndroid || androidGpuSafeMode;
-  const revealed = plain || safeStatic || (ready && imgLoaded);
+  const revealed = plain || (ready && imgLoaded);
 
   if (plain) {
-    // layouttest=simple: plain rectangle — no overflow clip, radius, mask, or
-    // isolation. Same image, same data, no overlays.
     return (
       <div
         data-product-media
-        data-layouttest="simple"
         className="relative aspect-square w-full p-[1.5%]"
-        style={{
-          background: "#ffffff",
-          overflow: "visible",
-          borderRadius: 0,
-          clipPath: "none",
-          WebkitMask: "none",
-          mask: "none",
-          isolation: "auto",
-          contain: "none",
-          position: "static",
-          zIndex: "auto",
-        }}
+        style={{ background: "#ffffff" }}
       >
         <ProductImage
           src={src}
@@ -70,12 +52,12 @@ function AdaptiveProductMediaImpl({ src, alt, priority = false, plain = false, c
       data-product-media
       className="relative aspect-square w-full overflow-hidden rounded-t-[22px] p-[1.5%]"
       style={{
-        background: safeStatic ? "#ffffff" : palette.background,
-        transition: safeStatic ? "none" : "background 300ms ease",
+        background: palette.background,
+        transition: "background 300ms ease",
       }}
     >
       {/* Skeleton shimmer until palette + bitmap are ready. */}
-      {!safeStatic && !revealed && (
+      {!revealed && (
         <div
           aria-hidden
           className="absolute inset-0 animate-pulse"
@@ -89,12 +71,8 @@ function AdaptiveProductMediaImpl({ src, alt, priority = false, plain = false, c
         width={800}
         height={800}
         priority={priority}
-        onLoad={safeStatic ? undefined : () => setLoadedSrc(src)}
-        className={
-          safeStatic
-            ? "relative z-[1] block h-full w-full rounded-[14px] object-contain object-center"
-            : "relative z-[1] block h-full w-full rounded-[14px] object-contain object-center transition-[transform,opacity] duration-300 ease-out group-hover:scale-[1.03]"
-        }
+        onLoad={() => setLoadedSrc(src)}
+        className="relative z-[1] block h-full w-full rounded-[14px] object-contain object-center transition-[transform,opacity] duration-300 ease-out group-hover:scale-[1.03]"
         style={{ opacity: revealed ? 1 : 0 }}
       />
 
