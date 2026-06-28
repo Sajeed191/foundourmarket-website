@@ -40,6 +40,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
   });
   const lowEnd = useLowEndDevice();
   const ultraLowEndAndroid = useUltraLowEndAndroid();
+  const ffJsAnimations = useFlag("jsAnimations");
   const isMobile = useIsMobile();
   const tier = useDeviceTier();
 
