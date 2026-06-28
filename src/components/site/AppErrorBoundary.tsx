@@ -20,9 +20,6 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
 
-const RELOAD_GUARD = "fom_crash_reload_at";
-const RELOAD_COOLDOWN_MS = 20_000;
-
 export class AppErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
 
@@ -34,27 +31,18 @@ export class AppErrorBoundary extends Component<Props, State> {
     // Keep this lightweight — logging must never throw inside the boundary.
     try {
       console.error("[AppErrorBoundary] React tree crashed:", error, info.componentStack);
+      (window as unknown as { __fomDiag?: (event: string, payload?: Record<string, unknown>) => void }).__fomDiag?.(
+        "react-error-boundary",
+        { message: error.message, stack: error.stack, componentStack: info.componentStack },
+      );
     } catch {
       /* ignore */
     }
   }
 
-  private hardReload = () => {
+  private manualReload = () => {
     if (typeof window === "undefined") return;
-    try {
-      // Guard against reload loops on a genuinely broken build.
-      const last = Number(sessionStorage.getItem(RELOAD_GUARD) ?? 0);
-      if (Date.now() - last < RELOAD_COOLDOWN_MS) {
-        window.location.href = "/";
-        return;
-      }
-      sessionStorage.setItem(RELOAD_GUARD, String(Date.now()));
-    } catch {
-      /* storage blocked — fall through */
-    }
-    const url = new URL(window.location.href);
-    url.searchParams.set("_r", Date.now().toString(36));
-    window.location.replace(url.toString());
+    window.location.reload();
   };
 
   render() {
@@ -98,7 +86,7 @@ export class AppErrorBoundary extends Component<Props, State> {
           </p>
           <button
             type="button"
-            onClick={this.hardReload}
+            onClick={this.manualReload}
             style={{
               appearance: "none",
               border: "none",

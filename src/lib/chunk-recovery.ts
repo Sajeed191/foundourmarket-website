@@ -13,21 +13,11 @@ import type { ComponentType } from "react";
  *  2. After a new deploy, a tab that loaded the old HTML references hashed
  *     chunk URLs that now 404 on the CDN → every navigation/preload throws.
  *
- * The handlers below retry transient failures, and — when a chunk is genuinely
- * gone (stale deploy) — perform a single guarded hard reload to fetch the
- * fresh HTML + chunk manifest. The reload is gated by sessionStorage so we
- * never loop on a truly broken build.
+ * The handlers below retry transient failures, but they never hard-reload the
+ * page. On Android devices with strict network protection or renderer pressure,
+ * reload-based recovery can become a black-screen blink loop. Persistent
+ * failures are logged and converted into a graceful fallback instead.
  */
-
-// Shared, persistent boot-attempt counter (also used by the pre-React inline
-// recovery script in __root.tsx). Time-based cooldowns alone do NOT stop the
-// reload loop seen on low-RAM Android devices: a renderer OOM crash reloads the
-// tab (frequently wiping sessionStorage), so a time guard resets and recovery
-// fires forever. A persistent COUNT in localStorage with a hard cap guarantees
-// the loop terminates and a graceful error UI is shown instead.
-const BOOT_KEY = "fom_boot_attempts";
-const BOOT_WINDOW_MS = 60_000;
-const BOOT_MAX_RELOADS = 2;
 
 function isChunkLoadError(reason: unknown): boolean {
   const msg =
@@ -47,40 +37,19 @@ function isChunkLoadError(reason: unknown): boolean {
 }
 
 /**
- * Guarded hard reload to recover from a stale-deploy chunk 404.
- *
- * Delegates to the pre-React recovery installed by the inline script in
- * __root.tsx (`window.__fomRecover`) so a single persistent counter governs
- * EVERY auto-reload path in the app — there is exactly one cap, no matter which
- * mechanism triggers first. Falls back to a self-contained capped reload if the
- * inline script is unavailable (e.g. SSR-less test harness).
+ * Report a persistent chunk failure without navigating. A blocked/failed module
+ * should surface as diagnostics + fallback UI, not as an automatic reload.
  */
-function attemptReloadRecovery(): void {
+function reportChunkFailure(reason: unknown): void {
   if (typeof window === "undefined") return;
 
-  const shared = (window as unknown as { __fomRecover?: () => void }).__fomRecover;
+  const shared = (window as unknown as { __fomRecover?: (reason?: unknown) => void }).__fomRecover;
   if (typeof shared === "function") {
-    shared();
+    shared(reason);
     return;
   }
 
-  // Fallback: persistent counter with hard cap (mirrors the inline script).
-  let count = 0;
-  try {
-    const raw = JSON.parse(localStorage.getItem(BOOT_KEY) || "null") as
-      | { n: number; t: number }
-      | null;
-    if (raw && Date.now() - raw.t < BOOT_WINDOW_MS) count = raw.n;
-    count += 1;
-    localStorage.setItem(BOOT_KEY, JSON.stringify({ n: count, t: Date.now() }));
-  } catch {
-    /* storage blocked — proceed with a single reload */
-  }
-  if (count > BOOT_MAX_RELOADS) return; // give up; show whatever UI is present
-
-  const url = new URL(window.location.href);
-  url.searchParams.set("_r", Date.now().toString(36));
-  window.location.replace(url.toString());
+  console.error("[chunk-recovery] automatic reload blocked after chunk failure", reason);
 }
 
 /**
@@ -105,11 +74,12 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
         }
       }
     }
-    // Persistent chunk failure — most likely a stale deploy. Recover by reload.
+    // Persistent chunk failure — most likely a stale deploy or blocked module.
+    // Do not reload: keep the app stable and render this non-critical lazy slot
+    // as empty after reporting diagnostics.
     console.error("[chunk-recovery] dynamic import failed permanently", lastErr);
-    attemptReloadRecovery();
-    // Keep Suspense pending while the reload navigates away.
-    return new Promise<{ default: T }>(() => {});
+    reportChunkFailure(lastErr);
+    return { default: (() => null) as unknown as T };
   });
 }
 
@@ -128,13 +98,14 @@ export function installChunkRecovery(): void {
   window.addEventListener("vite:preloadError", (event) => {
     console.error("[chunk-recovery] vite:preloadError", (event as Event & { payload?: unknown }).payload);
     event.preventDefault?.();
-    attemptReloadRecovery();
+    reportChunkFailure((event as Event & { payload?: unknown }).payload);
   });
 
   window.addEventListener("unhandledrejection", (event) => {
     if (isChunkLoadError(event.reason)) {
       console.error("[chunk-recovery] unhandled chunk rejection", event.reason);
-      attemptReloadRecovery();
+      event.preventDefault?.();
+      reportChunkFailure(event.reason);
     }
   });
 
@@ -149,7 +120,7 @@ export function installChunkRecovery(): void {
         const src = (target as HTMLScriptElement).src || (target as HTMLLinkElement).href || "";
         if (/\/assets\/.*\.(js|css)/i.test(src)) {
           console.error("[chunk-recovery] asset element failed to load", src);
-          attemptReloadRecovery();
+          reportChunkFailure(src);
         }
       }
     },
