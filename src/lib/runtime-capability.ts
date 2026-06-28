@@ -211,3 +211,20 @@ export function startCapabilityGovernor(): void {
     { once: true },
   );
 }
+
+// ── React hook ─────────────────────────────────────────────────────────────
+import { useEffect, useState } from "react";
+
+/**
+ * Live "should I drop expensive effects?" flag. SSR-safe: starts `false`
+ * (full premium baseline) so SSR + first paint stay rich, then flips only if
+ * the governor measures genuine performance problems.
+ */
+export function useDegradeEffects(): boolean {
+  const [degraded, setDegraded] = useState(false);
+  useEffect(() => {
+    setDegraded(isDegraded());
+    return subscribeDegraded(setDegraded);
+  }, []);
+  return degraded;
+}
