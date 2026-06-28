@@ -732,7 +732,6 @@ function Home() {
             minHeight={320}
             limit={4}
           />
-                <>
               <ProductSection
                 sectionKey="new_arrivals"
                 eyebrow={sections.new_arrivals.eyebrow}
