@@ -44,12 +44,9 @@ function ProductImageImpl({
   const ultraLowEndAndroid = detectUltraLowEndAndroid();
   const storage = bundled
     ? null
-    : getStorageResponsive(
-        src,
-        ultraLowEndAndroid
-          ? { widths: [160, 240, 320, 480], fallbackWidth: 320, quality: 54 }
-          : undefined,
-      );
+    : ultraLowEndAndroid
+      ? getStorageResponsive(src, { widths: [160, 240, 320, 480], fallbackWidth: 320, quality: 54 })
+      : getStorageResponsive(src);
   const srcset = bundled?.srcset ?? storage?.srcset;
   const resolvedSrc = storage?.src ?? src;
   const imgRef = useRef<HTMLImageElement | null>(null);
