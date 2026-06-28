@@ -437,7 +437,166 @@ function Home() {
       <AnnouncementBar />
 
       {/* 2 · Cinematic Hero */}
-      <section className="relative pt-3 sm:pt-7 md:pt-9 lg:pt-12 pb-3 sm:pb-6 md:pb-8 lg:pb-12 px-4 sm:px-6 lg:px-10 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
+      <section className="relative px-3 sm:px-6 lg:px-10 pt-3 sm:pt-6 lg:pt-8 pb-2 sm:pb-4 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
+        <div className="sr-only">
+          <h1>FoundOurMarket™ — Global Marketplace, Whatever You Need, All In One Place.</h1>
+          <p>A premium independent marketplace, sourcing top-quality products from across the world.</p>
+        </div>
+
+        {(() => {
+          const collage = (trending.length ? trending : bestsellers).slice(0, 4);
+          const chips = [
+            { icon: Truck, label: "Free Shipping" },
+            { icon: Zap, label: "Flash Deals" },
+            { icon: ShieldCheck, label: "Secure Payments" },
+            { icon: Star, label: "Trusted Sellers" },
+            { icon: Gift, label: "Daily Offers" },
+          ];
+          return (
+        <div
+          className="hero-rise relative mx-auto max-w-[1480px] overflow-hidden rounded-[28px] ring-1 ring-white/10 min-h-[300px] sm:min-h-[340px] lg:min-h-[480px]"
+          style={{ background: "linear-gradient(135deg, oklch(0.16 0.01 60) 0%, oklch(0.11 0.008 50) 45%, oklch(0.08 0.005 40) 100%)" }}
+        >
+          {/* ── Ambient lighting & atmosphere ── */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
+            {/* orange ambient glow */}
+            <div className="absolute -top-1/4 right-[6%] size-[420px] rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.30), transparent 70%)" }} />
+            <div className="absolute -bottom-1/3 -left-[8%] size-[380px] rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.18), transparent 70%)" }} />
+            {/* subtle grid */}
+            <div
+              className="absolute inset-0 opacity-[0.05]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(oklch(1 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.6) 1px, transparent 1px)",
+                backgroundSize: "56px 56px",
+                maskImage: "radial-gradient(ellipse at 70% 30%, black 10%, transparent 75%)",
+              }}
+            />
+            {/* top sheen */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+            {/* floating particles */}
+            {[
+              { top: "16%", left: "20%", d: "-0.5s" },
+              { top: "28%", left: "84%", d: "-2.2s" },
+              { top: "70%", left: "30%", d: "-3.4s" },
+              { top: "78%", left: "70%", d: "-1.4s" },
+              { top: "44%", left: "92%", d: "-4.1s" },
+            ].map((p, i) => (
+              <span key={i} className="absolute size-1 rounded-full bg-accent/40 blur-[1px] animate-float-soft" style={{ top: p.top, left: p.left, animationDelay: p.d }} />
+            ))}
+          </div>
+
+          <div className="relative z-10 grid gap-6 p-5 sm:p-8 lg:grid-cols-2 lg:gap-10 lg:p-12">
+            {/* ── TEXT — headline + CTAs ── */}
+            <div className="order-1 lg:col-start-1 lg:row-start-1 self-center text-center lg:text-left">
+              <span className="inline-flex items-center gap-1.5 rounded-full glass-strong ring-1 ring-accent/30 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-foreground">
+                <Sparkles className="size-3 text-accent" /> Global Marketplace
+              </span>
+              <h2 className="mt-4 font-display font-semibold tracking-tight text-balance text-[clamp(1.85rem,7vw,2.6rem)] lg:text-[clamp(2.6rem,3vw,3.6rem)] leading-[1.04]">
+                Everything you love.
+                <br />
+                <span className="text-gradient-ember">One marketplace.</span>
+              </h2>
+              <p className="mx-auto lg:mx-0 mt-3 max-w-md text-sm sm:text-base text-muted-foreground text-balance">
+                Curated premium products from trusted sellers worldwide — delivered with cinematic precision.
+              </p>
+              <div className="mt-5 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                <Link
+                  to="/categories"
+                  className="inline-flex items-center justify-center gap-2 h-12 lg:h-14 px-7 lg:px-9 rounded-full bg-accent text-accent-foreground text-xs lg:text-[13px] font-semibold uppercase tracking-widest transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 active:scale-[0.98] shadow-[var(--shadow-ember)] lg:shadow-[0_0_40px_-6px_oklch(0.74_0.19_49/0.6),var(--shadow-ember)]"
+                >
+                  Shop Now <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  to="/categories"
+                  className="inline-flex items-center justify-center gap-2 h-12 lg:h-14 px-7 lg:px-9 rounded-full glass-strong ring-1 ring-white/15 text-xs lg:text-[13px] font-semibold uppercase tracking-widest transition-all duration-200 hover:ring-accent/40 hover:-translate-y-0.5 hover:text-foreground active:scale-[0.98]"
+                >
+                  Explore Categories
+                </Link>
+              </div>
+            </div>
+
+            {/* ── COLLAGE — floating featured products ── */}
+            <div aria-hidden className="order-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 relative min-h-[200px] sm:min-h-[240px] lg:min-h-[400px]">
+              {/* soft radial halo behind products */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[260px] lg:size-[360px] rounded-full blur-3xl opacity-60" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.22), transparent 70%)" }} />
+              {collage.length > 0 ? (
+                <div className="relative mx-auto h-full w-full max-w-[420px]">
+                  {collage.map((p, i) => {
+                    const pos = [
+                      "left-[6%] top-[8%] w-[44%] rotate-[-5deg] animate-float-soft",
+                      "right-[4%] top-[2%] w-[40%] rotate-[4deg] animate-float",
+                      "left-[14%] bottom-[6%] w-[40%] rotate-[3deg] animate-float",
+                      "right-[8%] bottom-[10%] w-[46%] rotate-[-3deg] animate-float-soft",
+                    ][i];
+                    const delay = ["-0.5s", "-2.5s", "-1.5s", "-3.5s"][i];
+                    return (
+                      <div
+                        key={p.slug}
+                        className={`absolute ${pos} overflow-hidden rounded-2xl glass-strong ring-1 ring-white/12 shadow-[var(--shadow-float),0_0_60px_-20px_oklch(0.74_0.19_49/0.6)]`}
+                        style={{ animationDelay: delay }}
+                      >
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                        <div className="aspect-square bg-white/95 p-1.5">
+                          <img
+                            src={p.image}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            className="size-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="relative mx-auto h-full w-full max-w-[360px]">
+                  <div className="overflow-hidden rounded-[2rem] glass-strong ring-1 ring-white/12 shadow-[var(--shadow-float)]">
+                    <img src={heroProductImg} alt="" loading="lazy" className="aspect-[4/5] size-full object-cover" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ── SEARCH + CHIPS ── */}
+            <div className="order-3 lg:col-start-1 lg:row-start-2 self-start">
+              <form
+                className="relative mx-auto lg:mx-0 max-w-2xl"
+                onSubmit={(e) => { e.preventDefault(); nav({ to: "/search", search: { q: query } }); }}
+              >
+                <div className={`relative glass-strong rounded-full ring-1 transition-all duration-200 ${searchFocused ? "ring-accent/35 shadow-[0_0_0_3px_oklch(0.74_0.19_49/0.08),var(--shadow-float)]" : "ring-white/12 shadow-[var(--shadow-float)]"}`}>
+                  <Search className={`absolute left-5 top-1/2 -translate-y-1/2 size-5 transition-colors ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    placeholder={rotatingPlaceholder}
+                    aria-label="Search products"
+                    className="w-full min-h-[56px] bg-transparent rounded-full pl-12 pr-28 sm:pr-32 py-4 text-base focus:outline-none placeholder:text-muted-foreground/60"
+                  />
+                  <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 font-semibold px-5 sm:px-6 py-3 rounded-full text-xs uppercase tracking-widest text-accent-foreground transition-all duration-200 hover:brightness-110 shadow-[var(--shadow-ember)]" style={{ background: "var(--gradient-ember)" }}>
+                    Search
+                  </button>
+                </div>
+              </form>
+              {/* Promotional chips */}
+              <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                {chips.map((c) => (
+                  <span key={c.label} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-[11px] font-medium text-muted-foreground ring-1 ring-white/10">
+                    <c.icon className="size-3.5 text-accent" /> {c.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+          );
+        })()}
+      </section>
+
         {/* Layered ambient mesh + orbs */}
         <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
           <div className="orb animate-orb" style={{ width: 520, height: 520, top: "8%", left: "55%", background: "var(--gradient-ember)" }} />
