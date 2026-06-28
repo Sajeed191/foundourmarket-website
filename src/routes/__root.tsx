@@ -488,8 +488,9 @@ function RootComponent() {
     startPerfMonitoring();
   }, []);
   useEffect(() => {
+    if (lowEnd || isAndroid) return;
     preloadCrisp();
-  }, []);
+  }, [lowEnd, isAndroid]);
   // Bootstrap Google Analytics off the critical path (on idle / after paint) so
   // gtag.js never competes with hydration on the main thread during load.
   useEffect(() => {

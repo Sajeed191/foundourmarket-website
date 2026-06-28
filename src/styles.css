@@ -1009,8 +1009,29 @@ html[data-low-end="true"] .card-outline {
 /* 5. Remove purely decorative floating glow / orb / parallax layers. */
 html[data-low-end="true"] [data-decorative],
 html[data-low-end="true"] .orb,
-html[data-low-end="true"] [data-parallax] {
+html[data-low-end="true"] [data-parallax],
+html[data-low-end="true"] [aria-hidden="true"][class*="blur-"],
+html[data-low-end="true"] [aria-hidden="true"][style*="blur("],
+html[data-low-end="true"] .animate-orb,
+html[data-low-end="true"] .animate-orb-breathe,
+html[data-low-end="true"] .animate-glow,
+html[data-low-end="true"] .animate-ambient,
+html[data-low-end="true"] .animate-float,
+html[data-low-end="true"] .animate-float-soft,
+html[data-low-end="true"] .animate-float-slow {
   display: none !important;
+}
+
+/* 5b. Make the most common glass utility classes solid on constrained GPUs so
+      backdrop sampling never happens even for utility-generated classnames. */
+html[data-low-end="true"] .glass,
+html[data-low-end="true"] .glass-strong,
+html[data-low-end="true"] [class*="backdrop-blur"],
+html[data-low-end="true"] [style*="backdropFilter"],
+html[data-low-end="true"] [style*="backdrop-filter"] {
+  background-color: color-mix(in srgb, var(--color-background) 94%, black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* 6. Neutralise hover/transform flourishes that thrash the compositor. */
