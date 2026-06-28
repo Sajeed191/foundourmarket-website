@@ -464,9 +464,12 @@ function RootComponent() {
   const ultraLowEndAndroid = useUltraLowEndAndroid();
 
   useEffect(() => {
+    initDebugFlags();
+    installDebugDiagnostics();
+    patchImageDecode();
     installStartupDiagnostics();
     installChunkRecovery();
-    registerServiceWorker();
+    if (getFlag("serviceWorker") && getFlag("pwa")) registerServiceWorker();
     logBuildVersion();
     // React mounted successfully. Clear the persistent boot-attempt counter a
     // few seconds after a stable render so the auto-reload cap only ever counts
