@@ -1965,45 +1965,27 @@ html[data-render-safe="true"] *::after {
   text-shadow: none !important;
   mix-blend-mode: normal !important;
   isolation: auto !important;
-}
-
-/* Kept in dedicated blocks so Lightning CSS does NOT merge the individual
-   transform properties back into a `transform: translate3d(0,0,0) ...`
-   shorthand (an identity matrix still promotes a GPU layer — the exact
-   opposite of render-safe's intent). */
-html[data-render-safe="true"] *,
-html[data-render-safe="true"] *::before,
-html[data-render-safe="true"] *::after {
-  translate: 0 !important;
-}
-html[data-render-safe="true"] *,
-html[data-render-safe="true"] *::before,
-html[data-render-safe="true"] *::after {
-  rotate: 0 !important;
-}
-html[data-render-safe="true"] *,
-html[data-render-safe="true"] *::before,
-html[data-render-safe="true"] *::after {
-  scale: 1 !important;
-}
-
-/* Standalone block: when grouped with the other resets above, Lightning CSS
-   dropped the unprefixed `backdrop-filter: none !important`, leaving only the
-   -webkit- form so standard backdrop-filter (e.g. .glass-strong) survived. */
-html[data-render-safe="true"] *,
-html[data-render-safe="true"] *::before,
-html[data-render-safe="true"] *::after {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* mask isolated for the same Lightning-merge reason. */
-html[data-render-safe="true"] *,
-html[data-render-safe="true"] *::before,
-html[data-render-safe="true"] *::after {
   mask: none !important;
   -webkit-mask: none !important;
   mask-image: none !important;
   -webkit-mask-image: none !important;
 }
+
+/* IMPORTANT: backdrop-filter must NOT be neutralised via the universal `*`
+   selector. Lightning CSS minifies `backdrop-filter: none !important` away on
+   `*` (it treats `none` as the redundant initial value), which left the
+   standard property on `.glass-strong` un-overridden while the page still
+   reported render-safe. Class/attribute-scoped selectors are preserved, so we
+   target every glass/backdrop utility directly (same pattern as low-end mode)
+   and also make the surface opaque so no backdrop sampling can occur. */
+html[data-render-safe="true"] .glass,
+html[data-render-safe="true"] .glass-strong,
+html[data-render-safe="true"] [class*="backdrop-blur"],
+html[data-render-safe="true"] [style*="backdropFilter"],
+html[data-render-safe="true"] [style*="backdrop-filter"] {
+  background-color: color-mix(in srgb, var(--color-background) 94%, black) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 
