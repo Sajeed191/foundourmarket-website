@@ -676,7 +676,7 @@ function Home() {
       <TrustBadgesStrip />
 
       {/* 3 · Main Categories — premium 2-column marketplace grid */}
-      <section id="categories" className="px-4 sm:px-6 py-5 sm:py-8 max-w-7xl mx-auto scroll-mt-24">
+      <section id="categories" className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto scroll-mt-24">
         <div className="relative">
           <SectionHeader eyebrow="Browse" title="Main Categories" href="/categories" />
           {isProductAdmin && (
@@ -783,7 +783,7 @@ function Home() {
 
       {/* 4-6 · Trending / New Arrivals / Best Sellers — separate lazy rails */}
       {productsLoading ? (
-        <section className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
+        <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto">
           <ProductSkeletonGrid count={4} />
         </section>
       ) : (
@@ -826,7 +826,7 @@ function Home() {
       <CinematicDivider />
 
       {/* 7 · Social Proof — verified customer reviews */}
-      <section className="px-4 sm:px-6 py-4 sm:py-7 max-w-7xl mx-auto">
+      <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto">
         <Reveal className="text-center mb-4 sm:mb-6">
           <h2 className="text-fluid-2xl font-display tracking-tight">What our customers say</h2>
         </Reveal>
