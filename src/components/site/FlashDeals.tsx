@@ -98,7 +98,6 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
   const saved = useWishlistSaved(p.slug);
   const { toggle } = useWishlistActions();
   const [quickOpen, setQuickOpen] = useState(false);
-  const androidGpuSafeMode = false;
 
   const regularPrice = priceOf(p);
   const hasFlash = item.flashPrice != null && item.flashPrice > 0;
@@ -124,7 +123,7 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
   const iconBtn = "grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full text-white/90 transition-colors hover:text-accent";
   const iconStyle = {
     backgroundColor: "rgba(20,20,20,0.6)",
-    backdropFilter: androidGpuSafeMode ? undefined : "blur(8px)",
+    backdropFilter: "blur(8px)",
     border: "1px solid rgba(255,255,255,0.12)",
   } as const;
 
@@ -137,7 +136,7 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
         data-android-static-card
         onClick={() => trackFlashDealEvent("click", item.dealId, p.slug)}
         style={{ backgroundColor: "#111111", border: "1px solid rgba(255,138,0,0.18)" }}
-        className={`group flex h-full flex-col overflow-hidden rounded-[22px] ${androidGpuSafeMode ? "" : "shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-[transform,box-shadow,border-color] duration-200 will-change-transform motion-safe:lg:hover:-translate-y-1 lg:hover:border-accent/50 lg:hover:shadow-[0_14px_36px_-8px_rgba(255,138,0,0.45)]"}`}
+        className={`group flex h-full flex-col overflow-hidden rounded-[22px] ${"shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-[transform,box-shadow,border-color] duration-200 will-change-transform motion-safe:lg:hover:-translate-y-1 lg:hover:border-accent/50 lg:hover:shadow-[0_14px_36px_-8px_rgba(255,138,0,0.45)]"}`}
       >
         <div data-product-media className="relative aspect-[4/5] overflow-hidden bg-black/40">
           {p.image && (
@@ -147,7 +146,7 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
               alt={p.name}
               loading="lazy"
               decoding="async"
-              className={`h-full w-full object-cover ${androidGpuSafeMode ? "" : "transition-transform duration-300 motion-safe:lg:group-hover:scale-[1.04]"}`}
+              className={`h-full w-full object-cover ${"transition-transform duration-300 motion-safe:lg:group-hover:scale-[1.04]"}`}
             />
           )}
           <span
@@ -210,7 +209,6 @@ export function FlashDeals() {
   const { items: allItems, loading, now, products } = useFlashDeals();
   const { sections } = useHomepageSections();
   const { canEdit: isAdmin } = useProductAdminEditing();
-  const androidGpuSafeMode = false;
 
   // Admin-controlled homepage visibility (separate from product Flash Deal
   // status). Inactive hides the whole section from shoppers only — products
@@ -270,11 +268,11 @@ export function FlashDeals() {
         style={{
           background: "linear-gradient(160deg, #0b0b0d 0%, #141416 55%, #1a1a1d 100%)",
           border: "1px solid oklch(0.74 0.19 49 / 0.18)",
-          boxShadow: androidGpuSafeMode ? undefined : "0 24px 70px -24px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.03)",
+          boxShadow: "0 24px 70px -24px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.03)",
         }}
       >
         {/* Soft orange ambient glow behind the heading */}
-        {!androidGpuSafeMode && (
+        {(
           <div
             aria-hidden
             className="pointer-events-none absolute -top-24 left-0 right-0 mx-auto h-56 w-[70%] rounded-full blur-3xl opacity-40"
@@ -283,7 +281,7 @@ export function FlashDeals() {
         )}
 
         <div className="relative mb-6 flex items-center gap-3 sm:mb-8">
-          <div className={`${androidGpuSafeMode ? "" : "animate-flame-pulse shadow-[var(--shadow-ember)]"} grid size-10 sm:size-11 place-items-center rounded-2xl bg-accent text-accent-foreground shrink-0`}>
+          <div className={`${"animate-flame-pulse shadow-[var(--shadow-ember)]"} grid size-10 sm:size-11 place-items-center rounded-2xl bg-accent text-accent-foreground shrink-0`}>
             <Flame className="size-5" />
           </div>
           <div className="min-w-0">
@@ -315,8 +313,8 @@ export function FlashDeals() {
         <div className="relative mt-6 sm:mt-8">
           <Link
             to="/deals"
-            style={{ background: "linear-gradient(135deg, #FFA52E 0%, #FF6A00 100%)", boxShadow: androidGpuSafeMode ? undefined : "0 10px 36px -8px rgba(255,122,0,0.55)" }}
-            className={`flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-sm font-bold text-black ${androidGpuSafeMode ? "" : "transition-[filter,transform] duration-150 will-change-transform hover:brightness-105 lg:hover:-translate-y-0.5 active:scale-[0.99] motion-safe:animate-glow"}`}
+            style={{ background: "linear-gradient(135deg, #FFA52E 0%, #FF6A00 100%)", boxShadow: "0 10px 36px -8px rgba(255,122,0,0.55)" }}
+            className={`flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-sm font-bold text-black ${"transition-[filter,transform] duration-150 will-change-transform hover:brightness-105 lg:hover:-translate-y-0.5 active:scale-[0.99] motion-safe:animate-glow"}`}
           >
             🔥 View All Flash Deals <ArrowRight className="size-4" />
           </Link>
