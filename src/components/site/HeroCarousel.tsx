@@ -20,6 +20,15 @@ const ROTATE_MS = 3000;
 // Apple/Stripe-style premium easing for the showcase crossfade.
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
+// Scattered depth slots for the blurred background products. Sizes/positions in px
+// are chosen so they peek around — never behind/covering — the centered main card.
+const BG_SLOTS = [
+  { key: "tl", size: 150, x: -250, y: -150, rot: -11, blur: 16, opacity: 0.22, glow: true },
+  { key: "tr", size: 130, x: 130, y: -160, rot: 9, blur: 18, opacity: 0.18, glow: false },
+  { key: "bl", size: 120, x: -210, y: 50, rot: 7, blur: 18, opacity: 0.18, glow: false },
+  { key: "br", size: 160, x: 110, y: 40, rot: 12, blur: 16, opacity: 0.22, glow: true },
+] as const;
+
 /**
  * Premium rotating hero showcase. Picks real products (Featured → Trending →
  * Best Sellers → New Arrivals), rotates every 4s with a cinematic fade/zoom/
