@@ -63,7 +63,12 @@ function detect(): boolean {
 }
 
 export function useLowEndDevice(): boolean {
-  const [low, setLow] = useState(detect);
+  // SSR-consistent: the server has no navigator/DOM flag and renders the
+  // "capable" baseline, so the first client render MUST match it. Detection is
+  // applied in the effect below after mount. Reading detect() in the initializer
+  // produces a hydration mismatch on flagged Android devices, which forces React
+  // to regenerate the whole tree (the black-flash / reload corruption).
+  const [low, setLow] = useState(false);
   useEffect(() => {
     setLow(detect());
     const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
@@ -153,7 +158,7 @@ export function shouldUseIncrementalRendering(): boolean {
 }
 
 export function useIsAndroid(): boolean {
-  const [android, setAndroid] = useState(() => domFlag("android") ?? detectAndroid());
+  const [android, setAndroid] = useState(false);
   useEffect(() => {
     setAndroid(detectAndroid());
   }, []);
@@ -161,7 +166,9 @@ export function useIsAndroid(): boolean {
 }
 
 export function useUltraLowEndAndroid(): boolean {
-  const [ultra, setUltra] = useState(detectUltraLowEndAndroid);
+  // SSR-consistent baseline; see useLowEndDevice for why the initializer must
+  // not read detection (hydration mismatch -> full client regeneration).
+  const [ultra, setUltra] = useState(false);
   useEffect(() => {
     setUltra(detectUltraLowEndAndroid());
     const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
@@ -174,7 +181,9 @@ export function useUltraLowEndAndroid(): boolean {
 }
 
 export function useAndroidGpuSafeMode(): boolean {
-  const [safe, setSafe] = useState(detectAndroidGpuSafeMode);
+  // SSR-consistent baseline; detection applied post-mount to avoid the
+  // hydration mismatch that regenerated the whole tree on Android.
+  const [safe, setSafe] = useState(false);
   useEffect(() => {
     setSafe(detectAndroidGpuSafeMode());
     const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
@@ -187,7 +196,7 @@ export function useAndroidGpuSafeMode(): boolean {
 
 /** Live flag: should the product grid use incremental (non-virtualized) rendering? */
 export function useIncrementalRendering(): boolean {
-  const [incremental, setIncremental] = useState(shouldUseIncrementalRendering);
+  const [incremental, setIncremental] = useState(false);
   useEffect(() => {
     setIncremental(shouldUseIncrementalRendering());
   }, []);
@@ -229,7 +238,9 @@ function detectTier(): DeviceTier {
 }
 
 export function useDeviceTier(): DeviceTier {
-  const [tier, setTier] = useState<DeviceTier>(detectTier);
+  // SSR-consistent baseline ("high" matches the server render); real tier is
+  // applied post-mount to keep hydration stable.
+  const [tier, setTier] = useState<DeviceTier>("high");
   useEffect(() => {
     setTier(detectTier());
     const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
