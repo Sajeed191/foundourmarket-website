@@ -494,13 +494,16 @@ function Home() {
           </div>
 
 
-          <div className="relative z-10 grid gap-6 p-5 sm:p-8 lg:grid-cols-2 lg:gap-10 lg:p-12">
+          <div className="relative z-10 grid gap-6 px-5 pt-3 pb-5 sm:px-8 sm:pt-5 sm:pb-8 lg:grid-cols-2 lg:gap-10 lg:px-12 lg:pt-7 lg:pb-12">
             {/* ── TEXT — headline + CTAs ── */}
             <div className="order-1 lg:col-start-1 lg:row-start-1 self-center text-center lg:text-left">
-              <span className="inline-flex items-center gap-1.5 rounded-full glass-strong ring-1 ring-accent/30 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-foreground">
+              <span
+                className="inline-flex h-8 items-center gap-1.5 rounded-full glass-strong px-3.5 text-[10px] font-mono uppercase tracking-[0.22em] text-foreground ring-1 ring-accent/40"
+                style={{ boxShadow: "0 0 18px -4px oklch(0.74 0.19 49 / 0.5), inset 0 1px 0 oklch(1 0 0 / 0.08)" }}
+              >
                 <Sparkles className="size-3 text-accent" /> Global Marketplace
               </span>
-              <h2 className="mt-4 font-display font-semibold tracking-tight text-balance text-[clamp(1.85rem,7vw,2.6rem)] lg:text-[clamp(2.6rem,3vw,3.6rem)] leading-[1.04]">
+              <h2 className="mt-3 font-display font-semibold tracking-tight text-balance text-[clamp(1.85rem,7vw,2.6rem)] lg:text-[clamp(2.6rem,3vw,3.6rem)] leading-[1.04]">
                 Everything you love.
                 <br />
                 <span className="text-gradient-ember">One marketplace.</span>
