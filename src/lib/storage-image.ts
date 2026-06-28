@@ -64,7 +64,13 @@ export function getStorageResponsive(
   const widths = Array.isArray(options) ? options : options.widths ?? DEFAULT_WIDTHS;
   const fallbackWidth = Array.isArray(options) ? 480 : options.fallbackWidth ?? 480;
   const quality = Array.isArray(options) ? 62 : options.quality ?? 62;
-  const srcset = widths.map((w) => `${resizedStorageImage(url, w, quality)} ${w}w`).join(", ");
+  const safeMode =
+    typeof document !== "undefined" &&
+    document.documentElement.dataset.androidGpuSafeMode === "true";
+  const safeWidths = safeMode ? widths.filter((w) => w <= 288) : widths;
+  const finalWidths = safeWidths.length ? safeWidths : [Math.min(fallbackWidth, 288)];
+  const finalFallback = safeMode ? Math.min(fallbackWidth, 288) : fallbackWidth;
+  const srcset = finalWidths.map((w) => `${resizedStorageImage(url, w, quality)} ${w}w`).join(", ");
   // Mid-size fallback for browsers that ignore srcset/sizes.
-  return { src: resizedStorageImage(url, fallbackWidth, quality), srcset };
+  return { src: resizedStorageImage(url, finalFallback, quality), srcset };
 }

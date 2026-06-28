@@ -151,6 +151,7 @@ function readMemory() {
 
 export function installDebugDiagnostics() {
   if (installed || typeof window === "undefined") return;
+  if (document.documentElement.dataset.androidGpuSafeMode === "true") return;
   installed = true;
 
   d.userAgent = navigator.userAgent;
@@ -221,6 +222,7 @@ export function installDebugDiagnostics() {
 /** Wrap original Image.prototype.decode to count rejections. */
 export function patchImageDecode() {
   if (typeof window === "undefined") return;
+  if (document.documentElement.dataset.androidGpuSafeMode === "true") return;
   const proto = HTMLImageElement.prototype as HTMLImageElement & {
     __decodePatched?: boolean;
   };

@@ -35,7 +35,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ShareDialog } from "@/components/site/ShareDialog";
 import { completeOAuthReturn, hasOAuthReturnParams } from "@/lib/oauth-return";
 import { safeInternalPath } from "@/lib/safe-redirect";
-import { detectAndroidWebView, useLowEndDevice, useIsAndroid, useUltraLowEndAndroid } from "@/lib/use-low-end-device";
+import { detectAndroidWebView, useLowEndDevice, useIsAndroid, useUltraLowEndAndroid, useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
 import { startPerfMonitoring } from "@/lib/perf-monitor";
 import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
@@ -287,13 +287,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         // Android before CSS paints so product text never spends one frame inside
         // transform/will-change layers during hydration.
         children:
-          "(function(){var d=document.documentElement;var ua='';var a=false;var wv=false;try{ua=navigator.userAgent||'';a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));var rawMem=navigator.deviceMemory;var m=Number(rawMem||0);var c=navigator.hardwareConcurrency||0;var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var memKnown=typeof rawMem==='number'&&rawMem>0;var low=r||(memKnown&&m<=4)||(c>0&&c<=4)||(a&&!memKnown);d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',low?'true':'false');var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){try{ua=ua||(navigator.userAgent||'');a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',a?'true':'false');}catch(y){}d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
+          "(function(){var d=document.documentElement;var ua='';var a=false;var wv=false;try{ua=navigator.userAgent||'';a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));var rawMem=navigator.deviceMemory;var m=Number(rawMem||0);var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var memKnown=typeof rawMem==='number'&&rawMem>0;var low=r||s||(memKnown&&m<=4)||(c>0&&c<=4)||(a&&!memKnown);var gpuSafe=a&&low;d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',low?'true':'false');d.setAttribute('data-android-gpu-safe-mode',gpuSafe?'true':'false');var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){try{ua=ua||(navigator.userAgent||'');a=/Android/i.test(ua);wv=a&&(/; wv\\)/i.test(ua)||/\\bwv\\b/i.test(ua));d.setAttribute('data-android',a?'true':'false');d.setAttribute('data-android-webview',wv?'true':'false');d.setAttribute('data-android-chrome',(a&&!wv&&/Chrome/i.test(ua))?'true':'false');d.setAttribute('data-low-end',a?'true':'false');d.setAttribute('data-android-gpu-safe-mode',a?'true':'false');}catch(y){}d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
       },
       {
         // Ultra Low-End Android compositor kill-switch. Kept as a separate tiny
         // script so it can run before CSS paint without changing the theme init.
         children:
-          "(function(){try{var d=document.documentElement;var ua=navigator.userAgent||'';var a=/Android/i.test(ua);var rawMem=navigator.deviceMemory;var m=Number(rawMem||0);var c=navigator.hardwareConcurrency||0;var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var memKnown=typeof rawMem==='number'&&rawMem>0;var low=r||(memKnown&&m<=4)||(c>0&&c<=4)||(a&&!memKnown);d.setAttribute('data-ultra-low-end',(a&&low)?'true':'false');}catch(e){try{document.documentElement.setAttribute('data-ultra-low-end',/Android/i.test(navigator.userAgent||'')?'true':'false');}catch(x){}}})();",
+          "(function(){try{var d=document.documentElement;var ua=navigator.userAgent||'';var a=/Android/i.test(ua);var rawMem=navigator.deviceMemory;var m=Number(rawMem||0);var c=navigator.hardwareConcurrency||0;var conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;var s=!!(conn&&conn.saveData);var r=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);var memKnown=typeof rawMem==='number'&&rawMem>0;var low=r||s||(memKnown&&m<=4)||(c>0&&c<=4)||(a&&!memKnown);d.setAttribute('data-ultra-low-end',(a&&low)?'true':'false');d.setAttribute('data-android-gpu-safe-mode',(a&&low)?'true':'false');}catch(e){try{var a=/Android/i.test(navigator.userAgent||'');document.documentElement.setAttribute('data-ultra-low-end',a?'true':'false');document.documentElement.setAttribute('data-android-gpu-safe-mode',a?'true':'false');}catch(x){}}})();",
       },
       {
         type: "application/ld+json",
@@ -462,14 +462,17 @@ function RootComponent() {
   const lowEnd = useLowEndDevice();
   const isAndroid = useIsAndroid();
   const ultraLowEndAndroid = useUltraLowEndAndroid();
+  const androidGpuSafeMode = useAndroidGpuSafeMode();
 
   useEffect(() => {
     initDebugFlags();
-    installDebugDiagnostics();
-    patchImageDecode();
+    if (!androidGpuSafeMode) {
+      installDebugDiagnostics();
+      patchImageDecode();
+    }
     installStartupDiagnostics();
     installChunkRecovery();
-    if (getFlag("serviceWorker") && getFlag("pwa")) registerServiceWorker();
+    if (!androidGpuSafeMode && getFlag("serviceWorker") && getFlag("pwa")) registerServiceWorker();
     logBuildVersion();
     // React mounted successfully. Clear the persistent boot-attempt counter a
     // few seconds after a stable render so the auto-reload cap only ever counts
@@ -478,7 +481,7 @@ function RootComponent() {
       (window as unknown as { __fomBootOk?: () => void }).__fomBootOk?.();
     }, 6000);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [androidGpuSafeMode]);
   // Flag low-end devices on <html> so global CSS can drop GPU-expensive effects,
   // and start dev-only runtime performance monitoring (long tasks / FPS / heap).
   useEffect(() => {
@@ -491,22 +494,25 @@ function RootComponent() {
       document.documentElement.dataset.androidWebview = androidWebView ? "true" : "false";
       document.documentElement.dataset.androidChrome = isAndroid && !androidWebView && /Chrome/i.test(ua) ? "true" : "false";
       document.documentElement.dataset.ultraLowEnd = ultraLowEndAndroid ? "true" : "false";
+      document.documentElement.dataset.androidGpuSafeMode = androidGpuSafeMode ? "true" : "false";
       logDiagnostic("device-flags", {
         lowEnd,
         isAndroid,
         ultraLowEndAndroid,
+        androidGpuSafeMode,
         androidWebView,
         androidChrome: isAndroid && !androidWebView && /Chrome/i.test(ua),
       });
     }
-  }, [lowEnd, isAndroid, ultraLowEndAndroid]);
+  }, [lowEnd, isAndroid, ultraLowEndAndroid, androidGpuSafeMode]);
   useEffect(() => {
+    if (androidGpuSafeMode) return;
     startPerfMonitoring();
-  }, []);
+  }, [androidGpuSafeMode]);
   useEffect(() => {
-    if (lowEnd || isAndroid) return;
+    if (lowEnd || isAndroid || androidGpuSafeMode) return;
     preloadCrisp();
-  }, [lowEnd, isAndroid]);
+  }, [lowEnd, isAndroid, androidGpuSafeMode]);
   // Bootstrap Google Analytics off the critical path (on idle / after paint) so
   // gtag.js never competes with hydration on the main thread during load.
   useEffect(() => {

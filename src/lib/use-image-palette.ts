@@ -23,7 +23,10 @@ function isConstrainedDevice(): boolean {
   const d = document.documentElement;
   // Debug harness: treat palette extraction as off when its flag is disabled.
   if (d.dataset.ffPaletteExtraction === "off") return true;
-  return d.getAttribute("data-ultra-low-end") === "true";
+  return (
+    d.getAttribute("data-ultra-low-end") === "true" ||
+    d.getAttribute("data-android-gpu-safe-mode") === "true"
+  );
 }
 
 export function useImagePalette(src: string | null | undefined) {

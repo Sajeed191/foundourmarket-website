@@ -18,6 +18,32 @@ function domFlag(name: string): boolean | null {
   return null;
 }
 
+function detectSaveData(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const connection = (navigator as Navigator & {
+    connection?: { saveData?: boolean };
+    mozConnection?: { saveData?: boolean };
+    webkitConnection?: { saveData?: boolean };
+  }).connection ?? (navigator as Navigator & { mozConnection?: { saveData?: boolean } }).mozConnection ??
+    (navigator as Navigator & { webkitConnection?: { saveData?: boolean } }).webkitConnection;
+  return connection?.saveData === true;
+}
+
+function constrainedSignals(): { mem?: number; cores?: number; saveData: boolean; reduced: boolean; memKnown: boolean } {
+  const mem = typeof navigator === "undefined" ? undefined : (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  const cores = typeof navigator === "undefined" ? undefined : navigator.hardwareConcurrency;
+  const reduced =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  return {
+    mem,
+    cores,
+    saveData: detectSaveData(),
+    reduced,
+    memKnown: typeof mem === "number" && mem > 0,
+  };
+}
+
 function detect(): boolean {
   if (typeof navigator === "undefined") return false;
   const flagged = domFlag("lowEnd");
@@ -25,10 +51,9 @@ function detect(): boolean {
   const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   const cores = navigator.hardwareConcurrency;
   const android = detectAndroid();
-  const reduced =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const { reduced, saveData } = constrainedSignals();
   if (reduced) return true;
+  if (saveData) return true;
   if (typeof mem === "number" && mem > 0 && mem <= 4) return true;
   if (typeof cores === "number" && cores > 0 && cores <= 4) return true;
   // Some Android Chrome builds hide deviceMemory. On those devices, start in
@@ -72,8 +97,28 @@ export function detectUltraLowEndAndroid(): boolean {
   if (typeof navigator === "undefined") return false;
   const flagged = domFlag("ultraLowEnd");
   if (flagged !== null) return flagged;
+  return detectAndroidGpuSafeMode();
+}
+
+/**
+ * Android GPU Safe Mode is the strict compositor-avoidance profile for the
+ * Mali/MediaTek + 4GB class of phones. It intentionally checks only Android and
+ * the requested hardware/network constraints, then keeps the DOM/CSS in a
+ * software-safe, static e-commerce layout.
+ */
+export function detectAndroidGpuSafeMode(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const flagged = domFlag("androidGpuSafeMode");
+  if (flagged !== null) return flagged;
   if (!detectAndroid()) return false;
-  return detect();
+  const { mem, cores, saveData, reduced, memKnown } = constrainedSignals();
+  return (
+    saveData ||
+    reduced ||
+    (typeof mem === "number" && mem > 0 && mem <= 4) ||
+    (typeof cores === "number" && cores > 0 && cores <= 4) ||
+    !memKnown
+  );
 }
 
 /** Android WebView (in-app browsers: Instagram, FB, etc.) — the worst offender
@@ -126,6 +171,18 @@ export function useUltraLowEndAndroid(): boolean {
     return () => mq.removeEventListener?.("change", onChange);
   }, []);
   return ultra;
+}
+
+export function useAndroidGpuSafeMode(): boolean {
+  const [safe, setSafe] = useState(detectAndroidGpuSafeMode);
+  useEffect(() => {
+    setSafe(detectAndroidGpuSafeMode());
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const onChange = () => setSafe(detectAndroidGpuSafeMode());
+    mq?.addEventListener?.("change", onChange);
+    return () => mq?.removeEventListener?.("change", onChange);
+  }, []);
+  return safe;
 }
 
 /** Live flag: should the product grid use incremental (non-virtualized) rendering? */

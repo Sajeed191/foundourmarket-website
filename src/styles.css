@@ -1736,21 +1736,26 @@ html[data-low-end="true"] .premium-back-btn:hover { box-shadow: none; }
 }
 
 /* =====================================================================
-   ULTRA LOW-END ANDROID MODE — final compositor kill-switch
-   Activated only on Android devices that report <=4GB RAM, <=4 cores,
-   unknown memory on Android, or reduced motion. This block is intentionally
-   last so later component styles cannot reintroduce compositor layers.
-   Normal desktop/iOS/capable Android devices are untouched.
+   ANDROID GPU SAFE MODE — final compositor kill-switch
+   Activated on Android devices that report <=4GB RAM, deviceMemory <=4,
+   Save-Data, <=4 cores, unknown Android memory, or reduced motion. This block
+   is intentionally last so later component styles cannot reintroduce GPU
+   compositor layers. Capable devices are untouched.
    ===================================================================== */
 html[data-ultra-low-end="true"],
-html[data-ultra-low-end="true"] body {
+html[data-ultra-low-end="true"] body,
+html[data-android-gpu-safe-mode="true"],
+html[data-android-gpu-safe-mode="true"] body {
   background-attachment: scroll !important;
   scroll-behavior: auto !important;
 }
 
 html[data-ultra-low-end="true"] *,
 html[data-ultra-low-end="true"] *::before,
-html[data-ultra-low-end="true"] *::after {
+html[data-ultra-low-end="true"] *::after,
+html[data-android-gpu-safe-mode="true"] *,
+html[data-android-gpu-safe-mode="true"] *::before,
+html[data-android-gpu-safe-mode="true"] *::after {
   animation: none !important;
   transition: none !important;
   transform: none !important;
@@ -1762,10 +1767,13 @@ html[data-ultra-low-end="true"] *::after {
   backface-visibility: visible !important;
   filter: none !important;
   backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   mix-blend-mode: normal !important;
   clip-path: none !important;
   mask: none !important;
+  -webkit-mask: none !important;
   mask-image: none !important;
+  -webkit-mask-image: none !important;
   will-change: auto !important;
   contain: none !important;
   content-visibility: visible !important;
@@ -1783,7 +1791,17 @@ html[data-ultra-low-end="true"] .search-cta__shimmer::after,
 html[data-ultra-low-end="true"] .search-cta__ripple,
 html[data-ultra-low-end="true"] .view-product-cta__shine::after,
 html[data-ultra-low-end="true"] .cta-sweep::after,
-html[data-ultra-low-end="true"] .border-glow::before {
+html[data-ultra-low-end="true"] .border-glow::before,
+html[data-android-gpu-safe-mode="true"] [data-decorative],
+html[data-android-gpu-safe-mode="true"] .orb,
+html[data-android-gpu-safe-mode="true"] [data-parallax],
+html[data-android-gpu-safe-mode="true"] [aria-hidden="true"][class*="blur-"],
+html[data-android-gpu-safe-mode="true"] [aria-hidden="true"][style*="blur("],
+html[data-android-gpu-safe-mode="true"] .search-cta__shimmer::after,
+html[data-android-gpu-safe-mode="true"] .search-cta__ripple,
+html[data-android-gpu-safe-mode="true"] .view-product-cta__shine::after,
+html[data-android-gpu-safe-mode="true"] .cta-sweep::after,
+html[data-android-gpu-safe-mode="true"] .border-glow::before {
   display: none !important;
 }
 
@@ -1800,15 +1818,42 @@ html[data-ultra-low-end="true"] .view-product-cta,
 html[data-ultra-low-end="true"] .bottom-nav-light,
 html[data-ultra-low-end="true"] .premium-back-btn,
 html[data-ultra-low-end="true"] [data-app-header] nav,
-html[data-ultra-low-end="true"] [data-product-card] {
+html[data-ultra-low-end="true"] [data-product-card],
+html[data-android-gpu-safe-mode="true"] .glass,
+html[data-android-gpu-safe-mode="true"] .glass-strong,
+html[data-android-gpu-safe-mode="true"] .product-card-glass,
+html[data-android-gpu-safe-mode="true"] .card-premium,
+html[data-android-gpu-safe-mode="true"] .card-elevated,
+html[data-android-gpu-safe-mode="true"] .card-ambient,
+html[data-android-gpu-safe-mode="true"] .card-outline,
+html[data-android-gpu-safe-mode="true"] .feature-card,
+html[data-android-gpu-safe-mode="true"] .search-cta,
+html[data-android-gpu-safe-mode="true"] .view-product-cta,
+html[data-android-gpu-safe-mode="true"] .bottom-nav-light,
+html[data-android-gpu-safe-mode="true"] .premium-back-btn,
+html[data-android-gpu-safe-mode="true"] [data-app-header] nav,
+html[data-android-gpu-safe-mode="true"] [data-product-card] {
   background-image: none !important;
   background-color: color-mix(in srgb, var(--color-background) 94%, black) !important;
   border-color: color-mix(in srgb, var(--color-accent) 18%, transparent) !important;
 }
 
 html[data-ultra-low-end="true"] [data-product-media],
-html[data-ultra-low-end="true"] [data-product-image] {
+html[data-ultra-low-end="true"] [data-product-image],
+html[data-android-gpu-safe-mode="true"] [data-product-media],
+html[data-android-gpu-safe-mode="true"] [data-product-image] {
   background: #ffffff !important;
+}
+
+html[data-android-gpu-safe-mode="true"] [data-app-bottom-nav],
+html[data-android-gpu-safe-mode="true"] [data-floating-button],
+html[data-android-gpu-safe-mode="true"] [data-live-chat],
+html[data-ultra-low-end="true"] [data-app-bottom-nav],
+html[data-ultra-low-end="true"] [data-floating-button],
+html[data-ultra-low-end="true"] [data-live-chat] {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
 }
 
 /* =====================================================================
