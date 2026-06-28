@@ -234,7 +234,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                     transition: lowEnd
                       ? "opacity 300ms ease"
                       : `transform 800ms ${EASE}, opacity 800ms ${EASE}, filter 800ms ${EASE}`,
-                    willChange: "transform, opacity, filter",
+                    willChange: visible && !lowEnd ? "transform, opacity, filter" : "auto",
                   }}
                 >
                   {isCenter && (
