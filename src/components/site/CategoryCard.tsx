@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getStorageResponsive } from "@/lib/storage-image";
 
 /* Premium category icon mapping — keyed by keyword in slug/name. Used only as
    a visual fallback when a category has no real (or AI-generated) image. */
