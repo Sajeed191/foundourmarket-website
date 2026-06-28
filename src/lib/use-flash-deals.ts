@@ -98,11 +98,11 @@ export function useFlashDeals() {
     return map;
   }, [deals, now]);
 
-  // Which products are eligible to show as Flash Deals rotates every 6 hours
-  // (12AM / 6AM / 12PM / 6PM IST). The visible order inside that set reshuffles
-  // every 2 hours. The manual reshuffle nonce lets admins re-randomize instantly.
+  // The eligible set is freshly shuffled and the first 10 picked at each 6-hour
+  // window (12AM / 6AM / 12PM / 6PM IST). The selection and its order then stay
+  // cached/stable until the next scheduled refresh — no per-load recalculation.
+  // The manual reshuffle nonce lets admins re-randomize instantly.
   const flashSeed = flashWindowSeed(now) + rotationNonce;
-  const orderSeed = orderWindowSeed(now) + rotationNonce;
 
 
 
