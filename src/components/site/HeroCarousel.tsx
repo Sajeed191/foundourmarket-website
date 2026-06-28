@@ -296,7 +296,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                     width={560}
                     height={560}
                     priority={i === 0}
-                    sizes="(min-width: 640px) 248px, 40vw"
+                    sizes="(min-width: 640px) 232px, 32vw"
                     className="relative z-[1] block size-full object-contain object-center p-[7%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                   />
                 </Link>
