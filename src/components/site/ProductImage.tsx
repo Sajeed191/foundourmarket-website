@@ -1,4 +1,5 @@
 import { memo } from "react";
+import type { CSSProperties } from "react";
 import { getResponsiveImage } from "@/lib/product-images";
 
 type Props = {
@@ -11,6 +12,8 @@ type Props = {
   priority?: boolean;
   width?: number;
   height?: number;
+  style?: CSSProperties;
+  onLoad?: () => void;
 };
 
 /**
@@ -30,6 +33,8 @@ function ProductImageImpl({
   priority = false,
   width = 800,
   height = 600,
+  style,
+  onLoad,
 }: Props) {
   const responsive = getResponsiveImage(src);
 
@@ -46,6 +51,8 @@ function ProductImageImpl({
       fetchPriority={priority ? "high" : "low"}
       decoding="async"
       data-product-image
+      style={style}
+      onLoad={onLoad}
       className={className}
     />
   );
