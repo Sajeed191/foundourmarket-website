@@ -81,6 +81,19 @@ function ProductImageImpl({
     onLoad?.();
   }, [onLoad, resolvedSrc]);
 
+  // Debug harness: render a flat placeholder instead of an <img> to rule the
+  // product image element out as the corruption source.
+  if (!ffProductImages) {
+    return (
+      <div
+        data-product-image
+        aria-label={alt}
+        style={{ ...style, background: "#e5e7eb" }}
+        className={className}
+      />
+    );
+  }
+
   return (
     <img
       key={`${resolvedSrc}|${width}x${height}`}
@@ -91,9 +104,9 @@ function ProductImageImpl({
       alt={alt}
       width={width}
       height={height}
-      loading={priority ? "eager" : "lazy"}
+      loading={!ffLazyLoading || priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : undefined}
-      decoding="async"
+      decoding={ffImageDecoding ? "async" : "sync"}
       data-product-image
       style={style}
       onLoad={handleLoad}
