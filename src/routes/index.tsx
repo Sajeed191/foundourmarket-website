@@ -459,32 +459,40 @@ function Home() {
         >
           {/* ── Ambient lighting & atmosphere ── */}
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
-            {/* orange ambient glow */}
-            <div className="absolute -top-1/4 right-[6%] size-[420px] rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.30), transparent 70%)" }} />
-            <div className="absolute -bottom-1/3 -left-[8%] size-[380px] rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.18), transparent 70%)" }} />
-            {/* subtle grid */}
+            {/* premium upper-center orange ambient glow — heading focal point */}
+            <div className="absolute left-1/2 -top-[18%] -translate-x-1/2 size-[560px] lg:size-[680px] rounded-full blur-[90px] opacity-70" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.34), oklch(0.74 0.19 49 / 0.10) 45%, transparent 72%)" }} />
+            {/* soft radial gradient that fades into the background behind heading */}
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 h-[60%] w-[120%] opacity-60" style={{ background: "radial-gradient(ellipse at 50% 8%, oklch(0.74 0.19 49 / 0.12), transparent 60%)" }} />
+            {/* secondary corner glows (softened so top corners feel lighter) */}
+            <div className="absolute -bottom-1/3 -left-[8%] size-[380px] rounded-full blur-3xl opacity-35" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.16), transparent 70%)" }} />
+            {/* near-invisible luxury texture grid */}
             <div
-              className="absolute inset-0 opacity-[0.05]"
+              className="absolute inset-0 opacity-[0.035]"
               style={{
                 backgroundImage:
-                  "linear-gradient(oklch(1 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.6) 1px, transparent 1px)",
-                backgroundSize: "56px 56px",
-                maskImage: "radial-gradient(ellipse at 70% 30%, black 10%, transparent 75%)",
+                  "linear-gradient(oklch(1 0 0 / 0.5) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.5) 1px, transparent 1px)",
+                backgroundSize: "72px 72px",
+                maskImage: "radial-gradient(ellipse at 50% 20%, black 5%, transparent 65%)",
               }}
             />
-            {/* top sheen */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-            {/* floating particles */}
+            {/* top light reflection — soft glass highlight across the banner */}
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.07] to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+            {/* bottom fade — blends hero into the next section */}
+            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background/80 to-transparent" />
+            {/* floating particles — concentrated around the upper banner */}
             {[
-              { top: "16%", left: "20%", d: "-0.5s" },
-              { top: "28%", left: "84%", d: "-2.2s" },
-              { top: "70%", left: "30%", d: "-3.4s" },
-              { top: "78%", left: "70%", d: "-1.4s" },
-              { top: "44%", left: "92%", d: "-4.1s" },
+              { top: "10%", left: "30%", d: "-0.5s" },
+              { top: "8%", left: "68%", d: "-2.2s" },
+              { top: "20%", left: "84%", d: "-3.4s" },
+              { top: "24%", left: "14%", d: "-1.4s" },
+              { top: "14%", left: "50%", d: "-4.1s" },
+              { top: "30%", left: "60%", d: "-1.9s" },
             ].map((p, i) => (
-              <span key={i} className="absolute size-1 rounded-full bg-accent/40 blur-[1px] animate-float-soft" style={{ top: p.top, left: p.left, animationDelay: p.d }} />
+              <span key={i} className="absolute size-1 rounded-full bg-accent/35 blur-[1px] animate-float-soft" style={{ top: p.top, left: p.left, animationDelay: p.d }} />
             ))}
           </div>
+
 
           <div className="relative z-10 grid gap-6 p-5 sm:p-8 lg:grid-cols-2 lg:gap-10 lg:p-12">
             {/* ── TEXT — headline + CTAs ── */}
