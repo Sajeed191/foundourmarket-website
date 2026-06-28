@@ -219,7 +219,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                 alt={p.name}
                 width={288}
                 height={288}
-                priority={false}
+                priority
                 sizes="288px"
                 className="block aspect-square w-full rounded-2xl object-cover object-center"
               />
