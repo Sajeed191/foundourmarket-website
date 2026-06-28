@@ -162,7 +162,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                       alt=""
                       width={300}
                       height={300}
-                      loading="lazy"
+                      sizes="(min-width: 640px) 290px, 72vw"
                       className="block size-full object-contain object-center p-[12%]"
                     />
                   </div>
