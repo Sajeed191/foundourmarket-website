@@ -143,6 +143,84 @@ function ProductImageImpl({
     onLoad?.();
   }, [onLoad, resolvedSrc]);
 
+  // ── Hero image pipeline diagnostics (opt-in via debugId) ──
+  useEffect(() => {
+    if (!debugId || typeof window === "undefined") return;
+    const tag = `[hero-img:${debugId}]`;
+    const log = (...a: unknown[]) => console.log(tag, ...a);
+    log("(1) received src prop:", src);
+    log("    resolvedSrc:", resolvedSrc);
+    log("    srcset:", srcset ?? "(none)");
+    log("    flags:", { renderSafe, androidGpuSafeMode, ultraLowEndAndroid, loadingMode, decodingMode, ffProductImages, ffLazyLoading, priority });
+
+    const img = imgRef.current;
+    log("(2) <img> mounted:", !!img, "connected:", img?.isConnected);
+    if (!img) {
+      log("    NOTE: ProductImage rendered a placeholder div (ffProductImages off) — no <img> element exists.");
+      return;
+    }
+
+    log("(3) final assigned src attr:", img.getAttribute("src"));
+    log("    final assigned srcset attr:", img.getAttribute("srcset") ?? "(none)");
+
+    // (6) CSS visibility audit
+    const cs = window.getComputedStyle(img);
+    const rect = img.getBoundingClientRect();
+    log("    CSS audit:", {
+      display: cs.display,
+      visibility: cs.visibility,
+      opacity: cs.opacity,
+      width: rect.width,
+      height: rect.height,
+      objectFit: cs.objectFit,
+      position: cs.position,
+      zIndex: cs.zIndex,
+    });
+    if (cs.display === "none") log("    ⚠ HIDDEN via display:none");
+    if (cs.visibility === "hidden") log("    ⚠ HIDDEN via visibility:hidden");
+    if (cs.opacity === "0") log("    ⚠ HIDDEN via opacity:0");
+    if (rect.width === 0 || rect.height === 0) log("    ⚠ ZERO box size");
+
+    const report = () =>
+      log("(5) state:", { complete: img.complete, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight, currentSrc: img.currentSrc });
+
+    // (5) immediate state (in case it already loaded from cache)
+    report();
+
+    // (4) load / error events
+    const onLoadEvt = () => { log("(4) LOAD event fired"); report(); };
+    const onErrorEvt = (e: Event) => { log("(4) ERROR event fired", e); report(); };
+    img.addEventListener("load", onLoadEvt);
+    img.addEventListener("error", onErrorEvt);
+
+    // Late check after 5s — if still blank, dump network status via Resource Timing
+    const t = window.setTimeout(() => {
+      log("(5) state @5s:", { complete: img.complete, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight });
+      try {
+        const url = img.currentSrc || img.src;
+        const entries = performance.getEntriesByType("resource").filter((r) => r.name === url) as PerformanceResourceTiming[];
+        if (entries.length === 0) {
+          log("(6) Network: NO resource-timing entry for", url, "→ request likely never started or was blocked/cancelled");
+        } else {
+          entries.forEach((r) =>
+            log("(6) Network:", { name: r.name, duration: Math.round(r.duration), transferSize: r.transferSize, encodedBodySize: r.encodedBodySize, responseStatus: (r as PerformanceResourceTiming & { responseStatus?: number }).responseStatus }),
+          );
+        }
+      } catch (err) {
+        log("(6) Network probe failed:", err);
+      }
+    }, 5000);
+
+    return () => {
+      img.removeEventListener("load", onLoadEvt);
+      img.removeEventListener("error", onErrorEvt);
+      window.clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debugId, resolvedSrc]);
+
+
+
   const imgTestStatic = detectImgTestStatic();
 
   const staticLoggedRef = useRef(false);
