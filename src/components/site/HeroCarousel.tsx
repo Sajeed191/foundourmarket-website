@@ -344,7 +344,7 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                       background: isCenter
                         ? `linear-gradient(160deg, ${ambientSoft}, color-mix(in srgb, ${primary} 30%, transparent))`
                         : "color-mix(in srgb, oklch(0.2 0.01 262) 60%, transparent)",
-                      boxShadow: isCenter && perf.enableGlow
+                      boxShadow: isCenter && perf.enableGlow && !lowEnd
                         ? `0 0 0 1px oklch(1 0 0 / 0.06), 0 0 40px -6px oklch(0.74 0.19 49 / 0.55)`
                         : "0 0 0 1px oklch(1 0 0 / 0.04)",
                     }}
