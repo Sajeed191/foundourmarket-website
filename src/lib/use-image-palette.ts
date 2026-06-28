@@ -58,7 +58,7 @@ export function useImagePalette(src: string | null | undefined) {
     return () => {
       active = false;
     };
-  }, [src]);
+  }, [src, constrained]);
 
   return { palette, ready };
 }
