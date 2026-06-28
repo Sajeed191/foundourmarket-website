@@ -11,7 +11,6 @@ import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Slider } from "@/components/ui/slider";
-import { useIsAndroid } from "@/lib/use-low-end-device";
 
 type SearchParams = {
   q?: string;
@@ -191,7 +190,6 @@ function SearchPage() {
   const nav = useNavigate({ from: "/search" });
   const { categories } = useCategories();
   const { shippingFeeOf, compareOf, market, symbol } = useRegion();
-  const isAndroid = useIsAndroid();
   const fmtPrice = (usd: number) =>
     market === "india"
       ? `${symbol}${Math.round(usd * 83).toLocaleString("en-IN")}`
@@ -207,15 +205,11 @@ function SearchPage() {
 
   // Reveal a compact sticky search bar once the user scrolls past the hero.
   useEffect(() => {
-    if (isAndroid) {
-      setScrolled(false);
-      return;
-    }
     const onScroll = () => setScrolled(window.scrollY > 280);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isAndroid]);
+  }, []);
 
 
   const currentFilters: Filters = {

@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/lib/theme";
 import { LightMobileDrawer } from "@/components/site/LightMobileDrawer";
-import { useIsAndroid } from "@/lib/use-low-end-device";
 const logoSrc = "/logo.webp";
 
 const ADMIN_ROLES = ["admin","super_admin","manager","support","fulfillment","warehouse_staff","editor"];
@@ -71,7 +70,6 @@ export function Nav() {
   const { user } = useAuth();
   const { slugs: wishSlugs } = useWishlist();
   const { effectiveTheme } = useTheme();
-  const isAndroid = useIsAndroid();
   const isLight = effectiveTheme === "light";
   const [open, setOpen] = useState(false);
   // Keep the drawer mounted during its exit transition.
@@ -154,10 +152,6 @@ export function Nav() {
   const lastY = useRef(0);
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    if (isAndroid) {
-      setHidden(false);
-      return;
-    }
     const onScroll = () => {
       const y = window.scrollY;
       const prev = lastY.current;
@@ -167,7 +161,7 @@ export function Nav() {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isAndroid]);
+  }, []);
 
   // Drive the drawer enter/exit transition without framer-motion.
   useEffect(() => {
@@ -186,10 +180,10 @@ export function Nav() {
       <div
         data-app-header
         style={{
-          transform: !isAndroid && hidden ? "translateY(-120px)" : "translateY(0)",
-          opacity: !isAndroid && hidden ? 0 : 1,
+          transform: hidden ? "translateY(-120px)" : "translateY(0)",
+          opacity: hidden ? 0 : 1,
           filter: "none",
-          transition: isAndroid ? "none" : "transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.35s ease",
+          transition: "transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.35s ease",
           willChange: "auto",
         }}
         className="sticky top-0 z-50 px-[max(0.75rem,var(--mobile-safe-left))] sm:px-4 pt-[calc(var(--mobile-safe-top)+0.75rem)] sm:pt-[calc(var(--mobile-safe-top)+1rem)]"

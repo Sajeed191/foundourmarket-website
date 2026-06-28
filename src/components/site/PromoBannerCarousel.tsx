@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronRight, ArrowRight, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useAdminEditing } from "@/lib/admin-overlay";
-import { useIsAndroid, useLowEndDevice } from "@/lib/use-low-end-device";
 // Heavy admin editor — lazy so shoppers never download it on the homepage.
 const BannerAdminSheet = lazy(() =>
   import("@/components/admin/BannerAdminSheet").then((m) => ({ default: m.BannerAdminSheet })),
@@ -47,8 +46,6 @@ export function PromoBannerCarousel({
 
   const { isAdmin } = useIsAdmin();
   const { canEdit } = useAdminEditing();
-  const isAndroid = useIsAndroid();
-  const lowEnd = useLowEndDevice();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -86,11 +83,11 @@ export function PromoBannerCarousel({
 
 
   useEffect(() => {
-    if (isAndroid || lowEnd) return;
+
     if (paused || banners.length < 2) return;
     const id = setInterval(() => setIdx((i) => (i + 1) % banners.length), 6000);
     return () => clearInterval(id);
-  }, [paused, banners.length, isAndroid, lowEnd]);
+  }, [paused, banners.length]);
 
   // Track an impression once per banner per mount (admins excluded).
   const seen = useRef<Set<string>>(new Set());

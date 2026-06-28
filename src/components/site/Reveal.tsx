@@ -1,5 +1,4 @@
 import { Suspense, lazy, type ReactNode } from "react";
-import { useAndroidGpuSafeMode, useIsAndroid, useLowEndDevice } from "@/lib/use-low-end-device";
 
 /**
  * Reveal / AnimatedCounter — public API used across the homepage.
@@ -30,10 +29,6 @@ export function Reveal({
   delay?: number;
   productCardFrame?: boolean;
 }) {
-  const lowEnd = useLowEndDevice();
-  const android = useIsAndroid();
-  const gpuSafe = useAndroidGpuSafeMode();
-
   // Product cards must never sit inside a transformed/opacity reveal layer. On
   // Android Chromium/WebView/Samsung this can leave stale glyph tiles while the
   // card, image and buttons remain correctly positioned. Keep card typography in
@@ -42,14 +37,6 @@ export function Reveal({
     return <div className={className} data-product-card-frame="">{children}</div>;
   }
 
-  // On Android and constrained devices (≤4GB RAM / few cores / reduced-motion) skip
-  // framer-motion entirely: per-element motion layers are the main source of
-  // GPU compositing artifacts (ghosted images, stacked cards, flicker) during
-  // fast scroll. Content still renders fully — only the entrance animation is
-  // dropped on the devices that can't afford it.
-  if (gpuSafe || android || lowEnd) {
-    return <div className={className}>{children}</div>;
-  }
   return (
     <Suspense fallback={<div className={className}>{children}</div>}>
       <MotionReveal className={className} delay={delay}>
@@ -70,14 +57,10 @@ export function AnimatedCounter({
   duration?: number;
   decimals?: number;
 }) {
-  const lowEnd = useLowEndDevice();
-  const android = useIsAndroid();
-  const gpuSafe = useAndroidGpuSafeMode();
   // Fixed en-US grouping so SSR (worker) and client render identical text
   // (avoids a hydration mismatch from locale-dependent toLocaleString()).
   const formatted =
     (decimals > 0 ? to.toFixed(decimals) : Math.round(to).toLocaleString("en-US")) + suffix;
-  if (gpuSafe || android || lowEnd) return <span>{formatted}</span>;
   return (
     <Suspense fallback={<span>{formatted}</span>}>
       <MotionCounter to={to} suffix={suffix} duration={duration} decimals={decimals} />

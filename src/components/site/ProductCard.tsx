@@ -14,8 +14,6 @@ import { Price } from "@/components/site/Price";
 import { AdaptiveProductMedia } from "@/components/site/AdaptiveProductMedia";
 import { QuickViewDialog } from "@/components/site/QuickViewDialog";
 import { formatSold } from "@/lib/format-sold";
-import { useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
-import { detectLayoutTestSimple } from "@/lib/layout-test";
 
 type ProductCardProps = {
   product: Product;
@@ -163,7 +161,7 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
   const saved = useWishlistSaved(slug);
   const { toggle } = useWishlistActions();
   const [justSaved, setJustSaved] = useState(false);
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const androidGpuSafeMode = false;
 
   const onClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -189,7 +187,7 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
 const WishlistButton = memo(WishlistButtonImpl);
 
 function QuickViewButtonImpl({ name, onOpen }: { name: string; onOpen: () => void }) {
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const androidGpuSafeMode = false;
   const onClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -213,7 +211,7 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
   const qty = useCartQty(product.slug);
   const { add, setQty } = useCartActions();
   const [justAdded, setJustAdded] = useState(false);
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const androidGpuSafeMode = false;
 
   const onAdd = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -273,7 +271,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
   const engine = useBadgeEngine();
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
   const identity = productIdentity(product);
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const androidGpuSafeMode = false;
 
   const badges = useMemo<CardBadge[]>(() => {
     if (!forceBadge && assigned.length > 0) {

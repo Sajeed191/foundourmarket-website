@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Star, BadgeCheck } from "lucide-react";
-import { useLowEndDevice } from "@/lib/use-low-end-device";
 
 export type Testimonial = {
   quote: string;
@@ -57,23 +56,22 @@ export function TestimonialsCarousel({ items }: { items: Testimonial[] }) {
   const [index, setIndex] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const paused = useRef(false);
-  const lowEnd = useLowEndDevice();
 
   useEffect(() => {
-    if (lowEnd || items.length <= 1) return;
+    if (items.length <= 1) return;
     const id = setInterval(() => {
       if (paused.current) return;
       setIndex((i) => (i + 1) % items.length);
     }, AUTO_MS);
     return () => clearInterval(id);
-  }, [items.length, lowEnd]);
+  }, [items.length]);
 
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
     const child = el.children[index] as HTMLElement | undefined;
-    if (child) el.scrollTo({ left: child.offsetLeft - el.offsetLeft, behavior: lowEnd ? "auto" : "smooth" });
-  }, [index, lowEnd]);
+    if (child) el.scrollTo({ left: child.offsetLeft - el.offsetLeft, behavior: "smooth" });
+  }, [index]);
 
   function onScroll() {
     const el = trackRef.current;

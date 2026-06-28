@@ -13,7 +13,6 @@ import { useFlashDeals, type FlashItem } from "@/lib/use-flash-deals";
 import { useHomepageSections, toggleHomepageSection } from "@/lib/use-homepage-sections";
 import type { Product } from "@/lib/products";
 import { singleBadge } from "@/lib/badges";
-import { useAndroidGpuSafeMode } from "@/lib/use-low-end-device";
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
@@ -99,7 +98,7 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
   const saved = useWishlistSaved(p.slug);
   const { toggle } = useWishlistActions();
   const [quickOpen, setQuickOpen] = useState(false);
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const androidGpuSafeMode = false;
 
   const regularPrice = priceOf(p);
   const hasFlash = item.flashPrice != null && item.flashPrice > 0;
@@ -211,7 +210,7 @@ export function FlashDeals() {
   const { items: allItems, loading, now, products } = useFlashDeals();
   const { sections } = useHomepageSections();
   const { canEdit: isAdmin } = useProductAdminEditing();
-  const androidGpuSafeMode = useAndroidGpuSafeMode();
+  const androidGpuSafeMode = false;
 
   // Admin-controlled homepage visibility (separate from product Flash Deal
   // status). Inactive hides the whole section from shoppers only — products

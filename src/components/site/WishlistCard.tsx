@@ -11,7 +11,6 @@ import { computeBadges, DEFAULT_BADGE_SETTINGS } from "@/lib/badges";
 import { useProductBadges, badgeAnimationClass } from "@/lib/use-product-badges";
 import { StarRating } from "@/components/site/StarRating";
 import { Checkbox } from "@/components/ui/checkbox";
-import { detectAndroid } from "@/lib/use-low-end-device";
 
 export type WishlistCardProps = {
   product: Product;
@@ -79,7 +78,7 @@ export function WishlistCard({
   };
 
   useEffect(() => {
-    setImgLoaded(detectAndroid());
+    setImgLoaded(false);
   }, [product.image]);
 
   const cardClick = (e: React.MouseEvent) => {
