@@ -461,7 +461,7 @@ function Home() {
           {/* ── Ambient lighting & atmosphere ── */}
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
             {/* premium upper-center orange ambient glow — heading focal point */}
-            <div className="absolute left-1/2 -top-[18%] -translate-x-1/2 size-[560px] lg:size-[680px] rounded-full blur-[90px] opacity-70" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.34), oklch(0.74 0.19 49 / 0.10) 45%, transparent 72%)" }} />
+            <div className="absolute left-1/2 -top-[18%] -translate-x-1/2 size-[560px] lg:size-[680px] rounded-full blur-[90px] opacity-70 animate-glow-breathe" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.34), oklch(0.74 0.19 49 / 0.10) 45%, transparent 72%)" }} />
             {/* soft radial gradient that fades into the background behind heading */}
             <div className="absolute left-1/2 top-0 -translate-x-1/2 h-[60%] w-[120%] opacity-60" style={{ background: "radial-gradient(ellipse at 50% 8%, oklch(0.74 0.19 49 / 0.12), transparent 60%)" }} />
             {/* secondary corner glows (softened so top corners feel lighter) */}
