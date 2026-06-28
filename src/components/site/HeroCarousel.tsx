@@ -98,18 +98,15 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
   // Visible products + effect strength scale with the device tier so low-end
   // Android phones stay at 60 FPS while high-end devices get the full show.
   const perf = useMemo(() => {
-    // Cards per side: high 4/3, mid 3/2, low 2/1 (desktop/mobile).
-    const sideByTier: Record<string, [number, number]> = {
-      high: [4, 3],
-      mid: [3, 2],
-      low: [2, 1],
-    };
-    const maxDepth = sideByTier[tier][isMobile ? 1 : 0];
-    const blurScale = tier === "high" ? 1 : tier === "mid" ? 0.6 : 0.25;
+    // Card COUNT is fixed per spec — always 7 on mobile (3/side) and 9 on
+    // desktop (4/side), regardless of device tier, so the queue never collapses
+    // to only 3 products. Tier only scales effect *intensity* for performance.
+    const maxDepth = isMobile ? 3 : 4;
+    const blurScale = tier === "high" ? 1 : tier === "mid" ? 0.7 : 0.4;
     return {
       maxDepth,
       blurScale,
-      enableGlow: tier === "high",
+      enableGlow: tier !== "low",
     };
   }, [tier, isMobile]);
 
