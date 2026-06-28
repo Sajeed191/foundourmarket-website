@@ -41,6 +41,60 @@ import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
 import { installStartupDiagnostics, logDiagnostic, useRenderDiagnostics } from "@/lib/startup-diagnostics";
 
+const STARTUP_GUARD_SCRIPT = `(function(){
+  if (typeof window === 'undefined') return;
+  var fallbackShown = false;
+  function txt(x){
+    try { return typeof x === 'string' ? x : (x && (x.message || (x.reason && x.reason.message) || x.type || '')) || ''; }
+    catch(e){ return ''; }
+  }
+  function isEntryFailure(x){
+    return /Failed to fetch dynamically imported module|virtual:tanstack-start-client-entry|vite:preloadError|Importing a module script failed|error loading dynamically imported module|ChunkLoadError|Loading chunk/i.test(String(txt(x)));
+  }
+  function log(name, payload){
+    try {
+      var item = { event: name, at: new Date().toISOString(), path: location.pathname, payload: payload || {} };
+      var arr = JSON.parse(localStorage.getItem('fom_startup_diagnostics') || '[]');
+      if (!Array.isArray(arr)) arr = [];
+      arr.push(item);
+      localStorage.setItem('fom_startup_diagnostics', JSON.stringify(arr.slice(-80)));
+    } catch(e) {}
+    try { console.warn('[startup-diagnostics]', name, payload || {}); } catch(e) {}
+  }
+  function renderFallback(reason){
+    function commit(){
+      try {
+        var body = document.body;
+        if (!body) {
+          body = document.createElement('body');
+          document.documentElement.appendChild(body);
+        }
+        document.documentElement.classList.remove('dark');
+        body.innerHTML = '<div id="fom-startup-fallback" style="min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:#0a0a0a;color:#f5f5f5;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif"><div style="max-width:22rem;text-align:center"><div style="margin:0 auto 1rem;width:3rem;height:3rem;border-radius:.85rem;display:grid;place-items:center;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);font-size:1.5rem">&#127757;</div><h1 style="font-size:1.15rem;font-weight:600;margin:0 0 .5rem">FoundOurMarket couldn\u2019t finish loading.</h1><p style="font-size:.9rem;color:#a3a3a3;margin:0 0 1.5rem">A required app file was blocked or failed. Auto-reload is disabled, so this screen will stay stable.</p><button id="fom-retry" style="appearance:none;border:none;cursor:pointer;border-radius:9999px;padding:.75rem 1.75rem;font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#0a0a0a;background:#f59e0b">Reload manually</button></div></div>';
+        var b = document.getElementById('fom-retry');
+        if (b) b.onclick = function(){ location.reload(); };
+      } catch(e) {
+        try { setTimeout(commit, 0); } catch(x) {}
+      }
+    }
+    if (document.body) commit();
+    else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', commit, { once: true });
+    else commit();
+  }
+  function showFatal(reason){
+    if (fallbackShown && document.getElementById('fom-startup-fallback')) return;
+    fallbackShown = true;
+    log('startup-fallback-shown', { reason: txt(reason) });
+    renderFallback(reason);
+  }
+  window.__fomRecover = function(reason){ log('auto-reload-blocked', { reason: txt(reason) }); showFatal(reason); };
+  window.__fomShowStartupError = showFatal;
+  window.__fomBootOk = function(){ log('boot-ok'); };
+  window.addEventListener('vite:preloadError', function(e){ try { e.preventDefault(); } catch(x) {} window.__fomRecover(e && e.payload || e); });
+  window.addEventListener('unhandledrejection', function(e){ if (isEntryFailure(e.reason)) { try { e.preventDefault(); } catch(x) {} window.__fomRecover(e.reason); } });
+  window.addEventListener('error', function(e){ var t = e && e.target; var src = t && (t.src || t.href) || ''; if (isEntryFailure(e && e.message) || isEntryFailure(src)) window.__fomRecover(e && e.message || src); }, true);
+})();`;
+
 // Non-critical client-only shell: deferred out of the entry bundle so the
 // homepage/product/search first paint never pays for admin tooling, the live
 // chat widget, the compare tray, or the install prompt. These mount after
