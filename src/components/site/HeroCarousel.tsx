@@ -20,13 +20,11 @@ const ROTATE_MS = 3000;
 // Apple/Stripe-style premium easing for the showcase crossfade.
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-// Scattered depth slots for the blurred background products. Sizes/positions in px
-// are chosen so they peek around — never behind/covering — the centered main card.
-const BG_SLOTS = [
-  { key: "tl", size: 150, x: -250, y: -150, rot: -11, blur: 16, opacity: 0.22, glow: true },
-  { key: "tr", size: 130, x: 130, y: -160, rot: 9, blur: 18, opacity: 0.18, glow: false },
-  { key: "bl", size: 120, x: -210, y: 50, rot: 7, blur: 18, opacity: 0.18, glow: false },
-  { key: "br", size: 160, x: 110, y: 40, rot: 12, blur: 16, opacity: 0.22, glow: true },
+// Side (prev/next) slots: large blurred neighbor products peeking from the
+// left and right edges, scaled back and pushed behind the centered card.
+const SIDE_SLOTS = [
+  { key: "prev", dir: -1, x: -190, rot: -6 },
+  { key: "next", dir: 1, x: 190, rot: 6 },
 ] as const;
 
 /**
@@ -130,39 +128,33 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
             style={{ background: `radial-gradient(circle, ${ambient}, transparent 70%)`, transition: "background 800ms ease" }}
           />
 
-          {/* ── BACKGROUND: blurred real product images for depth ── */}
+          {/* ── BACKGROUND: prev/next blurred neighbor products (depth) ── */}
           {!lowEnd && items.length > 1 && (
             <div aria-hidden className="pointer-events-none absolute inset-0 z-[1]">
-              {BG_SLOTS.map((slot, s) => {
-                // Pick a real product that isn't the current center, cycling with index.
-                const offset = ((index + s + 1) % items.length);
+              {SIDE_SLOTS.map((slot) => {
+                const offset = (index + slot.dir + items.length) % items.length;
                 const bg = items[offset];
                 if (!bg?.image || bg.id === current?.id) return null;
                 return (
                   <div
                     key={`${slot.key}-${bg.id}`}
-                    className="absolute left-1/2 top-1/2 overflow-hidden rounded-[22px] animate-fade-in"
+                    className="absolute left-1/2 top-1/2 size-[230px] sm:size-[290px] overflow-hidden rounded-[26px] glass-strong ring-1 ring-white/10"
                     style={{
-                      width: slot.size,
-                      height: slot.size,
-                      marginLeft: slot.x,
-                      marginTop: slot.y,
-                      transform: `rotate(${slot.rot}deg)`,
-                      opacity: slot.opacity,
-                      filter: `blur(${slot.blur}px)`,
+                      marginLeft: -115,
+                      marginTop: -115,
+                      transform: `translate3d(${slot.x}px, 0, 0) scale(0.78) rotate(${slot.rot}deg)`,
+                      opacity: 0.3,
+                      filter: "blur(12px)",
                       transition: `transform 800ms ${EASE}, opacity 800ms ${EASE}, filter 800ms ${EASE}`,
                       willChange: "transform, opacity, filter",
                     }}
                   >
-                    {slot.glow && (
-                      <div className="absolute inset-0 rounded-[22px]" style={{ background: "radial-gradient(circle at 50% 40%, oklch(0.74 0.19 49 / 0.35), transparent 70%)" }} />
-                    )}
                     <ProductImage
                       src={bg.image}
                       alt=""
                       width={300}
                       height={300}
-                      className="block size-full object-contain object-center p-[10%]"
+                      className="block size-full object-contain object-center p-[12%]"
                     />
                   </div>
                 );
