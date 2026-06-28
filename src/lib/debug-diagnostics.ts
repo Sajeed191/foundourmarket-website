@@ -130,9 +130,14 @@ function readGpu() {
       d.glContextLost += 1;
       notify();
     });
+    canvas.addEventListener("webglcontextrestored", () => {
+      d.glContextRestored += 1;
+      notify();
+    });
   } catch {
     d.canvasFailures += 1;
   }
+
 }
 
 const LAYER_PROPS = [
