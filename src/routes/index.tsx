@@ -500,22 +500,7 @@ function Home() {
   const trendingChips = ["Wireless earbuds", "Smart watch", "Linen shirt", "Ceramic mug", "Air fryer"];
 
 
-  // Constrained devices get the lightweight static homepage. All data hooks
-  // above have already run, so this early return keeps hook order stable while
-  // swapping only the presentation. Business logic, search, cart and wishlist
-  // (via ProductCard) remain identical.
-  if (lightweight) {
-    return (
-      <LightHome
-        categories={homeCategories}
-        categoryCounts={categoryCounts}
-        trending={trending}
-        newArrivals={newArrivals}
-        bestSellers={bestSellers}
-        productsLoading={productsLoading}
-      />
-    );
-  }
+
 
   return (
     <>
