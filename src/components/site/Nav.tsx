@@ -229,11 +229,11 @@ export function Nav() {
             <MegaMenu />
 
             {/* Zone 3 — Search • Notifications • Cart */}
-            <div className="shrink-0 ml-auto flex items-center gap-0.5 sm:gap-1">
+            <div className="shrink-0 ml-auto flex items-center gap-0.5 sm:gap-1.5">
               <button
                 onClick={() => setSearchOpen(true)}
                 aria-label="Search"
-                className="size-10 sm:size-11 rounded-xl grid place-items-center text-muted-foreground hover:text-foreground hover:bg-white/5 active:bg-accent/10 active:text-accent active:scale-95 transition-all duration-200"
+                className="size-10 sm:size-11 rounded-xl grid place-items-center text-muted-foreground hover:text-accent hover:bg-accent/10 hover:shadow-[0_0_18px_-6px_var(--color-accent)] active:bg-accent/15 active:text-accent active:scale-90 transition-all duration-200"
               >
                 <Search className="size-[18px]" />
               </button>
@@ -245,15 +245,16 @@ export function Nav() {
               <Link
                 to="/wishlist"
                 aria-label="Wishlist"
-                className="relative hidden sm:grid size-10 sm:size-11 rounded-xl place-items-center text-muted-foreground hover:text-foreground hover:bg-white/5 active:bg-accent/10 active:text-accent active:scale-95 transition-all duration-200"
+                className="relative hidden sm:grid size-10 sm:size-11 rounded-xl place-items-center text-muted-foreground hover:text-accent hover:bg-accent/10 hover:shadow-[0_0_18px_-6px_var(--color-accent)] active:bg-accent/15 active:text-accent active:scale-90 transition-all duration-200"
               >
                 <Heart className="size-[18px]" />
                 {wishSlugs.size > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono grid place-items-center">
-                    {wishSlugs.size}
+                  <span key={wishSlugs.size} className="absolute top-1 right-1 grid size-4 place-items-center rounded-full bg-accent text-accent-foreground text-[9px] font-bold font-mono leading-none ring-2 ring-background shadow-[0_2px_6px_-1px_oklch(0.74_0.19_49/0.7)] animate-scale-in">
+                    {wishSlugs.size > 9 ? "9+" : wishSlugs.size}
                   </span>
                 )}
               </Link>
+
 
               {isAdmin && (
                 <Link
