@@ -271,6 +271,20 @@ function SearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.q, search.cat, search.min, search.max, search.rating, sort]);
 
+  // "Did you mean…?" — fetch the closest matching term when a query returns
+  // no (or very few) results, so shoppers can recover from typos quickly.
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+  useEffect(() => {
+    const q = (search.q ?? "").trim();
+    if (!q || loading || rawRows.length > 2) { setSuggestion(null); return; }
+    let cancelled = false;
+    (supabase.rpc as any)("suggest_search_term", { q }).then(({ data }: { data: string | null }) => {
+      if (cancelled) return;
+      setSuggestion(data && data.toLowerCase() !== q.toLowerCase() ? data : null);
+    });
+    return () => { cancelled = true; };
+  }, [search.q, loading, rawRows.length]);
+
   // Load the next page and append (deduped by slug) — preserves filters/sorting.
   function loadMore() {
     if (loading || loadingMore || !hasMore) return;
