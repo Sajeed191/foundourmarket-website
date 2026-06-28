@@ -455,16 +455,8 @@ function Home() {
           <p>A premium independent marketplace, sourcing top-quality products from across the world.</p>
         </div>
 
-        {(() => {
-          const chips = [
-            { label: "Free Shipping" },
-            { label: "Secure Payments" },
-            { label: "Easy Returns" },
-            { label: "Trusted Sellers" },
-            { label: "24/7 Support" },
-          ];
-          return (
         <HeroCarousel
+
           featured={featured}
           trending={trending}
           bestSellers={bestSellers}
