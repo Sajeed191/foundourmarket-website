@@ -49,15 +49,29 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemePreference>(() => readStoredPreference());
-  const [effectiveTheme, setEffectiveTheme] = useState<EffectiveTheme>(() => resolveTheme(theme));
+  // Initialise with SSR-stable defaults so the server render and the FIRST
+  // client render produce identical markup (no hydration mismatch). The stored
+  // preference is read in a mount effect below — the no-FOUC inline script in
+  // __root.tsx has already applied the correct data-theme for CSS before paint,
+  // so colours are right immediately; React state catches up post-hydration.
+  const [theme, setThemeState] = useState<ThemePreference>("system");
+  const [effectiveTheme, setEffectiveTheme] = useState<EffectiveTheme>("dark");
+  const [hydrated, setHydrated] = useState(false);
 
-  // Apply the resolved theme whenever the preference changes.
+  // After hydration, adopt the user's stored preference (reads localStorage).
   useEffect(() => {
+    const stored = readStoredPreference();
+    setHydrated(true);
+    setThemeState(stored);
+  }, []);
+
+  // Apply the resolved theme whenever the preference changes (post-hydration).
+  useEffect(() => {
+    if (!hydrated) return;
     const effective = resolveTheme(theme);
     setEffectiveTheme(effective);
     applyTheme(effective);
-  }, [theme]);
+  }, [theme, hydrated]);
 
   // When in "system" mode, react live to OS theme changes.
   useEffect(() => {
