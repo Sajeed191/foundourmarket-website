@@ -444,7 +444,7 @@ function Home() {
         </div>
 
         {(() => {
-          const collage = (trending.length ? trending : bestsellers).slice(0, 4);
+          const collage = (trending.length ? trending : bestSellers).slice(0, 4);
           const chips = [
             { icon: Truck, label: "Free Shipping" },
             { icon: Zap, label: "Flash Deals" },
