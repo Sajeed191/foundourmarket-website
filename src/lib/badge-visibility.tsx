@@ -211,12 +211,16 @@ export function computeContextBadges(
   const { settings } = engine;
   const all = computeBadges(product, settings, 99);
   const flashActive = engine.activeFlashSlugs.has(product.slug);
+  // The single Flash/Hot badge this product is allowed to show (already balanced
+  // at selection time). Only set for products in the active rotation.
+  const chosenFlash = engine.flashBadgeBySlug.get(product.slug) ?? null;
   const max = settings.maxBadges;
 
   switch (context) {
     case "flash":
-      // Flash section only ever renders actively-selected deals.
-      return all.filter((b) => isFlashKey(b.key)).slice(0, MAX_VISIBLE_BADGES);
+      // Flash section only ever renders the one balanced badge per selected deal.
+      if (chosenFlash) return [singleBadge(chosenFlash)];
+      return all.filter((b) => isFlashKey(b.key)).slice(0, 1);
     case "bestseller":
       return all.filter((b) => b.key === "bestseller").slice(0, 1);
     case "trending":
@@ -229,8 +233,10 @@ export function computeContextBadges(
     }
     default: {
       // category, search, recently_viewed, related, product_page, default:
-      // hide Flash/Hot unless this product is in the active rotation.
-      const pool = all.filter((b) => !isFlashKey(b.key) || flashActive);
+      // hide Flash/Hot entirely unless this product is in the active rotation,
+      // and then only the single balanced badge.
+      const nonFlash = all.filter((b) => !isFlashKey(b.key));
+      const pool = flashActive && chosenFlash ? [singleBadge(chosenFlash), ...nonFlash] : nonFlash;
       return capWithRotation(product, pool, engine.daySeed, max);
     }
   }
