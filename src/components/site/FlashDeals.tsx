@@ -91,12 +91,6 @@ function FallbackSection({ featured }: { featured: Product[] }) {
   );
 }
 
-type FlashItem = {
-  product: Product;
-  dealId: string;
-  flashPrice?: number | null;
-  endAt?: string | null;
-};
 
 function FlashCard({ item, now }: { item: FlashItem; now: number }) {
   const p = item.product;
