@@ -185,6 +185,9 @@ export function DebugPanel() {
               lineHeight: 1.5,
             }}
           >
+            <Row k="Device model" v={diag.deviceModel} />
+            <Row k="Android" v={diag.androidVersion} />
+            <Row k="Chrome" v={diag.chromeVersion} />
             <Row k="GPU" v={diag.gpuRenderer} />
             <Row k="GPU vendor" v={diag.gpuVendor} />
             <Row k="WebGL" v={diag.webglSupported ? "yes" : "NO"} />
@@ -194,15 +197,23 @@ export function DebugPanel() {
               k="JS heap"
               v={diag.jsHeapUsedMb != null ? `${diag.jsHeapUsedMb}/${diag.jsHeapLimitMb}MB` : "n/a"}
             />
+            <Row k="DOM nodes" v={String(diag.domNodeCount)} />
+            <Row k="Product cards" v={String(diag.productCardCount)} />
+            <Row k="Images" v={`${diag.decodedImageCount}/${diag.imageCount} decoded`} />
             <Row k="Compositor layers" v={String(diag.compositorLayers)} />
+            <Row k="Paint entries" v={String(diag.paintCount)} />
+            <Row k="Layout shifts" v={String(diag.layoutShiftCount)} />
             <Row k="FPS" v={String(diag.fps)} />
             <Row k="Long tasks" v={`${diag.longTasks} (max ${Math.round(diag.longTaskMaxMs)}ms)`} />
             <Row k="Img decode fails" v={String(diag.imageDecodeFailures)} />
+            <Row k="createImageBitmap fails" v={String(diag.createImageBitmapFailures)} />
             <Row k="Canvas fails" v={String(diag.canvasFailures)} />
             <Row k="GL context lost" v={String(diag.glContextLost)} />
+            <Row k="GL context restored" v={String(diag.glContextRestored)} />
             <Row k="React remounts" v={String(diag.reactRemounts)} />
             <Row k="Unexpected rerenders" v={String(diag.unexpectedRerenders)} />
             <Row k="Hydration mismatch" v={String(diag.hydrationMismatches)} />
+
           </div>
         </div>
       )}
