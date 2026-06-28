@@ -44,6 +44,18 @@ const PLACEHOLDERS = [
   "Explore 'smart watch'...",
 ];
 
+const POPULAR_SEARCHES = [
+  "Wireless headphones",
+  "Smart watch",
+  "Linen shirt",
+  "Ceramic mug",
+  "Running shoes",
+  "Sunglasses",
+  "Backpack",
+  "Skincare set",
+];
+
+
 function useRotatingPlaceholder(active: boolean) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
