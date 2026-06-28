@@ -3,7 +3,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 
 import {
   Search, ArrowRight, Star, Sparkles, Award, Package, Globe2, Flame,
-  BadgeCheck, Pencil, Truck, ShieldCheck, TrendingUp,
+  BadgeCheck, Pencil, Truck, ShieldCheck, TrendingUp, Zap, Gift,
   Sofa, UtensilsCrossed, Gamepad2, Cpu, ToyBrick, PawPrint, Car, Shirt, Dumbbell,
   Watch, Headphones, Gem, Baby, Wrench, BookOpen,
 } from "lucide-react";
@@ -437,234 +437,165 @@ function Home() {
       <AnnouncementBar />
 
       {/* 2 · Cinematic Hero */}
-      <section className="relative pt-3 sm:pt-7 md:pt-9 lg:pt-12 pb-3 sm:pb-6 md:pb-8 lg:pb-12 px-4 sm:px-6 lg:px-10 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
-        {/* Layered ambient mesh + orbs */}
-        <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="orb animate-orb" style={{ width: 520, height: 520, top: "8%", left: "55%", background: "var(--gradient-ember)" }} />
-          <div className="orb animate-orb" style={{ width: 460, height: 460, top: "28%", left: "8%", background: "var(--gradient-violet)", animationDelay: "-7s" }} />
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage:
-                "linear-gradient(oklch(1 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.6) 1px, transparent 1px)",
-              backgroundSize: "64px 64px",
-              maskImage: "radial-gradient(ellipse at center, black 30%, transparent 70%)",
-            }}
-          />
-          {/* Desktop-only cinematic ambient depth */}
-          <div
-            className="hidden lg:block absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(60% 50% at 78% 35%, oklch(0.74 0.19 49 / 0.10), transparent 70%), radial-gradient(50% 50% at 12% 70%, oklch(0.74 0.19 49 / 0.06), transparent 70%)",
-            }}
-          />
-          <div
-            className="hidden lg:block absolute inset-0 opacity-[0.025] mix-blend-soft-light"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-            }}
-          />
+      <section className="relative px-3 sm:px-6 lg:px-10 pt-3 sm:pt-6 lg:pt-8 pb-2 sm:pb-4 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
+        <div className="sr-only">
+          <h1>FoundOurMarket™ — Global Marketplace, Whatever You Need, All In One Place.</h1>
+          <p>A premium independent marketplace, sourcing top-quality products from across the world.</p>
         </div>
 
+        {(() => {
+          const collage = (trending.length ? trending : bestSellers).slice(0, 4);
+          const chips = [
+            { icon: Truck, label: "Free Shipping" },
+            { icon: Zap, label: "Flash Deals" },
+            { icon: ShieldCheck, label: "Secure Payments" },
+            { icon: Star, label: "Trusted Sellers" },
+            { icon: Gift, label: "Daily Offers" },
+          ];
+          return (
+        <div
+          className="hero-rise relative mx-auto max-w-[1480px] overflow-hidden rounded-[28px] ring-1 ring-white/10 min-h-[300px] sm:min-h-[340px] lg:min-h-[480px]"
+          style={{ background: "linear-gradient(135deg, oklch(0.16 0.01 60) 0%, oklch(0.11 0.008 50) 45%, oklch(0.08 0.005 40) 100%)" }}
+        >
+          {/* ── Ambient lighting & atmosphere ── */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
+            {/* orange ambient glow */}
+            <div className="absolute -top-1/4 right-[6%] size-[420px] rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.30), transparent 70%)" }} />
+            <div className="absolute -bottom-1/3 -left-[8%] size-[380px] rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.18), transparent 70%)" }} />
+            {/* subtle grid */}
+            <div
+              className="absolute inset-0 opacity-[0.05]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(oklch(1 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.6) 1px, transparent 1px)",
+                backgroundSize: "56px 56px",
+                maskImage: "radial-gradient(ellipse at 70% 30%, black 10%, transparent 75%)",
+              }}
+            />
+            {/* top sheen */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+            {/* floating particles */}
+            {[
+              { top: "16%", left: "20%", d: "-0.5s" },
+              { top: "28%", left: "84%", d: "-2.2s" },
+              { top: "70%", left: "30%", d: "-3.4s" },
+              { top: "78%", left: "70%", d: "-1.4s" },
+              { top: "44%", left: "92%", d: "-4.1s" },
+            ].map((p, i) => (
+              <span key={i} className="absolute size-1 rounded-full bg-accent/40 blur-[1px] animate-float-soft" style={{ top: p.top, left: p.left, animationDelay: p.d }} />
+            ))}
+          </div>
 
-        <div className="max-w-5xl lg:max-w-[1480px] mx-auto relative z-10 lg:grid lg:grid-cols-[1fr_minmax(0,1.05fr)] lg:gap-20 xl:gap-24 lg:items-start text-center lg:text-left">
-          {/* LEFT — headline, search, CTAs, stats */}
-          <div className="lg:max-w-[640px]">
-
-            <h1
-              className="hero-rise-h1 text-fluid-hero lg:text-[clamp(3rem,1vw+3rem,4.5rem)] lg:leading-[1.02] lg:tracking-[-0.03em] font-display font-semibold tracking-tight text-balance mb-5 sm:mb-7"
-            >
-              <span className="sr-only">FoundOurMarket™ — Global Marketplace, Whatever You Need, All In One Place. </span>
-              <span aria-hidden="true">Whatever you need.</span>
-              <br />
-              <span className="text-gradient-ember">All in one place.</span>
-            </h1>
-            <p className="sr-only">
-              FoundOurMarket™ — Global Marketplace – Whatever You Need, All In One Place.
-            </p>
-
-            <p
-              className="hero-rise hero-rise-1 text-fluid-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-balance mb-7 sm:mb-9 px-2 lg:px-0"
-            >
-              A premium independent marketplace, sourcing top-quality products from across the world — delivered with cinematic precision.
-            </p>
-
-            {/* Search — primary action, premium glass, flagship desktop height */}
-            <form
-              className="hero-rise hero-rise-2 max-w-2xl mx-auto lg:mx-0 relative group"
-              onSubmit={(e) => { e.preventDefault(); nav({ to: "/search", search: { q: query } }); }}
-            >
-              <div className={`relative glass-strong rounded-full ring-1 transition-all duration-300 lg:shadow-[inset_0_1px_0_oklch(1_0_0/0.06)] ${searchFocused ? "ring-accent/35 lg:shadow-[0_0_0_3px_oklch(0.74_0.19_49/0.08),var(--shadow-float)]" : "ring-white/10 lg:shadow-[var(--shadow-float)]"}`}>
-                <Search className={`absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 size-5 transition-colors ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                  placeholder={rotatingPlaceholder}
-                  aria-label="Search products"
-                  className="w-full min-h-[56px] lg:min-h-[64px] bg-transparent rounded-full pl-12 sm:pl-14 pr-28 sm:pr-36 py-4 text-base sm:text-lg focus:outline-none placeholder:text-muted-foreground/60"
-                />
-                <button type="submit" className="absolute right-1.5 sm:right-2 lg:right-2.5 top-1/2 -translate-y-1/2 bg-accent text-accent-foreground font-semibold px-5 sm:px-7 py-3 lg:py-3.5 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-[var(--shadow-ember)]">
-                  Search
-                </button>
+          <div className="relative z-10 grid gap-6 p-5 sm:p-8 lg:grid-cols-2 lg:gap-10 lg:p-12">
+            {/* ── TEXT — headline + CTAs ── */}
+            <div className="order-1 lg:col-start-1 lg:row-start-1 self-center text-center lg:text-left">
+              <span className="inline-flex items-center gap-1.5 rounded-full glass-strong ring-1 ring-accent/30 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-foreground">
+                <Sparkles className="size-3 text-accent" /> Global Marketplace
+              </span>
+              <h2 className="mt-4 font-display font-semibold tracking-tight text-balance text-[clamp(1.85rem,7vw,2.6rem)] lg:text-[clamp(2.6rem,3vw,3.6rem)] leading-[1.04]">
+                Everything you love.
+                <br />
+                <span className="text-gradient-ember">One marketplace.</span>
+              </h2>
+              <p className="mx-auto lg:mx-0 mt-3 max-w-md text-sm sm:text-base text-muted-foreground text-balance">
+                Curated premium products from trusted sellers worldwide — delivered with cinematic precision.
+              </p>
+              <div className="mt-5 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                <Link
+                  to="/categories"
+                  className="inline-flex items-center justify-center gap-2 h-12 lg:h-14 px-7 lg:px-9 rounded-full bg-accent text-accent-foreground text-xs lg:text-[13px] font-semibold uppercase tracking-widest transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 active:scale-[0.98] shadow-[var(--shadow-ember)] lg:shadow-[0_0_40px_-6px_oklch(0.74_0.19_49/0.6),var(--shadow-ember)]"
+                >
+                  Shop Now <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  to="/categories"
+                  className="inline-flex items-center justify-center gap-2 h-12 lg:h-14 px-7 lg:px-9 rounded-full glass-strong ring-1 ring-white/15 text-xs lg:text-[13px] font-semibold uppercase tracking-widest transition-all duration-200 hover:ring-accent/40 hover:-translate-y-0.5 hover:text-foreground active:scale-[0.98]"
+                >
+                  Explore Categories
+                </Link>
               </div>
-              {/* Trending chips — desktop only */}
-              <div className="hidden lg:flex flex-wrap items-center gap-2 mt-4">
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/70 mr-1">Trending</span>
-                {trendingChips.map((c) => (
-                  <Link
-                    key={c}
-                    to="/search"
-                    search={{ q: c }}
-                    className="rounded-full glass px-3.5 py-1.5 text-xs text-muted-foreground ring-1 ring-white/10 hover:text-foreground hover:ring-accent/40 transition-all"
-                  >
-                    {c}
-                  </Link>
+            </div>
+
+            {/* ── COLLAGE — floating featured products ── */}
+            <div aria-hidden className="order-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 relative min-h-[200px] sm:min-h-[240px] lg:min-h-[400px]">
+              {/* soft radial halo behind products */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[260px] lg:size-[360px] rounded-full blur-3xl opacity-60" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.22), transparent 70%)" }} />
+              {collage.length > 0 ? (
+                <div className="relative mx-auto h-full w-full max-w-[420px]">
+                  {collage.map((p, i) => {
+                    const pos = [
+                      "left-[6%] top-[8%] w-[44%] rotate-[-5deg] animate-float-soft",
+                      "right-[4%] top-[2%] w-[40%] rotate-[4deg] animate-float",
+                      "left-[14%] bottom-[6%] w-[40%] rotate-[3deg] animate-float",
+                      "right-[8%] bottom-[10%] w-[46%] rotate-[-3deg] animate-float-soft",
+                    ][i];
+                    const delay = ["-0.5s", "-2.5s", "-1.5s", "-3.5s"][i];
+                    return (
+                      <div
+                        key={p.slug}
+                        className={`absolute ${pos} overflow-hidden rounded-2xl glass-strong ring-1 ring-white/12 shadow-[var(--shadow-float),0_0_60px_-20px_oklch(0.74_0.19_49/0.6)]`}
+                        style={{ animationDelay: delay }}
+                      >
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                        <div className="aspect-square bg-white/95 p-1.5">
+                          <img
+                            src={p.image}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            className="size-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="relative mx-auto h-full w-full max-w-[360px]">
+                  <div className="overflow-hidden rounded-[2rem] glass-strong ring-1 ring-white/12 shadow-[var(--shadow-float)]">
+                    <img src={heroProductImg} alt="" loading="lazy" className="aspect-[4/5] size-full object-cover" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ── SEARCH + CHIPS ── */}
+            <div className="order-3 lg:col-start-1 lg:row-start-2 self-start">
+              <form
+                className="relative mx-auto lg:mx-0 max-w-2xl"
+                onSubmit={(e) => { e.preventDefault(); nav({ to: "/search", search: { q: query } }); }}
+              >
+                <div className={`relative glass-strong rounded-full ring-1 transition-all duration-200 ${searchFocused ? "ring-accent/35 shadow-[0_0_0_3px_oklch(0.74_0.19_49/0.08),var(--shadow-float)]" : "ring-white/12 shadow-[var(--shadow-float)]"}`}>
+                  <Search className={`absolute left-5 top-1/2 -translate-y-1/2 size-5 transition-colors ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    placeholder={rotatingPlaceholder}
+                    aria-label="Search products"
+                    className="w-full min-h-[56px] bg-transparent rounded-full pl-12 pr-28 sm:pr-32 py-4 text-base focus:outline-none placeholder:text-muted-foreground/60"
+                  />
+                  <button type="submit" className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 font-semibold px-5 sm:px-6 py-3 rounded-full text-xs uppercase tracking-widest text-accent-foreground transition-all duration-200 hover:brightness-110 shadow-[var(--shadow-ember)]" style={{ background: "var(--gradient-ember)" }}>
+                    Search
+                  </button>
+                </div>
+              </form>
+              {/* Promotional chips */}
+              <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                {chips.map((c) => (
+                  <span key={c.label} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-[11px] font-medium text-muted-foreground ring-1 ring-white/10">
+                    <c.icon className="size-3.5 text-accent" /> {c.label}
+                  </span>
                 ))}
               </div>
-            </form>
-
-            {/* Primary hero CTAs */}
-            <div
-              className="hero-rise hero-rise-3 mt-5 sm:mt-7 lg:mt-9 flex flex-wrap items-center justify-center lg:justify-start gap-3"
-            >
-              <Link
-                to="/categories"
-                className="inline-flex items-center justify-center gap-2 h-12 lg:h-14 px-7 lg:px-9 rounded-full bg-accent text-accent-foreground text-xs lg:text-[13px] font-semibold uppercase tracking-widest hover:brightness-110 hover:-translate-y-0.5 active:scale-[0.98] transition-all shadow-[var(--shadow-ember)] lg:shadow-[0_0_40px_-6px_oklch(0.74_0.19_49/0.6),var(--shadow-ember)]"
-              >
-                Shop Now <ArrowRight className="hidden lg:block size-4" />
-              </Link>
-              <Link
-                to="/categories"
-                className="inline-flex items-center justify-center gap-2 h-12 lg:h-14 px-7 lg:px-9 rounded-full glass-strong ring-1 ring-white/15 text-xs lg:text-[13px] font-semibold uppercase tracking-widest hover:ring-accent/40 hover:-translate-y-0.5 hover:text-foreground active:scale-[0.98] transition-all"
-              >
-                Browse Categories
-              </Link>
-            </div>
-
-            {/* Trust pillars — honest value props, no fabricated statistics */}
-            <div
-              className="hero-rise hero-rise-4 mt-6 sm:mt-9 lg:mt-12 grid grid-cols-3 gap-2.5 sm:gap-4 max-w-3xl mx-auto lg:mx-0 lg:max-w-none"
-            >
-              {[
-                { value: "Global", label: "Shipping", hint: "Worldwide delivery" },
-                { value: "Secure", label: "Checkout", hint: "256-bit encrypted" },
-                { value: "Easy", label: "Returns", hint: "Hassle-free process" },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="glass-strong rounded-2xl px-3 sm:px-6 py-4 sm:py-6 lg:py-7 text-left transition-all duration-300 lg:hover:-translate-y-1 lg:hover:ring-1 lg:hover:ring-accent/30 lg:hover:shadow-[0_18px_50px_-18px_oklch(0.74_0.19_49/0.4)]"
-                >
-                  <div className="text-2xl sm:text-4xl font-display font-semibold tracking-tight text-gradient-ember">{s.value}</div>
-                  <div className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-muted-foreground mt-1.5">{s.label}</div>
-                  <div className="hidden sm:block text-[10px] text-muted-foreground/60 mt-0.5">{s.hint}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* RIGHT — cinematic featured showcase (desktop only) */}
-          <div aria-hidden className="hidden lg:block relative h-[580px] xl:h-[640px] lg:mt-6">
-            {/* ambient cinematic depth */}
-            <div className="absolute inset-0 -z-10">
-              <div className="orb animate-orb" style={{ width: 600, height: 600, top: "2%", left: "12%", background: "var(--gradient-ember)" }} />
-              <div
-                className="absolute inset-0"
-                style={{ background: "radial-gradient(46% 40% at 58% 44%, oklch(0.74 0.19 49 / 0.16), transparent 72%)" }}
-              />
-              {/* layered blurred glow bloom behind product */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[380px] rounded-full blur-3xl opacity-60" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.22), transparent 70%)" }} />
-            </div>
-
-            {/* extremely subtle floating particles */}
-            <div className="pointer-events-none absolute inset-0 -z-[5]">
-              {[
-                { top: "12%", left: "22%", d: "-0.5s" },
-                { top: "30%", left: "82%", d: "-2.2s" },
-                { top: "68%", left: "16%", d: "-3.4s" },
-                { top: "80%", left: "74%", d: "-1.4s" },
-                { top: "48%", left: "92%", d: "-4.1s" },
-              ].map((p, i) => (
-                <span key={i} className="absolute size-1 rounded-full bg-accent/40 blur-[1px] animate-float-soft" style={{ top: p.top, left: p.left, animationDelay: p.d }} />
-              ))}
-            </div>
-
-            {/* ONE large featured hero product card */}
-            <div className="absolute left-1/2 top-1/2 z-10 w-[80%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 animate-float-soft">
-              <div className="group relative overflow-hidden rounded-[2rem] glass-strong ring-1 ring-white/12 shadow-[var(--shadow-float),0_0_100px_-24px_oklch(0.74_0.19_49/0.6)]">
-                {/* soft top sheen */}
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-                <div className="relative aspect-[4/5] overflow-hidden">
-                  <img
-                    src={heroProductImg}
-                    alt=""
-                    loading="lazy"
-                    width={832}
-                    height={1024}
-                    className="size-full object-cover [transition:transform_1100ms_cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-                  {/* edge glow ring */}
-                  <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-accent/15" />
-                  {/* featured tag */}
-                  <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full glass-strong ring-1 ring-accent/30 px-3 py-1.5">
-                    <Sparkles className="size-3.5 text-accent" />
-                    <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-foreground">Featured</span>
-                  </div>
-                  {/* product info */}
-                  <div className="absolute inset-x-0 bottom-0 p-6">
-                    <p className="text-lg font-display font-semibold tracking-tight text-foreground line-clamp-2">
-                      Pro Wireless Headphones
-                    </p>
-                    <div className="mt-2 flex items-center gap-3">
-                      <span className="inline-flex items-center gap-1 text-[12px] text-accent">
-                        <Star className="size-3.5 fill-accent" /> 4.9
-                      </span>
-                      <span className="text-[12px] text-muted-foreground">Curated worldwide</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* floating premium UI cards — art-directed composition */}
-            {/* TOP CENTER — live orders */}
-            <div className="absolute z-20 top-1 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 rounded-full glass-strong ring-1 ring-white/12 px-4 py-2 shadow-[var(--shadow-float)] animate-float" style={{ animationDelay: "-3.5s" }}>
-              <span className="size-1.5 rounded-full bg-accent animate-glow" />
-              <span className="text-[11px] font-mono uppercase tracking-[0.16em] text-muted-foreground">142 live orders</span>
-            </div>
-
-            {/* TOP RIGHT — countries */}
-            <div className="absolute z-20 top-12 right-0 animate-float-soft" style={{ animationDelay: "-1s" }}>
-              <div className="flex items-center gap-2.5 rounded-2xl glass-strong ring-1 ring-white/12 px-4 py-3 shadow-[var(--shadow-float)]">
-                <span className="grid place-items-center size-9 rounded-xl bg-accent/15 ring-1 ring-accent/25 text-accent"><Globe2 className="size-[18px]" /></span>
-                <span><span className="block text-sm font-semibold text-foreground leading-none">180+</span><span className="block text-[10px] text-muted-foreground mt-1">Countries</span></span>
-              </div>
-            </div>
-
-            {/* LEFT — products count */}
-            <div className="absolute z-20 top-1/2 -translate-y-1/2 left-0 animate-float" style={{ animationDelay: "-2.5s" }}>
-              <div className="flex items-center gap-2.5 rounded-2xl glass-strong ring-1 ring-white/12 px-4 py-3 shadow-[var(--shadow-float)]">
-                <span className="grid place-items-center size-9 rounded-xl bg-accent/15 ring-1 ring-accent/25 text-accent"><Package className="size-[18px]" /></span>
-                <span><span className="block text-sm font-semibold text-foreground leading-none">2.4k+</span><span className="block text-[10px] text-muted-foreground mt-1">Products</span></span>
-              </div>
-            </div>
-
-            {/* BOTTOM RIGHT — trending now */}
-            <div className="absolute z-20 bottom-10 right-0 animate-float-soft" style={{ animationDelay: "-4.5s" }}>
-              <div className="flex items-center gap-2.5 rounded-2xl glass-strong ring-1 ring-accent/30 px-4 py-3 shadow-[0_0_44px_-12px_oklch(0.74_0.19_49/0.55)]">
-                <span className="grid place-items-center size-9 rounded-xl bg-accent/15 ring-1 ring-accent/25 text-accent"><TrendingUp className="size-[18px]" /></span>
-                <span><span className="block text-[12px] font-semibold text-foreground leading-none">Trending Now</span><span className="block text-[10px] text-muted-foreground mt-1">Updated daily</span></span>
-              </div>
             </div>
           </div>
         </div>
+          );
+        })()}
       </section>
-
 
       {/* Trust strip — compact, between hero and categories */}
       <TrustBadgesStrip />
