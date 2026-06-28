@@ -143,7 +143,7 @@ function LightFlashDeals() {
   const { items, loading } = useFlashDeals();
   if (loading || items.length === 0) return null;
   const products = items.slice(0, 6).map((i) => i.product);
-  return <LightProductGrid title="Flash Deals" products={products} viewAllTo="/offers" loading={false} />;
+  return <LightProductGrid title="Flash Deals" products={products} viewAllTo="/deals" loading={false} />;
 }
 
 function LightProductGrid({
