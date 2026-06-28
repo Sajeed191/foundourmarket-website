@@ -95,18 +95,19 @@ function ProductImageImpl({
   // images get an on-the-fly resized srcset so we never download the original.
   const bundled = getResponsiveImage(src);
   const ultraLowEndAndroid = detectUltraLowEndAndroid();
-  const androidGpuSafeMode = detectAndroidGpuSafeMode();
-  const loadingMode = bisectLazyLoading ? (bisectOverrideEnabled ? "eager" : "lazy") : androidGpuSafeMode ? "lazy" : (!ffLazyLoading || priority ? "eager" : "lazy");
-  const decodingMode = bisectAsyncDecoding ? (bisectOverrideEnabled ? "sync" : "async") : androidGpuSafeMode ? "async" : ffImageDecoding ? "async" : "sync";
-  const storage = bundled
+  const androidGpuSafeMode = detectAndroidGpuSafeMode() && !renderSafe;
+  // Diagnostic render=safe: eager load, sync decode, no srcset/sizes, only `src`.
+  const loadingMode = renderSafe ? "eager" : bisectLazyLoading ? (bisectOverrideEnabled ? "eager" : "lazy") : androidGpuSafeMode ? "lazy" : (!ffLazyLoading || priority ? "eager" : "lazy");
+  const decodingMode = renderSafe ? "sync" : bisectAsyncDecoding ? (bisectOverrideEnabled ? "sync" : "async") : androidGpuSafeMode ? "async" : ffImageDecoding ? "async" : "sync";
+  const storage = bundled || renderSafe
     ? null
     : androidGpuSafeMode
       ? getStorageResponsive(src, { widths: [160, 240, 288], fallbackWidth: 288, quality: 52 })
       : ultraLowEndAndroid
         ? getStorageResponsive(src, { widths: [160, 240, 320, 480], fallbackWidth: 320, quality: 54 })
       : getStorageResponsive(src);
-  const srcset = forceSrcsetOff || (androidGpuSafeMode && !forceSrcsetOn) ? undefined : bundled?.srcset ?? storage?.srcset;
-  const resolvedSrc = androidGpuSafeMode ? (storage?.src ?? bundled?.safeSrc ?? src) : (storage?.src ?? src);
+  const srcset = renderSafe ? undefined : forceSrcsetOff || (androidGpuSafeMode && !forceSrcsetOn) ? undefined : bundled?.srcset ?? storage?.srcset;
+  const resolvedSrc = renderSafe ? src : androidGpuSafeMode ? (storage?.src ?? bundled?.safeSrc ?? src) : (storage?.src ?? src);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const activeSrcRef = useRef(resolvedSrc);
 
