@@ -7,7 +7,6 @@ import { useRotationNonce } from "@/lib/use-rotation-nonce";
 import { isFlashDealProduct } from "@/lib/use-flash-deals";
 import {
   flashWindowSeed,
-  orderWindowSeed,
   dayWindowSeed,
   seededShuffle,
   hashString,
