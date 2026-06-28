@@ -308,10 +308,10 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
                   <ProductImage
                     src={p.image}
                     alt={isCenter ? p.name : ""}
-                    width={560}
-                    height={560}
+                    width={640}
+                    height={640}
                     priority={i === 0}
-                    sizes="(min-width: 640px) 232px, 32vw"
+                    sizes="(min-width: 1025px) 480px, (min-width: 768px) 50vw, 60vw"
                     className="relative z-[1] block size-full object-contain object-center p-[7%] transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                   />
                 </Link>
