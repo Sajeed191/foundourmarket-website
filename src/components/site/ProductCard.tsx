@@ -4,7 +4,7 @@ import type { CSSProperties, MouseEvent } from "react";
 import { Heart, Plus, Check, Star, Minus, Eye } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { type BadgeKey } from "@/lib/badges";
-import { useVisibleBadges, type BadgeContext } from "@/lib/badge-visibility";
+import { useVisibleBadges, useBadgeEngine, type BadgeContext } from "@/lib/badge-visibility";
 import { useProductBadges, type RenderBadge } from "@/lib/use-product-badges";
 import { useRegion } from "@/lib/region";
 import { useCartActions, useCartQty } from "@/lib/cart";
