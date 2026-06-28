@@ -41,7 +41,7 @@ export function isFlashDealProduct(p: Product): boolean {
   return tokens.includes("flash-deal") || tokens.includes("flash-deals");
 }
 
-function useNow(intervalMs = 1000) {
+function useNow(intervalMs = 60_000) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), intervalMs);
@@ -136,7 +136,7 @@ export function useFlashDeals() {
     // publicly (no Flash/Hot badge anywhere) until selected.
     const ordered = seededShuffle(active, flashSeed).slice(0, FLASH_VISIBLE_MAX);
 
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && import.meta.env.DEV) {
       // eslint-disable-next-line no-console
       console.info(`[FlashDeals] eligible: ${active.length} | visible this window: ${ordered.length} | excluded unavailable: ${excludedUnavailable} | flagged: ${totalFlagged}`);
       // eslint-disable-next-line no-console
