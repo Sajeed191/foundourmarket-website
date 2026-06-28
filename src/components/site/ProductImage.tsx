@@ -17,6 +17,8 @@ type Props = {
   height?: number;
   style?: CSSProperties;
   onLoad?: () => void;
+  /** When set, logs the full image-loading lifecycle for diagnostics. */
+  debugId?: string;
 };
 
 const TRANSPARENT_PIXEL =
