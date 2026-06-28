@@ -102,7 +102,7 @@
   --product-dock-height: clamp(3.5rem, 9dvh, 4rem);
   --product-dock-gap: 0.625rem;
   --product-dock-bottom: calc(var(--app-bottom-nav-height) + var(--product-dock-gap));
-  --product-page-bottom-clearance: calc(var(--app-bottom-nav-height) + var(--app-cta-height) + var(--product-dock-gap) + 1.5rem);
+  --product-page-bottom-clearance: calc(var(--product-dock-height) + var(--product-dock-gap));
   --floating-bottom-offset: calc(var(--app-bottom-nav-height) + 0.5rem);
   --z-page-content: 1;
   --z-floating-controls: 800;
