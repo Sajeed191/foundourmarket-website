@@ -9,7 +9,7 @@ import { trackFlashDealEvent } from "@/lib/flash-deal-analytics";
 import { useProductAdminEditing } from "@/lib/admin-overlay";
 import { useRegion } from "@/lib/region";
 import { useWishlistActions, useWishlistSaved } from "@/lib/wishlist";
-import { useFlashDeals } from "@/lib/use-flash-deals";
+import { useFlashDeals, type FlashItem } from "@/lib/use-flash-deals";
 import { useHomepageSections, toggleHomepageSection } from "@/lib/use-homepage-sections";
 import type { Product } from "@/lib/products";
 import { singleBadge } from "@/lib/badges";
