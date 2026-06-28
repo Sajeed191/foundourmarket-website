@@ -746,7 +746,7 @@ function Home() {
           <LazyMount minHeight={240}>
             <>
               {/* Mobile: compact swipeable carousel with dots + autorotate */}
-              <TestimonialsCarousel items={testimonials} />
+              {ffCarousels && <TestimonialsCarousel items={testimonials} />}
 
               {/* Desktop: compact grid */}
               <div className="hidden md:grid grid-cols-3 gap-5">
