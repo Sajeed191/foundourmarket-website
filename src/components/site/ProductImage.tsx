@@ -282,7 +282,7 @@ function ProductImageImpl({
       width={width}
       height={height}
       loading={loadingMode}
-      fetchPriority={androidGpuSafeMode ? "low" : priority ? "high" : "low"}
+      fetchPriority={priority ? "high" : "low"}
       decoding={decodingMode}
       data-product-image
       data-android-static-image={androidGpuSafeMode ? "true" : undefined}
