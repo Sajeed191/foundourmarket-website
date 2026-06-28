@@ -531,6 +531,11 @@ function RootComponent() {
   useEffect(() => {
     if (androidGpuSafeMode) return;
     startPerfMonitoring();
+    // Live capability governor: measures real FPS / long tasks and trims only
+    // expensive effects (blur/shadow/3D/particles) if the device can't sustain
+    // smooth rendering — never hides images or hero animations. Runs on every
+    // capable device (incl. 4–6GB Android) so degradation is performance-driven.
+    startCapabilityGovernor();
   }, [androidGpuSafeMode]);
   useEffect(() => {
     if (lowEnd || isAndroid || androidGpuSafeMode) return;
