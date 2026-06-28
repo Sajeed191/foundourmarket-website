@@ -80,6 +80,29 @@ export function HeroCarousel({ featured, trending, bestSellers, newArrivals, chi
   const ambient = `color-mix(in srgb, ${primary} 38%, transparent)`;
   const ambientSoft = `color-mix(in srgb, ${primary} 18%, transparent)`;
 
+  // ── Adaptive performance profile (highest priority) ──
+  // Visible products + effect strength scale with the device tier so low-end
+  // Android phones stay at 60 FPS while high-end devices get the full show.
+  const perf = useMemo(() => {
+    // Cards per side: high 4/3, mid 3/2, low 2/1 (desktop/mobile).
+    const sideByTier: Record<string, [number, number]> = {
+      high: [4, 3],
+      mid: [3, 2],
+      low: [2, 1],
+    };
+    const maxDepth = sideByTier[tier][isMobile ? 1 : 0];
+    // Blur strength per depth index, attenuated for weaker devices.
+    const blurScale = tier === "high" ? 1 : tier === "mid" ? 0.6 : 0.25;
+    return {
+      maxDepth,
+      blurScale,
+      // Heavy glow only on high-end; reduced shadows on mid; none on low.
+      enableGlow: tier === "high",
+      shadowFloat: tier === "low",
+    };
+  }, [tier, isMobile]);
+
+
   return (
     <div className="relative mx-auto max-w-[1280px]">
       {/* ── Dynamic ambient background derived from the product image ── */}
