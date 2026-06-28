@@ -472,12 +472,6 @@ function Home() {
         <div className="max-w-5xl lg:max-w-[1480px] mx-auto relative z-10 lg:grid lg:grid-cols-[1fr_minmax(0,1.05fr)] lg:gap-20 xl:gap-24 lg:items-start text-center lg:text-left">
           {/* LEFT — headline, search, CTAs, stats */}
           <div className="lg:max-w-[640px]">
-            <div
-              className="hero-rise inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full glass text-[11px] font-mono uppercase tracking-[0.2em] text-muted-foreground"
-            >
-              <span className="size-1.5 rounded-full bg-accent animate-glow" />
-              Live · 180+ countries · 2.4k products
-            </div>
 
             <h1
               className="hero-rise-h1 text-fluid-hero lg:text-[clamp(3rem,1vw+3rem,4.5rem)] lg:leading-[1.02] lg:tracking-[-0.03em] font-display font-semibold tracking-tight text-balance mb-5 sm:mb-7"
