@@ -481,8 +481,8 @@ function Home() {
               nav({ to: "/search", search: { q: query } });
             }}
           >
-            <div className={`relative glass-strong rounded-full ring-1 transition-all duration-300 ${searchFocused ? "ring-accent/50 shadow-[0_0_0_4px_oklch(0.74_0.19_49/0.10),0_0_32px_-6px_oklch(0.74_0.19_49/0.50),var(--shadow-float)]" : "ring-white/12 shadow-[var(--shadow-float)]"}`}>
-              <Search className={`absolute left-5 top-1/2 -translate-y-1/2 size-5 transition-colors duration-300 ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
+            <div className={`relative glass-strong rounded-full ring-1 transition-all duration-300 ${searchFocused ? "ring-accent/50 shadow-[0_0_0_4px_oklch(0.74_0.19_49/0.10),0_0_36px_-4px_oklch(0.74_0.19_49/0.55),var(--shadow-float)]" : "ring-white/12 shadow-[var(--shadow-float)]"}`}>
+              <Search className={`absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 size-[22px] sm:size-6 transition-colors duration-300 ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
               <input
                 type="text"
                 value={query}
@@ -491,9 +491,10 @@ function Home() {
                 onBlur={() => setSearchFocused(false)}
                 placeholder={rotatingPlaceholder}
                 aria-label="Search products"
-                className="w-full min-h-[56px] bg-transparent rounded-full pl-12 pr-[124px] py-4 text-base tracking-[-0.01em] focus:outline-none placeholder:text-muted-foreground/55 placeholder:tracking-[-0.01em]"
+                className="w-full h-14 sm:h-16 bg-transparent rounded-full pl-14 sm:pl-16 pr-[120px] sm:pr-[140px] text-base sm:text-[17px] font-medium tracking-[-0.01em] focus:outline-none placeholder:font-medium placeholder:text-muted-foreground/65 placeholder:tracking-[-0.01em]"
               />
               <SearchButton loading={searching} />
+
             </div>
           </form>
         </HeroCarousel>
