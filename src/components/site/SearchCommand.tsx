@@ -70,6 +70,18 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
     [products],
   );
 
+  // Product counts per category (matched by slug or name) for the category cards.
+  const catCount = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of products) {
+      const key = (p.category ?? "").toLowerCase();
+      if (!key) continue;
+      m.set(key, (m.get(key) ?? 0) + 1);
+    }
+    return (c: { slug: string; name: string }) =>
+      m.get(c.slug.toLowerCase()) ?? m.get(c.name.toLowerCase()) ?? 0;
+  }, [products]);
+
   // Derive brand-like groups from recurring leading words in product names.
   const brandsAll = useMemo(() => {
     const counts = new Map<string, number>();
