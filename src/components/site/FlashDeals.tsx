@@ -203,7 +203,6 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
 
 export function FlashDeals() {
   const { items: allItems, loading, now, products } = useFlashDeals();
-  const { priceOf } = useRegion();
   const { sections } = useHomepageSections();
   const { canEdit: isAdmin } = useProductAdminEditing();
 
