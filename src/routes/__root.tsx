@@ -294,7 +294,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         // paint when ?render=safe is present so the global CSS strips every
         // compositor-triggering feature on the very first frame.
         children:
-          "(function(){try{if(new URLSearchParams(location.search).get('render')==='safe'){document.documentElement.setAttribute('data-render-safe','true');}}catch(e){}})();",
+          "(function(){try{if(new URLSearchParams(location.search).get('render')==='safe'){var d=document.documentElement;d.setAttribute('data-render-safe','true');var s=document.createElement('style');s.setAttribute('data-render-safe-style','');s.textContent='html[data-render-safe=\"true\"] *,html[data-render-safe=\"true\"] *::before,html[data-render-safe=\"true\"] *::after{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;filter:none !important;transform:none !important;will-change:auto !important;contain:none !important;content-visibility:visible !important;clip-path:none !important;mask:none !important;-webkit-mask:none !important;mask-image:none !important;-webkit-mask-image:none !important;}';(document.head||d).appendChild(s);}}catch(e){}})();",
       },
       {
         // Ultra Low-End Android compositor kill-switch. Kept as a separate tiny
