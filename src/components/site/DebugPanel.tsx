@@ -167,10 +167,15 @@ export function DebugPanel() {
             {activeBisect && (
               <BisectRecorder activeId={activeBisect} overrideEnabled={bisectOverride} log={bisectLog} />
             )}
+            <Verdict log={bisectLog} />
+            <button type="button" onClick={() => downloadBisectReport(diag)} style={{ ...btn, width: "100%", marginTop: 6, background: "#f97316", color: "#111", fontWeight: 800 }}>
+              ⬇ Download JSON report
+            </button>
             <button type="button" onClick={() => clearBisectLog()} style={{ ...btn, width: "100%", marginTop: 6 }}>
               Clear bisect log
             </button>
           </div>
+
 
           <div
             style={{
