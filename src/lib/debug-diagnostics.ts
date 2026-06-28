@@ -37,6 +37,8 @@ export type Diagnostics = {
   userAgent: string;
 };
 
+import { isDebugEnabled } from "@/lib/debug-flags";
+
 const d: Diagnostics = {
   gpuRenderer: "unknown",
   gpuVendor: "unknown",
@@ -151,7 +153,7 @@ function readMemory() {
 
 export function installDebugDiagnostics() {
   if (installed || typeof window === "undefined") return;
-  if (document.documentElement.dataset.androidGpuSafeMode === "true") return;
+  if (document.documentElement.dataset.androidGpuSafeMode === "true" && !isDebugEnabled()) return;
   installed = true;
 
   d.userAgent = navigator.userAgent;
@@ -222,7 +224,7 @@ export function installDebugDiagnostics() {
 /** Wrap original Image.prototype.decode to count rejections. */
 export function patchImageDecode() {
   if (typeof window === "undefined") return;
-  if (document.documentElement.dataset.androidGpuSafeMode === "true") return;
+  if (document.documentElement.dataset.androidGpuSafeMode === "true" && !isDebugEnabled()) return;
   const proto = HTMLImageElement.prototype as HTMLImageElement & {
     __decodePatched?: boolean;
   };

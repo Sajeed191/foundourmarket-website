@@ -40,7 +40,7 @@ import { startPerfMonitoring } from "@/lib/perf-monitor";
 import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
 import { installStartupDiagnostics, logDiagnostic, useRenderDiagnostics } from "@/lib/startup-diagnostics";
-import { initDebugFlags, getFlag } from "@/lib/debug-flags";
+import { initDebugFlags, getFlag, isDebugEnabled } from "@/lib/debug-flags";
 import { installDebugDiagnostics, patchImageDecode } from "@/lib/debug-diagnostics";
 import { DebugPanel } from "@/components/site/DebugPanel";
 
@@ -466,7 +466,7 @@ function RootComponent() {
 
   useEffect(() => {
     initDebugFlags();
-    if (!androidGpuSafeMode) {
+    if (isDebugEnabled() || !androidGpuSafeMode) {
       installDebugDiagnostics();
       patchImageDecode();
     }
