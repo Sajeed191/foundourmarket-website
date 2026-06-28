@@ -451,7 +451,7 @@ function Home() {
 
 
       {/* 2 · Premium rotating product showcase hero */}
-      <section className="relative px-0 sm:px-6 lg:px-10 pt-4 sm:pt-7 pb-3 sm:pb-5 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
+      <section className="relative px-3 sm:px-6 lg:px-10 pt-4 sm:pt-7 pb-3 sm:pb-5 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
         <div className="sr-only">
           <h1>FoundOurMarket™ — Global Marketplace, Whatever You Need, All In One Place.</h1>
           <p>A premium independent marketplace, sourcing top-quality products from across the world.</p>
