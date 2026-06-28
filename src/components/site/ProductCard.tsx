@@ -21,7 +21,33 @@ type ProductCardProps = {
   context?: BadgeContext;
   forceBadge?: BadgeKey | null;
   priority?: boolean;
+  /** When set, occurrences of this term in the title are highlighted. */
+  highlight?: string;
 };
+
+/** Highlight matched search terms within a piece of text. */
+function HighlightText({ text, query }: { text: string; query?: string }) {
+  const terms = (query ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter((t) => t.length >= 2)
+    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  if (terms.length === 0) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${terms.join("|")})`, "gi"));
+  const lower = terms.map((t) => t.toLowerCase());
+  return (
+    <>
+      {parts.map((part, i) =>
+        lower.includes(part.toLowerCase()) ? (
+          <mark key={i} className="bg-accent/25 text-accent rounded-[3px] px-0.5">{part}</mark>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
 
 type CardBadge = {
   id: string;
@@ -229,7 +255,7 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
 }
 const AddToCartButton = memo(AddToCartButtonImpl, (a, b) => a.product.slug === b.product.slug && a.product.inStock === b.product.inStock && a.product.name === b.product.name);
 
-function ProductCardImpl({ product, context = "default", forceBadge, priority = false }: ProductCardProps) {
+function ProductCardImpl({ product, context = "default", forceBadge, priority = false, highlight }: ProductCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const [quickOpen, setQuickOpen] = useState(false);
   const price = priceOf(product);
@@ -293,7 +319,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
       {/* Details — flex column, 16px padding, 8px gap. */}
       <div data-product-copy className="product-copy flex flex-1 flex-col gap-1 p-3 sm:gap-2 sm:p-4">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="block min-w-0">
-          <h3 data-product-text className={TITLE_CLASS}>{product.name}</h3>
+          <h3 data-product-text className={TITLE_CLASS}><HighlightText text={product.name} query={highlight} /></h3>
         </Link>
 
         {/* Rating */}
@@ -363,6 +389,7 @@ export const ProductCard = memo(ProductCardImpl, (a, b) => {
     a.context === b.context &&
     a.forceBadge === b.forceBadge &&
     a.compact === b.compact &&
-    a.priority === b.priority
+    a.priority === b.priority &&
+    a.highlight === b.highlight
   );
 });

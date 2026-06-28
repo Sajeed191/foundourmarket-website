@@ -271,6 +271,20 @@ function SearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.q, search.cat, search.min, search.max, search.rating, sort]);
 
+  // "Did you mean…?" — fetch the closest matching term when a query returns
+  // no (or very few) results, so shoppers can recover from typos quickly.
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+  useEffect(() => {
+    const q = (search.q ?? "").trim();
+    if (!q || loading || rawRows.length > 2) { setSuggestion(null); return; }
+    let cancelled = false;
+    (supabase.rpc as any)("suggest_search_term", { q }).then(({ data }: { data: string | null }) => {
+      if (cancelled) return;
+      setSuggestion(data && data.toLowerCase() !== q.toLowerCase() ? data : null);
+    });
+    return () => { cancelled = true; };
+  }, [search.q, loading, rawRows.length]);
+
   // Load the next page and append (deduped by slug) — preserves filters/sorting.
   function loadMore() {
     if (loading || loadingMore || !hasMore) return;
@@ -332,8 +346,8 @@ function SearchPage() {
 
   const getProductKey = useCallback((p: Product) => p.id ?? p.slug, []);
   const renderProduct = useCallback(
-    (p: Product, i: number) => <ProductCard product={p} priority={i < 4} />,
-    [],
+    (p: Product, i: number) => <ProductCard product={p} priority={i < 4} highlight={search.q} />,
+    [search.q],
   );
 
   return (
@@ -472,6 +486,22 @@ function SearchPage() {
           ))}
         </div>
       )}
+
+      {/* "Did you mean…?" — recover from typos with one tap */}
+      {suggestion && search.q && (
+        <div className="mb-6 sm:mb-8 flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Did you mean</span>
+          <button
+            onClick={() => { setQuery(suggestion); update({ q: suggestion }); }}
+            className="font-semibold text-accent underline underline-offset-4 hover:brightness-110"
+          >
+            {suggestion}
+          </button>
+          <span className="text-muted-foreground">?</span>
+        </div>
+      )}
+
+
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-6 lg:gap-8">
         {/* Desktop sidebar — applies instantly */}
