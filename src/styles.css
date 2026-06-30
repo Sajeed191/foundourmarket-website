@@ -1075,6 +1075,26 @@ html[data-degrade-effects="true"] [class*="perspective"] {
   perspective: none !important;
   transform-style: flat !important;
 }
+/* Drop the remaining offscreen-buffer effects (mix-blend, masks, foreground
+   blur, drop-shadow, forced layer promotion) so a struggling device sheds the
+   exact same compositor cost the GPU gate removes — visuals stay equivalent. */
+html[data-degrade-effects="true"] *,
+html[data-degrade-effects="true"] *::before,
+html[data-degrade-effects="true"] *::after {
+  mix-blend-mode: normal !important;
+  will-change: auto !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+}
+html[data-degrade-effects="true"] [class*="drop-shadow"],
+html[data-degrade-effects="true"] [style*="drop-shadow"],
+html[data-degrade-effects="true"] :not([aria-hidden="true"])[class*="blur-"]:not([class*="backdrop-blur"]),
+html[data-degrade-effects="true"] [style*="blur("] {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
 
 
 /* Floating support orb hide/show on scroll direction */
