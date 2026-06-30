@@ -149,6 +149,9 @@ export function startCapabilityGovernor(): void {
     return;
   }
 
+  // ── Long-task watchdog (rolling) ──────────────────────────────────────────
+  // Accumulates blocking time inside the CURRENT 1s window; large totals mean
+  // the main thread is choking and effects should be dropped. Reset each window.
   let longTaskBudget = 0;
   let longTaskObserver: PerformanceObserver | null = null;
   try {
@@ -156,57 +159,88 @@ export function startCapabilityGovernor(): void {
       for (const entry of list.getEntries()) {
         if (entry.duration > 50) longTaskBudget += entry.duration;
       }
-      // Many/large long tasks early on = the device is struggling.
-      if (longTaskBudget > 600) {
-        setDegraded(true);
-        longTaskObserver?.disconnect();
-      }
     });
     longTaskObserver.observe({ entryTypes: ["longtask"] });
   } catch {
     /* longtask unsupported (Safari/iOS) — rely on FPS sampling */
   }
 
-  // FPS sampling over an initial window. We look at sustained low FPS, not a
-  // single dropped frame (scroll/jank spikes are normal).
+  // ── Continuous bidirectional FPS governor ─────────────────────────────────
+  // Degrade after sustained poor frames; RECOVER to premium after a longer
+  // sustained-smooth run (asymmetric hysteresis avoids flapping). The loop runs
+  // for the life of the page, never reloads, never recreates the React tree —
+  // it only toggles a single attribute that CSS + the React hook react to.
+  //
+  // The boot-time GPU gate (data-gpu-unsafe) is INDEPENDENT and never touched
+  // here, so a Mali/PowerVR device stays in compatibility mode regardless of
+  // how smooth its FPS happens to look.
+  const DEGRADE_FPS = 45; // below this = struggling
+  const RECOVER_FPS = 55; // above this = comfortably smooth
+  const SECONDS_TO_DEGRADE = 2; // sustained bad seconds before dropping effects
+  const SECONDS_TO_RECOVER = 6; // sustained good seconds before restoring them
+  const LONGTASK_DEGRADE_MS = 350; // blocking ms in one window = degrade now
+
   let frames = 0;
-  let lowFpsSeconds = 0;
+  let badSeconds = 0;
+  let goodSeconds = 0;
   let windowStart = performance.now();
-  const samplingDeadline = windowStart + 6000;
   let rafId = 0;
 
   const tick = (now: number) => {
     frames++;
     if (now - windowStart >= 1000) {
       const fps = (frames * 1000) / (now - windowStart);
-      if (fps < 45) {
-        lowFpsSeconds++;
-        if (lowFpsSeconds >= 2) {
-          // Two sustained sub-45fps seconds → degrade expensive effects.
-          setDegraded(true);
-          longTaskObserver?.disconnect();
-          return; // stop sampling
+      const struggling = fps < DEGRADE_FPS || longTaskBudget > LONGTASK_DEGRADE_MS;
+      const smooth = fps >= RECOVER_FPS && longTaskBudget < 50;
+
+      if (struggling) {
+        badSeconds++;
+        goodSeconds = 0;
+        if (badSeconds >= SECONDS_TO_DEGRADE) setDegraded(true);
+      } else if (smooth) {
+        goodSeconds++;
+        badSeconds = 0;
+        // Only auto-recover effects we ourselves dropped for perf; never when
+        // explicit user/system intent asked for reduced motion / data saving.
+        if (
+          goodSeconds >= SECONDS_TO_RECOVER &&
+          computeCapabilityScore().capability === "full"
+        ) {
+          setDegraded(false);
         }
       } else {
-        lowFpsSeconds = 0;
+        // Neutral zone (45–55fps): hold current mode, decay counters slowly.
+        badSeconds = Math.max(0, badSeconds - 1);
+        goodSeconds = Math.max(0, goodSeconds - 1);
       }
+
       frames = 0;
+      longTaskBudget = 0;
       windowStart = now;
     }
-    if (now < samplingDeadline) {
-      rafId = requestAnimationFrame(tick);
-    } else {
-      longTaskObserver?.disconnect();
-    }
+    rafId = requestAnimationFrame(tick);
   };
   rafId = requestAnimationFrame(tick);
 
-  // Safety: never leak the rAF loop if the tab is backgrounded permanently.
+  // Pause sampling while the tab is hidden (avoids false "bad" seconds from
+  // throttled rAF) and resume on return. Fully tear down on pagehide.
+  const onVisibility = () => {
+    if (document.hidden) {
+      cancelAnimationFrame(rafId);
+    } else {
+      frames = 0;
+      windowStart = performance.now();
+      rafId = requestAnimationFrame(tick);
+    }
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+
   window.addEventListener(
     "pagehide",
     () => {
       cancelAnimationFrame(rafId);
       longTaskObserver?.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
     },
     { once: true },
   );
