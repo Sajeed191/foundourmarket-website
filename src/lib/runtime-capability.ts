@@ -205,6 +205,8 @@ export function startCapabilityGovernor(): void {
     frames++;
     if (now - windowStart >= 1000) {
       const fps = (frames * 1000) / (now - windowStart);
+      liveMetrics.fps = Math.round(fps);
+      liveMetrics.longTaskMs = Math.round(longTaskBudget);
       const struggling = fps < DEGRADE_FPS || longTaskBudget > LONGTASK_DEGRADE_MS;
       const smooth = fps >= RECOVER_FPS && longTaskBudget < 50;
 
