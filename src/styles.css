@@ -2131,3 +2131,16 @@ html[data-gpu-unsafe="true"] [aria-hidden="true"][style*="blur("] {
   filter: none !important;
   opacity: 0.18 !important;
 }
+
+/* 7. CSS drop-shadow() filter passes (Tailwind `drop-shadow-*` utilities and
+      inline `filter: drop-shadow(...)`) allocate an offscreen GPU buffer per
+      element on Mali/PowerVR and can leave ghost/duplicate tiles. Strip the
+      filter so icons/SVGs paint flat — their fill colour is untouched, so the
+      glyph still looks the same minus the soft glow. box-shadow (handled above)
+      composites fine and is left intact for depth. */
+html[data-gpu-unsafe="true"] [class*="drop-shadow"],
+html[data-gpu-unsafe="true"] [style*="drop-shadow"] {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
