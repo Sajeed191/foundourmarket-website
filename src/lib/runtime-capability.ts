@@ -112,6 +112,10 @@ export function computeCapabilityScore(): { score: number; capability: Capabilit
 let governorStarted = false;
 const listeners = new Set<(degraded: boolean) => void>();
 
+// Live runtime metrics (updated once per second by the governor). Exposed for
+// anonymous telemetry only — never anything user-identifying.
+const liveMetrics = { fps: 0, longTaskMs: 0 };
+
 function setDegraded(value: boolean) {
   if (typeof document === "undefined") return;
   const current = document.documentElement.dataset.degradeEffects === "true";
@@ -125,10 +129,18 @@ export function isDegraded(): boolean {
   return document.documentElement.dataset.degradeEffects === "true";
 }
 
+/** True when the boot-time GPU gate put the page in Compatibility Mode. */
+export function isGpuUnsafe(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.documentElement.dataset.gpuUnsafe === "true";
+}
+
 export function subscribeDegraded(fn: (degraded: boolean) => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
+
+
 
 /**
  * Starts the live, bidirectional governor. It continuously samples real FPS and
