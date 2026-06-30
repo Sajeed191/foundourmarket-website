@@ -1305,7 +1305,10 @@ html[data-android="true"] .animate-orb,
 html[data-android="true"] .animate-float-soft,
 html[data-android="true"] .animate-glow-breathe,
 html[data-android="true"] .animate-float-slow,
-html[data-android="true"] .animate-orb-breathe {
+html[data-android="true"] .animate-orb-breathe,
+html[data-android="true"] .search-cta,
+html[data-android="true"] [class*="shimmer"],
+html[data-android="true"] .animate-pulse {
   animation: none !important;
 }
 
