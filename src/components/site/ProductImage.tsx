@@ -75,7 +75,7 @@ function ProductImageImpl({
       height={height}
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "low"}
-      decoding={priority ? "async" : "sync"}
+      decoding="async"
       data-product-image
       suppressHydrationWarning
       style={style}
