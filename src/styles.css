@@ -1075,6 +1075,26 @@ html[data-degrade-effects="true"] [class*="perspective"] {
   perspective: none !important;
   transform-style: flat !important;
 }
+/* Drop the remaining offscreen-buffer effects (mix-blend, masks, foreground
+   blur, drop-shadow, forced layer promotion) so a struggling device sheds the
+   exact same compositor cost the GPU gate removes — visuals stay equivalent. */
+html[data-degrade-effects="true"] *,
+html[data-degrade-effects="true"] *::before,
+html[data-degrade-effects="true"] *::after {
+  mix-blend-mode: normal !important;
+  will-change: auto !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+}
+html[data-degrade-effects="true"] [class*="drop-shadow"],
+html[data-degrade-effects="true"] [style*="drop-shadow"],
+html[data-degrade-effects="true"] :not([aria-hidden="true"])[class*="blur-"]:not([class*="backdrop-blur"]),
+html[data-degrade-effects="true"] [style*="blur("] {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
 
 
 /* Floating support orb hide/show on scroll direction */
@@ -2083,12 +2103,16 @@ html[data-gpu-unsafe="true"] .card-outline {
 
 /* 2. Kill GPU-pathological compositing triggers across the tree, but KEEP 2D
       transforms + animations (those composite fine on Mali). We only strip the
-      properties that force extra tiled GPU buffers / blend passes. */
+      properties that force extra tiled GPU buffers / blend passes, unnecessary
+      layer promotion (will-change), paint containment and isolation contexts —
+      all of which can trigger Mali/PowerVR tile-cache corruption. */
 html[data-gpu-unsafe="true"] *,
 html[data-gpu-unsafe="true"] *::before,
 html[data-gpu-unsafe="true"] *::after {
   mix-blend-mode: normal !important;
   will-change: auto !important;
+  isolation: auto !important;
+  contain: none !important;
   -webkit-mask: none !important;
   mask: none !important;
   mask-image: none !important;
@@ -2140,6 +2164,19 @@ html[data-gpu-unsafe="true"] [aria-hidden="true"][style*="blur("] {
       composites fine and is left intact for depth. */
 html[data-gpu-unsafe="true"] [class*="drop-shadow"],
 html[data-gpu-unsafe="true"] [style*="drop-shadow"] {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+/* 8. Foreground filter:blur() passes (Tailwind `blur-sm`/`blur`/`blur-lg`…
+      utilities and inline `filter: blur(...)`) on NON-decorative content. Each
+      one allocates an offscreen GPU buffer and is a primary source of duplicated
+      textures / horizontal stripes on Mali/PowerVR. Strip the foreground blur
+      (backdrop-filter is handled in rule 1); content paints crisp instead of
+      soft — never corrupt. Backdrop-blur classes match too but only their
+      `filter` is cleared, which they don't rely on. */
+html[data-gpu-unsafe="true"] :not([aria-hidden="true"])[class*="blur-"]:not([class*="backdrop-blur"]),
+html[data-gpu-unsafe="true"] :not([aria-hidden="true"])[style*="blur("] {
   filter: none !important;
   -webkit-filter: none !important;
 }

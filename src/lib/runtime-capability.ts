@@ -82,8 +82,9 @@ export function isWeakGpu(renderer: string | null): boolean {
     /adreno \(tm\) 3\d\d/.test(r) || // Adreno 3xx
     /adreno \(tm\) 4[01]\d/.test(r) || // Adreno 40x/41x
     /powervr sgx/.test(r) ||
-    /videocore iv/.test(r) ||
-    /swiftshader|software/.test(r) // software rasterizer
+    /videocore/.test(r) ||
+    /vivante/.test(r) ||
+    /swiftshader|software|llvmpipe/.test(r) // software rasterizer
   );
 }
 
@@ -319,11 +320,13 @@ export function useRenderMode(): RenderMode {
 export interface RenderDiagnostics {
   gpuRenderer: string;
   browser: string;
+  browserVersion: string | null;
   androidVersion: string | null;
   cores: number | null;
   fps: number;
   longTaskMs: number;
   compatibilityMode: boolean;
+  compatibilityReason: string | null;
   degraded: boolean;
   saveData: boolean;
   reducedMotion: boolean;
@@ -340,9 +343,29 @@ function detectBrowser(ua: string): string {
   return "Unknown";
 }
 
+/** Major.minor browser version, engine-agnostic. Anonymous. */
+function detectBrowserVersion(ua: string): string | null {
+  const m =
+    ua.match(/SamsungBrowser\/([\d.]+)/i) ||
+    ua.match(/Edg\/([\d.]+)/i) ||
+    ua.match(/Firefox\/([\d.]+)/i) ||
+    ua.match(/OPR\/([\d.]+)/i) ||
+    ua.match(/CriOS\/([\d.]+)/i) ||
+    ua.match(/Chrome\/([\d.]+)/i) ||
+    ua.match(/Version\/([\d.]+)/i);
+  return m ? m[1] : null;
+}
+
 function detectAndroidVersion(ua: string): string | null {
   const m = ua.match(/Android\s+([\d.]+)/i);
   return m ? m[1] : null;
+}
+
+/** Why Compatibility Mode is active (boot GPU gate / old engine), or null. */
+function readCompatReason(): string | null {
+  if (typeof document === "undefined") return null;
+  if (document.documentElement.dataset.gpuUnsafe !== "true") return null;
+  return document.documentElement.dataset.compatReason ?? "gpu";
 }
 
 /** Snapshot of current rendering capability + live performance. Anonymous. */
@@ -351,11 +374,13 @@ export function getRenderDiagnostics(): RenderDiagnostics {
   return {
     gpuRenderer: getWebGLRenderer() ?? "unknown",
     browser: detectBrowser(ua),
+    browserVersion: detectBrowserVersion(ua),
     androidVersion: detectAndroidVersion(ua),
     cores: readCores() ?? null,
     fps: liveMetrics.fps,
     longTaskMs: liveMetrics.longTaskMs,
     compatibilityMode: isGpuUnsafe(),
+    compatibilityReason: readCompatReason(),
     degraded: isDegraded(),
     saveData: readSaveData(),
     reducedMotion: readReducedMotion(),
