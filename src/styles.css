@@ -2083,12 +2083,16 @@ html[data-gpu-unsafe="true"] .card-outline {
 
 /* 2. Kill GPU-pathological compositing triggers across the tree, but KEEP 2D
       transforms + animations (those composite fine on Mali). We only strip the
-      properties that force extra tiled GPU buffers / blend passes. */
+      properties that force extra tiled GPU buffers / blend passes, unnecessary
+      layer promotion (will-change), paint containment and isolation contexts —
+      all of which can trigger Mali/PowerVR tile-cache corruption. */
 html[data-gpu-unsafe="true"] *,
 html[data-gpu-unsafe="true"] *::before,
 html[data-gpu-unsafe="true"] *::after {
   mix-blend-mode: normal !important;
   will-change: auto !important;
+  isolation: auto !important;
+  contain: none !important;
   -webkit-mask: none !important;
   mask: none !important;
   mask-image: none !important;
