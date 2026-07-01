@@ -300,6 +300,7 @@ function DealsPage() {
               cols={{ base: 2, lg: 4 }}
               className="grid grid-cols-2 lg:grid-cols-4 items-start gap-3 sm:gap-4"
               getKey={getProductKey}
+              getImageSrc={(p) => p.image}
               renderItem={renderProduct}
             />
           </section>

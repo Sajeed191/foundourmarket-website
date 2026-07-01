@@ -112,6 +112,7 @@ function SubcategoryPage() {
           cols={{ base: 2, sm: 3, lg: 4 }}
           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5"
           getKey={getProductKey}
+          getImageSrc={(p) => p.image}
           renderItem={renderProduct}
         />
 
