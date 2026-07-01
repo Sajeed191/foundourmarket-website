@@ -615,7 +615,7 @@ function Home() {
             </button>
           )}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 auto-rows-fr gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 items-start gap-3 sm:gap-4">
           {ffCategoryGrid && homeCategories.map((cat, i) => {
             const Icon = iconForCategory(cat.slug, cat.name);
             const hasImage = !!(cat.image || cat.mobile_image);
