@@ -448,6 +448,7 @@ export function VirtualizedProductGrid<T>({
         renderItem={renderItem}
         getKey={stableKey}
         className={className}
+        cols={cols}
         // 16 cards per batch keeps paint/memory cost low while feeling like
         // infinite scroll on low-end phones.
         batchSize={16}
@@ -457,13 +458,15 @@ export function VirtualizedProductGrid<T>({
 
   // Small lists: plain responsive grid (also the SSR / first-paint output).
   return (
-    <div data-product-grid className={className}>
-      {items.map((item, i) => (
-        <div key={stableKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
-          {renderItem(item, i)}
-        </div>
-      ))}
-    </div>
+    <HydrationGate cols={cols} itemCount={items.length}>
+      <div data-product-grid className={className}>
+        {items.map((item, i) => (
+          <div key={stableKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
+            {renderItem(item, i)}
+          </div>
+        ))}
+      </div>
+    </HydrationGate>
   );
 }
 
