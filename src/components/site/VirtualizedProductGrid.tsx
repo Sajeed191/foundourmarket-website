@@ -212,13 +212,15 @@ function IncrementalGrid<T>({
 
   return (
     <>
-      <div data-product-grid className={className}>
-        {shown.map((item, i) => (
-          <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
-            {renderItem(item, i)}
-          </div>
-        ))}
-      </div>
+      <HydrationGate cols={cols} itemCount={shown.length}>
+        <div data-product-grid className={className}>
+          {shown.map((item, i) => (
+            <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
+              {renderItem(item, i)}
+            </div>
+          ))}
+        </div>
+      </HydrationGate>
       {visible < items.length && <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />}
     </>
   );
