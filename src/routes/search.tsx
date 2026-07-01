@@ -530,6 +530,7 @@ function SearchPage() {
                 cols={{ base: 2, md: 3, xl: 4 }}
                 className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6"
                 getKey={getProductKey}
+                getImageSrc={(p) => p.image}
                 renderItem={renderProduct}
               />
 
