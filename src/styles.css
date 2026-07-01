@@ -352,14 +352,23 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
 
 .glass {
   background: oklch(1 0 0 / 0.03);
-  backdrop-filter: blur(20px);
   border: 1px solid oklch(1 0 0 / 0.08);
 }
 .glass-strong {
   background: linear-gradient(135deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0.02));
-  backdrop-filter: blur(24px) saturate(140%);
   border: 1px solid oklch(1 0 0 / 0.1);
   box-shadow: var(--shadow-float);
+}
+/* Blur is emitted DESKTOP-ONLY. This is intentional and load-bearing:
+   Lightning CSS strips any `backdrop-filter: none|initial !important` override,
+   so blur can only be kept off mobile by never emitting it below 768px (adding
+   a real value in a min-width query is preserved, a removal is not). This
+   eliminates the backdrop-filter READBACK compositor layers on phones — the
+   source of the transient horizontal band on hard refresh — with zero mobile
+   visual change (mobile glass was already meant to be blur-free). */
+@media (min-width: 768px) {
+  .glass { backdrop-filter: blur(20px); }
+  .glass-strong { backdrop-filter: blur(24px) saturate(140%); }
 }
 
 /* Premium card with subtle gradient border */
@@ -1111,12 +1120,15 @@ html[data-degrade-effects="true"] [style*="blur("] {
    keep only the sticky header glass for its premium look. Animations stay on
    transform/opacity only. */
 @media (max-width: 767px) {
-  .glass,
-  .glass-strong,
-  .product-card-glass,
-  .card-outline {
-    backdrop-filter: none !important;
-    }
+  /* Backdrop-filter READBACK layers are the source of the transient horizontal
+     band on hard refresh (a backdrop-filter layer samples the framebuffer
+     behind it; before it is rasterized on the first commit the sample is
+     garbage, which clears on the next frame / on scroll).
+     Blur is removed at the SOURCE on mobile — .glass/.glass-strong emit blur
+     only in a min-width:768px query, and the sticky nav's backdrop-blur-2xl
+     utility is gated to md: in Nav.tsx — because Lightning CSS strips any
+     `backdrop-filter: none|initial !important` override at build time, so an
+     override here would be a no-op (verified: empty rule body in served CSS). */
   /* Replace heavy multi-layer shadows/glows with one optimized token */
   .product-card-glass,
   .card-premium,
