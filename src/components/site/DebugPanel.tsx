@@ -524,7 +524,7 @@ function RuntimeRecorder({ diag }: { diag: Diagnostics }) {
   );
 }
 
-
+const btn: React.CSSProperties = {
   flex: 1,
   background: "#1a1a1a",
   border: "1px solid #444",
