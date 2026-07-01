@@ -1,6 +1,133 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { publishWindowMetrics, resetWindowMetrics } from "@/lib/window-metrics";
 
+/** Resolve the active column count for the current viewport width. */
+function resolveColsWidth(cols: Cols, width: number): number {
+  let c = cols.base;
+  if (width >= 640 && cols.sm) c = cols.sm;
+  if (width >= 768 && cols.md) c = cols.md;
+  if (width >= 1024 && cols.lg) c = cols.lg;
+  if (width >= 1280 && cols.xl) c = cols.xl;
+  return Math.max(1, c);
+}
+
+/**
+ * Hydration gate — block the grid's first *visible* paint until the first
+ * viewport batch of product images is fully decoded.
+ *
+ * WHY: on refresh the browser mounts cards and starts decoding images
+ * asynchronously; the compositor was presenting the grid before the top rows
+ * finished decoding, so users saw partial rows, a bottom flicker and a
+ * "first-scroll correction". We manually compute the first visible batch
+ * (visible rows × columns — never relying on IntersectionObserver, which is
+ * unreliable right after a refresh), await `img.decode()` on exactly those
+ * images, and only then reveal the grid in a single commit.
+ */
+function useHydrationGate(
+  containerRef: React.RefObject<HTMLElement | null>,
+  cols: Cols,
+  itemCount: number,
+): boolean {
+  const [hydrated, setHydrated] = useState(false);
+
+  useLayoutEffect(() => {
+    if (hydrated) return;
+    const container = containerRef.current;
+    if (!container || itemCount === 0 || typeof window === "undefined") {
+      setHydrated(true);
+      return;
+    }
+
+    let cancelled = false;
+    const reveal = () => {
+      if (!cancelled) setHydrated(true);
+    };
+
+    // K = first visible batch = visible rows × columns (+1 row of slack).
+    const colCount = resolveColsWidth(cols, window.innerWidth);
+    const visibleRows = Math.max(1, Math.ceil(window.innerHeight / 320));
+    const k = Math.min(itemCount, colCount * (visibleRows + 1));
+
+    const imgs = Array.from(
+      container.querySelectorAll<HTMLImageElement>("img[data-product-image]"),
+    ).slice(0, k);
+
+    if (imgs.length === 0) {
+      reveal();
+      return;
+    }
+
+    const settle = (img: HTMLImageElement): Promise<void> => {
+      const decode = () => {
+        if (typeof img.decode === "function") {
+          return img.decode().catch(() => undefined);
+        }
+        // Older WebViews without decode(): resolve on the next frame.
+        return new Promise<void>((res) => {
+          if (typeof requestAnimationFrame === "function") {
+            requestAnimationFrame(() => res());
+          } else {
+            setTimeout(res, 32);
+          }
+        });
+      };
+      if (img.complete && img.naturalWidth > 0) return decode();
+      return new Promise<void>((res) => {
+        const done = () => res();
+        img.addEventListener("load", () => decode().then(done), { once: true });
+        img.addEventListener("error", done, { once: true });
+      });
+    };
+
+    // Never leave the grid hidden forever — reveal after a hard safety cap.
+    const safety = new Promise<void>((res) => setTimeout(res, 3000));
+
+    Promise.race([Promise.all(imgs.map(settle)).then(() => undefined), safety]).then(
+      reveal,
+    );
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [containerRef, cols, itemCount, hydrated]);
+
+  return hydrated;
+}
+
+/**
+ * Wraps grid content and keeps it invisible (opacity 0) until the first visible
+ * image batch decodes, then reveals the whole grid in one commit. Layout is
+ * fully mounted underneath the entire time, so lazy images still start loading
+ * and there is zero layout shift on reveal.
+ */
+function HydrationGate({
+  cols,
+  itemCount,
+  children,
+}: {
+  cols: Cols;
+  itemCount: number;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const hydrated = useHydrationGate(ref, cols, itemCount);
+  return (
+    <div
+      ref={ref}
+      data-grid-hydrated={hydrated ? "true" : "false"}
+      style={{
+        opacity: hydrated ? 1 : 0,
+        transition: hydrated ? "opacity 220ms ease-out" : undefined,
+        // Avoid interaction with a not-yet-revealed grid.
+        pointerEvents: hydrated ? undefined : "none",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 type Cols = { base: number; sm?: number; md?: number; lg?: number; xl?: number };
 
 type Props<T> = {
@@ -46,12 +173,14 @@ function IncrementalGrid<T>({
   renderItem,
   getKey,
   className,
+  cols,
   batchSize,
 }: {
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
   getKey: (item: T) => string;
   className?: string;
+  cols: Cols;
   batchSize: number;
 }) {
   const [visible, setVisible] = useState(() => Math.min(items.length, batchSize));
@@ -83,13 +212,15 @@ function IncrementalGrid<T>({
 
   return (
     <>
-      <div data-product-grid className={className}>
-        {shown.map((item, i) => (
-          <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
-            {renderItem(item, i)}
-          </div>
-        ))}
-      </div>
+      <HydrationGate cols={cols} itemCount={shown.length}>
+        <div data-product-grid className={className}>
+          {shown.map((item, i) => (
+            <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
+              {renderItem(item, i)}
+            </div>
+          ))}
+        </div>
+      </HydrationGate>
       {visible < items.length && <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />}
     </>
   );
@@ -245,16 +376,18 @@ function WindowedGrid<T>({
   return (
     <div ref={outerRef}>
       {topSpacer > 0 && <div aria-hidden style={{ height: topSpacer }} />}
-      <div ref={gridRef} data-product-grid data-windowed="on" className={className}>
-        {windowItems.map((item, i) => {
-          const index = startIndex + i;
-          return (
-            <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
-              {renderItem(item, index)}
-            </div>
-          );
-        })}
-      </div>
+      <HydrationGate cols={cols} itemCount={windowItems.length}>
+        <div ref={gridRef} data-product-grid data-windowed="on" className={className}>
+          {windowItems.map((item, i) => {
+            const index = startIndex + i;
+            return (
+              <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
+                {renderItem(item, index)}
+              </div>
+            );
+          })}
+        </div>
+      </HydrationGate>
       {bottomSpacer > 0 && <div aria-hidden style={{ height: bottomSpacer }} />}
     </div>
   );
@@ -315,6 +448,7 @@ export function VirtualizedProductGrid<T>({
         renderItem={renderItem}
         getKey={stableKey}
         className={className}
+        cols={cols}
         // 16 cards per batch keeps paint/memory cost low while feeling like
         // infinite scroll on low-end phones.
         batchSize={16}
@@ -324,13 +458,15 @@ export function VirtualizedProductGrid<T>({
 
   // Small lists: plain responsive grid (also the SSR / first-paint output).
   return (
-    <div data-product-grid className={className}>
-      {items.map((item, i) => (
-        <div key={stableKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
-          {renderItem(item, i)}
-        </div>
-      ))}
-    </div>
+    <HydrationGate cols={cols} itemCount={items.length}>
+      <div data-product-grid className={className}>
+        {items.map((item, i) => (
+          <div key={stableKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
+            {renderItem(item, i)}
+          </div>
+        ))}
+      </div>
+    </HydrationGate>
   );
 }
 
