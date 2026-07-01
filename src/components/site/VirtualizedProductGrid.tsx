@@ -59,6 +59,40 @@ function warmImage(rawSrc: string): Promise<void> {
 }
 
 /**
+ * Cheaply probe an image's intrinsic pixel area WITHOUT gating on decode().
+ *
+ * WHY: the first-frame cap must upload the *smallest* textures first, not just
+ * whichever happen to be in row 1. A hero/featured image or a mixed aspect
+ * ratio in row 1 could dominate the initial GPU upload and still band. Sorting
+ * the viewport batch by pixel area keeps the first-frame decode budget stable
+ * across categories (Trending / Deals / Search). The probe reuses the browser
+ * cache, so the subsequent warmImage() call is a warm hit — no double download.
+ */
+function probeArea(rawSrc: string): Promise<{ src: string; area: number }> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !rawSrc) return resolve({ src: rawSrc, area: 0 });
+    const bundled = getResponsiveImage(rawSrc);
+    const storage = bundled ? null : getStorageResponsive(rawSrc);
+    const srcset = bundled?.srcset ?? storage?.srcset;
+    const src = storage?.src ?? rawSrc;
+    const img = new Image();
+    img.decoding = "async";
+    if (srcset) {
+      img.sizes = DEFAULT_SIZES;
+      img.srcset = srcset;
+    }
+    const done = () => resolve({ src: rawSrc, area: (img.naturalWidth || 0) * (img.naturalHeight || 0) });
+    if (img.complete && img.naturalWidth > 0) {
+      img.src = src;
+      return done();
+    }
+    img.addEventListener("load", done, { once: true });
+    img.addEventListener("error", () => resolve({ src: rawSrc, area: Number.MAX_SAFE_INTEGER }), { once: true });
+    img.src = src;
+  });
+}
+
+/**
  * Run async tasks with a bounded concurrency pool instead of all-at-once.
  *
  * WHY: firing `Promise.all` over the whole first batch decodes every image in
@@ -284,12 +318,12 @@ function TwoPhaseGrid({
       setTimeout(() => res("safety-timeout"), 3000),
     );
 
-    // FIRST-FRAME CAP: decode only the very first row (one column's worth of
-    // images) with strict serial throttle so the initial paint uploads a minimal
-    // number of textures — this avoids the "refresh burst = full viewport +
-    // decode spike" that saturates the Chromium Android tile manager. Only after
-    // that safe first frame do we fall back to normal pooled concurrency for the
-    // rest of the viewport batch.
+    // FIRST-FRAME CAP: decode the SMALLEST N images (by intrinsic pixel area)
+    // in the viewport batch first, with strict serial throttle, so the initial
+    // paint uploads a minimal texture set. Choosing by area (instead of strictly
+    // "row 1") avoids an oversized hero/featured image or a mixed aspect ratio
+    // dominating the first GPU upload and re-introducing banding. Only after that
+    // safe first frame do we fall back to normal pooled concurrency for the rest.
     const firstFrameCap = Math.max(1, resolveColsWidth(cols, window.innerWidth));
     const decodeOne = (s: string, i: number) => {
       const t0 = performance.now();
@@ -297,11 +331,19 @@ function TwoPhaseGrid({
         if (gridDebugEnabled()) gridLog(`decode[${i}] ${Math.round(performance.now() - t0)}ms`);
       });
     };
-    const firstFrame = srcs.slice(0, firstFrameCap);
-    const rest = srcs.slice(firstFrameCap);
-    const decodeAll = mapWithConcurrency(firstFrame, 1, decodeOne)
-      .then(() => nextFrames(1)) // let the first row's textures commit alone
-      .then(() => mapWithConcurrency(rest, decodeConcurrency(), (s, i) => decodeOne(s, i + firstFrameCap)))
+    const orderByArea = Promise.all(srcs.map(probeArea)).then((probed) => {
+      const sorted = probed.slice().sort((a, b) => a.area - b.area).map((p) => p.src);
+      const firstFrame = sorted.slice(0, firstFrameCap);
+      const rest = sorted.slice(firstFrameCap);
+      return { firstFrame, rest };
+    });
+    const decodeAll = orderByArea
+      .then(({ firstFrame, rest }) =>
+        mapWithConcurrency(firstFrame, 1, decodeOne)
+          .then(() => nextFrames(1)) // let the smallest textures commit alone
+          .then(() => mapWithConcurrency(rest, decodeConcurrency(), (s, i) => decodeOne(s, i + firstFrameCap))),
+      )
+
       .then(() => {
         publishGridTelemetry({ decodeBatchEnd: Math.round(performance.now()) });
       })
