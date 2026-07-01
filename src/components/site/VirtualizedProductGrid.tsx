@@ -273,6 +273,7 @@ function IncrementalGrid<T>({
   className,
   cols,
   batchSize,
+  preloadSrcs,
 }: {
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
@@ -280,6 +281,7 @@ function IncrementalGrid<T>({
   className?: string;
   cols: Cols;
   batchSize: number;
+  preloadSrcs?: string[];
 }) {
   const [visible, setVisible] = useState(() => Math.min(items.length, batchSize));
   const sentinelRef = useRef<HTMLDivElement | null>(null);
