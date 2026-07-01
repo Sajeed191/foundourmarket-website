@@ -35,6 +35,15 @@ export const FALLBACK_PALETTE: ImagePalette = {
 const cache = new Map<string, ImagePalette>();
 const inflight = new Map<string, Promise<ImagePalette>>();
 
+// TEMPORARY DEBUG: counts how many real palette extractions (second image
+// decode + 32px canvas readback) have run this session. Read via
+// getPaletteExtractionCount() by the runtime recorder. Remove with the harness.
+let paletteExtractionCount = 0;
+export function getPaletteExtractionCount(): number {
+  return paletteExtractionCount;
+}
+
+
 type RGB = { r: number; g: number; b: number };
 
 function luminance({ r, g, b }: RGB): number {
