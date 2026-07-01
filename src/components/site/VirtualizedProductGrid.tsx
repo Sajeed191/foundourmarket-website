@@ -312,7 +312,7 @@ function IncrementalGrid<T>({
 
   return (
     <>
-      <HydrationGate cols={cols} itemCount={shown.length}>
+      <TwoPhaseGrid cols={cols} itemCount={shown.length} preloadSrcs={preloadSrcs} className={className}>
         <div data-product-grid className={className}>
           {shown.map((item, i) => (
             <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
@@ -320,7 +320,7 @@ function IncrementalGrid<T>({
             </div>
           ))}
         </div>
-      </HydrationGate>
+      </TwoPhaseGrid>
       {visible < items.length && <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />}
     </>
   );
