@@ -53,7 +53,29 @@ function ProductImageImpl({
 
   const handleLoad = useCallback(() => {
     if (activeSrcRef.current !== resolvedSrc) return;
-    if (imgRef.current) onLoad?.(imgRef.current);
+    const img = imgRef.current;
+    if (!img) return;
+
+    // Decode-gated reveal: wait for the browser to fully rasterize the bitmap
+    // before we signal "loaded" and let the image paint. On Chromium Android
+    // this prevents the compositor from presenting a partially-decoded frame
+    // (horizontal banding / blank tiles) during first scroll or refresh, so
+    // the very first paint is already final quality.
+    const reveal = () => {
+      if (activeSrcRef.current !== resolvedSrc) return;
+      onLoad?.(img);
+    };
+
+    if (typeof img.decode === "function") {
+      img
+        .decode()
+        .then(reveal)
+        // decode() rejects on already-broken images or some cross-origin
+        // cases — fall back to the raw load so the image still appears.
+        .catch(reveal);
+    } else {
+      reveal();
+    }
   }, [onLoad, resolvedSrc]);
 
   useEffect(() => {
