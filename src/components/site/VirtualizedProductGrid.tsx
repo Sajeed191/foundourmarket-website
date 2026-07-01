@@ -210,6 +210,38 @@ function WindowedGrid<T>({
 
   const windowItems = items.slice(startIndex, endIndex);
 
+  // Publish live metrics for the A/B debug panel (instrumentation only).
+  useEffect(() => {
+    publishWindowMetrics({
+      mode: "windowed",
+      windowSize: windowItems.length,
+      overscanRows,
+      visibleRows: Math.max(0, lastVisibleRow - firstVisibleRow),
+      startRow,
+      endRow,
+      totalRows,
+      colCount,
+      rowStride,
+      topSpacer,
+      bottomSpacer,
+    });
+    return () => resetWindowMetrics();
+  }, [
+    windowItems.length,
+    overscanRows,
+    firstVisibleRow,
+    lastVisibleRow,
+    startRow,
+    endRow,
+    totalRows,
+    colCount,
+    rowStride,
+    topSpacer,
+    bottomSpacer,
+  ]);
+
+
+
   return (
     <div ref={outerRef}>
       {topSpacer > 0 && <div aria-hidden style={{ height: topSpacer }} />}
