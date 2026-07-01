@@ -894,13 +894,21 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
    solid surface is used instead, so there is no GPU compositing regression. */
 .nav-glass {
   background: color-mix(in oklab, var(--card) 78%, transparent);
-  backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
   box-shadow: 0 10px 34px -16px oklch(0 0 0 / 0.7), 0 1px 0 0 color-mix(in oklab, var(--foreground) 8%, transparent) inset;
 }
+/* Blur is emitted for NON-Android only, as a positive rule. Relying on the old
+   `html[data-android="true"] .nav-glass { backdrop-filter: none !important }`
+   override was unsafe: Lightning CSS strips `backdrop-filter: none !important`
+   at build time, so on real Android the base blur survived and created a
+   framebuffer-READBACK compositor layer over the bottom of the first viewport
+   (a transient-banding source on hard refresh). Adding the value in a scoped
+   selector is preserved by the minifier and is simply absent on Android. */
+html:not([data-android="true"]) .nav-glass {
+  backdrop-filter: blur(18px) saturate(140%);
+}
 html[data-android="true"] .nav-glass {
   background: var(--card) !important;
-  backdrop-filter: none !important;
   box-shadow: 0 8px 24px -14px oklch(0 0 0 / 0.6) !important;
 }
 
