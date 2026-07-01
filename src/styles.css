@@ -1120,27 +1120,22 @@ html[data-degrade-effects="true"] [style*="blur("] {
    keep only the sticky header glass for its premium look. Animations stay on
    transform/opacity only. */
 @media (max-width: 767px) {
-  /* Kill EVERY backdrop-filter READBACK layer on phones. A backdrop-filter
-     layer samples the framebuffer behind it; on the first commit after a hard
-     refresh that source isn't rasterized yet, producing a transient horizontal
-     band that clears on the next frame / on scroll (classic Android Chrome
-     raster-tile timing artifact).
+  /* Backdrop-filter READBACK layers are the source of the transient horizontal
+     band on hard refresh (a backdrop-filter layer samples the framebuffer
+     behind it; before it is rasterized on the first commit the sample is
+     garbage, which clears on the next frame / on scroll).
 
-     CRITICAL: nulling the property does NOT work here. Lightning CSS strips
-     both `backdrop-filter: none !important` and `... initial !important` at
-     build time, leaving an empty rule body (verified in the served sheet).
-     The only reliable neutralisation — same as the render-safe block — is to
-     make the surface opaque so there is nothing to sample. Blur is already
-     visually dropped on phones by design, so this is not a redesign. */
-  .glass,
-  .glass-strong,
-  .product-card-glass,
-  .card-outline,
+     The .glass / .glass-strong blur is already removed at the source (it is
+     emitted only in a min-width:768px query, see the .glass definitions) so no
+     mobile override is needed for those. The remaining readback sources on
+     phones are Tailwind `backdrop-blur-*` utilities and inline backdrop-filter
+     styles. Nulling them does NOT work — Lightning CSS strips
+     `backdrop-filter: none|initial !important` at build time. The only reliable
+     neutralisation (same technique as the render-safe block) is an opaque
+     surface so the sampled result is fully painted over. */
   [class*="backdrop-blur"],
   [style*="backdrop-filter"] {
-    backdrop-filter: initial !important;
-    -webkit-backdrop-filter: initial !important;
-    background-color: color-mix(in srgb, var(--color-background) 88%, transparent) !important;
+    background-color: color-mix(in srgb, var(--color-background) 90%, transparent) !important;
     }
   /* Replace heavy multi-layer shadows/glows with one optimized token */
   .product-card-glass,
