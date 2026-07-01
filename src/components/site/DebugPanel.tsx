@@ -36,6 +36,18 @@ import {
   type Diagnostics,
 } from "@/lib/debug-diagnostics";
 
+import {
+  clearRecording,
+  getRecordingCount,
+  isRecording,
+  markCorruption,
+  recordingToCsv,
+  recordingToJson,
+  startRecording,
+  stopRecording,
+  subscribeRecorder,
+} from "@/lib/debug-diagnostics";
+
 /**
  * TEMPORARY floating debug panel for binary isolation of the Android rendering
  * corruption. Visible only when the harness is enabled (?debug=1 once, then it
@@ -113,6 +125,10 @@ export function DebugPanel() {
           }}
         >
           <GuidedRunner runner={runner} diag={diag} />
+
+          <RuntimeRecorder diag={diag} />
+
+
 
 
           <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
@@ -417,6 +433,94 @@ function Verdict({ log }: { log: BisectObservation[] }) {
   );
 }
 
+/**
+ * Runtime evidence recorder: samples the live diagnostics into a time-series so
+ * memory / DOM / retained-card / palette-extraction growth can be correlated
+ * against user-marked corruption events. Export JSON/CSV to build the report.
+ */
+function RuntimeRecorder({ diag }: { diag: Diagnostics }) {
+  const [rec, setRec] = useState(() => isRecording());
+  const [count, setCount] = useState(() => getRecordingCount());
+
+  useEffect(() => {
+    return subscribeRecorder(() => {
+      setRec(isRecording());
+      setCount(getRecordingCount());
+    });
+  }, []);
+
+  const download = (kind: "json" | "csv") => {
+    const body = kind === "json" ? recordingToJson() : recordingToCsv();
+    const blob = new Blob([body], {
+      type: kind === "json" ? "application/json" : "text/csv",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `fom-runtime-${Date.now()}.${kind}`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+
+
+  return (
+    <div
+      style={{
+        marginBottom: 10,
+        padding: 8,
+        border: "1px solid #f9731644",
+        borderRadius: 8,
+        background: "#1a0f00",
+      }}
+    >
+      <div style={{ fontWeight: 700, color: "#f97316", marginBottom: 6 }}>
+        ⏺ RUNTIME RECORDER {rec ? `· REC ${count}` : count ? `· ${count} samples` : ""}
+      </div>
+
+      <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+        {!rec ? (
+          <button type="button" onClick={() => startRecording(1000)} style={btn}>
+            ▶ Start
+          </button>
+        ) : (
+          <button type="button" onClick={() => stopRecording()} style={btn}>
+            ⏸ Stop
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => markCorruption()}
+          style={{ ...btn, borderColor: "#ef4444", color: "#ef4444" }}
+        >
+          ⚠ Corruption now
+        </button>
+      </div>
+
+      <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+        <button type="button" onClick={() => download("csv")} style={btn} disabled={!count}>
+          ⬇ CSV
+        </button>
+        <button type="button" onClick={() => download("json")} style={btn} disabled={!count}>
+          ⬇ JSON
+        </button>
+        <button type="button" onClick={() => clearRecording()} style={btn} disabled={!count}>
+          Clear
+        </button>
+      </div>
+
+      <div style={{ fontSize: 11, color: "#aaa", lineHeight: 1.5 }}>
+        <Row k="cards" v={String(diag.productCardCount)} />
+        <Row k="img (decoded)" v={`${diag.imageCount} (${diag.decodedImageCount})`} />
+        <Row k="heap MB" v={String(diag.jsHeapUsedMb ?? "n/a")} />
+        <Row k="fps" v={String(diag.fps)} />
+        <Row k="long tasks" v={`${diag.longTasks} (max ${Math.round(diag.longTaskMaxMs)}ms)`} />
+        <Row k="ctx lost" v={String(diag.glContextLost)} />
+        <Row k="decode fails" v={String(diag.imageDecodeFailures)} />
+      </div>
+    </div>
+  );
+}
 
 const btn: React.CSSProperties = {
   flex: 1,

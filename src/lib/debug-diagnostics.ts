@@ -17,6 +17,9 @@
  */
 
 import { isDebugEnabled } from "@/lib/debug-flags";
+import { getPaletteExtractionCount } from "@/lib/image-palette";
+
+
 
 export type Diagnostics = {
   gpuRenderer: string;
@@ -329,3 +332,160 @@ export function patchImageDecode() {
     });
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * TEMPORARY RUNTIME RECORDER — evidence-only investigation.
+ *
+ * Records a time-series of the live diagnostics so growth curves (memory,
+ * DOM, retained cards/images, palette extractions, FPS, long tasks) can be
+ * correlated against user-marked corruption events. Runs entirely on the
+ * device; export the JSON/CSV to build the report. Remove with the harness.
+ * ------------------------------------------------------------------ */
+
+export type RecorderSample = {
+  t: number; // ms since recording start
+  scrollY: number;
+  fps: number;
+  longTasks: number;
+  longTaskMaxMs: number;
+  jsHeapUsedMb: number | null;
+  domNodeCount: number;
+  productCardCount: number;
+  cardFrameCount: number;
+  imageCount: number;
+  decodedImageCount: number;
+  paletteExtractions: number;
+  compositorLayers: number;
+  glContextLost: number;
+  imageDecodeFailures: number;
+  createImageBitmapFailures: number;
+  layoutShiftCount: number;
+  estImageMemoryMb: number; // decoded imgs × natural WxH × 4 bytes
+  corruption: boolean; // true on the sample where the user marked corruption
+};
+
+let recording = false;
+let recStart = 0;
+let recTimer: ReturnType<typeof setInterval> | null = null;
+let recBuffer: RecorderSample[] = [];
+let corruptionPending = false;
+const recListeners = new Set<() => void>();
+
+function recNotify() {
+  recListeners.forEach((l) => l());
+}
+
+export function subscribeRecorder(cb: () => void): () => void {
+  recListeners.add(cb);
+  return () => recListeners.delete(cb);
+}
+
+export function isRecording(): boolean {
+  return recording;
+}
+
+export function getRecordingCount(): number {
+  return recBuffer.length;
+}
+
+export function getRecording(): RecorderSample[] {
+  return [...recBuffer];
+}
+
+/** Estimate decoded bitmap memory: sum of naturalW×naturalH×4 over loaded imgs. */
+function estimateImageMemoryMb(): number {
+  const imgs = document.getElementsByTagName("img");
+  let bytes = 0;
+  const limit = Math.min(imgs.length, 5000);
+  for (let i = 0; i < limit; i++) {
+    const im = imgs[i];
+    if (im.complete && im.naturalWidth > 0) {
+      bytes += im.naturalWidth * im.naturalHeight * 4;
+    }
+  }
+  return Math.round(bytes / 1048576);
+}
+
+function takeRecorderSample() {
+  const snap = getDiagnostics();
+  recBuffer.push({
+    t: Math.round(performance.now() - recStart),
+    scrollY: Math.round(window.scrollY),
+    fps: snap.fps,
+    longTasks: snap.longTasks,
+    longTaskMaxMs: Math.round(snap.longTaskMaxMs),
+    jsHeapUsedMb: snap.jsHeapUsedMb,
+    domNodeCount: document.getElementsByTagName("*").length,
+    productCardCount: document.querySelectorAll("[data-product-card]").length,
+    cardFrameCount: document.querySelectorAll("[data-product-card-frame]").length,
+    imageCount: document.getElementsByTagName("img").length,
+    decodedImageCount: snap.decodedImageCount,
+    paletteExtractions: getPaletteExtractionCount(),
+    compositorLayers: snap.compositorLayers,
+    glContextLost: snap.glContextLost,
+    imageDecodeFailures: snap.imageDecodeFailures,
+    createImageBitmapFailures: snap.createImageBitmapFailures,
+    layoutShiftCount: snap.layoutShiftCount,
+    estImageMemoryMb: estimateImageMemoryMb(),
+    corruption: corruptionPending,
+  });
+  corruptionPending = false;
+  // Bound the buffer so a very long session never OOMs the device itself.
+  if (recBuffer.length > 3600) recBuffer.shift();
+  recNotify();
+}
+
+export function startRecording(intervalMs = 1000) {
+  if (recording || typeof window === "undefined") return;
+  recording = true;
+  recStart = performance.now();
+  recBuffer = [];
+  corruptionPending = false;
+  takeRecorderSample();
+  recTimer = setInterval(takeRecorderSample, intervalMs);
+  recNotify();
+}
+
+export function stopRecording() {
+  recording = false;
+  if (recTimer) {
+    clearInterval(recTimer);
+    recTimer = null;
+  }
+  recNotify();
+}
+
+/** Mark that visual corruption is happening right now (flagged on next sample,
+ *  and also immediately captured so the exact moment is never missed). */
+export function markCorruption() {
+  corruptionPending = true;
+  if (recording) takeRecorderSample();
+  recNotify();
+}
+
+export function clearRecording() {
+  recBuffer = [];
+  recNotify();
+}
+
+export function recordingToCsv(): string {
+  const cols: (keyof RecorderSample)[] = [
+    "t", "scrollY", "fps", "longTasks", "longTaskMaxMs", "jsHeapUsedMb",
+    "domNodeCount", "productCardCount", "cardFrameCount", "imageCount",
+    "decodedImageCount", "paletteExtractions", "compositorLayers",
+    "glContextLost", "imageDecodeFailures", "createImageBitmapFailures",
+    "layoutShiftCount", "estImageMemoryMb", "corruption",
+  ];
+  const header = cols.join(",");
+  const rows = recBuffer.map((s) => cols.map((c) => String(s[c] ?? "")).join(","));
+  return [header, ...rows].join("\n");
+}
+
+export function recordingToJson(): string {
+  return JSON.stringify(
+    { device: getDiagnostics(), samples: recBuffer },
+    null,
+    2,
+  );
+}
+
