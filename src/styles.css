@@ -352,14 +352,23 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
 
 .glass {
   background: oklch(1 0 0 / 0.03);
-  backdrop-filter: blur(20px);
   border: 1px solid oklch(1 0 0 / 0.08);
 }
 .glass-strong {
   background: linear-gradient(135deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0.02));
-  backdrop-filter: blur(24px) saturate(140%);
   border: 1px solid oklch(1 0 0 / 0.1);
   box-shadow: var(--shadow-float);
+}
+/* Blur is emitted DESKTOP-ONLY. This is intentional and load-bearing:
+   Lightning CSS strips any `backdrop-filter: none|initial !important` override,
+   so blur can only be kept off mobile by never emitting it below 768px (adding
+   a real value in a min-width query is preserved, a removal is not). This
+   eliminates the backdrop-filter READBACK compositor layers on phones — the
+   source of the transient horizontal band on hard refresh — with zero mobile
+   visual change (mobile glass was already meant to be blur-free). */
+@media (min-width: 768px) {
+  .glass { backdrop-filter: blur(20px); }
+  .glass-strong { backdrop-filter: blur(24px) saturate(140%); }
 }
 
 /* Premium card with subtle gradient border */
