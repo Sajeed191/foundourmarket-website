@@ -124,6 +124,7 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
     return Promise.resolve(FALLBACK_PALETTE);
   }
 
+  paletteExtractionCount += 1;
   const promise = new Promise<ImagePalette>((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
