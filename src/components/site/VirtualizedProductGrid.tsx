@@ -54,6 +54,25 @@ function warmImage(rawSrc: string): Promise<void> {
   });
 }
 
+/** Grid hydration debug logging — opt-in only.
+ * Enable via `?debug-grid` in the URL or `window.__DEBUG_GRID = true`.
+ * Zero cost in production when disabled. */
+function gridDebugEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      (window as unknown as { __DEBUG_GRID?: boolean }).__DEBUG_GRID === true ||
+      /[?&]debug-grid\b/.test(window.location.search)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function gridLog(...args: unknown[]): void {
+  if (gridDebugEnabled()) console.log("%c[ZeroFlickerGrid]", "color:#f59e0b", ...args);
+}
+
 /** Wait N animation frames — a "decode barrier flush" so the compositor and
  * rasterizer are synced before we mount the real grid. */
 function nextFrames(n: number): Promise<void> {
