@@ -318,12 +318,12 @@ function TwoPhaseGrid({
       setTimeout(() => res("safety-timeout"), 3000),
     );
 
-    // FIRST-FRAME CAP: decode only the very first row (one column's worth of
-    // images) with strict serial throttle so the initial paint uploads a minimal
-    // number of textures — this avoids the "refresh burst = full viewport +
-    // decode spike" that saturates the Chromium Android tile manager. Only after
-    // that safe first frame do we fall back to normal pooled concurrency for the
-    // rest of the viewport batch.
+    // FIRST-FRAME CAP: decode the SMALLEST N images (by intrinsic pixel area)
+    // in the viewport batch first, with strict serial throttle, so the initial
+    // paint uploads a minimal texture set. Choosing by area (instead of strictly
+    // "row 1") avoids an oversized hero/featured image or a mixed aspect ratio
+    // dominating the first GPU upload and re-introducing banding. Only after that
+    // safe first frame do we fall back to normal pooled concurrency for the rest.
     const firstFrameCap = Math.max(1, resolveColsWidth(cols, window.innerWidth));
     const decodeOne = (s: string, i: number) => {
       const t0 = performance.now();
@@ -331,11 +331,19 @@ function TwoPhaseGrid({
         if (gridDebugEnabled()) gridLog(`decode[${i}] ${Math.round(performance.now() - t0)}ms`);
       });
     };
-    const firstFrame = srcs.slice(0, firstFrameCap);
-    const rest = srcs.slice(firstFrameCap);
-    const decodeAll = mapWithConcurrency(firstFrame, 1, decodeOne)
-      .then(() => nextFrames(1)) // let the first row's textures commit alone
-      .then(() => mapWithConcurrency(rest, decodeConcurrency(), (s, i) => decodeOne(s, i + firstFrameCap)))
+    const orderByArea = Promise.all(srcs.map(probeArea)).then((probed) => {
+      const sorted = probed.slice().sort((a, b) => a.area - b.area).map((p) => p.src);
+      const firstFrame = sorted.slice(0, firstFrameCap);
+      const rest = sorted.slice(firstFrameCap);
+      return { firstFrame, rest };
+    });
+    const decodeAll = orderByArea
+      .then(({ firstFrame, rest }) =>
+        mapWithConcurrency(firstFrame, 1, decodeOne)
+          .then(() => nextFrames(1)) // let the smallest textures commit alone
+          .then(() => mapWithConcurrency(rest, decodeConcurrency(), (s, i) => decodeOne(s, i + firstFrameCap))),
+      )
+
       .then(() => {
         publishGridTelemetry({ decodeBatchEnd: Math.round(performance.now()) });
       })
