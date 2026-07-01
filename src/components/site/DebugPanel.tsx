@@ -462,9 +462,7 @@ function RuntimeRecorder({ diag }: { diag: Diagnostics }) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  const est = Math.round(
-    (diag.decodedImageCount * 0 + 0) + 0,
-  ); // placeholder to keep types happy; live figures shown below
+
 
   return (
     <div
