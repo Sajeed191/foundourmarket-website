@@ -126,6 +126,10 @@ export function DebugPanel() {
         >
           <GuidedRunner runner={runner} diag={diag} />
 
+          <RuntimeRecorder diag={diag} />
+
+
+
 
           <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
             <button type="button" onClick={() => setAll(true)} style={btn}>
