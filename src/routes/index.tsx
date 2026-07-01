@@ -676,13 +676,14 @@ function Home() {
           })}
 
           {!isProductAdmin && (
-            <Reveal delay={homeCategories.length} className="h-full">
-              <div className="relative h-full">
+            <Reveal delay={homeCategories.length}>
+              <div className="relative">
                 <Link
                   data-product-card-frame
                   to="/categories"
-                  className="group relative flex h-full flex-col items-center gap-2.5 sm:gap-3 p-2.5 sm:p-4 text-center rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_8px_32px_-8px_oklch(0.74_0.19_49/0.45)] active:scale-[0.97]"
+                  className="group relative flex flex-col items-center gap-2.5 sm:gap-3 p-2.5 sm:p-4 text-center rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_8px_32px_-8px_oklch(0.74_0.19_49/0.45)] active:scale-[0.97]"
                 >
+
                   <div className="relative w-full aspect-square grid place-items-center overflow-hidden rounded-2xl border border-border bg-muted/60">
                     <span className="grid size-14 sm:size-16 place-items-center rounded-full bg-accent/12 text-accent ring-1 ring-accent/25 shadow-[0_0_28px_-6px_oklch(0.74_0.19_49/0.6)] transition-colors group-hover:bg-accent/20">
                       <ArrowRight className="size-6 sm:size-7 transition-transform duration-300 group-hover:translate-x-1" />
