@@ -1,9 +1,11 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { ProductImage } from "@/components/site/ProductImage";
-import { useImagePalette } from "@/lib/use-image-palette";
+import { isConstrainedDevice } from "@/lib/use-image-palette";
 import {
+  getImagePalette,
   getImagePaletteFromElement,
   getCachedPalette,
+  FALLBACK_PALETTE,
   type ImagePalette,
 } from "@/lib/image-palette";
 
