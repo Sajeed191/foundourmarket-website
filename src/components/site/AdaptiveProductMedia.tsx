@@ -1,6 +1,11 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { ProductImage } from "@/components/site/ProductImage";
 import { useImagePalette } from "@/lib/use-image-palette";
+import {
+  getImagePaletteFromElement,
+  getCachedPalette,
+  type ImagePalette,
+} from "@/lib/image-palette";
 
 type Props = {
   src: string;
