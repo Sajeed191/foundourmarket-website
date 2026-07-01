@@ -284,14 +284,12 @@ function TwoPhaseGrid({
       setTimeout(() => res("safety-timeout"), 3000),
     );
 
-    const decodeAll = Promise.all(
-      srcs.map((s, i) => {
-        const t0 = performance.now();
-        return warmImage(s).then(() => {
-          if (gridDebugEnabled()) gridLog(`decode[${i}] ${Math.round(performance.now() - t0)}ms`);
-        });
-      }),
-    )
+    const decodeAll = mapWithConcurrency(srcs, decodeConcurrency(), (s, i) => {
+      const t0 = performance.now();
+      return warmImage(s).then(() => {
+        if (gridDebugEnabled()) gridLog(`decode[${i}] ${Math.round(performance.now() - t0)}ms`);
+      });
+    })
       .then(() => {
         publishGridTelemetry({ decodeBatchEnd: Math.round(performance.now()) });
       })
