@@ -1173,6 +1173,25 @@ html[data-degrade-effects="true"] [style*="blur("] {
   min-width: 0;
 }
 
+/* ===== Android compositor corruption guard (ALL Android devices) =====
+   `content-visibility: auto`, `contain: paint`, and `isolation: isolate` on
+   repeated product cards are the confirmed trigger for Chrome/Samsung Android
+   GPU tile corruption (duplicated text/badges + rainbow bands) on Mali /
+   PowerVR / older Adreno GPUs. The perf gain is marginal; the corruption is
+   severe and reproduces on real hardware that is NOT flagged low-end. So we
+   strip these properties on every Android device, unconditionally, while
+   desktop keeps the optimization. */
+html[data-android="true"] .cv-auto,
+html[data-android="true"] [data-product-card-frame],
+html[data-android="true"] .product-card-shell,
+html[data-android="true"] [data-product-media] {
+  content-visibility: visible !important;
+  contain-intrinsic-size: auto !important;
+  contain: none !important;
+  isolation: auto !important;
+}
+
+
 .product-title-text {
   display: block;
   -webkit-line-clamp: unset;
