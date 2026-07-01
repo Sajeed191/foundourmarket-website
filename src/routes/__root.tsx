@@ -43,6 +43,7 @@ import { installStartupDiagnostics, useRenderDiagnostics } from "@/lib/startup-d
 import { initDebugFlags, getFlag } from "@/lib/debug-flags";
 import { installDebugDiagnostics, patchImageDecode } from "@/lib/debug-diagnostics";
 import { DebugPanel } from "@/components/site/DebugPanel";
+import { WindowMetricsPanel } from "@/components/site/WindowMetricsPanel";
 
 const STARTUP_GUARD_SCRIPT = `(function(){
   if (typeof window === 'undefined') return;
@@ -604,6 +605,7 @@ function RootComponent() {
                             <Toaster position="bottom-center" richColors />
                             <ShareDialog />
                             <DebugPanel />
+                            <WindowMetricsPanel />
                           </div>
                           </BadgeEngineProvider>
                         </LayoutMetricsProvider>

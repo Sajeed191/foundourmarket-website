@@ -1,4 +1,5 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { publishWindowMetrics, resetWindowMetrics } from "@/lib/window-metrics";
 
 type Cols = { base: number; sm?: number; md?: number; lg?: number; xl?: number };
 
@@ -208,6 +209,38 @@ function WindowedGrid<T>({
   const bottomSpacer = Math.max(0, (totalRows - endRow) * rowStride);
 
   const windowItems = items.slice(startIndex, endIndex);
+
+  // Publish live metrics for the A/B debug panel (instrumentation only).
+  useEffect(() => {
+    publishWindowMetrics({
+      mode: "windowed",
+      windowSize: windowItems.length,
+      overscanRows,
+      visibleRows: Math.max(0, lastVisibleRow - firstVisibleRow),
+      startRow,
+      endRow,
+      totalRows,
+      colCount,
+      rowStride,
+      topSpacer,
+      bottomSpacer,
+    });
+    return () => resetWindowMetrics();
+  }, [
+    windowItems.length,
+    overscanRows,
+    firstVisibleRow,
+    lastVisibleRow,
+    startRow,
+    endRow,
+    totalRows,
+    colCount,
+    rowStride,
+    topSpacer,
+    bottomSpacer,
+  ]);
+
+
 
   return (
     <div ref={outerRef}>
