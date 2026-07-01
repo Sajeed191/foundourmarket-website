@@ -1116,15 +1116,17 @@ html[data-degrade-effects="true"] [style*="blur("] {
      footer badge, Tailwind backdrop-blur-* utilities) sample the framebuffer
      behind them and produce transient horizontal readback bands on the first
      commit after a hard refresh on Android Chrome. Suppressing them removes
-     that entire class of GPU raster-tile timing artifact with no redesign. */
+     that entire class of GPU raster-tile timing artifact with no redesign.
+     NOTE: must use `initial`, not `none` — Lightning CSS strips
+     `backdrop-filter: none !important` at build time (see render-safe block). */
   .glass,
   .glass-strong,
   .product-card-glass,
   .card-outline,
   [class*="backdrop-blur"],
   [style*="backdrop-filter"] {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    backdrop-filter: initial !important;
+    -webkit-backdrop-filter: initial !important;
     }
   /* Replace heavy multi-layer shadows/glows with one optimized token */
   .product-card-glass,
