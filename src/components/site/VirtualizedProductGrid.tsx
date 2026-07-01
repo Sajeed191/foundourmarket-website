@@ -376,16 +376,18 @@ function WindowedGrid<T>({
   return (
     <div ref={outerRef}>
       {topSpacer > 0 && <div aria-hidden style={{ height: topSpacer }} />}
-      <div ref={gridRef} data-product-grid data-windowed="on" className={className}>
-        {windowItems.map((item, i) => {
-          const index = startIndex + i;
-          return (
-            <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
-              {renderItem(item, index)}
-            </div>
-          );
-        })}
-      </div>
+      <HydrationGate cols={cols} itemCount={windowItems.length}>
+        <div ref={gridRef} data-product-grid data-windowed="on" className={className}>
+          {windowItems.map((item, i) => {
+            const index = startIndex + i;
+            return (
+              <div key={getKey(item)} data-product-card-frame className="h-full min-w-0 [&>*]:h-full">
+                {renderItem(item, index)}
+              </div>
+            );
+          })}
+        </div>
+      </HydrationGate>
       {bottomSpacer > 0 && <div aria-hidden style={{ height: bottomSpacer }} />}
     </div>
   );
