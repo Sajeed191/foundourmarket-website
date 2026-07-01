@@ -123,7 +123,7 @@ function AdaptiveProductMediaImpl({ src, alt, priority = false, plain = false, c
         width={800}
         height={800}
         priority={priority}
-        onLoad={() => setLoadedSrc(src)}
+        onLoad={handleImageLoad}
         className="relative z-[1] block h-full w-full rounded-[14px] object-contain object-center transition-[transform,opacity] duration-300 ease-out group-hover:scale-[1.03]"
         style={{ opacity: revealed ? 1 : 0 }}
       />
