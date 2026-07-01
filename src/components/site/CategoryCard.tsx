@@ -55,12 +55,20 @@ export type CategoryCardData = {
   name: string;
   image: string | null;
   mobile_image: string | null;
+  theme?: string | null;
 };
 
+/* Single visual contract defaults. Applied defensively before render so a
+   category with missing data can never fall into a divergent layout branch. */
+const DEFAULT_CATEGORY_IMAGE = "";
+const DEFAULT_THEME = "standard";
+
 /**
- * Image-first category card: large image on top, title + product count below.
- * Subtle premium border, minimal glow, equal height across the grid.
- * Falls back to a glass icon capsule only when no real/AI image exists.
+ * Image-first category card — enforces ONE visual contract for every category:
+ *   CardShell → MediaWrapper (fixed 1:1) → Image (object-cover) →
+ *   GradientOverlay (always present) → GlowRing (data-driven) → Label
+ * There are no category-type branches; the only fork is the data-driven image
+ * vs icon fallback (used when a category genuinely has no image).
  */
 export function CategoryCard({
   category,
@@ -73,30 +81,43 @@ export function CategoryCard({
   to: string;
   params: Record<string, string>;
 }) {
-  const Icon = iconForCategory(category.slug, category.name);
-  const img = category.mobile_image || category.image || "";
+  // Defensive normalization: guarantee a consistent shape for every card.
+  const normalizedCategory = {
+    ...category,
+    image: category.image ?? DEFAULT_CATEGORY_IMAGE,
+    mobile_image: category.mobile_image ?? DEFAULT_CATEGORY_IMAGE,
+    theme: category.theme ?? DEFAULT_THEME,
+    variant: "standard" as const,
+  };
+
+  const Icon = iconForCategory(normalizedCategory.slug, normalizedCategory.name);
+  const img = normalizedCategory.mobile_image || normalizedCategory.image || "";
   // Serve a small resized variant instead of the full original (CLS-safe via
   // the fixed aspect-square container).
   const responsive = img ? getStorageResponsive(img, [200, 320, 480]) : null;
+  // GlowRing is driven ONLY by data (does this category have products), never
+  // by category type — keeps the contract identical across all categories.
+  const hasGlow = count > 0;
 
   return (
     <Link
       to={to as never}
       params={params as never}
-      onClick={() => void supabase.rpc("track_category_event", { _id: category.id, _event: "click" })}
+      onClick={() => void supabase.rpc("track_category_event", { _id: normalizedCategory.id, _event: "click" })}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[var(--shadow-card)]"
     >
-      {/* Large image on top — consistent square ratio */}
+      {/* MediaWrapper — fixed 1:1 ratio for every card */}
       <div className="relative aspect-square w-full overflow-hidden bg-muted/60">
         {img ? (
           <img
             src={responsive?.src ?? img}
             srcSet={responsive?.srcset}
             sizes="(max-width: 640px) 45vw, 200px"
-            alt={category.name}
+            alt={normalizedCategory.name}
             loading="lazy"
             decoding="async"
-            className="size-full object-cover [transition:transform_700ms_cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+            className="absolute inset-0 size-full object-cover [transition:transform_700ms_cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+            style={{ objectFit: "cover", width: "100%", height: "100%" }}
           />
         ) : (
           <div className="grid size-full place-items-center">
@@ -105,12 +126,26 @@ export function CategoryCard({
             </span>
           </div>
         )}
+
+        {/* GradientOverlay — ALWAYS present, regardless of image/fallback */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/45 via-transparent to-transparent"
+        />
+
+        {/* GlowRing — data-driven only (has products), not category-specific */}
+        {hasGlow && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-accent/0 transition-[box-shadow] duration-300 group-hover:ring-accent/25 group-hover:shadow-[inset_0_0_28px_-14px_oklch(0.74_0.19_49/0.8)]"
+          />
+        )}
       </div>
 
-      {/* Title + product count below */}
+      {/* Label */}
       <div className="flex flex-1 flex-col items-center justify-center gap-0.5 px-2.5 py-3 text-center sm:py-3.5">
         <h3 className="line-clamp-1 text-[13px] font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-accent sm:text-[15px]">
-          {category.name}
+          {normalizedCategory.name}
         </h3>
         {count > 0 && (
           <span className="block text-[10px] font-medium tracking-wide text-muted-foreground sm:text-[11px]">
