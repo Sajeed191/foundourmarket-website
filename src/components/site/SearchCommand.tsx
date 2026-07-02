@@ -8,7 +8,6 @@ import { iconForCategory } from "@/components/site/CategoryCard";
 import { Price } from "@/components/site/Price";
 import { useRegion } from "@/lib/region";
 
-const TRENDING = ["Wireless headphones", "Leather jacket", "Ceramic mug", "Smart watch", "Linen shirt"];
 const RECENT_KEY = "fom-recent-searches";
 const PRODUCT_PAGE = 6; // initial product results; lazy-load more on demand (keeps initial list small)
 
@@ -71,6 +70,10 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
     [products],
   );
 
+
+
+
+
   // Product counts per category (matched by slug or name) for the category cards.
   const catCount = useMemo(() => {
     const m = new Map<string, number>();
@@ -96,6 +99,27 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
       .sort((a, b) => b[1] - a[1])
       .map(([name]) => name);
   }, [products]);
+
+  // Trending searches — derived from live catalog signals: top categories by
+  // product count (clean display names) blended with top brand names. No mocks.
+  const trending = useMemo(() => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    const push = (v?: string | null) => {
+      const t = (v ?? "").trim();
+      if (t.length < 3) return;
+      const key = t.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(t);
+    };
+    const topCats = [...categories].sort((a, b) => catCount(b) - catCount(a));
+    topCats.slice(0, 3).forEach((c) => push(c.name));
+    brandsAll.slice(0, 3).forEach((b) => push(b));
+    return out.slice(0, 5);
+  }, [categories, catCount, brandsAll]);
+
+
 
   const productMatches = useMemo(() => {
     if (!term) return [];
@@ -235,16 +259,22 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
           {!term ? (
             <div className="p-4 sm:p-6 space-y-7">
               {/* Trending */}
-              <section>
-                <h4 className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/80"><TrendingUp className="size-4 text-accent" /> Trending Searches</h4>
-                <div className="flex flex-wrap gap-2.5">
-                  {TRENDING.map((t) => (
-                    <button key={t} onClick={() => go(t)} className="inline-flex h-10 items-center gap-1.5 rounded-full border border-accent/25 bg-gradient-to-b from-accent/15 to-accent/5 px-4 text-sm font-medium text-accent transition-all duration-200 hover:border-accent/50 hover:from-accent/25 active:translate-y-px">
-                      <Flame className="size-3.5" /> {t}
-                    </button>
-                  ))}
-                </div>
-              </section>
+              {(loading || trending.length > 0) && (
+                <section>
+                  <h4 className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/80"><TrendingUp className="size-4 text-accent" /> Trending Searches</h4>
+                  <div className="flex flex-wrap gap-2.5">
+                    {loading && trending.length === 0
+                      ? Array.from({ length: 5 }).map((_, i) => (
+                          <span key={i} className="h-10 w-28 animate-pulse rounded-full bg-white/[0.05]" />
+                        ))
+                      : trending.map((t) => (
+                          <button key={t} onClick={() => go(t)} className="inline-flex h-10 items-center gap-1.5 rounded-full border border-accent/25 bg-gradient-to-b from-accent/15 to-accent/5 px-4 text-sm font-medium text-accent transition-all duration-200 hover:border-accent/50 hover:from-accent/25 active:translate-y-px">
+                            <Flame className="size-3.5" /> {t}
+                          </button>
+                        ))}
+                  </div>
+                </section>
+              )}
 
               {/* Recent */}
               {recent.length > 0 && (
@@ -281,55 +311,67 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
               <section className="border-t border-white/8 pt-6">
                 <h4 className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/80"><Tag className="size-4 text-accent" /> Browse Categories</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {categories.slice(0, 6).map((c) => {
-                    const Icon = iconForCategory(c.slug, c.name);
-                    const n = catCount(c);
-                    return (
-                      <Link
-                        key={c.slug}
-                        to="/category/$slug"
-                        params={{ slug: c.slug }}
-                        onClick={onClose}
-                        className="group flex items-center gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] p-3 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:bg-accent/[0.06]"
-                      >
-                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/12 text-accent transition-colors group-hover:bg-accent/20">
-                          <Icon className="size-5" />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold text-foreground/90">{c.name}</span>
-                          {n > 0 && <span className="block text-[11px] text-muted-foreground">{n} {n === 1 ? "product" : "products"}</span>}
-                        </span>
-                      </Link>
-                    );
-                  })}
+                  {loading && categories.length === 0
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <span key={i} className="h-[68px] animate-pulse rounded-[18px] bg-white/[0.04]" />
+                      ))
+                    : categories.slice(0, 6).map((c) => {
+                        const Icon = iconForCategory(c.slug, c.name);
+                        const n = catCount(c);
+                        return (
+                          <Link
+                            key={c.slug}
+                            to="/category/$slug"
+                            params={{ slug: c.slug }}
+                            onClick={onClose}
+                            className="group flex items-center gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] p-3 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:bg-accent/[0.06]"
+                          >
+                            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/12 text-accent transition-colors group-hover:bg-accent/20">
+                              <Icon className="size-5" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-semibold text-foreground/90">{c.name}</span>
+                              {n > 0 && <span className="block text-[11px] text-muted-foreground">{n} {n === 1 ? "product" : "products"}</span>}
+                            </span>
+                          </Link>
+                        );
+                      })}
                 </div>
               </section>
 
               {/* Popular products — horizontal scroll */}
-              {popular.length > 0 && (
+              {(loading || popular.length > 0) && (
                 <section className="border-t border-white/8 pt-6">
                   <h4 className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/80"><Flame className="size-4 text-accent" /> Popular Products</h4>
                   <div className="-mx-4 sm:-mx-6 flex gap-3 overflow-x-auto px-4 sm:px-6 pb-2 overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {popular.map((p) => (
-                      <Link
-                        key={p.id ?? p.slug}
-                        to="/products/$slug"
-                        params={{ slug: p.slug }}
-                        onClick={onClose}
-                        className="group w-[150px] shrink-0 rounded-[18px] border border-white/10 bg-white/[0.03] p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40"
-                      >
-                        <img src={p.image} alt="" loading="lazy" className="aspect-square w-full rounded-xl object-cover" />
-                        <p className="product-typography product-title-text mt-2 line-clamp-2 text-[13px] font-medium leading-snug">{p.name}</p>
-                        <div className="mt-1.5 flex items-center justify-between">
-                          <Price value={priceOf(p)} className="font-mono text-sm font-semibold text-accent" />
-                          {p.rating > 0 && (
-                            <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
-                              <Star className="size-3 fill-accent text-accent" /> {p.rating.toFixed(1)}
-                            </span>
-                          )}
-                        </div>
-                      </Link>
-                    ))}
+                    {loading && popular.length === 0
+                      ? Array.from({ length: 6 }).map((_, i) => (
+                          <div key={i} className="w-[150px] shrink-0 rounded-[18px] border border-white/10 bg-white/[0.03] p-2.5">
+                            <span className="block aspect-square w-full animate-pulse rounded-xl bg-white/[0.05]" />
+                            <span className="mt-2 block h-3.5 w-4/5 animate-pulse rounded bg-white/[0.05]" />
+                            <span className="mt-1.5 block h-3 w-1/2 animate-pulse rounded bg-white/[0.05]" />
+                          </div>
+                        ))
+                      : popular.map((p) => (
+                          <Link
+                            key={p.id ?? p.slug}
+                            to="/products/$slug"
+                            params={{ slug: p.slug }}
+                            onClick={onClose}
+                            className="group w-[150px] shrink-0 rounded-[18px] border border-white/10 bg-white/[0.03] p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40"
+                          >
+                            <img src={p.image} alt="" loading="lazy" className="aspect-square w-full rounded-xl object-cover" />
+                            <p className="product-typography product-title-text mt-2 line-clamp-2 text-[13px] font-medium leading-snug">{p.name}</p>
+                            <div className="mt-1.5 flex items-center justify-between">
+                              <Price value={priceOf(p)} className="font-mono text-sm font-semibold text-accent" />
+                              {p.rating > 0 && (
+                                <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
+                                  <Star className="size-3 fill-accent text-accent" /> {p.rating.toFixed(1)}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        ))}
                   </div>
                 </section>
               )}
