@@ -107,7 +107,7 @@ export function RegionSelectModal() {
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
-          className="max-w-sm overflow-hidden border-white/10 bg-background/85 p-6 backdrop-blur-2xl [&>button]:hidden"
+          className="max-w-sm overflow-hidden border-white/10 bg-background/85 p-6 md:backdrop-blur-2xl [&>button]:hidden"
         >
           <div className="space-y-2 text-center">
             <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-white/10 bg-black/30 text-2xl">
@@ -179,7 +179,7 @@ export function RegionSelectModal() {
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-        className="max-w-lg overflow-hidden border-white/10 bg-background/80 p-0 backdrop-blur-2xl [&>button]:hidden"
+        className="max-w-lg overflow-hidden border-white/10 bg-background/80 p-0 md:backdrop-blur-2xl [&>button]:hidden"
       >
         {/* cinematic ambient glow */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
