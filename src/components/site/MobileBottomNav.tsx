@@ -27,6 +27,7 @@ const FAST_DOWN_VELOCITY = 1.25; // px/ms — flick = skip compact, hide instant
 const VELOCITY_BUFFER = 0.035; // signed px/ms hysteresis around rest
 const VELOCITY_THROTTLE_MS = 60; // clamp: max one velocity measurement / 60ms
 const MICRO_DELTA_PX = 8; // ignore sub-8px jitter mid-gesture
+const DIRECTION_DEBOUNCE_MS = 120; // confirm scroll intent before honoring a flip
 
 /**
  * Deterministic resolver. `current` is fed back in so the hidden phase is
@@ -87,6 +88,8 @@ export function MobileBottomNav() {
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let hiddenLockUntil = 0; // hard lock window after entering hidden
     let lastVelAt = 0; // velocity update clamp (max 1 per VELOCITY_THROTTLE_MS)
+    let dirSign = 0; // last confirmed scroll direction (+1 down, -1 up)
+    let dirSince = 0; // timestamp the current direction was confirmed
 
     const canUpdate = (now: number) => now - lastCommit.current > TRANSITION_LOCK_MS;
 
@@ -139,6 +142,17 @@ export function MobileBottomNav() {
       lastY.current = y;
       lastT.current = now;
       lastVelAt = now;
+
+      // Direction debounce buffer: confirm intent for 120ms before honoring a
+      // flip. A genuine sustained gesture registers immediately (the prior
+      // direction is stale), but sub-120ms up↔down finger jitter is suppressed
+      // so the dock cannot re-enter COMPACT before the HIDDEN lock expires.
+      const sign = velocity > VELOCITY_BUFFER ? 1 : velocity < -VELOCITY_BUFFER ? -1 : 0;
+      if (sign !== 0 && sign !== dirSign) {
+        if (dirSign !== 0 && now - dirSince < DIRECTION_DEBOUNCE_MS) return;
+        dirSign = sign;
+        dirSince = now;
+      }
 
       const next = resolveNavState(navStateRef.current, y, velocity, pendingScrolling);
       commit(next, now);
