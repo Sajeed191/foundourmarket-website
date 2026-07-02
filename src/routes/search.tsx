@@ -459,17 +459,6 @@ function SearchPage() {
 
   const activeFilterCount = [search.cat, search.stock, search.min, search.max, search.rating, search.free, search.disc].filter(Boolean).length;
 
-  const activeChips: { label: string; clear: () => void }[] = [];
-  if (search.cat) {
-    const name = categories.find((c) => c.slug === search.cat)?.name ?? search.cat;
-    activeChips.push({ label: name, clear: () => update({ cat: undefined }) });
-  }
-  if (search.stock === "in") activeChips.push({ label: "In stock", clear: () => update({ stock: undefined }) });
-  if (search.free === "1") activeChips.push({ label: "Free shipping", clear: () => update({ free: undefined }) });
-  if (search.disc === "1") activeChips.push({ label: "On sale", clear: () => update({ disc: undefined }) });
-  if (search.rating) activeChips.push({ label: `${search.rating}★ & up`, clear: () => update({ rating: undefined }) });
-  if (search.min) activeChips.push({ label: `Min ${fmtPrice(search.min)}`, clear: () => update({ min: undefined }) });
-  if (search.max) activeChips.push({ label: `Max ${fmtPrice(search.max)}`, clear: () => update({ max: undefined }) });
 
   const getProductKey = useCallback((p: Product) => p.id ?? p.slug, []);
   const renderProduct = useCallback(
