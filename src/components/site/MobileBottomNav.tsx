@@ -82,6 +82,7 @@ export function MobileBottomNav() {
     let pendingScrolling = false;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let hiddenLockUntil = 0; // hard lock window after entering hidden
+    let lastVelAt = 0; // velocity update clamp (max 1 per VELOCITY_THROTTLE_MS)
 
     const canUpdate = (now: number) => now - lastCommit.current > TRANSITION_LOCK_MS;
 
@@ -109,11 +110,6 @@ export function MobileBottomNav() {
       rafId = 0;
       const now = performance.now();
       const y = Math.max(window.scrollY, 0);
-      const delta = y - lastY.current;
-      const dt = Math.max(now - lastT.current, 1);
-      const velocity = delta / dt;
-      lastY.current = y;
-      lastT.current = now;
 
       // Hard hidden lock: ignore everything except an explicit scroll back to the
       // very top, which must never leave the dock stranded off-screen.
@@ -121,9 +117,29 @@ export function MobileBottomNav() {
         if (y > FULL_RESTORE_Y) return;
       }
 
+      // Velocity update clamp: at most one measurement per throttle window. We do
+      // NOT advance the baseline until we measure, so the delta accumulates over
+      // the window instead of collapsing to per-frame noise (Android inertia).
+      if (pendingScrolling && now - lastVelAt < VELOCITY_THROTTLE_MS) return;
+
+      const delta = y - lastY.current;
+      const dt = Math.max(now - lastT.current, 1);
+
+      // Ignore micro scroll jitter (<8px) while mid-gesture — never near the top,
+      // where we always want to settle back to the full state.
+      if (pendingScrolling && Math.abs(delta) < MICRO_DELTA_PX && y > FULL_RESTORE_Y) {
+        return;
+      }
+
+      const velocity = delta / dt;
+      lastY.current = y;
+      lastT.current = now;
+      lastVelAt = now;
+
       const next = resolveNavState(navStateRef.current, y, velocity, pendingScrolling);
       commit(next, now);
     };
+
 
     const schedule = (isScrolling: boolean) => {
       pendingScrolling = isScrolling;
