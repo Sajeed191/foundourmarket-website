@@ -1,4 +1,4 @@
-import { ArrowRight, Loader2, Search } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useRef } from "react";
 
 type Props = {
