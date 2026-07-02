@@ -10,7 +10,7 @@ import {
   Headphones,
   ArrowRight,
 } from "lucide-react";
-import { BUILD_ID } from "@/lib/build-version";
+
 
 const EASE = "cubic-bezier(0.2,0.8,0.2,1)";
 
@@ -320,9 +320,6 @@ export function Footer() {
         <div className="mt-14 pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-2 text-center">
           <p className="text-[11px] font-light text-muted-foreground/55 tracking-wide">
             © 2026 FoundOurMarket — All rights reserved.
-          </p>
-          <p className="text-[10px] font-mono text-muted-foreground/30 tracking-widest">
-            build {BUILD_ID}
           </p>
         </div>
       </div>
