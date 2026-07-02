@@ -548,9 +548,8 @@ function Home() {
             stretches edge-to-edge so there are never black side gaps */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
 
-          {/* Softens the top so the hero eases in from the exact page background
-              (fully opaque at the seam) — no lighter/darker band under the nav. */}
-          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background via-background/60 to-transparent" />
+          {/* (Top softener removed — the hero now owns the full area behind the
+              nav pill, so there is no seam or band to blend.) */}
           {/* warm ambient orange lighting matching the accent */}
           <div className="absolute left-1/2 -top-[6%] -translate-x-1/2 h-[420px] w-[140%] opacity-70" style={{ background: "radial-gradient(ellipse at 50% 0%, oklch(0.74 0.19 49 / 0.16), transparent 60%)" }} />
         </div>
