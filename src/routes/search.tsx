@@ -305,6 +305,13 @@ function SearchPage() {
   const [hasMore, setHasMore] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // Hide the mobile bottom nav while a drawer sheet is open.
+  useEffect(() => {
+    const open = drawerOpen || sortOpen;
+    document.body.classList.toggle("hide-bottom-nav", open);
+    return () => document.body.classList.remove("hide-bottom-nav");
+  }, [drawerOpen, sortOpen]);
+
   // Reveal a compact sticky search bar once the user scrolls past the hero.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 280);
