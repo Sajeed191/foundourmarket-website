@@ -74,7 +74,7 @@ export function Nav() {
   // Keep the drawer mounted during its exit transition.
   const [drawerMounted, setDrawerMounted] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const { open: searchOpen, openSearch } = useSearchUI();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
