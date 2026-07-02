@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
 import { useAdminMode } from "@/lib/admin-mode";
 import { useIsAdmin } from "@/lib/use-admin";
-import { useTheme } from "@/lib/theme";
+import { useTheme, type EffectiveTheme } from "@/lib/theme";
 import { useSupportUnread } from "@/lib/use-support-unread";
 import { useMotionTier } from "@/lib/motion-tier";
 
@@ -83,7 +83,16 @@ export function MobileBottomNav() {
   // otherwise paint a solid fallback before the theme + fade-in are ready.
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
+  // Source-of-truth theme for the FIRST client paint. __root.tsx applies the
+  // correct data-theme on <html> before paint, but the theme context's
+  // effectiveTheme defaults to "dark" until it hydrates — so a light/grey user
+  // would briefly get the dark glass surface (the "black flash"). Reading the
+  // already-resolved data-theme attribute avoids that stale first render.
+  const [domTheme, setDomTheme] = useState<EffectiveTheme | null>(null);
   useEffect(() => {
+    // Resolve the theme actually applied to the document before any paint.
+    const attr = document.documentElement.getAttribute("data-theme");
+    setDomTheme(attr === "light" || attr === "grey" ? attr : "dark");
     // Frame 1: element enters the DOM in its transparent initial state.
     setMounted(true);
     // Frame 2: theme tokens + layout are resolved — reveal with a fade.
@@ -257,8 +266,11 @@ export function MobileBottomNav() {
 
 
 
-  const isLight = effectiveTheme === "light";
-  const isGrey = effectiveTheme === "grey";
+  // Prefer the pre-paint theme resolved from <html data-theme> to avoid the
+  // stale "dark" default flashing a dark surface for light/grey users.
+  const resolvedTheme = domTheme ?? effectiveTheme;
+  const isLight = resolvedTheme === "light";
+  const isGrey = resolvedTheme === "grey";
   const frosted = isLight || isGrey;
 
   const compact = navState !== "visible_full";
