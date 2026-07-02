@@ -2388,6 +2388,26 @@ html[data-gpu-unsafe="true"] [style*="drop-shadow"] {
   -webkit-filter: none !important;
 }
 
+/* Final targeted Chrome cold-refresh fix for the trust badges strip. The broad
+   Android/GPU safety rules above intentionally flatten most layers with
+   !important, so this row-specific rule must come after them to ensure the
+   verified feature-row stabilization is actually applied. */
+.feature-row {
+  backface-visibility: hidden !important;
+  transform: translate3d(0, 0, 0) !important;
+  will-change: transform !important;
+}
+
+.feature-card {
+  backface-visibility: hidden !important;
+  contain: layout !important;
+  transform: translateZ(0) !important;
+}
+
+.feature-card * {
+  will-change: auto !important;
+}
+
 /* 8. Foreground filter:blur() passes (Tailwind `blur-sm`/`blur`/`blur-lg`…
       utilities and inline `filter: blur(...)`) on NON-decorative content. Each
       one allocates an offscreen GPU buffer and is a primary source of duplicated
