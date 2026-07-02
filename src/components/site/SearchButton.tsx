@@ -3,6 +3,7 @@ import { useRef } from "react";
 
 type Props = {
   loading?: boolean;
+  focused?: boolean;
 };
 
 /**
@@ -12,7 +13,7 @@ type Props = {
  * - Loading state morphs into a circular spinner without changing size.
  * - Press triggers a lightweight ripple.
  */
-export function SearchButton({ loading = false }: Props) {
+export function SearchButton({ loading = false, focused = false }: Props) {
   const rippleRef = useRef<HTMLSpanElement>(null);
 
   function spawnRipple(e: React.PointerEvent<HTMLButtonElement>) {
@@ -34,7 +35,7 @@ export function SearchButton({ loading = false }: Props) {
       aria-busy={loading}
       disabled={loading}
       onPointerDown={spawnRipple}
-      className={`search-cta group absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 inline-flex h-10 sm:h-12 items-center justify-center gap-1.5 rounded-full text-[13px] sm:text-sm font-semibold tracking-wide text-white outline-none transition-transform duration-[250ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.97] disabled:cursor-default ${loading ? "search-cta--loading w-10 sm:w-12 px-0" : "min-w-[108px] sm:min-w-[124px] px-5 sm:px-6"}`}
+      className={`search-cta group absolute right-2 sm:right-2.5 top-1/2 inline-flex h-10 sm:h-12 items-center justify-center gap-1.5 rounded-full text-[13px] sm:text-sm font-semibold tracking-wide text-white outline-none transition-transform duration-[250ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.97] disabled:cursor-default ${focused ? "-translate-y-1/2 scale-[1.04]" : "-translate-y-1/2"} ${loading ? "search-cta--loading w-10 sm:w-12 px-0" : "min-w-[108px] sm:min-w-[124px] px-5 sm:px-6"}`}
 
     >
       {/* glossy top highlight */}

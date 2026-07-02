@@ -532,8 +532,21 @@ function Home() {
               nav({ to: "/search", search: { q: query } });
             }}
           >
-            <div className={`relative glass-strong rounded-full ring-1 transition-all duration-300 ${searchFocused ? "ring-accent/50 shadow-[0_0_0_4px_oklch(0.74_0.19_49/0.10),0_0_36px_-4px_oklch(0.74_0.19_49/0.55),var(--shadow-float)]" : "ring-white/12 shadow-[var(--shadow-float)]"}`}>
-              <Search className={`absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 size-[22px] sm:size-6 transition-colors duration-300 ${searchFocused ? "text-accent" : "text-muted-foreground"}`} />
+            <div
+              className={`relative rounded-full border transition-[border-color,box-shadow] duration-300 ${
+                searchFocused
+                  ? "border-accent/55 shadow-[0_0_0_4px_oklch(0.74_0.19_49/0.10),0_0_34px_-6px_oklch(0.74_0.19_49/0.5),0_16px_40px_-18px_oklch(0_0_0/0.7)]"
+                  : "border-white/10 shadow-[0_16px_40px_-20px_oklch(0_0_0/0.7)]"
+              }`}
+              style={{ background: "oklch(0.19 0.008 60)" }}
+            >
+              <span
+                className={`absolute left-2 sm:left-2.5 top-1/2 -translate-y-1/2 grid size-10 sm:size-11 place-items-center rounded-full transition-colors duration-300 ${
+                  searchFocused ? "bg-accent/15 text-accent" : "bg-white/[0.05] text-muted-foreground"
+                }`}
+              >
+                <Search className="size-[19px] sm:size-[21px]" />
+              </span>
               <input
                 type="text"
                 value={query}
@@ -542,9 +555,9 @@ function Home() {
                 onBlur={() => setTimeout(() => setSearchFocused(false), 120)}
                 placeholder={rotatingPlaceholder}
                 aria-label="Search products"
-                className="w-full h-14 sm:h-16 bg-transparent rounded-full pl-14 sm:pl-16 pr-[120px] sm:pr-[140px] text-base sm:text-[17px] font-medium tracking-[-0.01em] focus:outline-none placeholder:font-medium placeholder:text-muted-foreground/65 placeholder:tracking-[-0.01em]"
+                className="w-full h-14 sm:h-16 bg-transparent rounded-full pl-14 sm:pl-16 pr-[120px] sm:pr-[140px] text-base sm:text-[17px] font-medium tracking-[-0.01em] focus:outline-none placeholder:font-medium placeholder:text-muted-foreground/65 placeholder:tracking-[-0.01em] placeholder:transition-opacity placeholder:duration-300"
               />
-              <SearchButton loading={searching} />
+              <SearchButton loading={searching} focused={searchFocused} />
             </div>
 
             {searchFocused && suggestions.length > 0 && (
