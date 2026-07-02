@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { Flame, ArrowRight, Sparkles, Heart, Eye } from "lucide-react";
+import { Flame, ArrowRight, Sparkles, Heart } from "lucide-react";
 
 import { Price } from "@/components/site/Price";
 import { QuickViewDialog } from "@/components/site/QuickViewDialog";
@@ -114,11 +114,6 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
     void toggle(p.slug);
   }, [toggle, p.slug]);
 
-  const onQuick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setQuickOpen(true);
-  }, []);
 
   const iconBtn = "grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full text-white/90 transition-colors hover:text-accent";
   const iconStyle = {
@@ -157,16 +152,13 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
             {dealBadge.label}
           </span>
           {off > 0 && (
-            <span data-product-badge className="absolute right-2 top-2 inline-flex items-center rounded-full bg-accent px-2 py-0.5 font-mono text-[9px] font-bold text-black shadow-[var(--shadow-ember)]">
+            <span data-product-badge className="absolute right-2 bottom-2 inline-flex items-center rounded-full bg-accent px-2 py-0.5 font-mono text-[9px] font-bold text-black shadow-[var(--shadow-ember)]">
               -{off}%
             </span>
           )}
-          <div className="absolute bottom-2 right-2 flex flex-col gap-1.5">
+          <div className="absolute top-2 right-2 flex flex-col gap-1.5">
             <button onClick={onWishlist} style={iconStyle} className={iconBtn} aria-label={saved ? `Remove ${p.name} from wishlist` : `Add ${p.name} to wishlist`}>
               <Heart className={`size-4 ${saved ? "fill-accent text-accent" : ""}`} />
-            </button>
-            <button onClick={onQuick} style={iconStyle} className={iconBtn} aria-label={`Quick view ${p.name}`}>
-              <Eye className="size-4" />
             </button>
           </div>
           {item.endAt && (
