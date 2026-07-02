@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/lib/theme";
 import { LightMobileDrawer } from "@/components/site/LightMobileDrawer";
-import { scrollDampeningMs } from "@/lib/motion-tier";
+import { useMotionTier } from "@/lib/motion-tier";
 const logoSrc = "/logo.webp";
 
 const ADMIN_ROLES = ["admin","super_admin","manager","support","fulfillment","warehouse_staff","editor"];
