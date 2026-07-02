@@ -174,16 +174,29 @@ export function MobileBottomNav() {
     };
   }, []);
 
-  // Staged label reveal: only surface labels ~140ms after the dock settles into
-  // its fully expanded state. Any other phase hides them immediately.
+  // Staged reveal orchestration. hidden → everything off. Any visible phase →
+  // icons fade in first (~120ms); labels only commit once fully expanded, a
+  // stage after the icons, so container → icons → labels never overlap.
   useEffect(() => {
-    if (navState !== "visible_full") {
+    if (navState === "hidden") {
+      setIconsReady(false);
       setLabelsReady(false);
       return;
     }
-    const t = setTimeout(() => setLabelsReady(true), 140);
-    return () => clearTimeout(t);
+    // Container is already on screen — reveal icons next frame window.
+    const iconTimer = setTimeout(() => setIconsReady(true), 120);
+    let labelTimer: ReturnType<typeof setTimeout> | undefined;
+    if (navState === "visible_full") {
+      labelTimer = setTimeout(() => setLabelsReady(true), 260);
+    } else {
+      setLabelsReady(false);
+    }
+    return () => {
+      clearTimeout(iconTimer);
+      if (labelTimer) clearTimeout(labelTimer);
+    };
   }, [navState]);
+
 
   // Hand the bottom dock over to the admin bar when a staff member is actively
   // managing the store, so the two navigations never stack.
