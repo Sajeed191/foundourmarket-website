@@ -96,10 +96,11 @@ export function MobileBottomNav() {
                     aria-hidden
                     className={`absolute inset-0 rounded-2xl transition-all duration-300 ease-out ${
                       active
-                        ? "scale-100 bg-accent/15 opacity-100 ring-1 ring-accent/35"
+                        ? "scale-100 bg-accent/15 opacity-100 ring-1 ring-accent/40 shadow-[0_0_16px_-4px_var(--color-accent)]"
                         : "scale-75 opacity-0"
                     }`}
                   />
+
                   <span className="relative">
                     <Icon
                       className={`size-[21px] transition-colors duration-200 ${
