@@ -254,20 +254,21 @@ export function MobileBottomNav() {
                 </span>
 
                 <span
-                  aria-hidden={compact}
+                  aria-hidden={!labelsReady}
                   style={
-                    !compact && stagger
-                      ? { transitionDelay: `${60 + i * 45}ms` }
+                    labelsReady && stagger
+                      ? { transitionDelay: `${i * 40}ms` }
                       : undefined
                   }
-                  className={`h-3 max-w-full truncate leading-none transition-[opacity,transform] duration-[200ms] ease-out ${
-                    compact ? "pointer-events-none translate-y-0.5 scale-90 opacity-0" : "translate-y-0 scale-100 opacity-100"
+                  className={`h-3 max-w-full truncate leading-none transition-[opacity,transform] duration-[200ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+                    labelsReady ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-0.5 scale-90 opacity-0"
                   } ${
                     active ? "font-semibold text-accent" : frosted ? "text-muted-foreground" : "text-foreground/60"
                   }`}
                 >
                   {label}
                 </span>
+
               </Link>
             </li>
           );
