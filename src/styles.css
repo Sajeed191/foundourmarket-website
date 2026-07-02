@@ -1041,6 +1041,7 @@ html[data-scrolling="true"] .animate-search-pulse {
 /* ── MID tier: reduce overlaps, keep quality ───────────────────────────────
    Drop micro-stagger delays (chip chains, nav re-materialize) to a single step,
    and slow the one continuous rhythm so it costs less per frame. */
+html[data-scrolling="true"] .animate-footer-line,
 html[data-motion-tier="mid"] [style*="animation-delay"],
 html[data-motion-tier="mid"] [style*="animationDelay"] {
   animation-delay: 0ms !important;
