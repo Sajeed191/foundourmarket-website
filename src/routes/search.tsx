@@ -70,9 +70,8 @@ const RPC_SORTS = new Set(["relevance", "price_asc", "price_desc", "rating", "ne
 
 function applyClientSort(rows: Product[], sort: string | undefined, discountOf: (p: Product) => number): Product[] {
   switch (sort) {
-    case "trending":
-      // Only products merchandised as Trending, ordered by views.
-      return rows.filter((p) => Boolean(p.trending)).sort((a, b) => b.viewsCount - a.viewsCount);
+    // "trending" is NOT a client sort — it is a fully separate, data-filtered
+    // dataset fetched from the trending_products RPC (real-time top 10).
     case "best_selling":
       // Only products merchandised as Best Sellers, ordered by units sold.
       return rows.filter((p) => Boolean(p.bestseller)).sort((a, b) => b.soldCount - a.soldCount);
