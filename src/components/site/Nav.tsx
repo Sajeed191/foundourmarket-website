@@ -152,7 +152,6 @@ export function Nav() {
 
   const lastY = useRef(0);
   const topNavRef = useRef<HTMLDivElement | null>(null);
-  const spacerRef = useRef<HTMLDivElement | null>(null);
   const motionTier = useMotionTier();
   const lowEnd = motionTier === "low";
   const forceTopNavVisible = useCallback(() => {
@@ -430,7 +429,6 @@ export function Nav() {
         </nav>
       </div>
       <div
-        ref={spacerRef}
         aria-hidden="true"
         data-app-header-spacer
         className="shrink-0"
