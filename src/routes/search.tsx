@@ -652,21 +652,9 @@ function SearchPage() {
 
 
 
-      {/* Active filter chips — removable (not shown in Trending mode) */}
-      {!isTrending && activeChips.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-6 sm:mb-8">
-          {activeChips.map((chip) => (
-            <button
-              key={chip.label}
-              onClick={chip.clear}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5 text-[11px] font-mono tracking-wide text-foreground hover:border-accent hover:text-accent transition-colors"
-            >
-              {chip.label}
-              <X className="size-3" />
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Applied filter chips intentionally removed — active filters live only
+          inside the filter panel and the "Filters (N)" indicator. */}
+
 
       {/* "Did you mean…?" — recover from typos with one tap */}
       {suggestion && search.q && (
