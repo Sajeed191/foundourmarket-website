@@ -231,23 +231,36 @@ export function MobileBottomNav() {
     >
       <ul
         data-compact={compact ? "" : undefined}
-        style={{ willChange: "transform, opacity" }}
+        style={
+          lowEnd
+            ? { willChange: "transform, opacity", backdropFilter: "none", WebkitBackdropFilter: "none" }
+            : { willChange: "transform, opacity" }
+        }
         className={
-          (frosted
-            ? "bottom-nav-light pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2"
-            : "nav-glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2") +
+          // Low-end (Android 8 / Oppo A3s): no backdrop blur — flat opaque
+          // surface, opacity + translateY only.
+          (lowEnd
+            ? "pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2 bg-background border border-border/60"
+            : frosted
+              ? "bottom-nav-light pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2"
+              : "nav-glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2") +
           // Transform + opacity only. Micro-collapse is visual, not a separate
           // state, so compact is the only visible scroll-safe mode.
-          ` h-[var(--mobile-nav-surface-height)] py-2 transform-gpu transition-[transform,opacity] duration-[180ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] shadow-[0_16px_42px_-18px_oklch(0_0_0/0.7)] ${
+          ` h-[var(--mobile-nav-surface-height)] py-2 transform-gpu transition-[transform,opacity] duration-[180ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+            lowEnd ? "" : "shadow-[0_16px_42px_-18px_oklch(0_0_0/0.7)]"
+          } ${
             hidden
               ? "translate-y-[140%] opacity-0 pointer-events-none"
               : compact
-                ? "-translate-y-1.5 opacity-100 shadow-[0_22px_54px_-16px_oklch(0_0_0/0.78)]"
+                ? lowEnd
+                  ? "-translate-y-1.5 opacity-100"
+                  : "-translate-y-1.5 opacity-100 shadow-[0_22px_54px_-16px_oklch(0_0_0/0.78)]"
                 : "translate-y-0 opacity-100"
           }`
         }
         aria-hidden={hidden}
       >
+
 
         {items.map(({ to, label, icon: Icon, match, badge }, i) => {
           const active = match(pathname);
