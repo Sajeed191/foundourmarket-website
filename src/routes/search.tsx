@@ -496,7 +496,7 @@ function SearchPage() {
                   <SlidersHorizontal className="size-4" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
                 </button>
               </DrawerTrigger>
-              <DrawerContent className="h-[92vh] max-h-[92vh] border-white/10 bg-background/85 backdrop-blur-2xl">
+              <DrawerContent className="z-[100001] h-[92vh] max-h-[92vh] border-white/10 bg-background/85 backdrop-blur-2xl">
                 <div className="mx-auto flex h-full w-full max-w-md flex-col">
                   {/* Sticky header */}
                   <div className="flex items-center justify-between gap-2 px-5 pt-1 pb-4">
