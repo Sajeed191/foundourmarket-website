@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { Home, Search, Heart, ShoppingBag, User } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
@@ -17,6 +18,23 @@ export function MobileBottomNav() {
   const { effectiveTheme } = useTheme();
   const { count: supportUnread } = useSupportUnread();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Direction-aware compaction: scrolling down collapses labels for a cleaner
+  // reading area; scrolling up (or near the top) restores them. Transform/size
+  // only — no blur or filters, to stay stable on Chrome Android.
+  const [compact, setCompact] = useState(false);
+  const lastY = useRef(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      const prev = lastY.current;
+      if (y > prev && y > 80) setCompact(true);
+      else if (y < prev - 4 || y < 40) setCompact(false);
+      lastY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Hand the bottom dock over to the admin bar when a staff member is actively
   // managing the store, so the two navigations never stack.
@@ -83,7 +101,9 @@ export function MobileBottomNav() {
                   </span>
                 </span>
                 <span
-                  className={`max-w-full truncate leading-none transition-colors duration-200 ${
+                  className={`max-w-full truncate leading-none transition-all duration-200 ${
+                    compact ? "mt-0 h-0 scale-90 opacity-0" : "mt-0 h-3 opacity-100"
+                  } ${
                     active ? "font-semibold text-accent" : frosted ? "text-muted-foreground" : "text-foreground/60"
                   }`}
                 >
