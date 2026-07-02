@@ -442,9 +442,9 @@ function SearchPage() {
   // Client-side filters / sorts that the RPC does not handle, applied to the
   // accumulated raw rows so pagination stays consistent.
   const results = useMemo(() => {
-    // Trending mode is a self-contained, pre-ranked dataset — never apply
-    // category/price/stock filters or client sorts to it.
-    if (isTrending) return rawRows.slice(0, TRENDING_LIMIT);
+    // Trending mode shows every product carrying the trending badge — no cap,
+    // no category/price/stock filters, no client re-sorting.
+    if (isTrending) return rawRows;
     let rows = rawRows;
     if (search.stock === "in") rows = rows.filter((p) => p.inStock);
     if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
