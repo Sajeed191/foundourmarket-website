@@ -256,16 +256,22 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
           {!term ? (
             <div className="p-4 sm:p-6 space-y-7">
               {/* Trending */}
-              <section>
-                <h4 className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/80"><TrendingUp className="size-4 text-accent" /> Trending Searches</h4>
-                <div className="flex flex-wrap gap-2.5">
-                  {TRENDING.map((t) => (
-                    <button key={t} onClick={() => go(t)} className="inline-flex h-10 items-center gap-1.5 rounded-full border border-accent/25 bg-gradient-to-b from-accent/15 to-accent/5 px-4 text-sm font-medium text-accent transition-all duration-200 hover:border-accent/50 hover:from-accent/25 active:translate-y-px">
-                      <Flame className="size-3.5" /> {t}
-                    </button>
-                  ))}
-                </div>
-              </section>
+              {(loading || trending.length > 0) && (
+                <section>
+                  <h4 className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/80"><TrendingUp className="size-4 text-accent" /> Trending Searches</h4>
+                  <div className="flex flex-wrap gap-2.5">
+                    {loading && trending.length === 0
+                      ? Array.from({ length: 5 }).map((_, i) => (
+                          <span key={i} className="h-10 w-28 animate-pulse rounded-full bg-white/[0.05]" />
+                        ))
+                      : trending.map((t) => (
+                          <button key={t} onClick={() => go(t)} className="inline-flex h-10 items-center gap-1.5 rounded-full border border-accent/25 bg-gradient-to-b from-accent/15 to-accent/5 px-4 text-sm font-medium text-accent transition-all duration-200 hover:border-accent/50 hover:from-accent/25 active:translate-y-px">
+                            <Flame className="size-3.5" /> {t}
+                          </button>
+                        ))}
+                  </div>
+                </section>
+              )}
 
               {/* Recent */}
               {recent.length > 0 && (
