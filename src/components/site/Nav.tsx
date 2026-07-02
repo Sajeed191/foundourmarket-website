@@ -227,7 +227,11 @@ export function Nav() {
               to="/"
               className="min-w-0 flex-1 md:flex-none flex items-center gap-2 sm:gap-2.5 -ml-0.5 md:ml-0 font-display tracking-tight font-semibold"
             >
-              <span className="shrink-0 relative inline-grid place-items-center size-9 sm:size-11 lg:size-12 rounded-2xl bg-black/40 ring-1 ring-accent/40 overflow-hidden shadow-[0_0_24px_-4px_var(--color-accent),inset_0_1px_0_oklch(1_0_0/0.1)] transition-shadow duration-300 hover:shadow-[0_0_34px_-2px_var(--color-accent)]">
+              <span
+                className={`shrink-0 relative inline-grid place-items-center rounded-2xl bg-black/40 ring-1 ring-accent/40 overflow-hidden shadow-[0_0_24px_-4px_var(--color-accent),inset_0_1px_0_oklch(1_0_0/0.1)] transition-[width,height,box-shadow] duration-200 ease-out hover:shadow-[0_0_34px_-2px_var(--color-accent)] ${
+                  compact ? "size-8 sm:size-9 lg:size-10" : "size-9 sm:size-11 lg:size-12"
+                }`}
+              >
                 <span aria-hidden className="pointer-events-none absolute -inset-1 rounded-2xl bg-accent/25 blur-md -z-[1]" />
                 <img src={logoSrc} alt="FoundOurMarket logo" className="size-full object-cover" />
               </span>
@@ -235,11 +239,16 @@ export function Nav() {
                 <span className="truncate text-[15px] sm:text-xl lg:text-[22px] font-semibold tracking-tight">
                   FoundOurMarket<span className="text-accent">™</span>
                 </span>
-                <span className="mt-0.5 text-[8px] sm:text-[10px] font-mono uppercase tracking-[0.2em] text-accent/80 truncate">
+                <span
+                  className={`overflow-hidden font-mono uppercase tracking-[0.2em] text-accent/80 truncate transition-[max-height,opacity,margin] duration-200 ease-out text-[8px] sm:text-[10px] ${
+                    compact ? "max-h-0 opacity-0 mt-0" : "max-h-4 opacity-100 mt-0.5"
+                  }`}
+                >
                   Global Marketplace
                 </span>
               </span>
             </Link>
+
 
             {/* Desktop nav links — premium mega menu (centered) */}
             <MegaMenu />
