@@ -513,22 +513,21 @@ function Home() {
           {/* warm ambient orange lighting matching the accent */}
           <div className="absolute left-1/2 -top-[6%] -translate-x-1/2 h-[420px] w-[140%] opacity-70" style={{ background: "radial-gradient(ellipse at 50% 0%, oklch(0.74 0.19 49 / 0.16), transparent 60%)" }} />
         </div>
-        <div className="sr-only">
-          <h1>FoundOurMarket™ — Global Marketplace, Whatever You Need, All In One Place.</h1>
-          <p>A premium independent marketplace, sourcing top-quality products from across the world.</p>
-        </div>
+        <div className="relative z-10 mx-auto max-w-3xl px-1 pt-6 sm:pt-10 pb-2 text-center">
+          <h1 className="font-display font-semibold tracking-[-0.02em] leading-[1.02] text-[clamp(2.6rem,11vw,4.5rem)]">
+            <span className="block text-foreground">Whatever you need.</span>
+            <span className="block bg-gradient-to-r from-foreground via-accent to-accent bg-clip-text text-transparent">
+              All in one place.
+            </span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl text-[15px] sm:text-lg leading-relaxed text-muted-foreground">
+            A premium independent marketplace, sourcing top-quality products from
+            across the world — delivered with cinematic precision.
+          </p>
 
-        {ffHero && (
-        <HeroCarousel
-
-          featured={featured}
-          trending={trending}
-          bestSellers={bestSellers}
-          newArrivals={newArrivals}
-        >
           {/* ── premium glass search bar (iOS / Arc style) ── */}
           <form
-            className="relative z-10 mx-auto mt-7 sm:mt-8 max-w-2xl"
+            className="relative z-10 mx-auto mt-8 max-w-2xl"
             onSubmit={(e) => {
               e.preventDefault();
               setSearching(true);
@@ -548,12 +547,11 @@ function Home() {
                 className="w-full h-14 sm:h-16 bg-transparent rounded-full pl-14 sm:pl-16 pr-[120px] sm:pr-[140px] text-base sm:text-[17px] font-medium tracking-[-0.01em] focus:outline-none placeholder:font-medium placeholder:text-muted-foreground/65 placeholder:tracking-[-0.01em]"
               />
               <SearchButton loading={searching} />
-
             </div>
 
             {searchFocused && suggestions.length > 0 && (
               <div
-                className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-20 origin-top animate-scale-in rounded-3xl glass-strong ring-1 ring-white/12 shadow-[var(--shadow-float)] p-2 sm:p-3 max-h-[min(60vh,22rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
+                className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-20 origin-top animate-scale-in rounded-3xl glass-strong ring-1 ring-white/12 shadow-[var(--shadow-float)] p-2 sm:p-3 max-h-[min(60vh,22rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] text-left"
                 style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
               >
                 <div className="px-3 pb-2 pt-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -592,8 +590,24 @@ function Home() {
             )}
           </form>
 
-        </HeroCarousel>
-        )}
+          {/* Primary actions */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/search"
+              search={{ q: "" }}
+              className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold uppercase tracking-[0.08em] text-accent-foreground shadow-[0_10px_30px_-10px_oklch(0.74_0.19_49/0.7)] transition-transform duration-200 hover:scale-[1.03] active:scale-95"
+            >
+              Shop Now
+            </Link>
+            <a
+              href="#categories"
+              className="inline-flex h-12 items-center justify-center rounded-full glass-strong px-8 text-sm font-semibold uppercase tracking-[0.08em] text-foreground ring-1 ring-white/12 transition-colors duration-200 hover:ring-accent/40"
+            >
+              Browse Categories
+            </a>
+          </div>
+        </div>
+
 
 
       </section>
