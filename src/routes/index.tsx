@@ -502,10 +502,11 @@ function Home() {
 
 
       {/* 2 · Premium rotating product showcase hero */}
-      <section className="relative z-30 px-3 sm:px-6 lg:px-10 pt-4 sm:pt-7 pb-3 sm:pb-5 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
+      <section className="relative z-30 px-3 sm:px-6 lg:px-10 pt-4 sm:pt-7 pb-3 sm:pb-5" style={{ background: "var(--gradient-hero)" }}>
         {/* full-bleed ambient layer — seamless navbar blend + soft orange glow,
             stretches edge-to-edge so there are never black side gaps */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-0">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
+
           {/* softens the top so the hero flows under the navbar with no hard line */}
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/70 to-transparent" />
           {/* warm ambient orange lighting matching the accent */}
@@ -562,9 +563,10 @@ function Home() {
 
             {searchFocused && suggestions.length > 0 && (
               <div
-                className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-20 origin-top animate-fade-in rounded-3xl border border-white/10 shadow-[0_20px_50px_-24px_oklch(0_0_0/0.8)] p-2 sm:p-3 max-h-[min(60vh,22rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] text-left"
+                className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-50 origin-top animate-fade-in rounded-3xl border border-white/10 shadow-[0_20px_50px_-24px_oklch(0_0_0/0.8)] p-2 sm:p-3 max-h-[min(70dvh,26rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] text-left"
                 style={{ background: "oklch(0.16 0.008 60)", paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
               >
+
                 <div className="px-2 pb-2 pt-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80 border-b border-white/8">
                   {query.trim() ? (
                     <>
