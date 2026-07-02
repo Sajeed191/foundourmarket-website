@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X, Star, ShieldCheck, RefreshCw, BadgeCheck, Globe, Check, ArrowUpDown, Sparkles, TrendingUp, Flame, Clock, ArrowDownWideNarrow, ArrowUpWideNarrow, Tag, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { rowToProduct, discountPercent, type Product } from "@/lib/products";
+import { rowToProduct, discountPercent, SELECT_COLS, type Product } from "@/lib/products";
 import { useCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -364,7 +364,7 @@ function SearchPage() {
     if (isTrending) {
       (supabase as any)
         .from("products_public")
-        .select(PRODUCT_COLS)
+        .select(SELECT_COLS)
         .eq("trending", true)
         .then(({ data }: { data: any[] | null }) => {
           if (cancelled) return;
