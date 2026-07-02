@@ -152,6 +152,7 @@ export function Nav() {
 
   const lastY = useRef(0);
   const topNavRef = useRef<HTMLDivElement | null>(null);
+  const spacerRef = useRef<HTMLDivElement | null>(null);
   const motionTier = useMotionTier();
   const lowEnd = motionTier === "low";
   const forceTopNavVisible = useCallback(() => {
@@ -162,6 +163,28 @@ export function Nav() {
     topNav.style.visibility = "visible";
     topNav.style.transform = "translateY(0)";
   }, []);
+  // Keep the reserved header spacer exactly as tall as the pinned header in
+  // every state (expanded/compact) so there is never an implicit gap or
+  // overlap between the fixed top nav and page content.
+  useEffect(() => {
+    const topNav = topNavRef.current;
+    const spacer = spacerRef.current;
+    if (!topNav || !spacer) return;
+    const sync = () => {
+      spacer.style.height = `${topNav.offsetHeight}px`;
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(topNav);
+    window.addEventListener("resize", sync);
+    window.addEventListener("orientationchange", sync);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", sync);
+      window.removeEventListener("orientationchange", sync);
+    };
+  }, []);
+
   // Deterministic top-nav scroll machine. The header is NEVER hidden — only
   // "visible" and "compact" are valid states. The fixed visibility layer is
   // hard-restored on mount and during every scroll/touch update so Android
