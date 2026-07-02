@@ -331,13 +331,9 @@ export function MobileBottomNav() {
             : { willChange: "transform, opacity" }
         }
         className={
-          // Low-end (Android 8 / Oppo A3s): no backdrop blur — flat opaque
-          // surface, opacity + translateY only.
-          (lowEnd
-            ? "bottom-nav-solid pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2 border border-border/60"
-            : frosted
-              ? "bottom-nav-light pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2"
-              : "nav-glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2") +
+          // SINGLE unified surface for every theme + state. No theme-conditional
+          // colors, so there is no hydration flash or color switching.
+          "nav-glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2" +
           // Transform + opacity only. Micro-collapse is visual, not a separate
           // state, so compact is the only visible scroll-safe mode.
           ` h-[var(--mobile-nav-surface-height)] py-2 transform-gpu transition-[transform,opacity] duration-[180ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
