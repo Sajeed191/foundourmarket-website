@@ -82,10 +82,19 @@ export function MobileBottomNav() {
   // eliminates the black/dark surface flash on hard refresh where the nav would
   // otherwise paint a solid fallback before the theme + fade-in are ready.
   const [mounted, setMounted] = useState(false);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
+    // Frame 1: element enters the DOM in its transparent initial state.
+    setMounted(true);
+    // Frame 2: theme tokens + layout are resolved — reveal with a fade.
+    const id = requestAnimationFrame(() => {
+      const id2 = requestAnimationFrame(() => setReady(true));
+      cleanup = () => cancelAnimationFrame(id2);
+    });
+    let cleanup = () => cancelAnimationFrame(id);
+    return () => cleanup();
   }, []);
+
   const lastY = useRef(0);
   const lastT = useRef(0);
   const lastScrollAt = useRef(0);
@@ -242,6 +251,10 @@ export function MobileBottomNav() {
   // Hand the bottom dock over to the admin bar when a staff member is actively
   // managing the store, so the two navigations never stack.
   if (adminMode && isAdmin) return null;
+  // Hard hydration gate: never render the dock (not even a hidden shell) until
+  // the client has mounted. This guarantees no surface paints on first frame.
+  if (!mounted) return null;
+
 
 
   const isLight = effectiveTheme === "light";
@@ -267,12 +280,16 @@ export function MobileBottomNav() {
     <nav
       data-app-bottom-nav
       data-phase={navState}
-      data-ready={mounted ? "" : undefined}
+      data-ready={ready ? "" : undefined}
       aria-label="Primary mobile navigation"
       style={{
-        opacity: mounted ? 1 : 0,
-        visibility: mounted ? "visible" : "hidden",
-        transition: "opacity 200ms cubic-bezier(0.2,0.8,0.2,1)",
+        background: "transparent",
+        opacity: ready ? 1 : 0,
+        transform: ready ? "translateY(0)" : "translateY(16px)",
+        visibility: ready ? "visible" : "hidden",
+        transition:
+          "opacity 200ms cubic-bezier(0.2,0.8,0.2,1), transform 200ms cubic-bezier(0.2,0.8,0.2,1)",
+
       }}
       className="md:hidden fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] px-[max(0.875rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
     >
