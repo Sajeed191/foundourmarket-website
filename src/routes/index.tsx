@@ -10,6 +10,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useCategories, useAdminCategories, toggleCategoryVisible } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
+import { useRegion } from "@/lib/region";
 import { useProductAdminEditing } from "@/lib/admin-overlay";
 import { useOrderRotationSeed, seededShuffle } from "@/lib/rotation";
 import { useRotationNonce } from "@/lib/use-rotation-nonce";
