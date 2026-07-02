@@ -746,7 +746,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                           <>
                             <div className="flex items-center gap-3.5">
                               <div className="size-12 rounded-full bg-muted overflow-hidden grid place-items-center text-base font-display shrink-0 ring-1 ring-white/10">
-                                {prof?.avatar_url ? <img src={prof.avatar_url} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
+                                {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
                               </div>
                               <div className="min-w-0 flex-1">
                                 <p className="text-[15px] font-display truncate">{name}</p>
