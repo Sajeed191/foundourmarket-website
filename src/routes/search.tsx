@@ -350,7 +350,6 @@ function SearchPage() {
 
   const sort = search.sort ?? "relevance";
   const isTrending = sort === "trending";
-  const TRENDING_LIMIT = 10;
 
   // Reset and fetch the first page whenever the query / RPC-handled filters change.
   // Trending is a special mode: it ignores query/filters and shows ALL products
