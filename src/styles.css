@@ -987,6 +987,7 @@ html[data-scrolling="true"] .animate-float-soft,
 html[data-scrolling="true"] .animate-float-slow,
 html[data-scrolling="true"] .animate-orb,
 html[data-scrolling="true"] .animate-orb-breathe,
+html[data-scrolling="true"] .animate-cta-breathe,
 html[data-scrolling="true"] .animate-search-pulse {
   animation-play-state: paused !important;
 }
