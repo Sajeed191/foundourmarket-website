@@ -100,6 +100,27 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
       .map(([name]) => name);
   }, [products]);
 
+  // Trending searches — derived from live catalog signals: top categories by
+  // product count (clean display names) blended with top brand names. No mocks.
+  const trending = useMemo(() => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    const push = (v?: string | null) => {
+      const t = (v ?? "").trim();
+      if (t.length < 3) return;
+      const key = t.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(t);
+    };
+    const topCats = [...categories].sort((a, b) => catCount(b) - catCount(a));
+    topCats.slice(0, 3).forEach((c) => push(c.name));
+    brandsAll.slice(0, 3).forEach((b) => push(b));
+    return out.slice(0, 5);
+  }, [categories, catCount, brandsAll]);
+
+
+
   const productMatches = useMemo(() => {
     if (!term) return [];
     return products
