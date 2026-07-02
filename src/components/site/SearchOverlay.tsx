@@ -52,9 +52,12 @@ export function SearchOverlay({ open, onClose, query, onQueryChange }: Props) {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Single source of truth: while search is open, hide the top nav entirely.
+    document.documentElement.setAttribute("data-search-open", "true");
     const t = setTimeout(() => inputRef.current?.focus(), 60);
     return () => {
       document.body.style.overflow = prev;
+      document.documentElement.removeAttribute("data-search-open");
       clearTimeout(t);
     };
   }, [open]);
