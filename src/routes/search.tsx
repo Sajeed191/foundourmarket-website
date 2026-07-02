@@ -467,9 +467,14 @@ function SearchPage() {
     let rows = rawRows;
     if (search.stock === "in") rows = rows.filter((p) => p.inStock);
     if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
-    if (search.disc === "1") rows = rows.filter((p) => discountPercent(p.price, compareOf(p)) != null);
-    return applyClientSort(rows, sort, (p) => discountPercent(p.price, compareOf(p)) ?? 0);
-  }, [rawRows, isTrending, search.stock, search.free, search.disc, sort, shippingFeeOf, compareOf]);
+    if (search.disc === "1") rows = rows.filter((p) => discountPercent(priceOf(p), compareOf(p)) != null);
+    return applyClientSort(
+      rows,
+      sort,
+      (p) => discountPercent(priceOf(p), compareOf(p)) ?? 0,
+      priceOf,
+    );
+  }, [rawRows, isTrending, search.stock, search.free, search.disc, sort, shippingFeeOf, compareOf, priceOf]);
 
 
 
