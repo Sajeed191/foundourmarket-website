@@ -283,12 +283,9 @@ export function MobileBottomNav() {
 
 
 
-  // Prefer the pre-paint theme resolved from <html data-theme> to avoid the
-  // stale "dark" default flashing a dark surface for light/grey users.
-  const resolvedTheme = domTheme ?? effectiveTheme;
-  const isLight = resolvedTheme === "light";
-  const isGrey = resolvedTheme === "grey";
-  const frosted = isLight || isGrey;
+  // The bottom-nav surface is intentionally theme-INDEPENDENT: one fixed glass
+  // color for every theme and state, so no theme resolution is needed here to
+  // pick a surface tone (avoids any hydration color switch / flash).
 
   const compact = navState !== "visible_full";
   const hidden = navState === "hidden";
