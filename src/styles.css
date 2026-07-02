@@ -2405,19 +2405,19 @@ html[data-gpu-unsafe="true"] :not([aria-hidden="true"])[style*="blur("] {
    Android/GPU safety rules above intentionally flatten most layers with
    !important, so this row-specific rule must stay last to ensure the verified
    feature-row stabilization is actually applied. */
-.feature-row {
+html .feature-row.feature-row {
   backface-visibility: hidden !important;
   transform: translate3d(0, 0, 0) !important;
   will-change: transform !important;
 }
 
-.feature-card {
+html .feature-row .feature-card {
   backface-visibility: hidden !important;
   contain: layout !important;
   transform: translateZ(0) !important;
 }
 
-.feature-card * {
+html .feature-row .feature-card * {
   will-change: auto !important;
 }
 
