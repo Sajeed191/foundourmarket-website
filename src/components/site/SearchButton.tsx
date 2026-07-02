@@ -1,4 +1,4 @@
-import { ArrowRight, Loader2, Search } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useRef } from "react";
 
 type Props = {
@@ -49,7 +49,6 @@ export function SearchButton({ loading = false, focused = false }: Props) {
         <Loader2 className="relative z-[1] size-4 animate-spin" />
       ) : (
         <>
-          <Search className="relative z-[1] size-3.5" strokeWidth={2.4} />
           <span className="relative z-[1]">Search</span>
           <ArrowRight className="relative z-[1] size-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
         </>
