@@ -293,7 +293,9 @@ function SearchPage() {
   };
   // Local draft for the mobile drawer (applied on "Apply Filters").
   const [draft, setDraft] = useState<Filters>(currentFilters);
-  useEffect(() => { if (drawerOpen) setDraft(currentFilters); /* eslint-disable-next-line */ }, [drawerOpen]);
+  const [draftSort, setDraftSort] = useState<string>(search.sort ?? "relevance");
+  useEffect(() => { if (drawerOpen) { setDraft(currentFilters); setDraftSort(search.sort ?? "relevance"); } /* eslint-disable-next-line */ }, [drawerOpen]);
+  const activeDraftCount = [draft.cat, draft.stock, draft.min, draft.max, draft.rating, draft.free, draft.disc].filter(Boolean).length;
 
   useEffect(() => {
     const q = (search.q ?? "").trim();
