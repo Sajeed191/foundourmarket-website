@@ -557,7 +557,7 @@ function Home() {
                 aria-label="Search products"
                 className="w-full h-14 sm:h-16 bg-transparent rounded-full pl-14 sm:pl-16 pr-[120px] sm:pr-[140px] text-base sm:text-[17px] font-medium tracking-[-0.01em] focus:outline-none placeholder:font-medium placeholder:text-muted-foreground/65 placeholder:tracking-[-0.01em] placeholder:transition-opacity placeholder:duration-300"
               />
-              <SearchButton loading={searching} />
+              <SearchButton loading={searching} focused={searchFocused} />
             </div>
 
             {searchFocused && suggestions.length > 0 && (
