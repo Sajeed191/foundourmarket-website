@@ -302,7 +302,6 @@ export function MobileBottomNav() {
                 className="group flex h-full min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-medium"
               >
                 <span
-                  style={stagger ? { transitionDelay: `${i * 30}ms` } : undefined}
                   className={`relative grid place-items-center size-9 rounded-2xl scale-100 transition-[transform,opacity] duration-[160ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90 ${
                     iconsReady ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
                   }`}
