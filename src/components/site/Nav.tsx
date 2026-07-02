@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ShoppingBag, Search, User, Heart, Menu, X, LayoutDashboard,
   Smartphone, Shirt, Home as HomeIcon, Store, Package, Truck, Clock,
@@ -9,9 +9,7 @@ import {
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
-const SearchCommand = lazy(() =>
-  import("@/components/site/SearchCommand").then((m) => ({ default: m.SearchCommand })),
-);
+import { useSearchUI } from "@/lib/search-ui";
 import { NotificationBell } from "@/components/site/NotificationBell";
 import { CurrencySwitcher } from "@/components/site/CurrencySwitcher";
 import { MegaMenu } from "@/components/site/MegaMenu";
@@ -76,7 +74,7 @@ export function Nav() {
   // Keep the drawer mounted during its exit transition.
   const [drawerMounted, setDrawerMounted] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const { open: searchOpen, openSearch } = useSearchUI();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -99,7 +97,7 @@ export function Nav() {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setSearchOpen(true);
+        openSearch();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -333,7 +331,7 @@ export function Nav() {
             {/* Zone 3 — Search • Notifications • Cart */}
             <div className="shrink-0 ml-auto flex items-center gap-0.5 sm:gap-1.5">
               <button
-                onClick={() => setSearchOpen(true)}
+                onClick={() => openSearch()}
                 aria-label="Search"
                 className="size-10 sm:size-11 rounded-xl grid place-items-center text-muted-foreground hover:text-accent hover:bg-accent/10 hover:shadow-[0_0_18px_-6px_var(--color-accent)] active:bg-accent/15 active:text-accent active:scale-90 transition-all duration-200"
               >
@@ -463,12 +461,6 @@ export function Nav() {
           isAdmin={isAdmin}
           avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
         />
-      )}
-
-      {searchOpen && (
-        <Suspense fallback={null}>
-          <SearchCommand open={searchOpen} onClose={() => setSearchOpen(false)} />
-        </Suspense>
       )}
     </>
   );

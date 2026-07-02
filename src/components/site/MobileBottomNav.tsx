@@ -9,6 +9,7 @@ import { useIsAdmin } from "@/lib/use-admin";
 import { useTheme, type EffectiveTheme } from "@/lib/theme";
 import { useSupportUnread } from "@/lib/use-support-unread";
 import { useMotionTier } from "@/lib/motion-tier";
+import { useSearchUI } from "@/lib/search-ui";
 
 /**
  * Single-authority scroll state machine. State commits happen only on an rAF
@@ -68,6 +69,7 @@ export function MobileBottomNav() {
   const { effectiveTheme } = useTheme();
   const { count: supportUnread } = useSupportUnread();
   const motionTier = useMotionTier();
+  const { openSearch } = useSearchUI();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const [navState, setNavState] = useState<BottomNavState>("visible_full");
@@ -295,9 +297,9 @@ export function MobileBottomNav() {
   const lowEnd = motionTier === "low";
   const stagger = !lowEnd;
 
-  const items: { to: string; label: string; icon: typeof Home; match: (p: string) => boolean; badge?: number }[] = [
+  const items: { to?: string; label: string; icon: typeof Home; match: (p: string) => boolean; badge?: number; onClick?: () => void }[] = [
     { to: "/", label: "Home", icon: Home, match: (p) => p === "/" },
-    { to: "/search", label: "Search", icon: Search, match: (p) => p === "/search" || p.startsWith("/category") },
+    { label: "Search", icon: Search, match: (p) => p === "/search" || p.startsWith("/category"), onClick: openSearch },
     { to: "/wishlist", label: "Saved", icon: Heart, match: (p) => p === "/wishlist", badge: slugs.size },
     { to: "/cart", label: "Cart", icon: ShoppingBag, match: (p) => p === "/cart", badge: count },
     { to: user ? "/account" : "/auth", label: "Account", icon: User, match: (p) => p === "/account" || p === "/auth", badge: user ? supportUnread : 0 },
@@ -354,16 +356,10 @@ export function MobileBottomNav() {
       >
 
 
-        {items.map(({ to, label, icon: Icon, match, badge }, i) => {
+        {items.map(({ to, label, icon: Icon, match, badge, onClick }, i) => {
           const active = match(pathname);
-          return (
-            <li key={label} className="min-w-0">
-              <Link
-                to={to}
-                aria-current={active ? "page" : undefined}
-                tabIndex={hidden ? -1 : undefined}
-                className="group flex h-full min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-medium"
-              >
+          const inner = (
+            <>
                 <span
                   className={`relative grid place-items-center size-9 rounded-2xl scale-100 transition-[transform,opacity] duration-[160ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90 ${
                     iconsReady ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
@@ -412,8 +408,33 @@ export function MobileBottomNav() {
                 >
                   {label}
                 </span>
-
-              </Link>
+            </>
+          );
+          const itemClass =
+            "group flex h-full w-full min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-medium";
+          return (
+            <li key={label} className="min-w-0">
+              {onClick ? (
+                <button
+                  type="button"
+                  onClick={onClick}
+                  aria-label={label}
+                  aria-current={active ? "page" : undefined}
+                  tabIndex={hidden ? -1 : undefined}
+                  className={itemClass}
+                >
+                  {inner}
+                </button>
+              ) : (
+                <Link
+                  to={to}
+                  aria-current={active ? "page" : undefined}
+                  tabIndex={hidden ? -1 : undefined}
+                  className={itemClass}
+                >
+                  {inner}
+                </Link>
+              )}
             </li>
           );
         })}
