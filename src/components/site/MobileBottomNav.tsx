@@ -98,11 +98,10 @@ export function MobileBottomNav() {
                   {/* Energy pulse field behind the active icon — soft radial bloom, breathing */}
                   <span
                     aria-hidden
-                    className={`absolute inset-0 rounded-full blur-[7px] transition-opacity duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
-                      active
-                        ? "opacity-100 animate-energy-breathe [background:radial-gradient(circle,var(--color-accent)_0%,transparent_70%)]"
-                        : "opacity-0"
+                    className={`absolute inset-0 rounded-full blur-[7px] transition-opacity duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] [background:radial-gradient(circle,color-mix(in_oklab,var(--color-accent)_55%,transparent)_0%,transparent_70%)] ${
+                      active ? "opacity-100 animate-energy-breathe" : "opacity-0"
                     }`}
+
                   />
 
 
