@@ -553,15 +553,27 @@ function Home() {
             across the world — delivered with cinematic precision.
           </p>
 
-          {/* ── premium glass search bar (iOS / Arc style) ── */}
-          <form
-            className="relative z-10 mx-auto mt-8 max-w-2xl"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (query.trim()) goSearch(query.trim());
-            }}
+          {/* ── search trigger — opens the full search destination ── */}
+          <div className="relative z-10 mx-auto mt-8 max-w-2xl">
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Open search"
+              className="group relative w-full rounded-full border border-white/10 shadow-[0_16px_40px_-20px_oklch(0_0_0/0.7)] transition-[border-color,box-shadow,transform] duration-300 hover:border-accent/40 active:scale-[0.995]"
+              style={{ background: "oklch(0.19 0.008 60)" }}
+            >
+              <span className="absolute left-2 sm:left-2.5 top-1/2 -translate-y-1/2 grid size-10 sm:size-11 place-items-center rounded-full bg-white/[0.05] text-muted-foreground transition-colors duration-300 group-hover:bg-accent/15 group-hover:text-accent">
+                <Search className="size-[19px] sm:size-[21px]" />
+              </span>
+              <span className="flex h-14 sm:h-16 w-full items-center pl-14 sm:pl-16 pr-[120px] sm:pr-[140px] text-left text-base sm:text-[17px] font-medium tracking-[-0.01em] text-muted-foreground/65">
+                {query.trim() || rotatingPlaceholder}
+              </span>
+              <span className="pointer-events-none absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 inline-flex h-11 sm:h-12 items-center gap-1.5 rounded-full bg-accent px-5 sm:px-6 text-sm font-semibold uppercase tracking-[0.06em] text-accent-foreground shadow-[0_8px_24px_-8px_oklch(0.74_0.19_49/0.7)]">
+                Search
+              </span>
+            </button>
+          </div>
 
-          >
             <div
               className={`relative rounded-full border transition-[border-color,box-shadow] duration-300 ${
                 searchFocused
