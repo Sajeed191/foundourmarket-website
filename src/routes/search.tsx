@@ -456,14 +456,35 @@ function SearchPage() {
               <button onClick={clearAll} className="shrink-0 text-xs font-medium text-muted-foreground hover:text-accent">Clear all</button>
             )}
           </div>
-          <div className="relative shrink-0">
-            <select value={search.sort ?? "relevance"} onChange={(e) => update({ sort: e.target.value })}
-              aria-label="Sort search results"
-              className="appearance-none bg-white/[0.05] ring-1 ring-white/10 rounded-full pl-4 pr-9 py-2.5 text-xs font-medium hover:bg-white/[0.08] focus:outline-none focus:ring-accent/50 transition-all cursor-pointer">
-              {SORTS.map((s) => <option key={s.value} value={s.value}>{`Sort: ${s.label}`}</option>)}
-            </select>
-            <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" viewBox="0 0 12 12" fill="none"><path d="M3 4.5 6 7.5 9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </div>
+          <Drawer open={sortOpen} onOpenChange={setSortOpen}>
+            <DrawerTrigger asChild>
+              <button className="shrink-0 inline-flex items-center gap-2 rounded-full bg-white/[0.05] ring-1 ring-white/10 pl-4 pr-4 py-2.5 text-xs font-medium hover:bg-white/[0.08] active:scale-95 transition-all">
+                <ArrowUpDown className="size-3.5" />
+                Sort: {(SORTS.find((s) => s.value === (search.sort ?? "relevance")) ?? SORTS[0]).label}
+              </button>
+            </DrawerTrigger>
+            <DrawerContent className="border-white/10 bg-background/80 backdrop-blur-2xl">
+              <div className="mx-auto w-full max-w-md px-4 pb-6">
+                <h2 className="px-2 pt-1 pb-3 text-sm font-semibold text-muted-foreground">Sort by</h2>
+                <div className="space-y-1">
+                  {SORTS.map((s) => {
+                    const active = (search.sort ?? "relevance") === s.value;
+                    return (
+                      <button
+                        key={s.value}
+                        onClick={() => { update({ sort: s.value }); setSortOpen(false); }}
+                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm transition-all active:scale-[0.98] ${active ? "bg-accent/15 text-accent font-semibold ring-1 ring-accent/30" : "font-medium text-foreground hover:bg-white/[0.06]"}`}
+                      >
+                        {s.label}
+                        {active && <Check className="size-4 shrink-0" strokeWidth={2.5} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </DrawerContent>
+          </Drawer>
+
         </div>
       </div>
 
