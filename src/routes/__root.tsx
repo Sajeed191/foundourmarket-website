@@ -131,6 +131,22 @@ const InstallPrompt = lazyWithRetry(() =>
 const LiveChat = lazyWithRetry(() =>
   import("@/components/chat/LiveChat").then((m) => ({ default: m.LiveChat })),
 );
+const SearchCommand = lazyWithRetry(() =>
+  import("@/components/site/SearchCommand").then((m) => ({ default: m.SearchCommand })),
+);
+
+/** The single, app-wide immersive search surface. Rendered once here and driven
+ *  by SearchUIContext, so both the top-nav icon and the bottom-nav tab open the
+ *  exact same UI, state, and animation. */
+function GlobalSearchMount() {
+  const { open, closeSearch } = useSearchUI();
+  if (!open) return null;
+  return (
+    <Suspense fallback={null}>
+      <SearchCommand open={open} onClose={closeSearch} />
+    </Suspense>
+  );
+}
 const SupportReplyWatcher = lazyWithRetry(() =>
   import("@/components/chat/SupportReplyWatcher").then((m) => ({
     default: m.SupportReplyWatcher,
