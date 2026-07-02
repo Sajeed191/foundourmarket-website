@@ -210,15 +210,12 @@ function FilterPanel({
             {fmt(priceRange[0])} – {fmt(priceRange[1])}{priceRange[1] >= PRICE_MAX ? "+" : ""}
           </span>
         </div>
-        <div className="px-1">
-          <Slider
-            min={0}
-            max={PRICE_MAX}
-            step={10}
-            value={priceRange}
-            onValueChange={(v) => set({ min: v[0] > 0 ? v[0] : undefined, max: v[1] < PRICE_MAX ? v[1] : undefined })}
-          />
-        </div>
+        <PriceRangeSlider
+          max={PRICE_MAX}
+          value={priceRange}
+          onValueChange={(v) => set({ min: v[0] > 0 ? v[0] : undefined, max: v[1] < PRICE_MAX ? v[1] : undefined })}
+          fmt={fmt}
+        />
         <div className="mt-4 grid grid-cols-2 gap-2">
           {pricePresets.map((p) => (
             <button
