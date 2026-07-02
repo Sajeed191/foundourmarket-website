@@ -435,12 +435,16 @@ function SearchPage() {
   // Client-side filters / sorts that the RPC does not handle, applied to the
   // accumulated raw rows so pagination stays consistent.
   const results = useMemo(() => {
+    // Trending mode is a self-contained, pre-ranked dataset — never apply
+    // category/price/stock filters or client sorts to it.
+    if (isTrending) return rawRows.slice(0, TRENDING_LIMIT);
     let rows = rawRows;
     if (search.stock === "in") rows = rows.filter((p) => p.inStock);
     if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
     if (search.disc === "1") rows = rows.filter((p) => discountPercent(p.price, compareOf(p)) != null);
     return applyClientSort(rows, sort, (p) => discountPercent(p.price, compareOf(p)) ?? 0);
-  }, [rawRows, search.stock, search.free, search.disc, sort, shippingFeeOf, compareOf]);
+  }, [rawRows, isTrending, search.stock, search.free, search.disc, sort, shippingFeeOf, compareOf]);
+
 
 
   function update(patch: Partial<SearchParams>) {
