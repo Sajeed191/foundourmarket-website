@@ -558,9 +558,9 @@ function Home() {
             className="relative z-10 mx-auto mt-8 max-w-2xl"
             onSubmit={(e) => {
               e.preventDefault();
-              setSearching(true);
-              nav({ to: "/search", search: { q: query } });
+              if (query.trim()) goSearch(query.trim());
             }}
+
           >
             <div
               className={`relative rounded-full border transition-[border-color,box-shadow] duration-300 ${
