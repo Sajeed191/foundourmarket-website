@@ -3,13 +3,14 @@ import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 
 import {
   Search, ArrowRight, Star, Sparkles, Award, Package, Globe2, Flame,
-  BadgeCheck, Pencil, Truck, ShieldCheck, TrendingUp, Zap, Gift,
+  BadgeCheck, Pencil, Truck, ShieldCheck, Zap, Gift,
   Sofa, UtensilsCrossed, Gamepad2, Cpu, ToyBrick, PawPrint, Car, Shirt, Dumbbell,
   Watch, Headphones, Gem, Baby, Wrench, BookOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useCategories, useAdminCategories, toggleCategoryVisible } from "@/lib/use-categories";
 import { useProducts } from "@/lib/use-products";
+import { useRegion } from "@/lib/region";
 import { useProductAdminEditing } from "@/lib/admin-overlay";
 import { useOrderRotationSeed, seededShuffle } from "@/lib/rotation";
 import { useRotationNonce } from "@/lib/use-rotation-nonce";
@@ -45,16 +46,6 @@ const PLACEHOLDERS = [
   "Explore 'smart watch'...",
 ];
 
-const POPULAR_SEARCHES = [
-  "Wireless headphones",
-  "Smart watch",
-  "Linen shirt",
-  "Ceramic mug",
-  "Running shoes",
-  "Sunglasses",
-  "Backpack",
-  "Skincare set",
-];
 
 
 function useRotatingPlaceholder(active: boolean) {
@@ -418,21 +409,59 @@ function Home() {
   const [editCats, setEditCats] = useState(false);
 
   const nav = useNavigate();
+  const { formatProduct } = useRegion();
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [searching, setSearching] = useState(false);
   const rotatingPlaceholder = useRotatingPlaceholder(!searchFocused && !query);
+
+  // Debounced query drives the live product results (150–250ms per spec).
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 200);
+    return () => clearTimeout(t);
+  }, [query]);
 
   const goSearch = (q: string) => {
     setSearching(true);
     nav({ to: "/search", search: { q } });
   };
 
-  const suggestions = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return POPULAR_SEARCHES;
-    return POPULAR_SEARCHES.filter((s) => s.toLowerCase().includes(q));
-  }, [query]);
+  const goProduct = (slug: string) => {
+    setSearching(true);
+    nav({ to: "/products/$slug", params: { slug } });
+  };
+
+
+  // Real, backend-driven product matches only — ranked by relevance.
+  const productMatches = useMemo(() => {
+    const q = debouncedQuery.toLowerCase();
+    if (!q) return [] as typeof products;
+    const terms = q.split(/\s+/).filter(Boolean);
+    const scored = products
+      .filter((p) => !p.hideFromSearch && p.inStock !== false)
+      .map((p) => {
+        const name = p.name.toLowerCase();
+        const hay = `${name} ${p.brand ?? ""} ${p.category} ${p.tagline ?? ""}`.toLowerCase();
+        let score = 0;
+        for (const t of terms) {
+          if (!hay.includes(t)) return { p, score: -1 };
+          if (name.startsWith(t)) score += 4;
+          else if (name.includes(t)) score += 3;
+          else score += 1;
+        }
+        return { p, score };
+      })
+      .filter((x) => x.score >= 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map((x) => x.p);
+    return scored;
+  }, [debouncedQuery, products]);
+
+  // Loading = user typed but the debounced query hasn't caught up yet.
+  const searchPending = query.trim() !== "" && query.trim() !== debouncedQuery;
+
 
 
   const categoryCounts = useMemo(
@@ -491,7 +520,7 @@ function Home() {
     : categories.slice(0, categoryLimit);
 
   // Desktop hero uses a curated featured product image (see assets/hero-product).
-  const trendingChips = ["Wireless earbuds", "Smart watch", "Linen shirt", "Ceramic mug", "Air fryer"];
+  
 
 
 
@@ -529,9 +558,9 @@ function Home() {
             className="relative z-10 mx-auto mt-8 max-w-2xl"
             onSubmit={(e) => {
               e.preventDefault();
-              setSearching(true);
-              nav({ to: "/search", search: { q: query } });
+              if (query.trim()) goSearch(query.trim());
             }}
+
           >
             <div
               className={`relative rounded-full border transition-[border-color,box-shadow] duration-300 ${
@@ -561,49 +590,89 @@ function Home() {
               <SearchButton loading={searching} focused={searchFocused} />
             </div>
 
-            {searchFocused && suggestions.length > 0 && (
+            {searchFocused && (
               <div
-                className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-50 origin-top animate-fade-in rounded-3xl border border-white/10 shadow-[0_20px_50px_-24px_oklch(0_0_0/0.8)] p-2 sm:p-3 max-h-[min(70dvh,26rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] text-left"
-                style={{ background: "oklch(0.16 0.008 60)", paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+                className="absolute left-0 right-0 top-[calc(100%+0.6rem)] z-50 origin-top animate-fade-in rounded-3xl border border-white/10 shadow-[0_20px_50px_-24px_oklch(0_0_0/0.8)] overflow-hidden text-left"
+                style={{ background: "oklch(0.16 0.008 60)" }}
               >
+                <div
+                  className="max-h-[min(70dvh,28rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] p-2 sm:p-2.5"
+                  style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+                >
+                  {/* Empty state — no query yet */}
+                  {debouncedQuery === "" && !searchPending && (
+                    <div className="px-3 py-8 text-center text-[14px] text-muted-foreground/70">
+                      Start typing to see products
+                    </div>
+                  )}
 
-                <div className="px-2 pb-2 pt-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80 border-b border-white/8">
-                  {query.trim() ? (
-                    <>
-                      <Search className="size-3.5 opacity-70" /> Suggestions
-                    </>
-                  ) : (
-                    <>
-                      <TrendingUp className="size-3.5 opacity-70" /> Trending searches
-                    </>
+                  {/* Loading — skeleton rows while debounce settles */}
+                  {searchPending && (
+                    <ul className="flex flex-col gap-1">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <li key={i} className="flex items-center gap-3 px-2 py-2">
+                          <div className="size-11 shrink-0 rounded-lg bg-white/[0.06]" />
+                          <div className="flex-1 space-y-1.5">
+                            <div className="h-3 w-3/5 rounded bg-white/[0.06]" />
+                            <div className="h-2.5 w-2/5 rounded bg-white/[0.04]" />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* No results */}
+                  {!searchPending && debouncedQuery !== "" && productMatches.length === 0 && (
+                    <div className="px-3 py-8 text-center">
+                      <p className="text-[14px] text-foreground/80">No products found</p>
+                      <p className="mt-1 text-[12px] text-muted-foreground/60">
+                        Try a different keyword or check the spelling.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Real product results */}
+                  {!searchPending && productMatches.length > 0 && (
+                    <ul className="flex flex-col">
+                      {productMatches.map((p) => (
+                        <li key={p.slug}>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              goProduct(p.slug);
+                            }}
+                            className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors duration-200 hover:bg-accent/10"
+                          >
+                            <span className="size-11 shrink-0 overflow-hidden rounded-lg bg-white/[0.05]">
+                              <img
+                                src={p.image}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                                className="h-full w-full object-cover"
+                              />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[15px] font-medium text-foreground/90">
+                                {p.name}
+                              </span>
+                              <span className="block truncate text-[12px] text-muted-foreground/60">
+                                {p.category}
+                              </span>
+                            </span>
+                            <span className="shrink-0 text-[14px] font-semibold text-foreground/85">
+                              {formatProduct(p)}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
-                <ul className="flex flex-col pt-1">
-                  {suggestions.slice(0, 6).map((s) => (
-                    <li key={s}>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setQuery(s);
-                          goSearch(s);
-                        }}
-                        className="flex h-11 w-full items-center gap-2.5 rounded-xl px-2 text-left text-[15px] text-foreground/85 transition-colors duration-200 hover:bg-accent/10"
-                      >
-                        {query.trim() ? (
-                          <Search className="size-4 shrink-0 text-muted-foreground/55" />
-                        ) : (
-                          <TrendingUp className="size-4 shrink-0 text-accent/80" />
-                        )}
-                        <span className="flex-1 truncate">{s}</span>
-                        <ArrowRight className="size-4 shrink-0 text-muted-foreground/50" />
-                      </button>
-
-                    </li>
-                  ))}
-                </ul>
               </div>
             )}
+
 
           </form>
 
