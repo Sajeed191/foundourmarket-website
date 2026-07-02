@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ShoppingBag, Heart, LayoutDashboard, Package, Truck, ChevronRight,
