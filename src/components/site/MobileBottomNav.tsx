@@ -88,6 +88,8 @@ export function MobileBottomNav() {
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let hiddenLockUntil = 0; // hard lock window after entering hidden
     let lastVelAt = 0; // velocity update clamp (max 1 per VELOCITY_THROTTLE_MS)
+    let dirSign = 0; // last confirmed scroll direction (+1 down, -1 up)
+    let dirSince = 0; // timestamp the current direction was confirmed
 
     const canUpdate = (now: number) => now - lastCommit.current > TRANSITION_LOCK_MS;
 
