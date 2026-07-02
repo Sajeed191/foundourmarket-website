@@ -25,12 +25,19 @@ export function MobileBottomNav() {
   const [compact, setCompact] = useState(false);
   const lastY = useRef(0);
   useEffect(() => {
-    const onScroll = () => {
+    let ticking = false;
+    const update = () => {
       const y = window.scrollY;
       const prev = lastY.current;
       if (y > prev && y > 80) setCompact(true);
       else if (y < prev - 4 || y < 40) setCompact(false);
       lastY.current = y;
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
