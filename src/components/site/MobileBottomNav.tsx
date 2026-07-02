@@ -85,16 +85,9 @@ export function MobileBottomNav() {
   // otherwise paint a solid fallback before the theme + fade-in are ready.
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
-  // Source-of-truth theme for the FIRST client paint. __root.tsx applies the
-  // correct data-theme on <html> before paint, but the theme context's
-  // effectiveTheme defaults to "dark" until it hydrates — so a light/grey user
-  // would briefly get the dark glass surface (the "black flash"). Reading the
-  // already-resolved data-theme attribute avoids that stale first render.
-  const [domTheme, setDomTheme] = useState<EffectiveTheme | null>(null);
+  // The dock surface is a single fixed glass color, independent of theme, so we
+  // no longer read/track the document theme here (nothing to switch on).
   useEffect(() => {
-    // Resolve the theme actually applied to the document before any paint.
-    const attr = document.documentElement.getAttribute("data-theme");
-    setDomTheme(attr === "light" || attr === "grey" ? attr : "dark");
     // Frame 1: element enters the DOM in its transparent initial state.
     setMounted(true);
     // Frame 2: theme tokens + layout are resolved — reveal with a fade.
