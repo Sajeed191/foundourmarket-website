@@ -528,7 +528,7 @@ function SearchPage() {
         {/* Category chips — hidden in Trending mode (dedicated dataset) */}
         {!isTrending && categories.length > 0 && (
           <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
-            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-2 overflow-x-auto py-1.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <button
                 onClick={() => update({ cat: undefined })}
                 className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium whitespace-nowrap transition-all ${!search.cat ? "bg-gradient-to-b from-accent/25 to-accent/10 text-accent ring-1 ring-accent/40" : "bg-white/[0.04] text-muted-foreground ring-1 ring-white/5 hover:text-foreground hover:bg-white/[0.07]"}`}
