@@ -396,7 +396,7 @@ export function MobileBottomNav() {
                   className={`h-3 max-w-full truncate leading-none transition-[opacity,transform] duration-[200ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
                     labelsReady ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-0.5 scale-90 opacity-0"
                   } ${
-                    active ? "font-semibold text-accent" : frosted ? "text-muted-foreground" : "text-foreground/60"
+                    active ? "font-semibold text-accent" : "text-white/65"
                   }`}
                 >
                   {label}
