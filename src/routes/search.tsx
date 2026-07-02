@@ -525,8 +525,8 @@ function SearchPage() {
 
       {/* Controls — categories then a single clean control row */}
       <div className="mb-7 space-y-4">
-        {/* Category chips — horizontal scroll, subtle gradient on selected */}
-        {categories.length > 0 && (
+        {/* Category chips — hidden in Trending mode (dedicated dataset) */}
+        {!isTrending && categories.length > 0 && (
           <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
             <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <button
