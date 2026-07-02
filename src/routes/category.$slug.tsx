@@ -137,7 +137,6 @@ function CategoryPage() {
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-4">Shop by subcategory</p>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
             {subs.map((s) => {
-              const count = countBySlug[s.slug] ?? 0;
               return (
                 <Link
                   key={s.slug}
