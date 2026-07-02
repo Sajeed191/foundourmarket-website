@@ -167,65 +167,47 @@ export function Footer() {
 
   return (
     <footer
-      className="relative px-6 sm:px-8 pt-14 mobile-page-clearance md:py-20 overflow-hidden"
+      className="relative px-6 sm:px-8 pt-16 mobile-page-clearance md:py-20 overflow-hidden"
       style={{
         background:
           "radial-gradient(120% 80% at 50% 0%, #101017 0%, #0A0A0E 45%, #070709 100%)",
       }}
     >
-      {/* soft vignette edges */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          boxShadow: "inset 0 60px 120px -60px rgba(0,0,0,0.8), inset 0 -40px 100px -60px rgba(0,0,0,0.6)",
-        }}
-      />
-      {/* very low-opacity noise texture */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.025] mix-blend-soft-light"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}
-      />
-
       <div className="relative max-w-6xl mx-auto">
-        {/* ── 1. Brand experience core ── */}
+        {/* ── 1. Brand identity block ── */}
         <div className="max-w-2xl">
           <Link
             to="/"
             aria-label="FoundOurMarket home"
-            className="inline-block text-3xl sm:text-5xl font-display font-medium tracking-tight text-foreground/95 hover:opacity-90 transition-opacity duration-200"
+            className="inline-block text-xl sm:text-2xl font-display font-medium tracking-tight text-foreground/95 hover:opacity-90 transition-opacity duration-200"
           >
             FoundOurMarket<span className="text-accent font-normal">™</span>
           </Link>
-          <p className="mt-5 text-base sm:text-lg font-light text-muted-foreground/75 leading-relaxed max-w-xl">
-            A curated marketplace for products selected with precision, delivered globally.
+          <p className="mt-3 text-sm text-muted-foreground/75 leading-relaxed">
+            Global marketplace built for precision sourcing.
           </p>
-          {/* soft animated gradient line */}
-          <div aria-hidden className="mt-8 h-px w-full max-w-sm overflow-hidden">
+          {/* soft animated gradient divider */}
+          <div aria-hidden className="mt-7 h-px w-full overflow-hidden">
             <div
               className="animate-footer-line h-px w-[130%]"
               style={{
                 background:
-                  "linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-accent) 60%, transparent), transparent)",
+                  "linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-accent) 45%, transparent), transparent)",
               }}
             />
           </div>
         </div>
 
-        {/* ── 2. Trust layer — floating micro chips ── */}
-        <div className="mt-10 -mx-1 flex gap-3 overflow-x-auto no-scrollbar sm:flex-wrap sm:overflow-visible pb-1">
+        {/* ── 2. Quick trust pills ── */}
+        <div className="mt-8 -mx-1 flex gap-2.5 overflow-x-auto no-scrollbar sm:flex-wrap sm:overflow-visible pb-1">
           {TRUST.map((label) => (
             <span
               key={label}
-              className="group shrink-0 inline-flex items-center rounded-full bg-white/[0.03] px-4 py-2 text-[13px] font-light text-muted-foreground/70 whitespace-nowrap transition-[transform,color,box-shadow,background] duration-200 hover:-translate-y-0.5 hover:text-foreground hover:bg-white/[0.05]"
+              className="shrink-0 inline-flex items-center rounded-[14px] border border-white/[0.06] bg-white/[0.02] px-4 py-2 text-[12.5px] font-light text-muted-foreground/70 whitespace-nowrap transition-[transform,color,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:text-foreground hover:border-accent/25"
               style={{ transitionTimingFunction: EASE }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow =
-                  "0 8px 30px -12px color-mix(in oklab, var(--color-accent) 45%, transparent)";
+                  "0 8px 24px -14px color-mix(in oklab, var(--color-accent) 45%, transparent)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.boxShadow = "none";
@@ -236,9 +218,9 @@ export function Footer() {
           ))}
         </div>
 
-        {/* ── 3. Navigation system — luxury grid + 4. contact module ── */}
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-12 gap-x-8 gap-y-2 md:gap-y-10">
-          <div className="md:col-span-8 grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-0 md:gap-y-0">
+        {/* ── 3. Compact link grid + 4. Need help support strip ── */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-12 gap-x-8 gap-y-2 md:gap-y-0">
+          <div className="md:col-span-8 grid grid-cols-1 md:grid-cols-4 gap-x-8">
             {NAV_GROUPS.map((group) => (
               <FooterSection
                 key={group.title}
@@ -249,13 +231,13 @@ export function Footer() {
             ))}
           </div>
 
-          {/* Intelligent contact module */}
-          <div className="md:col-span-4 pt-6 md:pt-0">
-            <h4 className="text-lg font-light text-foreground/90">Need help?</h4>
+          {/* Need help — hero support block */}
+          <div className="md:col-span-4 pt-8 md:pt-0 md:pl-8 md:border-l md:border-white/[0.05]">
+            <h4 className="text-base font-medium text-foreground/90">Need help?</h4>
             <div className="mt-3 space-y-1.5">
               <a
                 href="mailto:support@foundourmarket.com"
-                className="block text-sm text-muted-foreground/75 hover:text-foreground transition-colors"
+                className="block text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
               >
                 support@foundourmarket.com
               </a>
@@ -263,25 +245,25 @@ export function Footer() {
                 href="https://wa.me/919745844213"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-sm text-muted-foreground/75 hover:text-foreground transition-colors"
+                className="block text-[13px] text-muted-foreground/70 hover:text-foreground transition-colors"
               >
                 +91 97458 44213
               </a>
             </div>
             <Link
               to="/contact"
-              className="group relative mt-5 inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-medium text-foreground overflow-hidden transition-transform duration-200 hover:scale-[1.02] active:scale-100"
+              className="group relative mt-5 inline-flex items-center gap-2 rounded-[16px] px-5 py-3 text-sm font-medium text-foreground overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
               style={{ transitionTimingFunction: EASE }}
             >
               <span
                 aria-hidden
-                className="animate-cta-breathe absolute inset-0 rounded-full"
+                className="animate-cta-breathe absolute inset-0 rounded-[16px]"
                 style={{
                   background:
-                    "radial-gradient(120% 120% at 30% 30%, color-mix(in oklab, var(--color-accent) 40%, transparent), transparent 70%)",
+                    "radial-gradient(120% 120% at 30% 30%, color-mix(in oklab, var(--color-accent) 32%, transparent), transparent 70%)",
                 }}
               />
-              <span aria-hidden className="absolute inset-0 rounded-full bg-white/[0.04]" />
+              <span aria-hidden className="absolute inset-0 rounded-[16px] bg-white/[0.04] border border-white/[0.06]" />
               <Headphones className="relative size-4 text-accent" />
               <span className="relative">Talk to Support</span>
               <ArrowRight className="relative size-4 transition-transform duration-200 group-hover:translate-x-0.5" style={{ transitionTimingFunction: EASE }} />
@@ -289,36 +271,34 @@ export function Footer() {
           </div>
         </div>
 
-        {/* ── 5. Social experience bar — floating glass capsule ── */}
-        <div className="mt-16 flex justify-center md:justify-start">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/[0.03] p-1.5">
-            {SOCIALS.map(({ icon: Icon, label, href, demo }) => (
-              <a
-                key={label}
-                href={href}
-                {...(demo
-                  ? { onClick: (e: React.MouseEvent) => e.preventDefault() }
-                  : { target: "_blank", rel: "noopener noreferrer" })}
-                aria-label={demo ? `${label} (demo)` : label}
-                className="grid size-10 place-items-center rounded-full text-muted-foreground/60 transition-[transform,color,box-shadow,background] duration-200 hover:text-accent hover:bg-white/[0.05] hover:-translate-y-0.5"
-                style={{ transitionTimingFunction: EASE }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 0 20px -4px color-mix(in oklab, var(--color-accent) 40%, transparent)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                <Icon className="size-[18px]" />
-              </a>
-            ))}
-          </div>
+        {/* ── 5. Minimal social bar ── */}
+        <div className="mt-14 flex justify-center gap-2">
+          {SOCIALS.map(({ icon: Icon, label, href, demo }) => (
+            <a
+              key={label}
+              href={href}
+              {...(demo
+                ? { onClick: (e: React.MouseEvent) => e.preventDefault() }
+                : { target: "_blank", rel: "noopener noreferrer" })}
+              aria-label={demo ? `${label} (demo)` : label}
+              className="grid size-10 place-items-center rounded-full text-muted-foreground/60 transition-[transform,color,box-shadow] duration-200 hover:text-accent hover:-translate-y-0.5"
+              style={{ transitionTimingFunction: EASE }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 0 18px -4px color-mix(in oklab, var(--color-accent) 45%, transparent)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <Icon className="size-[18px]" />
+            </a>
+          ))}
         </div>
 
-        {/* ── 6. Signature line ── */}
-        <div className="mt-14 pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-2 text-center">
-          <p className="text-[11px] font-light text-muted-foreground/55 tracking-wide">
+        {/* ── 6. Copyright bar ── */}
+        <div className="mt-10 pt-6 border-t border-white/[0.05] flex items-center justify-center">
+          <p className="text-[11px] font-light text-muted-foreground/50 tracking-wide">
             © 2026 FoundOurMarket — All rights reserved.
           </p>
         </div>
@@ -326,3 +306,4 @@ export function Footer() {
     </footer>
   );
 }
+
