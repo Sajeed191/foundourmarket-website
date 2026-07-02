@@ -308,27 +308,31 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
               <section className="border-t border-white/8 pt-6">
                 <h4 className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/80"><Tag className="size-4 text-accent" /> Browse Categories</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {categories.slice(0, 6).map((c) => {
-                    const Icon = iconForCategory(c.slug, c.name);
-                    const n = catCount(c);
-                    return (
-                      <Link
-                        key={c.slug}
-                        to="/category/$slug"
-                        params={{ slug: c.slug }}
-                        onClick={onClose}
-                        className="group flex items-center gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] p-3 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:bg-accent/[0.06]"
-                      >
-                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/12 text-accent transition-colors group-hover:bg-accent/20">
-                          <Icon className="size-5" />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold text-foreground/90">{c.name}</span>
-                          {n > 0 && <span className="block text-[11px] text-muted-foreground">{n} {n === 1 ? "product" : "products"}</span>}
-                        </span>
-                      </Link>
-                    );
-                  })}
+                  {loading && categories.length === 0
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <span key={i} className="h-[68px] animate-pulse rounded-[18px] bg-white/[0.04]" />
+                      ))
+                    : categories.slice(0, 6).map((c) => {
+                        const Icon = iconForCategory(c.slug, c.name);
+                        const n = catCount(c);
+                        return (
+                          <Link
+                            key={c.slug}
+                            to="/category/$slug"
+                            params={{ slug: c.slug }}
+                            onClick={onClose}
+                            className="group flex items-center gap-3 rounded-[18px] border border-white/10 bg-white/[0.03] p-3 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:bg-accent/[0.06]"
+                          >
+                            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/12 text-accent transition-colors group-hover:bg-accent/20">
+                              <Icon className="size-5" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-semibold text-foreground/90">{c.name}</span>
+                              {n > 0 && <span className="block text-[11px] text-muted-foreground">{n} {n === 1 ? "product" : "products"}</span>}
+                            </span>
+                          </Link>
+                        );
+                      })}
                 </div>
               </section>
 
