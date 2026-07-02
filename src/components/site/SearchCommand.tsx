@@ -70,25 +70,7 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
     [products],
   );
 
-  // Trending searches — derived from live catalog signals (top-selling/most-viewed
-  // products' brand + category terms). No static/mock values.
-  const trending = useMemo(() => {
-    const seen = new Set<string>();
-    const out: string[] = [];
-    const push = (v?: string | null) => {
-      const t = (v ?? "").trim();
-      if (t.length < 3) return;
-      const key = t.toLowerCase();
-      if (seen.has(key)) return;
-      seen.add(key);
-      out.push(t);
-    };
-    for (const p of popular) {
-      push(p.brand);
-      push(p.category);
-    }
-    return out.slice(0, 5);
-  }, [popular]);
+
 
 
 
