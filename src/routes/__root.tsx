@@ -620,6 +620,7 @@ function RootComponent() {
                       <CommandCenterProvider>
                         <LayoutMetricsProvider>
                           <BadgeEngineProvider>
+                          <SearchUIProvider>
                           <div data-app-shell className="min-h-dvh flex flex-col">
                             {!hideSiteChrome && <Nav />}
                             <main
