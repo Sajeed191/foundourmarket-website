@@ -95,15 +95,31 @@ export function LightMobileDrawer({
         }}
         className="absolute left-0 top-0 bottom-0 w-[92%] max-w-[420px] flex flex-col border-r border-border bg-background shadow-[0_0_60px_-10px_oklch(0.4_0.02_260/0.25)] will-change-transform"
       >
-        {/* Clean side overlay — the top navbar is NOT rendered here. The drawer
-            sits above the navbar (z-index) so it is a self-contained overlay.
-            Profile card is the first visible element. */}
+        {/* Top nav bar — mirrors the site header, pinned above the profile card */}
         <div
-          className="flex-1 overflow-y-auto px-4 pb-5 space-y-5"
+          className="shrink-0 flex items-center gap-2.5 px-4 border-b border-border bg-background/95"
           style={{
-            paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)",
+            paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)",
+            paddingBottom: "12px",
           }}
         >
+          <span className="shrink-0 relative inline-grid place-items-center size-9 rounded-2xl bg-black/40 ring-1 ring-accent/40 overflow-hidden shadow-[0_0_18px_-6px_var(--color-accent)]">
+            <img src="/logo.webp" alt="FoundOurMarket logo" className="size-full object-cover" />
+          </span>
+          <span className="flex min-w-0 flex-col leading-none">
+            <span className="truncate text-[15px] font-semibold tracking-tight text-foreground">
+              FoundOurMarket<span className="text-accent">™</span>
+            </span>
+            <span className="mt-0.5 font-mono uppercase tracking-[0.2em] text-accent/80 text-[8px]">
+              Global Marketplace
+            </span>
+          </span>
+        </div>
+
+        <div
+          className="flex-1 overflow-y-auto px-4 pb-5 pt-5 space-y-5"
+        >
+
 
 
 
