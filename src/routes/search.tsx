@@ -295,10 +295,6 @@ function SearchPage() {
   const nav = useNavigate({ from: "/search" });
   const { categories } = useCategories();
   const { shippingFeeOf, compareOf, market, symbol } = useRegion();
-  const fmtPrice = (usd: number) =>
-    market === "india"
-      ? `${symbol}${Math.round(usd * 83).toLocaleString("en-IN")}`
-      : `${symbol}${usd}`;
 
   const [query, setQuery] = useState(search.q ?? "");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -459,17 +455,6 @@ function SearchPage() {
 
   const activeFilterCount = [search.cat, search.stock, search.min, search.max, search.rating, search.free, search.disc].filter(Boolean).length;
 
-  const activeChips: { label: string; clear: () => void }[] = [];
-  if (search.cat) {
-    const name = categories.find((c) => c.slug === search.cat)?.name ?? search.cat;
-    activeChips.push({ label: name, clear: () => update({ cat: undefined }) });
-  }
-  if (search.stock === "in") activeChips.push({ label: "In stock", clear: () => update({ stock: undefined }) });
-  if (search.free === "1") activeChips.push({ label: "Free shipping", clear: () => update({ free: undefined }) });
-  if (search.disc === "1") activeChips.push({ label: "On sale", clear: () => update({ disc: undefined }) });
-  if (search.rating) activeChips.push({ label: `${search.rating}★ & up`, clear: () => update({ rating: undefined }) });
-  if (search.min) activeChips.push({ label: `Min ${fmtPrice(search.min)}`, clear: () => update({ min: undefined }) });
-  if (search.max) activeChips.push({ label: `Max ${fmtPrice(search.max)}`, clear: () => update({ max: undefined }) });
 
   const getProductKey = useCallback((p: Product) => p.id ?? p.slug, []);
   const renderProduct = useCallback(
@@ -652,21 +637,9 @@ function SearchPage() {
 
 
 
-      {/* Active filter chips — removable (not shown in Trending mode) */}
-      {!isTrending && activeChips.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-6 sm:mb-8">
-          {activeChips.map((chip) => (
-            <button
-              key={chip.label}
-              onClick={chip.clear}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5 text-[11px] font-mono tracking-wide text-foreground hover:border-accent hover:text-accent transition-colors"
-            >
-              {chip.label}
-              <X className="size-3" />
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Applied filter chips intentionally removed — active filters live only
+          inside the filter panel and the "Filters (N)" indicator. */}
+
 
       {/* "Did you mean…?" — recover from typos with one tap */}
       {suggestion && search.q && (
