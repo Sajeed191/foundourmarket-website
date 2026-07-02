@@ -114,11 +114,6 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
     void toggle(p.slug);
   }, [toggle, p.slug]);
 
-  const onQuick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setQuickOpen(true);
-  }, []);
 
   const iconBtn = "grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full text-white/90 transition-colors hover:text-accent";
   const iconStyle = {
