@@ -321,9 +321,6 @@ export function Footer() {
           <p className="text-[11px] font-light text-muted-foreground/55 tracking-wide">
             © 2026 FoundOurMarket — All rights reserved.
           </p>
-          <p className="text-[10px] font-mono text-muted-foreground/30 tracking-widest">
-            build {BUILD_ID}
-          </p>
         </div>
       </div>
     </footer>
