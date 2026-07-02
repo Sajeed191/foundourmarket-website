@@ -704,6 +704,13 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
     perspective: none !important;
     contain: none !important;
   }
+  /* While the search overlay is open, fully suppress the top nav (and its
+     reserved spacer) so the search is a distraction-free immersive layer.
+     Uses display:none to override the header's inline visibility styles. */
+  html[data-search-open="true"] [data-app-header],
+  html[data-search-open="true"] [data-app-header-spacer] {
+    display: none !important;
+  }
   [data-app-bottom-nav] {
     z-index: var(--z-bottom-nav) !important;
     padding-bottom: calc(var(--mobile-safe-bottom) + var(--mobile-nav-edge-gap)) !important;
