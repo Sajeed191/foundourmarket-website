@@ -147,11 +147,6 @@ export function CategoryCard({
         <h3 className="line-clamp-1 text-[13px] font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-accent sm:text-[15px]">
           {normalizedCategory.name}
         </h3>
-        {count > 0 && (
-          <span className="block text-[10px] font-medium tracking-wide text-muted-foreground sm:text-[11px]">
-            {count} {count === 1 ? "Product" : "Products"}
-          </span>
-        )}
       </div>
     </Link>
   );

@@ -67,15 +67,6 @@ function CategoryPage() {
     [products, slug, childSlugs],
   );
 
-  // Per-subcategory product counts (counts each category a product belongs to).
-  const countBySlug = useMemo(() => {
-    const m: Record<string, number> = {};
-    for (const p of products) {
-      const all = (p.categories ?? []).length ? p.categories : [p.category];
-      for (const c of all) m[c] = (m[c] ?? 0) + 1;
-    }
-    return m;
-  }, [products]);
 
   // Direct products of this main category (only used as a fallback when there
   // are no subcategories — never lose products).
@@ -137,7 +128,6 @@ function CategoryPage() {
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-4">Shop by subcategory</p>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
             {subs.map((s) => {
-              const count = countBySlug[s.slug] ?? 0;
               return (
                 <Link
                   key={s.slug}
@@ -162,7 +152,6 @@ function CategoryPage() {
                   <div className="flex items-center justify-between gap-2 p-3.5 sm:p-4">
                     <div className="min-w-0">
                       <h3 className="truncate text-sm sm:text-base font-semibold tracking-tight group-hover:text-accent transition-colors">{s.name}</h3>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{count} Product{count === 1 ? "" : "s"}</p>
                     </div>
                     <span className="grid size-9 shrink-0 place-items-center rounded-full border border-accent/30 bg-background/40 text-accent transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
                       <ArrowRight className="size-4" />
