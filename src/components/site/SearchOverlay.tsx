@@ -152,8 +152,8 @@ export function SearchOverlay({ open, onClose, query, onQueryChange }: Props) {
   const showResults = !pending && debounced !== "";
   const hasAnyResult = productMatches.length > 0 || brandMatches.length > 0 || categoryMatches.length > 0;
 
-  return (
-    <div className="fixed inset-0 z-[120]" role="dialog" aria-modal="true" aria-label="Search products">
+  return createPortal(
+    <div className="fixed inset-0 z-[200]" role="dialog" aria-modal="true" aria-label="Search products">
       {/* Solid dim overlay — no backdrop-filter (Android-safe) */}
       <button
         type="button"
