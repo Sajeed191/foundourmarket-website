@@ -249,6 +249,8 @@ export function Nav() {
 
   return (
     <>
+      {!searchOpen && (
+      <>
       <div
         ref={topNavRef}
         data-app-header
@@ -441,6 +443,8 @@ export function Nav() {
           background: "var(--background)",
         }}
       />
+      </>
+      )}
 
 
       {/* Mobile drawer — unified design for all themes (colors adapt per theme) */}
