@@ -40,9 +40,10 @@ type ReviewSort = "newest" | "helpful" | "highest" | "lowest";
 // Full column set incl. moderation/sentiment/fraud internals — admin moderation only.
 const REVIEW_COLS =
   "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, report_count, is_flagged, admin_reply, admin_reply_at, admin_reply_by, sentiment, sentiment_score, sentiment_summary, fake_score, fake_reasons, created_at";
-// Safe public columns — granted to anonymous visitors (no internal scoring exposed).
+// Safe public columns — granted to anonymous visitors. No reviewer UUIDs are
+// exposed; author display name/avatar are denormalized into the view instead.
 const REVIEW_COLS_PUBLIC =
-  "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, admin_reply, admin_reply_at, created_at";
+  "id, product_slug, author_name, author_avatar_url, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, admin_reply, admin_reply_at, created_at";
 
 function fmtDate(d: string) {
   return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -67,6 +68,9 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [profiles, setProfiles] = useState<ProfileMap>({});
+  // The signed-in customer's own review (fetched directly; the public view no
+  // longer exposes user_id so we can't derive ownership from the list).
+  const [myReview, setMyReview] = useState<Review | null>(null);
   const [myVotes, setMyVotes] = useState<Record<string, "helpful" | "not_helpful">>({});
   const [trust, setTrust] = useState<number | null>(null);
   const [eligible, setEligible] = useState(false);
@@ -114,17 +118,36 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     const visible = list.filter((r) => r.status === "published");
     setReviews(isAdmin ? list : visible);
 
-    const ids = Array.from(new Set(list.map((r) => r.user_id)));
-    if (ids.length) {
-      const { data: profs } = await supabase.rpc("get_public_profiles", { _ids: ids });
-      const map: ProfileMap = {};
-      (profs ?? []).forEach((p: any) => { map[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url }; });
-      setProfiles(map);
+    // Admin reads expose user_id, so resolve author profiles by UUID. Public
+    // reads carry denormalized author_name/author_avatar_url on each row.
+    if (isAdmin) {
+      const ids = Array.from(new Set(list.map((r) => r.user_id).filter(Boolean))) as string[];
+      if (ids.length) {
+        const { data: profs } = await supabase.rpc("get_public_profiles", { _ids: ids });
+        const map: ProfileMap = {};
+        (profs ?? []).forEach((p: any) => { map[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url }; });
+        setProfiles(map);
+      }
     }
+
+    // Own-review detection no longer relies on user_id being in the public
+    // view — signed-in customers read their own review directly (RLS-scoped).
+    if (user) {
+      const { data: mine } = await supabase
+        .from("product_reviews")
+        .select(REVIEW_COLS)
+        .eq("product_slug", productSlug)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setMyReview(mine ? ({ ...(mine as any), media: ((mine as any).media ?? []) as ReviewMedia[] } as Review) : null);
+    } else {
+      setMyReview(null);
+    }
+
     const { data: ts } = await supabase.rpc("product_trust_score", { _slug: productSlug });
     if (typeof ts === "number") setTrust(ts);
     setLoading(false);
-  }, [productSlug, isAdmin]);
+  }, [productSlug, isAdmin, user]);
 
   const loadMyVotes = useCallback(async () => {
     if (!user) { setMyVotes({}); return; }
@@ -161,11 +184,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   const published = useMemo(() => reviews.filter((r) => r.status === "published"), [reviews]);
 
-  // The signed-in customer's own review for this product (one review per customer).
-  const myReview = useMemo(
-    () => (user ? reviews.find((r) => r.user_id === user.id) ?? null : null),
-    [reviews, user],
-  );
+  // `myReview` is loaded directly in `load()` (RLS-scoped) since the public
+  // view no longer carries user_id to derive ownership from the list.
   const hasReviewed = !!myReview;
 
   // Resolve which of the five customer states applies.
@@ -670,9 +690,11 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
               <ul className="grid gap-5 sm:grid-cols-2">
                 <AnimatePresence>
                   {visible.map((r) => {
-                    const prof = profiles[r.user_id];
-                    const name = prof?.full_name || "Customer";
-                    const isOwn = user?.id === r.user_id;
+                    // Admin: resolve author by UUID. Public: use denormalized fields.
+                    const prof = r.user_id ? profiles[r.user_id] : undefined;
+                    const name = (prof?.full_name ?? r.author_name) || "Customer";
+                    const avatarUrl = prof?.avatar_url ?? r.author_avatar_url ?? null;
+                    const isOwn = r.id === myReview?.id;
                     const editing = editingId === r.id;
                     return (
                       <motion.li
@@ -724,7 +746,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                           <>
                             <div className="flex items-center gap-3.5">
                               <div className="size-12 rounded-full bg-muted overflow-hidden grid place-items-center text-base font-display shrink-0 ring-1 ring-white/10">
-                                {prof?.avatar_url ? <img src={prof.avatar_url} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
+                                {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : name.charAt(0).toUpperCase()}
                               </div>
                               <div className="min-w-0 flex-1">
                                 <p className="text-[15px] font-display truncate">{name}</p>
