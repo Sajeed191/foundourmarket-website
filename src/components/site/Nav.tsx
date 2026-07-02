@@ -462,12 +462,6 @@ export function Nav() {
           avatarUrl={user?.user_metadata?.avatar_url as string | undefined}
         />
       )}
-
-      {searchOpen && (
-        <Suspense fallback={null}>
-          <SearchCommand open={searchOpen} onClose={() => setSearchOpen(false)} />
-        </Suspense>
-      )}
     </>
   );
 }
