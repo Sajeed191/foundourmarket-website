@@ -207,7 +207,7 @@ export function Nav() {
         <nav
           className={`max-w-7xl lg:max-w-[1480px] mx-auto rounded-[26px] glass-strong bg-gradient-to-b from-white/[0.06] to-black/30 shadow-[0_10px_40px_-18px_oklch(0_0_0/0.7)] ring-1 lg:shadow-[0_16px_60px_-22px_oklch(0_0_0/0.75),0_0_50px_-22px_oklch(0.74_0.19_49/0.4)] md:backdrop-blur-2xl transition-[background-color,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
             compact
-              ? "bg-black/60 ring-accent/25 shadow-[0_14px_46px_-18px_oklch(0_0_0/0.8),0_0_28px_-10px_oklch(0.74_0.19_49/0.45)]"
+              ? "bg-black/60 ring-accent/[0.14] shadow-[0_14px_46px_-18px_oklch(0_0_0/0.8),0_0_22px_-14px_oklch(0.74_0.19_49/0.3)]"
               : "ring-white/10 lg:ring-white/15"
           }`}
         >
@@ -216,6 +216,7 @@ export function Nav() {
               compact ? "py-1.5 sm:py-2 lg:py-2.5" : "py-2.5 sm:py-3 lg:py-4"
             }`}
           >
+
 
 
 
