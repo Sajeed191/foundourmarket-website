@@ -6913,6 +6913,124 @@ export type Database = {
         }
         Returns: undefined
       }
+      trending_products: {
+        Args: { page_limit?: number }
+        Returns: {
+          admin_notes: string | null
+          attributes: Json
+          barcode: string | null
+          bestseller: boolean
+          brand: string | null
+          categories: string[]
+          category: string
+          category_position: number | null
+          cod_enabled: boolean
+          collection: string | null
+          collections: string[]
+          compare_price_inr: number | null
+          compare_price_usd: number | null
+          cost: number
+          cost_price_inr: number | null
+          cost_price_usd: number | null
+          created_at: string
+          cross_sell_products: string[]
+          customs_info: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          delivery_estimate: string | null
+          demo_url: string | null
+          description: string | null
+          discount: number | null
+          editors_choice: boolean
+          fast_selling: boolean
+          featured: boolean
+          featured_until: string | null
+          features: string[]
+          flash_deal: boolean
+          fragile: boolean
+          gift_idea: boolean
+          height: number | null
+          hide_from_recommendations: boolean
+          hide_from_search: boolean
+          homepage_hero: boolean
+          homepage_position: number | null
+          homepage_section: string | null
+          hot_deal: boolean
+          id: string
+          image: string | null
+          in_stock: boolean
+          india_visible: boolean
+          initial_rating: number
+          initial_review_count: number
+          international_shipping: boolean
+          international_visible: boolean
+          inventory_tracking: boolean
+          is_category_banner: boolean
+          length: number | null
+          low_stock_threshold: number
+          meta_keywords: string[]
+          name: string
+          new_arrival: boolean
+          orders_count: number
+          paypal_enabled: boolean
+          pickup_supported: boolean
+          premium: boolean
+          preorder: boolean
+          price: number
+          price_inr: number | null
+          price_usd: number | null
+          priority_score: number | null
+          product_type: string | null
+          rating: number
+          rating_source: string
+          razorpay_enabled: boolean
+          recommended: boolean
+          related_products: string[]
+          replacement_eligible: boolean
+          reserved_quantity: number
+          restock_eta: string | null
+          return_eligible: boolean
+          return_window_days: number
+          revenue: number
+          reviews: number
+          scheduled_expiry_at: string | null
+          scheduled_publish_at: string | null
+          search_text: string | null
+          search_vector: unknown
+          seo_description: string | null
+          seo_title: string | null
+          shipping_class: string | null
+          shipping_fee_inr: number
+          shipping_fee_usd: number
+          sku: string | null
+          slug: string
+          sold_count: number
+          sort_order: number
+          specifications: Json
+          staff_pick: boolean
+          status: string
+          stock_quantity: number
+          stripe_enabled: boolean
+          tagline: string | null
+          tags: string[]
+          trending: boolean
+          updated_at: string
+          upsell_products: string[]
+          video_url: string | null
+          views_count: number
+          warehouse_location: string | null
+          warranty: string
+          weight: number | null
+          width: number | null
+          wishlist_count: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       try_fire_campaign_alert: {
         Args: { _alert_key: string; _campaign_id: string }
         Returns: boolean

@@ -70,9 +70,8 @@ const RPC_SORTS = new Set(["relevance", "price_asc", "price_desc", "rating", "ne
 
 function applyClientSort(rows: Product[], sort: string | undefined, discountOf: (p: Product) => number): Product[] {
   switch (sort) {
-    case "trending":
-      // Only products merchandised as Trending, ordered by views.
-      return rows.filter((p) => Boolean(p.trending)).sort((a, b) => b.viewsCount - a.viewsCount);
+    // "trending" is NOT a client sort — it is a fully separate, data-filtered
+    // dataset fetched from the trending_products RPC (real-time top 10).
     case "best_selling":
       // Only products merchandised as Best Sellers, ordered by units sold.
       return rows.filter((p) => Boolean(p.bestseller)).sort((a, b) => b.soldCount - a.soldCount);
@@ -347,13 +346,33 @@ function SearchPage() {
   }, [search.q]);
 
   const sort = search.sort ?? "relevance";
+  const isTrending = sort === "trending";
+  const TRENDING_LIMIT = 10;
 
   // Reset and fetch the first page whenever the query / RPC-handled filters change.
+  // Trending is a special mode: it ignores query/filters and fetches the
+  // real-time top-10 trending dataset from a dedicated RPC (replaces the feed).
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setRawRows([]);
     setHasMore(false);
+
+    if (isTrending) {
+      (supabase.rpc as any)("trending_products", { page_limit: TRENDING_LIMIT })
+        .then(({ data }: { data: any[] | null }) => {
+          if (cancelled) return;
+          const rows = (data ?? []).map((r: any) => rowToProduct(r));
+          // Global dedupe by slug — never show duplicates in trending mode.
+          const seen = new Set<string>();
+          const deduped = rows.filter((p: Product) => (seen.has(p.slug) ? false : (seen.add(p.slug), true)));
+          setHasMore(false);
+          setRawRows(deduped.slice(0, TRENDING_LIMIT));
+          setLoading(false);
+        });
+      return () => { cancelled = true; };
+    }
+
     (supabase.rpc as any)("search_products", {
       q: search.q ?? null,
       category_filter: search.cat ?? null,
@@ -373,6 +392,7 @@ function SearchPage() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.q, search.cat, search.min, search.max, search.rating, sort]);
+
 
   // "Did you mean…?" — fetch the closest matching term when a query returns
   // no (or very few) results, so shoppers can recover from typos quickly.
@@ -415,12 +435,16 @@ function SearchPage() {
   // Client-side filters / sorts that the RPC does not handle, applied to the
   // accumulated raw rows so pagination stays consistent.
   const results = useMemo(() => {
+    // Trending mode is a self-contained, pre-ranked dataset — never apply
+    // category/price/stock filters or client sorts to it.
+    if (isTrending) return rawRows.slice(0, TRENDING_LIMIT);
     let rows = rawRows;
     if (search.stock === "in") rows = rows.filter((p) => p.inStock);
     if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
     if (search.disc === "1") rows = rows.filter((p) => discountPercent(p.price, compareOf(p)) != null);
     return applyClientSort(rows, sort, (p) => discountPercent(p.price, compareOf(p)) ?? 0);
-  }, [rawRows, search.stock, search.free, search.disc, sort, shippingFeeOf, compareOf]);
+  }, [rawRows, isTrending, search.stock, search.free, search.disc, sort, shippingFeeOf, compareOf]);
+
 
 
   function update(patch: Partial<SearchParams>) {
@@ -501,8 +525,8 @@ function SearchPage() {
 
       {/* Controls — categories then a single clean control row */}
       <div className="mb-7 space-y-4">
-        {/* Category chips — horizontal scroll, subtle gradient on selected */}
-        {categories.length > 0 && (
+        {/* Category chips — hidden in Trending mode (dedicated dataset) */}
+        {!isTrending && categories.length > 0 && (
           <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
             <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <button
@@ -628,8 +652,8 @@ function SearchPage() {
 
 
 
-      {/* Active filter chips — removable */}
-      {activeChips.length > 0 && (
+      {/* Active filter chips — removable (not shown in Trending mode) */}
+      {!isTrending && activeChips.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mb-6 sm:mb-8">
           {activeChips.map((chip) => (
             <button
@@ -660,13 +684,34 @@ function SearchPage() {
 
 
 
-      <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-6 lg:gap-8">
-        {/* Desktop sidebar — applies instantly */}
-        <aside className="hidden lg:block">
-          <FilterPanel value={currentFilters} onChange={applyFilters} />
-        </aside>
+      {/* Trending mode banner — "Top Trending Now" */}
+      {isTrending && (
+        <div className="mb-6 sm:mb-8 flex items-center gap-3 rounded-2xl border border-accent/25 bg-gradient-to-r from-accent/[0.12] to-transparent px-4 py-3.5 animate-fade-up">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/20 text-accent">
+            <TrendingUp className="size-5" strokeWidth={2.2} />
+          </span>
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              Top Trending Now
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-accent">
+                <span className="size-1.5 rounded-full bg-accent animate-pulse" /> Live
+              </span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">Showing real-time top 10 trending products</p>
+          </div>
+        </div>
+      )}
 
-        <div>
+      <div className={isTrending ? "" : "grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-6 lg:gap-8"}>
+        {/* Desktop sidebar — hidden in Trending mode */}
+        {!isTrending && (
+          <aside className="hidden lg:block">
+            <FilterPanel value={currentFilters} onChange={applyFilters} />
+          </aside>
+        )}
+
+        <div key={isTrending ? "trending" : "feed"} className="animate-fade-up">
+
           {loading ? (
             <ProductSkeletonGrid count={9} className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6" />
           ) : results.length === 0 ? (
@@ -674,8 +719,8 @@ function SearchPage() {
               <div className="size-16 mx-auto mb-5 grid place-items-center rounded-full border border-border bg-card/40">
                 <Search className="size-6 text-muted-foreground" />
               </div>
-              <p className="text-base font-medium">No products match your filters</p>
-              <p className="text-sm text-muted-foreground mt-1.5">Try adjusting or clearing your filters to see more results.</p>
+              <p className="text-base font-medium">{isTrending ? "No trending products right now" : "No products match your filters"}</p>
+              <p className="text-sm text-muted-foreground mt-1.5">{isTrending ? "Check back soon — trending updates in real time as shoppers browse and buy." : "Try adjusting or clearing your filters to see more results."}</p>
               <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
                 {activeFilterCount > 0 && (
                   <button onClick={clearAll}
