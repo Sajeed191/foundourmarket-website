@@ -162,7 +162,6 @@ function CategoryPage() {
                   <div className="flex items-center justify-between gap-2 p-3.5 sm:p-4">
                     <div className="min-w-0">
                       <h3 className="truncate text-sm sm:text-base font-semibold tracking-tight group-hover:text-accent transition-colors">{s.name}</h3>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{count} Product{count === 1 ? "" : "s"}</p>
                     </div>
                     <span className="grid size-9 shrink-0 place-items-center rounded-full border border-accent/30 bg-background/40 text-accent transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
                       <ArrowRight className="size-4" />
