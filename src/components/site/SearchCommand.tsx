@@ -197,7 +197,7 @@ export function SearchCommand({ open, onClose }: { open: boolean; onClose: () =>
   // (a transformed ancestor becomes the containing block for position:fixed,
   // which previously mispositioned this overlay and leaked the page behind it).
   return createPortal(
-    <div className="fixed inset-0 z-[100]">
+    <div className="fixed inset-0 z-[var(--z-modal-overlay)]">
       <div className="absolute inset-0 bg-background/85 backdrop-blur-xl animate-fade-in" onClick={onClose} />
       <div className="absolute inset-0 flex flex-col overflow-hidden bg-background animate-search-rise sm:animate-search-drop sm:inset-x-auto sm:left-1/2 sm:top-[6vh] sm:bottom-auto sm:max-h-[88vh] sm:w-[90%] sm:max-w-2xl sm:-translate-x-1/2 sm:rounded-[24px] sm:border sm:border-accent/20 sm:bg-transparent sm:glass-strong sm:shadow-[0_30px_90px_-20px_oklch(0.74_0.19_49/0.35),var(--shadow-float)]">
         {/* Full-screen immersive surface on mobile; floating command panel on larger screens */}
