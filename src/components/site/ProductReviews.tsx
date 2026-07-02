@@ -184,11 +184,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   const published = useMemo(() => reviews.filter((r) => r.status === "published"), [reviews]);
 
-  // The signed-in customer's own review for this product (one review per customer).
-  const myReview = useMemo(
-    () => (user ? reviews.find((r) => r.user_id === user.id) ?? null : null),
-    [reviews, user],
-  );
+  // `myReview` is loaded directly in `load()` (RLS-scoped) since the public
+  // view no longer carries user_id to derive ownership from the list.
   const hasReviewed = !!myReview;
 
   // Resolve which of the five customer states applies.
