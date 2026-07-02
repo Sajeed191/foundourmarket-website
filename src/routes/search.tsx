@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X, Star, ShieldCheck, RefreshCw, BadgeCheck, Globe, Check, ArrowUpDown, Sparkles, TrendingUp, Flame, Clock, ArrowDownWideNarrow, ArrowUpWideNarrow, Tag, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { rowToProduct, discountPercent, type Product } from "@/lib/products";
+import { rowToProduct, discountPercent, SELECT_COLS, type Product } from "@/lib/products";
 import { useCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -350,11 +350,10 @@ function SearchPage() {
 
   const sort = search.sort ?? "relevance";
   const isTrending = sort === "trending";
-  const TRENDING_LIMIT = 10;
 
   // Reset and fetch the first page whenever the query / RPC-handled filters change.
-  // Trending is a special mode: it ignores query/filters and fetches the
-  // real-time top-10 trending dataset from a dedicated RPC (replaces the feed).
+  // Trending is a special mode: it ignores query/filters and shows ALL products
+  // that carry the "trending" badge (not a capped top-N ranking).
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -362,7 +361,10 @@ function SearchPage() {
     setHasMore(false);
 
     if (isTrending) {
-      (supabase.rpc as any)("trending_products", { page_limit: TRENDING_LIMIT })
+      (supabase as any)
+        .from("products_public")
+        .select(SELECT_COLS)
+        .eq("trending", true)
         .then(({ data }: { data: any[] | null }) => {
           if (cancelled) return;
           const rows = (data ?? []).map((r: any) => rowToProduct(r));
@@ -370,11 +372,12 @@ function SearchPage() {
           const seen = new Set<string>();
           const deduped = rows.filter((p: Product) => (seen.has(p.slug) ? false : (seen.add(p.slug), true)));
           setHasMore(false);
-          setRawRows(deduped.slice(0, TRENDING_LIMIT));
+          setRawRows(deduped);
           setLoading(false);
         });
       return () => { cancelled = true; };
     }
+
 
     (supabase.rpc as any)("search_products", {
       q: search.q ?? null,
@@ -438,9 +441,9 @@ function SearchPage() {
   // Client-side filters / sorts that the RPC does not handle, applied to the
   // accumulated raw rows so pagination stays consistent.
   const results = useMemo(() => {
-    // Trending mode is a self-contained, pre-ranked dataset — never apply
-    // category/price/stock filters or client sorts to it.
-    if (isTrending) return rawRows.slice(0, TRENDING_LIMIT);
+    // Trending mode shows every product carrying the trending badge — no cap,
+    // no category/price/stock filters, no client re-sorting.
+    if (isTrending) return rawRows;
     let rows = rawRows;
     if (search.stock === "in") rows = rows.filter((p) => p.inStock);
     if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
@@ -677,7 +680,7 @@ function SearchPage() {
                 <span className="size-1.5 rounded-full bg-accent animate-pulse" /> Live
               </span>
             </p>
-            <p className="text-[11px] text-muted-foreground">Showing real-time top 10 trending products</p>
+            <p className="text-[11px] text-muted-foreground">Showing all trending products{results.length ? ` · ${results.length}` : ""}</p>
           </div>
         </div>
       )}
