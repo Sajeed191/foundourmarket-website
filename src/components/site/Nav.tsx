@@ -223,11 +223,13 @@ export function Nav() {
         style={{
           filter: "none",
           // Priority surface: fully present at top / on upward intent, subtle
-          // recede on downward intent only. Transform + opacity only.
-          transform: scrollMode === "down" ? "translateY(-8px)" : "translateY(0)",
-          opacity: scrollMode === "down" ? 0.92 : 1,
+          // recede on downward intent only. Transform + opacity only — never
+          // hidden. Low-end devices stay pinned to the resting state.
+          transform: !lowEnd && scrollMode === "down" ? "translateY(-8px) translateZ(0)" : "translateY(0) translateZ(0)",
+          opacity: !lowEnd && scrollMode === "down" ? 0.92 : 1,
           transition: "transform 0.19s cubic-bezier(0.2,0.8,0.2,1), opacity 0.19s cubic-bezier(0.2,0.8,0.2,1)",
           willChange: "transform, opacity",
+          backfaceVisibility: "hidden",
         }}
         className={`sticky top-0 z-50 px-[max(0.75rem,var(--mobile-safe-left))] sm:px-4 pt-[calc(var(--mobile-safe-top)+0.75rem)] sm:pt-[calc(var(--mobile-safe-top)+1rem)] ${
           scrollMode === "up" ? "animate-nav-rematerialize" : ""
