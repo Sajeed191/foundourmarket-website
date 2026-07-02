@@ -25,30 +25,63 @@ export function MobileBottomNav() {
   // only — no blur or filters, to stay stable on Chrome Android.
   const [compact, setCompact] = useState(false);
   const lastY = useRef(0);
+  const compactRef = useRef(false);
   useEffect(() => {
+    // Single source of scroll state. One rAF evaluator decides the nav state;
+    // a scroll-stop detector then LOCKS the state for a settle window so residual
+    // inertia deltas can't flap it (the cause of the Android Chrome vibration).
+    const THRESHOLD = 7; // ignore sub-threshold jitter/noise
+    let rafId = 0;
     let ticking = false;
-    let settleTimer: ReturnType<typeof setTimeout> | undefined;
-    const update = () => {
-      const y = window.scrollY;
-      const prev = lastY.current;
-      if (y > prev && y > 80) setCompact(true);
-      else if (y < prev - 4 || y < 40) setCompact(false);
-      lastY.current = y;
+    let locked = false;
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    let lockTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const commit = (next: boolean) => {
+      if (next === compactRef.current) return;
+      compactRef.current = next;
+      setCompact(next);
+    };
+
+    const evaluate = () => {
       ticking = false;
+      if (locked) return;
+      const y = window.scrollY;
+      const delta = y - lastY.current;
+      if (Math.abs(delta) < THRESHOLD) return; // micro-flap guard
+      if (y > 80 && delta > 0) commit(true);
+      else if (delta < 0 || y < 40) commit(false);
+      lastY.current = y;
     };
+
     const onScroll = () => {
-      // Intent dampening: dock relaxes back to its full state ~150ms after the
-      // gesture ends, giving a soft inertial settle instead of snapping.
-      if (settleTimer) clearTimeout(settleTimer);
-      settleTimer = setTimeout(() => setCompact(false), scrollDampeningMs());
-      if (ticking) return;
+      // Scroll-stop detection → one final frame commit, then freeze the state
+      // for a settle lock window. No recalculation happens during the lock, which
+      // removes the oscillation/vibration entirely.
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        locked = true;
+        requestAnimationFrame(() => {
+          commit(window.scrollY < 40 ? false : compactRef.current);
+        });
+        if (lockTimer) clearTimeout(lockTimer);
+        lockTimer = setTimeout(() => {
+          locked = false;
+          lastY.current = window.scrollY;
+        }, scrollDampeningMs() + 120);
+      }, 90);
+
+      if (ticking || locked) return;
       ticking = true;
-      requestAnimationFrame(update);
+      rafId = requestAnimationFrame(evaluate);
     };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      if (settleTimer) clearTimeout(settleTimer);
+      cancelAnimationFrame(rafId);
+      if (idleTimer) clearTimeout(idleTimer);
+      if (lockTimer) clearTimeout(lockTimer);
     };
   }, []);
 
