@@ -77,6 +77,15 @@ export function MobileBottomNav() {
   // three phases never render simultaneously.
   const [iconsReady, setIconsReady] = useState(true);
   const [labelsReady, setLabelsReady] = useState(true);
+  // Hydration gate: the dock stays fully transparent (no surface, no glass, no
+  // shadow) until the client has mounted and theme tokens are resolved. This
+  // eliminates the black/dark surface flash on hard refresh where the nav would
+  // otherwise paint a solid fallback before the theme + fade-in are ready.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
   const lastY = useRef(0);
   const lastT = useRef(0);
   const lastScrollAt = useRef(0);
