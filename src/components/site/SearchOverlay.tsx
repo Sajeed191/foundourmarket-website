@@ -388,7 +388,8 @@ export function SearchOverlay({ open, onClose, query, onQueryChange }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
