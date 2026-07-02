@@ -219,9 +219,19 @@ export function MobileBottomNav() {
   // One-shot per reveal: the sequence runs ONLY on the hidden → visible edge, so
   // micro compact↔full flips during a gesture can never reset the pipeline back
   // to phase 1 (the bug that left the dock stuck icon-only with no labels).
-  const wasHidden = useRef(true);
+  //
+  // On first mount the dock is already visible, so there is NO reveal to play —
+  // icons + labels start on screen (initial state `true`). `wasHidden` therefore
+  // starts false: a reveal only plays after a genuine hidden phase.
+  const wasHidden = useRef(false);
+  // Motion tier is read through a ref so an async tier update (detected shortly
+  // after mount) cannot re-run this effect, cancel the in-flight reveal timers,
+  // and strand the dock icon-only / empty — the bug that left a black-looking
+  // capsule with no icons after refresh.
+  const motionTierRef = useRef(motionTier);
+  motionTierRef.current = motionTier;
   useEffect(() => {
-    const low = motionTier === "low";
+    const low = motionTierRef.current === "low";
 
     // Hidden → wipe everything and arm the next reveal to restart at phase 1.
     if (navState === "hidden") {
@@ -231,9 +241,14 @@ export function MobileBottomNav() {
       return;
     }
 
-    // Already revealed (compact ↔ full flip): do NOT reset — keep icons + labels
-    // on screen. This kills the reset loop on micro scroll updates.
-    if (!wasHidden.current) return;
+    // Already revealed (compact ↔ full flip, or first mount): keep icons + labels
+    // on screen. This kills the reset loop on micro scroll updates and guarantees
+    // the dock never renders as an empty (black-looking) capsule.
+    if (!wasHidden.current) {
+      setIconsReady(true);
+      setLabelsReady(true);
+      return;
+    }
 
     // hidden → visible edge: play the one-shot staged reveal exactly once.
     wasHidden.current = false;
@@ -253,7 +268,7 @@ export function MobileBottomNav() {
       clearTimeout(iconTimer);
       clearTimeout(labelTimer);
     };
-  }, [navState, motionTier]);
+  }, [navState]);
 
 
 
@@ -317,7 +332,7 @@ export function MobileBottomNav() {
           // Low-end (Android 8 / Oppo A3s): no backdrop blur — flat opaque
           // surface, opacity + translateY only.
           (lowEnd
-            ? "pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2 bg-background border border-border/60"
+            ? "bottom-nav-solid pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2 border border-border/60"
             : frosted
               ? "bottom-nav-light pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2"
               : "nav-glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2") +
