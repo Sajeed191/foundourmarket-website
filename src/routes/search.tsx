@@ -567,7 +567,7 @@ function SearchPage() {
                         className={`group flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3 text-left transition-all duration-200 active:scale-[0.98] ${active ? "bg-accent/[0.12] ring-1 ring-accent/40 shadow-[0_8px_28px_-12px_var(--accent)]" : "ring-1 ring-white/[0.06] hover:bg-white/[0.05]"}`}
                       >
                         <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors ${active ? "bg-accent/20 text-accent" : "bg-white/[0.05] text-muted-foreground group-hover:text-foreground"}`}>
-                          <Icon className="size-4.5" strokeWidth={2} />
+                          <Icon className="size-[18px]" strokeWidth={2} />
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className={`block text-sm font-semibold ${active ? "text-accent" : "text-foreground"}`}>{s.label}</span>
