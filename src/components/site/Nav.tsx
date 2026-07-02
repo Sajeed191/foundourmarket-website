@@ -167,7 +167,14 @@ export function Nav() {
   useEffect(() => {
     const topNav = topNavRef.current;
     if (!topNav) return;
-    const sync = () => setHeaderHeight(topNav.offsetHeight);
+    const sync = () => {
+      const h = topNav.offsetHeight;
+      setHeaderHeight(h);
+      // Expose the live header height so overlay sections (e.g. the hero) can
+      // extend their own background up behind the floating nav pill — no
+      // separate colored spacer band renders behind the navigation.
+      document.documentElement.style.setProperty("--app-header-h", `${h}px`);
+    };
     sync();
     const ro = new ResizeObserver(sync);
     ro.observe(topNav);
