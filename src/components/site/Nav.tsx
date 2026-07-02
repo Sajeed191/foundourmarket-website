@@ -150,14 +150,19 @@ export function Nav() {
   const initial = (displayName?.[0] ?? "F").toUpperCase();
 
   const lastY = useRef(0);
-  const [hidden, setHidden] = useState(false);
+  // Three-state scroll intelligence: "top" (full immersive), "down" (compact
+  // sticky bar) and "up" (fully expanded on intent to navigate). Transform +
+  // opacity only for the icons; a single padding transition per direction
+  // change keeps the bar height adaptive without per-frame reflow.
+  const [scrollMode, setScrollMode] = useState<"top" | "down" | "up">("top");
   useEffect(() => {
     let ticking = false;
     const update = () => {
       const y = window.scrollY;
       const prev = lastY.current;
-      if (y > prev && y > 80) setHidden(true);
-      else if (y < prev - 4) setHidden(false);
+      if (y < 30) setScrollMode("top");
+      else if (y > prev && y > 80) setScrollMode("down");
+      else if (y < prev - 4) setScrollMode("up");
       lastY.current = y;
       ticking = false;
     };
@@ -169,6 +174,8 @@ export function Nav() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+  const compact = scrollMode === "down";
+
 
   // Drive the drawer enter/exit transition without framer-motion.
   useEffect(() => {
