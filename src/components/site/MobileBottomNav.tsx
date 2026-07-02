@@ -19,26 +19,38 @@ type BottomNavState = "visible_full" | "visible_compact" | "hidden";
 
 const TRANSITION_LOCK_MS = 180;
 const SETTLE_LOCK_MS = 190;
-const DEEP_SCROLL_Y = 280;
+const HIDDEN_LOCK_MS = 250; // hard lock: ignore scroll after entering hidden
+const DEEP_SCROLL_Y = 220;
 const FULL_RESTORE_Y = 56;
-const FAST_DOWN_VELOCITY = 1.25; // px/ms
+const DOWN_HIDE_VELOCITY = 0.55; // px/ms — sustained down = hide
+const FAST_DOWN_VELOCITY = 1.25; // px/ms — flick = skip compact, hide instantly
 const VELOCITY_BUFFER = 0.035; // signed px/ms hysteresis around rest
 
+/**
+ * Deterministic resolver. `current` is fed back in so the hidden phase is
+ * "sticky": once docked away it only returns on upward intent (or near top),
+ * which kills the settle-time flip-back that caused the blink.
+ */
 function resolveNavState(
+  current: BottomNavState,
   scrollY: number,
   velocity: number,
   isScrolling: boolean,
-  timeSinceStop: number,
 ): BottomNavState {
-  if (isScrolling) {
-    if (velocity < -VELOCITY_BUFFER) return "visible_compact";
-    if (velocity > FAST_DOWN_VELOCITY && scrollY > DEEP_SCROLL_Y) return "hidden";
-    if (velocity > VELOCITY_BUFFER) return "visible_compact";
+  // Upward intent is the priority signal — always restore.
+  if (velocity < -VELOCITY_BUFFER) {
     return scrollY <= FULL_RESTORE_Y ? "visible_full" : "visible_compact";
   }
 
-  if (timeSinceStop < SETTLE_LOCK_MS) {
-    return scrollY <= FULL_RESTORE_Y ? "visible_full" : "visible_compact";
+  // Sticky hidden: while docked away, keep it hidden until we scroll back up
+  // or reach the top. Never return an intermediate state here → no flicker.
+  if (current === "hidden") {
+    return scrollY <= FULL_RESTORE_Y ? "visible_full" : "hidden";
+  }
+
+  if (isScrolling && scrollY > DEEP_SCROLL_Y) {
+    if (velocity > FAST_DOWN_VELOCITY) return "hidden"; // flick → skip compact
+    if (velocity > DOWN_HIDE_VELOCITY) return "hidden"; // sustained down → hide
   }
 
   return scrollY <= FULL_RESTORE_Y ? "visible_full" : "visible_compact";
