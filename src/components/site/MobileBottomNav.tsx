@@ -261,20 +261,19 @@ export function MobileBottomNav() {
               >
                 <span
                   style={stagger ? { transitionDelay: `${i * 30}ms` } : undefined}
-                  className={`relative grid place-items-center size-9 rounded-2xl transition-[transform,opacity] duration-[160ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90 ${
+                  className={`relative grid place-items-center size-9 rounded-2xl scale-100 transition-[transform,opacity] duration-[160ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90 ${
                     iconsReady ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
-                  } ${
-                    lowEnd ? "scale-100" : compact ? "scale-[1.08]" : "scale-100"
                   }`}
                 >
 
                   {/* Soft radial energy field behind the active icon — a breathing
-                      bloom (not a ring/border). Disabled entirely on low-end. */}
+                      bloom. Runs ONLY in the fully-expanded state; frozen in
+                      compact and disabled on low-end (Android safe mode). */}
                   {!lowEnd && (
                     <span
                       aria-hidden
                       className={`absolute inset-0 rounded-full blur-[7px] transition-opacity duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] [background:radial-gradient(circle,color-mix(in_oklab,var(--color-accent)_55%,transparent)_0%,transparent_70%)] ${
-                        active ? "opacity-100 animate-energy-breathe" : "opacity-0"
+                        active && !compact ? "opacity-100 animate-energy-breathe" : "opacity-0"
                       }`}
                     />
                   )}
