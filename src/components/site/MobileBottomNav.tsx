@@ -194,8 +194,10 @@ export function MobileBottomNav() {
 
   const compact = navState !== "visible_full";
   const hidden = navState === "hidden";
-  // Low tier: skip the staggered label reveal (one animation layer rule).
-  const stagger = motionTier !== "low";
+  // Low tier (e.g. Android 8 / Oppo A3s WebView): opacity + translateY only.
+  // No stagger, no icon scale, no breathing glow — the safety mode.
+  const lowEnd = motionTier === "low";
+  const stagger = !lowEnd;
 
   const items: { to: string; label: string; icon: typeof Home; match: (p: string) => boolean; badge?: number }[] = [
     { to: "/", label: "Home", icon: Home, match: (p) => p === "/" },
