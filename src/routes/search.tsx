@@ -197,6 +197,7 @@ function SearchPage() {
 
   const [query, setQuery] = useState(search.q ?? "");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const [rawRows, setRawRows] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
