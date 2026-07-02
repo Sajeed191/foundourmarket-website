@@ -11,7 +11,7 @@ import { logActivity } from "@/components/admin/AdminShell";
 import { CollapsibleModule } from "@/components/admin/CollapsibleModule";
 import { ProductFaqManager } from "@/components/admin/ProductFaqManager";
 import { ProductBadgeManager } from "@/components/admin/ProductBadgeManager";
-import { assignBadge } from "@/lib/use-product-badges";
+import { assignBadge, assignNewBadge } from "@/lib/use-product-badges";
 import { createFaq } from "@/lib/product-faqs";
 import { useStoreSettings } from "@/lib/use-store-settings";
 import { computeBadges, DEFAULT_BADGE_SETTINGS, MAX_CARD_BADGES } from "@/lib/badges";
