@@ -53,15 +53,15 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
-const SORTS = [
-  { value: "relevance", label: "Relevance" },
-  { value: "trending", label: "Trending" },
-  { value: "best_selling", label: "Best Selling" },
-  { value: "rating", label: "Highest Rated" },
-  { value: "newest", label: "Newest" },
-  { value: "price_asc", label: "Price: Low → High" },
-  { value: "price_desc", label: "Price: High → Low" },
-  { value: "discount", label: "Biggest Discount" },
+const SORTS: { value: string; label: string; desc: string; icon: LucideIcon }[] = [
+  { value: "relevance", label: "Relevance", desc: "Best match for your search", icon: Sparkles },
+  { value: "trending", label: "Trending", desc: "Rising in views & sales", icon: TrendingUp },
+  { value: "best_selling", label: "Best Selling", desc: "Most orders overall", icon: Flame },
+  { value: "rating", label: "Highest Rated", desc: "Top review scores first", icon: Star },
+  { value: "newest", label: "Newest", desc: "Latest arrivals", icon: Clock },
+  { value: "price_asc", label: "Price: Low → High", desc: "Cheapest first", icon: ArrowDownWideNarrow },
+  { value: "price_desc", label: "Price: High → Low", desc: "Premium first", icon: ArrowUpWideNarrow },
+  { value: "discount", label: "Biggest Discount", desc: "Best deals first", icon: Tag },
 ];
 
 // Sorts handled natively by the search_products RPC. Others are applied
