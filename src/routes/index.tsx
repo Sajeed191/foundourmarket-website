@@ -610,21 +610,23 @@ function Home() {
                       <div className="flex flex-wrap gap-2">
                         {categories
                           .filter((c) => !c.parent_id)
-                          .slice(0, 6)
-                          .map((c) => (
+                          .slice(0, 5)
+                          .map((c, i) => (
                             <button
                               key={c.slug}
                               type="button"
+                              style={{ animationDelay: `${i * 55}ms` }}
                               onMouseDown={(e) => {
                                 e.preventDefault();
                                 nav({ to: "/category/$slug", params: { slug: c.slug } });
                               }}
-                              className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-2 text-[13px] font-medium text-foreground/85 transition-colors duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent"
+                              className="animate-panel-reveal rounded-full border border-white/[0.07] bg-white/[0.04] px-3.5 py-2 text-[13px] font-medium text-foreground/85 transition-colors duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent"
                             >
                               {c.name}
                             </button>
                           ))}
                       </div>
+
                     </div>
                   )}
 
