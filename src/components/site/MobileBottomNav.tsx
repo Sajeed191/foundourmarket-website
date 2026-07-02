@@ -188,28 +188,43 @@ export function MobileBottomNav() {
     };
   }, []);
 
-  // Staged reveal orchestration. hidden → everything off. Any visible phase →
-  // icons fade in first (~120ms); labels only commit once fully expanded, a
-  // stage after the icons, so container → icons → labels never overlap.
+  // Staged reveal orchestration — STRICT sequence: container → icons → labels.
+  // The container (nav surface) is committed by navState. Icons reveal one stage
+  // later, and labels are chained to fire ONLY after the icon stage resolves, so
+  // the three phases can never render simultaneously and labels never precede
+  // icons. Low-end (Android 8) collapses the delays but keeps the ordering.
   useEffect(() => {
+    const low = motionTier === "low";
+    // hidden → wipe everything so the next reveal always restarts at phase 1.
     if (navState === "hidden") {
       setIconsReady(false);
       setLabelsReady(false);
       return;
     }
-    // Container is already on screen — reveal icons next frame window.
-    const iconTimer = setTimeout(() => setIconsReady(true), 120);
+
+    // Phase 1 already on screen (container). Reset downstream phases so a
+    // scroll-up always replays container → icons → labels in order.
+    setIconsReady(false);
+    setLabelsReady(false);
+
+    // Phase 2 — icons fade + rise (~120ms, ~60ms on low-end).
+    const iconDelay = low ? 60 : 120;
     let labelTimer: ReturnType<typeof setTimeout> | undefined;
-    if (navState === "visible_full") {
-      labelTimer = setTimeout(() => setLabelsReady(true), 260);
-    } else {
-      setLabelsReady(false);
-    }
+    const iconTimer = setTimeout(() => {
+      setIconsReady(true);
+      // Phase 3 — labels only after icons are committed & stable, and only in the
+      // fully-expanded state. Compact never shows labels.
+      if (navState === "visible_full") {
+        const labelGap = low ? 80 : 140;
+        labelTimer = setTimeout(() => setLabelsReady(true), labelGap);
+      }
+    }, iconDelay);
+
     return () => {
       clearTimeout(iconTimer);
       if (labelTimer) clearTimeout(labelTimer);
     };
-  }, [navState]);
+  }, [navState, motionTier]);
 
 
   // Hand the bottom dock over to the admin bar when a staff member is actively
@@ -287,7 +302,6 @@ export function MobileBottomNav() {
                 className="group flex h-full min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-medium"
               >
                 <span
-                  style={stagger ? { transitionDelay: `${i * 30}ms` } : undefined}
                   className={`relative grid place-items-center size-9 rounded-2xl scale-100 transition-[transform,opacity] duration-[160ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90 ${
                     iconsReady ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
                   }`}
