@@ -435,9 +435,9 @@ export function Nav() {
         data-app-header-spacer
         className="shrink-0"
         style={{
-          // Fallback height before the ResizeObserver syncs it to the real
-          // pinned header height (kept in lockstep to avoid gap/overlap).
-          height: "calc(var(--mobile-safe-top) + 4.75rem)",
+          // Synced to the real pinned header height (expanded/compact) to avoid
+          // any gap or overlap; calc() is only the pre-measure fallback.
+          height: headerHeight != null ? `${headerHeight}px` : "calc(var(--mobile-safe-top) + 4.75rem)",
           // Reserved header space carries the page background so it stays
           // continuous with the content below — no darker/blank band on refresh.
           background: "var(--background)",
