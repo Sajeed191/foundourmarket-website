@@ -11,6 +11,7 @@ import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Slider } from "@/components/ui/slider";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Switch } from "@/components/ui/switch";
 
 type SearchParams = {
