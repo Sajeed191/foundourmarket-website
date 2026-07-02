@@ -469,11 +469,16 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
       ? await supabase.from("products").update(payload).eq("id", row.id)
       : await supabase.from("products").insert(payload);
     if (err) { setSaving(false); setError(err.message); return; }
-    // Flush pending badge assignments for a newly created product (in priority order).
-    if (!row?.id && pendingBadges.length) {
-      try {
-        for (const id of pendingBadges) await assignBadge(payload.slug, id);
-      } catch { /* non-fatal: product is saved, badges can be retried in editor */ }
+    // Newly created product: auto-assign the "New" badge, then flush any
+    // pending manual badge assignments (in priority order).
+    if (!row?.id) {
+      try { await assignNewBadge(payload.slug); }
+      catch { /* non-fatal: badge can be added manually in the editor */ }
+      if (pendingBadges.length) {
+        try {
+          for (const id of pendingBadges) await assignBadge(payload.slug, id);
+        } catch { /* non-fatal: product is saved, badges can be retried in editor */ }
+      }
     }
     // Flush pending FAQs for a newly created product (in display order).
     if (!row?.id && pendingFaqs.length) {
