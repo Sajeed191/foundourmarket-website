@@ -68,6 +68,9 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [profiles, setProfiles] = useState<ProfileMap>({});
+  // The signed-in customer's own review (fetched directly; the public view no
+  // longer exposes user_id so we can't derive ownership from the list).
+  const [myReview, setMyReview] = useState<Review | null>(null);
   const [myVotes, setMyVotes] = useState<Record<string, "helpful" | "not_helpful">>({});
   const [trust, setTrust] = useState<number | null>(null);
   const [eligible, setEligible] = useState(false);
