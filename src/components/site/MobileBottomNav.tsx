@@ -356,16 +356,10 @@ export function MobileBottomNav() {
       >
 
 
-        {items.map(({ to, label, icon: Icon, match, badge }, i) => {
+        {items.map(({ to, label, icon: Icon, match, badge, onClick }, i) => {
           const active = match(pathname);
-          return (
-            <li key={label} className="min-w-0">
-              <Link
-                to={to}
-                aria-current={active ? "page" : undefined}
-                tabIndex={hidden ? -1 : undefined}
-                className="group flex h-full min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-medium"
-              >
+          const inner = (
+            <>
                 <span
                   className={`relative grid place-items-center size-9 rounded-2xl scale-100 transition-[transform,opacity] duration-[160ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90 ${
                     iconsReady ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
@@ -414,8 +408,33 @@ export function MobileBottomNav() {
                 >
                   {label}
                 </span>
-
-              </Link>
+            </>
+          );
+          const itemClass =
+            "group flex h-full w-full min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-medium";
+          return (
+            <li key={label} className="min-w-0">
+              {onClick ? (
+                <button
+                  type="button"
+                  onClick={onClick}
+                  aria-label={label}
+                  aria-current={active ? "page" : undefined}
+                  tabIndex={hidden ? -1 : undefined}
+                  className={itemClass}
+                >
+                  {inner}
+                </button>
+              ) : (
+                <Link
+                  to={to}
+                  aria-current={active ? "page" : undefined}
+                  tabIndex={hidden ? -1 : undefined}
+                  className={itemClass}
+                >
+                  {inner}
+                </Link>
+              )}
             </li>
           );
         })}
