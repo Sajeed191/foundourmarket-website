@@ -25,6 +25,8 @@ const FULL_RESTORE_Y = 56;
 const DOWN_HIDE_VELOCITY = 0.55; // px/ms — sustained down = hide
 const FAST_DOWN_VELOCITY = 1.25; // px/ms — flick = skip compact, hide instantly
 const VELOCITY_BUFFER = 0.035; // signed px/ms hysteresis around rest
+const VELOCITY_THROTTLE_MS = 60; // clamp: max one velocity measurement / 60ms
+const MICRO_DELTA_PX = 8; // ignore sub-8px jitter mid-gesture
 
 /**
  * Deterministic resolver. `current` is fed back in so the hidden phase is
