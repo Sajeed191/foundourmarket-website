@@ -502,10 +502,11 @@ function Home() {
 
 
       {/* 2 · Premium rotating product showcase hero */}
-      <section className="relative z-30 px-3 sm:px-6 lg:px-10 pt-4 sm:pt-7 pb-3 sm:pb-5 overflow-hidden" style={{ background: "var(--gradient-hero)" }}>
+      <section className="relative z-30 px-3 sm:px-6 lg:px-10 pt-4 sm:pt-7 pb-3 sm:pb-5" style={{ background: "var(--gradient-hero)" }}>
         {/* full-bleed ambient layer — seamless navbar blend + soft orange glow,
             stretches edge-to-edge so there are never black side gaps */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-0">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
+
           {/* softens the top so the hero flows under the navbar with no hard line */}
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/70 to-transparent" />
           {/* warm ambient orange lighting matching the accent */}
