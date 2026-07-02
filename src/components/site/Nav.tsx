@@ -9,9 +9,7 @@ import {
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
-const SearchCommand = lazy(() =>
-  import("@/components/site/SearchCommand").then((m) => ({ default: m.SearchCommand })),
-);
+import { useSearchUI } from "@/lib/search-ui";
 import { NotificationBell } from "@/components/site/NotificationBell";
 import { CurrencySwitcher } from "@/components/site/CurrencySwitcher";
 import { MegaMenu } from "@/components/site/MegaMenu";
