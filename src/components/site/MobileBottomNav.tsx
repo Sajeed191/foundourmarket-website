@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
 import { useAdminMode } from "@/lib/admin-mode";
 import { useIsAdmin } from "@/lib/use-admin";
-import { useTheme, type EffectiveTheme } from "@/lib/theme";
+
 import { useSupportUnread } from "@/lib/use-support-unread";
 import { useMotionTier } from "@/lib/motion-tier";
 import { useSearchUI } from "@/lib/search-ui";
@@ -66,7 +66,7 @@ export function MobileBottomNav() {
   const { slugs } = useWishlist();
   const { adminMode } = useAdminMode();
   const { isAdmin } = useIsAdmin();
-  const { effectiveTheme } = useTheme();
+  
   const { count: supportUnread } = useSupportUnread();
   const motionTier = useMotionTier();
   const { openSearch } = useSearchUI();
@@ -85,16 +85,9 @@ export function MobileBottomNav() {
   // otherwise paint a solid fallback before the theme + fade-in are ready.
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
-  // Source-of-truth theme for the FIRST client paint. __root.tsx applies the
-  // correct data-theme on <html> before paint, but the theme context's
-  // effectiveTheme defaults to "dark" until it hydrates — so a light/grey user
-  // would briefly get the dark glass surface (the "black flash"). Reading the
-  // already-resolved data-theme attribute avoids that stale first render.
-  const [domTheme, setDomTheme] = useState<EffectiveTheme | null>(null);
+  // The dock surface is a single fixed glass color, independent of theme, so we
+  // no longer read/track the document theme here (nothing to switch on).
   useEffect(() => {
-    // Resolve the theme actually applied to the document before any paint.
-    const attr = document.documentElement.getAttribute("data-theme");
-    setDomTheme(attr === "light" || attr === "grey" ? attr : "dark");
     // Frame 1: element enters the DOM in its transparent initial state.
     setMounted(true);
     // Frame 2: theme tokens + layout are resolved — reveal with a fade.
@@ -283,12 +276,9 @@ export function MobileBottomNav() {
 
 
 
-  // Prefer the pre-paint theme resolved from <html data-theme> to avoid the
-  // stale "dark" default flashing a dark surface for light/grey users.
-  const resolvedTheme = domTheme ?? effectiveTheme;
-  const isLight = resolvedTheme === "light";
-  const isGrey = resolvedTheme === "grey";
-  const frosted = isLight || isGrey;
+  // The bottom-nav surface is intentionally theme-INDEPENDENT: one fixed glass
+  // color for every theme and state, so no theme resolution is needed here to
+  // pick a surface tone (avoids any hydration color switch / flash).
 
   const compact = navState !== "visible_full";
   const hidden = navState === "hidden";
@@ -325,19 +315,15 @@ export function MobileBottomNav() {
 
       <ul
         data-compact={compact ? "" : undefined}
-        style={
-          lowEnd
-            ? { willChange: "transform, opacity", backdropFilter: "none", WebkitBackdropFilter: "none" }
-            : { willChange: "transform, opacity" }
-        }
+        // NOTE: never set an inline `backdrop-filter` here — global safe-mode
+        // selectors ([style*="backdrop-filter"]) would then recolor the dock to
+        // a theme background. Blur is removed via the .nav-glass CSS class only,
+        // keeping ONE fixed color across every device/state.
+        style={{ willChange: "transform, opacity" }}
         className={
-          // Low-end (Android 8 / Oppo A3s): no backdrop blur — flat opaque
-          // surface, opacity + translateY only.
-          (lowEnd
-            ? "bottom-nav-solid pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2 border border-border/60"
-            : frosted
-              ? "bottom-nav-light pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2"
-              : "nav-glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2") +
+          // SINGLE unified surface for every theme + state. No theme-conditional
+          // colors, so there is no hydration flash or color switching.
+          "nav-glass pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 rounded-[30px] px-2" +
           // Transform + opacity only. Micro-collapse is visual, not a separate
           // state, so compact is the only visible scroll-safe mode.
           ` h-[var(--mobile-nav-surface-height)] py-2 transform-gpu transition-[transform,opacity] duration-[180ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
@@ -381,7 +367,7 @@ export function MobileBottomNav() {
                   <span className="relative">
                     <Icon
                       className={`size-[21px] transition-colors duration-200 ${
-                        active ? "text-accent" : frosted ? "text-muted-foreground" : "text-foreground/65"
+                        active ? "text-accent" : "text-white/70"
                       }`}
                       strokeWidth={active ? 2.5 : 2}
                     />
@@ -403,7 +389,7 @@ export function MobileBottomNav() {
                   className={`h-3 max-w-full truncate leading-none transition-[opacity,transform] duration-[200ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
                     labelsReady ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-0.5 scale-90 opacity-0"
                   } ${
-                    active ? "font-semibold text-accent" : frosted ? "text-muted-foreground" : "text-foreground/60"
+                    active ? "font-semibold text-accent" : "text-white/65"
                   }`}
                 >
                   {label}
