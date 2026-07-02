@@ -97,7 +97,7 @@ export function Nav() {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setSearchOpen(true);
+        openSearch();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -331,7 +331,7 @@ export function Nav() {
             {/* Zone 3 — Search • Notifications • Cart */}
             <div className="shrink-0 ml-auto flex items-center gap-0.5 sm:gap-1.5">
               <button
-                onClick={() => setSearchOpen(true)}
+                onClick={() => openSearch()}
                 aria-label="Search"
                 className="size-10 sm:size-11 rounded-xl grid place-items-center text-muted-foreground hover:text-accent hover:bg-accent/10 hover:shadow-[0_0_18px_-6px_var(--color-accent)] active:bg-accent/15 active:text-accent active:scale-90 transition-all duration-200"
               >
