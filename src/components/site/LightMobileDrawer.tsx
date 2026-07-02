@@ -94,20 +94,32 @@ export function LightMobileDrawer({
         }}
         className="absolute left-0 top-0 bottom-0 w-[92%] max-w-[420px] flex flex-col overflow-hidden border-r border-border bg-background shadow-[0_0_60px_-10px_oklch(0.4_0.02_260/0.25)] will-change-transform"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <Link to="/" onClick={onClose} className="text-[20px] font-display tracking-tight font-semibold flex items-center gap-3">
-            <img src="/logo.webp" alt="FoundOurMarket logo" className="size-[50px] rounded-xl object-cover ring-1 ring-border" />
-            FoundOurMarket<span className="text-accent">™</span>
-          </Link>
+        {/* Contextual drawer header — personal control center, no brand duplication.
+            Static: never re-renders on scroll; soft opacity fade-in only. */}
+        <div
+          style={{
+            opacity: visible ? 1 : 0,
+            transition: "opacity 240ms cubic-bezier(0.2,0.8,0.2,1)",
+          }}
+          className="flex items-start justify-between px-5 pt-5 pb-3"
+        >
+          <div className="min-w-0">
+            <h2 className="text-[19px] font-display font-semibold tracking-tight text-foreground leading-tight">
+              Account Space
+            </h2>
+            <p className="mt-0.5 text-[12.5px] text-muted-foreground/70">
+              Everything personalized in one place
+            </p>
+          </div>
           <button
             onClick={onClose}
             aria-label="Close menu"
-            className="size-9 rounded-full grid place-items-center bg-card text-muted-foreground ring-1 ring-border shadow-sm hover:text-foreground active:scale-95 transition"
+            className="shrink-0 size-9 rounded-full grid place-items-center bg-card text-muted-foreground ring-1 ring-border shadow-sm hover:text-foreground active:scale-95 transition"
           >
             <X className="size-4.5" />
           </button>
         </div>
+
 
         <div className="flex-1 overflow-y-auto px-4 pt-2 pb-5 space-y-5">
           {/* 1. Premium user header */}
