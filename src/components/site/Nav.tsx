@@ -407,6 +407,12 @@ export function Nav() {
           </div>
         </nav>
       </div>
+      <div
+        aria-hidden="true"
+        data-app-header-spacer
+        className="shrink-0"
+        style={{ height: "calc(var(--mobile-safe-top) + 6.125rem)" }}
+      />
 
 
       {/* Mobile drawer — unified design for all themes (colors adapt per theme) */}
