@@ -520,7 +520,7 @@ function Home() {
     : categories.slice(0, categoryLimit);
 
   // Desktop hero uses a curated featured product image (see assets/hero-product).
-  const trendingChips = ["Wireless earbuds", "Smart watch", "Linen shirt", "Ceramic mug", "Air fryer"];
+  
 
 
 
