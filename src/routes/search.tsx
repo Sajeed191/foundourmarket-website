@@ -396,6 +396,9 @@ function SearchPage() {
     }
 
 
+    // Price sorts need the whole matching set so the client-side region-aware
+    // ordering is correct across the full catalog (pagination is disabled).
+    const fetchLimit = isPriceSort ? 1000 : PAGE_SIZE;
     (supabase.rpc as any)("search_products", {
       q: search.q ?? null,
       category_filter: search.cat ?? null,
@@ -403,12 +406,12 @@ function SearchPage() {
       max_price: search.max ?? null,
       min_rating: search.rating ?? null,
       sort_by: RPC_SORTS.has(sort) ? sort : "relevance",
-      page_limit: PAGE_SIZE,
+      page_limit: fetchLimit,
       page_offset: 0,
     }).then(({ data }: { data: any[] | null }) => {
       if (cancelled) return;
       const rows = (data ?? []).map((r: any) => rowToProduct(r));
-      setHasMore(rows.length === PAGE_SIZE);
+      setHasMore(!isPriceSort && rows.length === PAGE_SIZE);
       setRawRows(rows);
       setLoading(false);
     });
