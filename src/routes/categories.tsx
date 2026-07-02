@@ -99,17 +99,13 @@ function DepartmentCard({
           {cat.name}
         </h2>
 
-        {/* Stats — single line, smaller, hide zero subcategory counts */}
+        {/* Stats — subcategory count only, hide zero counts */}
         {total > 0 ? (
-          <p className="text-[11px] text-muted-foreground sm:text-xs">
-            {total} {total === 1 ? "Product" : "Products"}
-            {subCount > 0 && (
-              <>
-                <span className="mx-1 text-white/20">•</span>
-                {subCount} {subCount === 1 ? "Subcategory" : "Subcategories"}
-              </>
-            )}
-          </p>
+          subCount > 0 && (
+            <p className="text-[11px] text-muted-foreground sm:text-xs">
+              {subCount} {subCount === 1 ? "Subcategory" : "Subcategories"}
+            </p>
+          )
         ) : (
           <span className="inline-flex w-fit items-center gap-1 rounded-full border border-accent/25 bg-accent/[0.07] px-2 py-0.5 text-[10px] font-medium text-accent">
             Products Coming Soon
