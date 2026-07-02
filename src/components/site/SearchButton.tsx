@@ -3,6 +3,7 @@ import { useRef } from "react";
 
 type Props = {
   loading?: boolean;
+  focused?: boolean;
 };
 
 /**
