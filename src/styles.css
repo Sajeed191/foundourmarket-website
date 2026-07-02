@@ -946,10 +946,19 @@ html[data-android="true"] .nav-glass {
 .animate-energy-breathe {
   animation: energy-breathe 3.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
 }
+/* Footer CTA: soft breathing glow (opacity only — no layout shift, no blur dependency) */
+@keyframes cta-breathe {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.85; }
+}
+.animate-cta-breathe {
+  animation: cta-breathe 3.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
 @media (prefers-reduced-motion: reduce) {
   .animate-nav-rematerialize,
   .animate-panel-reveal,
   .animate-search-pulse,
+  .animate-cta-breathe,
   .animate-energy-breathe { animation: none !important; }
 }
 
@@ -978,6 +987,7 @@ html[data-scrolling="true"] .animate-float-soft,
 html[data-scrolling="true"] .animate-float-slow,
 html[data-scrolling="true"] .animate-orb,
 html[data-scrolling="true"] .animate-orb-breathe,
+html[data-scrolling="true"] .animate-cta-breathe,
 html[data-scrolling="true"] .animate-search-pulse {
   animation-play-state: paused !important;
 }
