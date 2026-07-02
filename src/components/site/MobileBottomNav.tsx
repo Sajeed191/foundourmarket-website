@@ -25,6 +25,8 @@ const FULL_RESTORE_Y = 56;
 const DOWN_HIDE_VELOCITY = 0.55; // px/ms — sustained down = hide
 const FAST_DOWN_VELOCITY = 1.25; // px/ms — flick = skip compact, hide instantly
 const VELOCITY_BUFFER = 0.035; // signed px/ms hysteresis around rest
+const VELOCITY_THROTTLE_MS = 60; // clamp: max one velocity measurement / 60ms
+const MICRO_DELTA_PX = 8; // ignore sub-8px jitter mid-gesture
 
 /**
  * Deterministic resolver. `current` is fed back in so the hidden phase is
@@ -82,6 +84,7 @@ export function MobileBottomNav() {
     let pendingScrolling = false;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let hiddenLockUntil = 0; // hard lock window after entering hidden
+    let lastVelAt = 0; // velocity update clamp (max 1 per VELOCITY_THROTTLE_MS)
 
     const canUpdate = (now: number) => now - lastCommit.current > TRANSITION_LOCK_MS;
 
@@ -109,11 +112,6 @@ export function MobileBottomNav() {
       rafId = 0;
       const now = performance.now();
       const y = Math.max(window.scrollY, 0);
-      const delta = y - lastY.current;
-      const dt = Math.max(now - lastT.current, 1);
-      const velocity = delta / dt;
-      lastY.current = y;
-      lastT.current = now;
 
       // Hard hidden lock: ignore everything except an explicit scroll back to the
       // very top, which must never leave the dock stranded off-screen.
@@ -121,9 +119,29 @@ export function MobileBottomNav() {
         if (y > FULL_RESTORE_Y) return;
       }
 
+      // Velocity update clamp: at most one measurement per throttle window. We do
+      // NOT advance the baseline until we measure, so the delta accumulates over
+      // the window instead of collapsing to per-frame noise (Android inertia).
+      if (pendingScrolling && now - lastVelAt < VELOCITY_THROTTLE_MS) return;
+
+      const delta = y - lastY.current;
+      const dt = Math.max(now - lastT.current, 1);
+
+      // Ignore micro scroll jitter (<8px) while mid-gesture — never near the top,
+      // where we always want to settle back to the full state.
+      if (pendingScrolling && Math.abs(delta) < MICRO_DELTA_PX && y > FULL_RESTORE_Y) {
+        return;
+      }
+
+      const velocity = delta / dt;
+      lastY.current = y;
+      lastT.current = now;
+      lastVelAt = now;
+
       const next = resolveNavState(navStateRef.current, y, velocity, pendingScrolling);
       commit(next, now);
     };
+
 
     const schedule = (isScrolling: boolean) => {
       pendingScrolling = isScrolling;
@@ -176,8 +194,10 @@ export function MobileBottomNav() {
 
   const compact = navState !== "visible_full";
   const hidden = navState === "hidden";
-  // Low tier: skip the staggered label reveal (one animation layer rule).
-  const stagger = motionTier !== "low";
+  // Low tier (e.g. Android 8 / Oppo A3s WebView): opacity + translateY only.
+  // No stagger, no icon scale, no breathing glow — the safety mode.
+  const lowEnd = motionTier === "low";
+  const stagger = !lowEnd;
 
   const items: { to: string; label: string; icon: typeof Home; match: (p: string) => boolean; badge?: number }[] = [
     { to: "/", label: "Home", icon: Home, match: (p) => p === "/" },
@@ -226,17 +246,19 @@ export function MobileBottomNav() {
               >
                 <span
                   className={`relative grid place-items-center size-9 rounded-2xl transition-transform duration-[160ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90 ${
-                    compact ? "scale-[1.08]" : "scale-100"
+                    lowEnd ? "scale-100" : compact ? "scale-[1.08]" : "scale-100"
                   }`}
                 >
                   {/* Soft radial energy field behind the active icon — a breathing
-                      bloom (not a ring/border). Freezes during scroll via CSS. */}
-                  <span
-                    aria-hidden
-                    className={`absolute inset-0 rounded-full blur-[7px] transition-opacity duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] [background:radial-gradient(circle,color-mix(in_oklab,var(--color-accent)_55%,transparent)_0%,transparent_70%)] ${
-                      active ? "opacity-100 animate-energy-breathe" : "opacity-0"
-                    }`}
-                  />
+                      bloom (not a ring/border). Disabled entirely on low-end. */}
+                  {!lowEnd && (
+                    <span
+                      aria-hidden
+                      className={`absolute inset-0 rounded-full blur-[7px] transition-opacity duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] [background:radial-gradient(circle,color-mix(in_oklab,var(--color-accent)_55%,transparent)_0%,transparent_70%)] ${
+                        active ? "opacity-100 animate-energy-breathe" : "opacity-0"
+                      }`}
+                    />
+                  )}
 
                   <span className="relative">
                     <Icon
