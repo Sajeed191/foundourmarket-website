@@ -10,7 +10,7 @@ import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Slider } from "@/components/ui/slider";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Switch } from "@/components/ui/switch";
 
 type SearchParams = {
@@ -96,6 +96,46 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Premium dual-handle price slider: gradient track + live value bubbles. */
+function PriceRangeSlider({
+  max,
+  value,
+  onValueChange,
+  fmt,
+}: {
+  max: number;
+  value: [number, number];
+  onValueChange: (v: number[]) => void;
+  fmt: (usd: number) => string;
+}) {
+  return (
+    <div className="pt-9 pb-1 px-1">
+      <SliderPrimitive.Root
+        min={0}
+        max={max}
+        step={10}
+        value={value}
+        onValueChange={onValueChange}
+        className="relative flex w-full touch-none select-none items-center"
+      >
+        <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-white/10">
+          <SliderPrimitive.Range className="absolute h-full rounded-full bg-gradient-to-r from-[#FFA52E] to-[#FF7A18]" />
+        </SliderPrimitive.Track>
+        {[0, 1].map((i) => (
+          <SliderPrimitive.Thumb
+            key={i}
+            className="relative block size-5 rounded-full border-2 border-accent bg-background shadow-[0_2px_12px_-2px_var(--accent)] transition-transform active:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
+            <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-accent px-2 py-1 text-[10px] font-bold tabular-nums text-accent-foreground shadow-lg">
+              {fmt(value[i])}{i === 1 && value[1] >= max ? "+" : ""}
+            </span>
+          </SliderPrimitive.Thumb>
+        ))}
+      </SliderPrimitive.Root>
+    </div>
+  );
+}
+
 function FilterPanel({
   value,
   onChange,
@@ -169,15 +209,12 @@ function FilterPanel({
             {fmt(priceRange[0])} – {fmt(priceRange[1])}{priceRange[1] >= PRICE_MAX ? "+" : ""}
           </span>
         </div>
-        <div className="px-1">
-          <Slider
-            min={0}
-            max={PRICE_MAX}
-            step={10}
-            value={priceRange}
-            onValueChange={(v) => set({ min: v[0] > 0 ? v[0] : undefined, max: v[1] < PRICE_MAX ? v[1] : undefined })}
-          />
-        </div>
+        <PriceRangeSlider
+          max={PRICE_MAX}
+          value={priceRange}
+          onValueChange={(v) => set({ min: v[0] > 0 ? v[0] : undefined, max: v[1] < PRICE_MAX ? v[1] : undefined })}
+          fmt={fmt}
+        />
         <div className="mt-4 grid grid-cols-2 gap-2">
           {pricePresets.map((p) => (
             <button
