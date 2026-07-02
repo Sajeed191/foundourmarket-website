@@ -114,6 +114,14 @@ export function LightMobileDrawer({
               Global Marketplace
             </span>
           </span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="ml-auto shrink-0 grid place-items-center size-9 rounded-full bg-foreground/5 ring-1 ring-border text-foreground/70 transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:ring-accent/40 active:scale-90"
+          >
+            <X className="size-[18px]" strokeWidth={2.2} />
+          </button>
         </div>
 
         <div
