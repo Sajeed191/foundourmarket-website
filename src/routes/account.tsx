@@ -368,7 +368,7 @@ function AccountPage() {
 
           <motion.header
             initial={false}
-            className="border-glow noise-layer glass-reflect relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong"
+            className="noise-layer glass-reflect relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong"
           >
           <div aria-hidden className="absolute inset-0 -z-10">
             <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
