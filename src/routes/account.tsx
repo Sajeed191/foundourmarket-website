@@ -479,15 +479,12 @@ function AccountPage() {
           </motion.section>
         )}
 
-        {/* 5 — FOOTER ACTIONS */}
+        {/* 5 — ACCOUNT UTILITIES */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.12 }} className="pt-1">
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <FooterAction icon={HelpCircle} label="Support" to="/account/support" />
-            <FooterAction icon={LifeBuoy} label="FAQ" to="/help" />
-            <FooterAction icon={MessageCircle} label="Contact" onClick={() => openCrispChat()} />
-            <FooterAction icon={LogOut} label="Sign out" onClick={signOut} />
-          </div>
+          <SectionHeader title="Support & account" eyebrow="Utilities" />
+          <AccountUtilities user={user} avatarUrl={avatarUrl} firstName={firstName} signOut={signOut} />
         </motion.section>
+
       </div>
     </div>
   );
