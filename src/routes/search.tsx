@@ -220,15 +220,9 @@ function FilterPanel({
   const set = (patch: Partial<Filters>) => onChange({ ...value, ...patch });
   const priceRange: [number, number] = [value.min ?? 0, value.max ?? PRICE_MAX];
 
-  // Quick price presets (in base USD). Displayed values are localised via fmt.
-  const pricePresets: { label: string; min?: number; max?: number }[] = [
-    { label: `Under ${fmt(50)}`, min: undefined, max: 50 },
-    { label: `${fmt(50)}–${fmt(200)}`, min: 50, max: 200 },
-    { label: `${fmt(200)}–${fmt(500)}`, min: 200, max: 500 },
-    { label: `${fmt(500)}+`, min: 500, max: undefined },
-  ];
-  const isPresetActive = (p: { min?: number; max?: number }) =>
-    (value.min ?? undefined) === p.min && (value.max ?? undefined) === p.max;
+  // Price band edges the slider handles snap to (in base USD). At the India
+  // rate (~83) these map to ₹0 · ₹4k · ₹16k · ₹41k · ₹41k+.
+  const PRICE_SNAP = [0, 50, 200, 500, PRICE_MAX];
 
   const toggles: { key: "stock" | "free" | "disc"; on: string; label: string; desc: string }[] = [
     { key: "stock", on: "in", label: "In stock only", desc: "Hide sold-out items" },
