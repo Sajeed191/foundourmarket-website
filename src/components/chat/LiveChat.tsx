@@ -54,6 +54,7 @@ import {
   type ChatOrder,
   type OrderStage,
 } from "@/lib/chat-orders";
+import { BrandName } from "@/components/site/BrandName";
 
 type Msg = CrispMessage;
 
