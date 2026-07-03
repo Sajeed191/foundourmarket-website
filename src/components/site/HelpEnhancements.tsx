@@ -7,6 +7,7 @@ import {
   ChevronDown, Truck, Lock, Globe, Wrench, HelpCircle, Headphones,
   ArrowRight, Ticket, ShieldHalf, FileText,
 } from "lucide-react";
+import { BrandName } from "@/components/site/BrandName";
 
 const card = "rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl";
 
