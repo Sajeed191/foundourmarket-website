@@ -366,10 +366,13 @@ function AccountPage() {
         {/* 1 — HEADER */}
         <div className="relative z-30">
 
-          <motion.header {...fadeUp} className="border-glow noise-layer glass-reflect relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong">
+          <motion.header
+            {...(lowMotion ? { initial: false as const } : fadeUp)}
+            className="border-glow noise-layer glass-reflect relative overflow-hidden rounded-[28px] sm:rounded-3xl glass-strong"
+          >
           <div aria-hidden className="absolute inset-0 -z-10">
-            <div className="absolute -top-32 -right-20 size-[420px] rounded-full opacity-70 animate-ambient" style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
-            <div className="absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60 animate-glow" style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
+            <div className={`absolute -top-32 -right-20 size-[420px] rounded-full opacity-70 ${lowMotion ? "" : "animate-ambient"}`} style={{ background: "var(--gradient-ember)", filter: "blur(80px)" }} />
+            <div className={`absolute -bottom-32 -left-24 size-[360px] rounded-full opacity-60 ${lowMotion ? "" : "animate-glow"}`} style={{ background: "var(--gradient-violet)", filter: "blur(90px)" }} />
             <div
               className="absolute inset-0 opacity-[0.05]"
               style={{
