@@ -2711,3 +2711,11 @@ body.hide-bottom-nav nav.md\:hidden.fixed.inset-x-0.bottom-0 {
   transform: translateY(16px) !important;
   pointer-events: none !important;
 }
+
+/* Also hide the live chat / floating support orb while a filter/sort sheet is open. */
+body.hide-bottom-nav [data-floating-control] {
+  opacity: 0 !important;
+  transform: translateY(16px) !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
