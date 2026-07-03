@@ -173,7 +173,7 @@ export function Footer() {
         {/* ── 6. Copyright bar ── */}
         <div className="mt-12 pt-6 border-t border-white/[0.04] flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <p className="text-[11px] text-muted-foreground/40 font-light tracking-wide">
-            © 2026 FoundOurMarket
+            © 2026 <BrandName />
           </p>
           <nav className="flex gap-5 text-[11px] text-muted-foreground/40 font-light">
             <Link to="/privacy" className="hover:text-foreground/80 transition-colors duration-200">Privacy</Link>
