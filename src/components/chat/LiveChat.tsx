@@ -489,7 +489,7 @@ function Welcome({
           <Headset className="h-7 w-7" />
         </div>
         <h2 className="text-2xl font-semibold text-foreground">Hello{customerName ? ` ${customerName}` : ""} 👋</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Welcome to <span className="font-medium text-foreground">FoundOurMarket™</span></p>
+        <p className="mt-1 text-sm text-muted-foreground">Welcome to <BrandName className="font-medium" /></p>
         <p className="text-sm text-muted-foreground">How can we help you today?</p>
       </div>
 
