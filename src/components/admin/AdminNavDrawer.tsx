@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, Sparkles, ChevronRight } from "lucide-react";
 import { NAV, useAdminRoles, type NavItem } from "@/components/admin/AdminShell";
+import { BrandName } from "@/components/site/BrandName";
 
 /**
  * Mobile-only hamburger + slide-in drawer exposing the full admin navigation.
