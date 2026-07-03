@@ -871,28 +871,41 @@ function AccountUtilities({ user, avatarUrl, firstName, signOut }: { user: any; 
     <>
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <UtilityCard
-          icon={LifeBuoy} title="Help & Support" glow="var(--gradient-ember)" lowMotion={lowMotion}
-          desc="Get help from our support team."
+          icon={LifeBuoy} title="Help & Support"
+          glow="var(--gradient-ember)" accent="var(--color-accent)"
+          lowMotion={lowMotion}
+          desc="Get live assistance from our support team."
           badge={online ? "Online" : "Offline"} badgeTone={online ? "online" : "offline"}
-          onClick={() => nav({ to: "/help" })}
+          hint="Open Support"
+          onClick={() => setSupportOpen(true)}
         />
         <UtilityCard
-          icon={Search} title="Help Articles" glow="linear-gradient(135deg, oklch(0.7 0.16 240 / 0.5), transparent 65%)" lowMotion={lowMotion}
-          desc={`Browse ${HELP_ARTICLE_COUNT} answers and guides.`}
-          badge="Updated" badgeTone="accent"
+          icon={BookOpen} title="Help Articles"
+          glow="linear-gradient(135deg, oklch(0.7 0.16 240 / 0.5), transparent 65%)" accent="oklch(0.7 0.16 240)"
+          lowMotion={lowMotion}
+          desc="Browse guides, tutorials and FAQs."
+          badge={`${HELP_ARTICLE_COUNT} Articles`} badgeTone="accent"
+          hint="Browse Articles"
           onClick={() => nav({ to: "/help", hash: "faqs" })}
         />
         <UtilityCard
-          icon={MessageCircle} title="Contact Us" glow="linear-gradient(135deg, oklch(0.72 0.16 160 / 0.5), transparent 65%)" lowMotion={lowMotion}
-          desc="Reach our team anytime."
-          badge={online ? "Online" : "9AM–9PM"} badgeTone={online ? "online" : "neutral"}
+          icon={MessageCircle} title="Contact Us"
+          glow="linear-gradient(135deg, oklch(0.72 0.16 160 / 0.5), transparent 65%)" accent="oklch(0.72 0.16 160)"
+          lowMotion={lowMotion}
+          desc="Choose how you'd like to reach us."
+          chips={[hasWhatsApp ? "WhatsApp" : "Chat", "Email", "Callback"]}
+          hint="Choose Channel"
           onClick={() => setContactOpen(true)}
         />
         <UtilityCard
-          icon={UserCog} title="Account" glow="linear-gradient(135deg, oklch(0.7 0.2 18 / 0.5), transparent 65%)" lowMotion={lowMotion}
-          desc="Manage session & security."
+          icon={UserCog} title="Profile & Security"
+          glow="linear-gradient(135deg, oklch(0.7 0.2 18 / 0.5), transparent 65%)" accent="oklch(0.7 0.2 18)"
+          lowMotion={lowMotion}
+          desc="Manage your account, privacy and devices."
+          hint="Manage Account"
           onClick={() => setAccountOpen(true)}
         />
+
       </div>
 
       {/* Contact hub sheet */}
