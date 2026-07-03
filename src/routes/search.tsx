@@ -74,7 +74,33 @@ const RPC_SORTS = new Set(["relevance", "rating", "newest"]);
 // so they are fetched in one shot with pagination disabled — like trending.
 const PRICE_SORTS = new Set(["price_asc", "price_desc"]);
 
+// Current 2-hour rotation bucket. Changes every 2 hours so the browse order
+// reshuffles on that cadence but stays stable for everyone within the window.
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+export function rotationSeed(): number {
+  return Math.floor(Date.now() / TWO_HOURS_MS);
+}
+
+// Deterministic seeded shuffle (mulberry32). Same seed + same items => same
+// order, so pagination/re-renders stay consistent within a rotation window.
+function seededShuffle<T>(items: T[], seed: number): T[] {
+  const arr = [...items];
+  let s = seed >>> 0;
+  const rand = () => {
+    s |= 0; s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function applyClientSort(
+
   rows: Product[],
   sort: string | undefined,
   discountOf: (p: Product) => number,
