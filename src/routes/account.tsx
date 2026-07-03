@@ -532,10 +532,10 @@ function SectionBlock({
 }
 
 const TONES = {
-  amber: { icon: "bg-amber-500/15 text-amber-500", glow: "oklch(0.74 0.19 49)" },
-  rose: { icon: "bg-rose-500/15 text-rose-500", glow: "oklch(0.7 0.2 18)" },
-  blue: { icon: "bg-sky-500/15 text-sky-500", glow: "oklch(0.7 0.16 240)" },
-  emerald: { icon: "bg-emerald-500/15 text-emerald-500", glow: "oklch(0.72 0.16 160)" },
+  amber: { icon: "bg-amber-500/15 text-amber-500", glow: "oklch(0.74 0.19 49)", tint: "linear-gradient(135deg, oklch(0.74 0.19 49 / 0.18), transparent 65%)" },
+  rose: { icon: "bg-rose-500/15 text-rose-500", glow: "oklch(0.7 0.2 18)", tint: "linear-gradient(135deg, oklch(0.7 0.2 18 / 0.18), transparent 65%)" },
+  blue: { icon: "bg-sky-500/15 text-sky-500", glow: "oklch(0.7 0.16 240)", tint: "linear-gradient(135deg, oklch(0.7 0.16 240 / 0.18), transparent 65%)" },
+  emerald: { icon: "bg-emerald-500/15 text-emerald-500", glow: "oklch(0.72 0.16 160)", tint: "linear-gradient(135deg, oklch(0.72 0.16 160 / 0.18), transparent 65%)" },
 } as const;
 
 function OverviewCard({
