@@ -910,7 +910,27 @@ function AccountUtilities({ user, avatarUrl, firstName, signOut }: { user: any; 
 
       </div>
 
+      {/* Support hub sheet */}
+      <Sheet open={supportOpen} onClose={() => setSupportOpen(false)} lowMotion={lowMotion}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-display font-semibold text-base leading-tight">Help &amp; Support</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{online ? "We're online now" : "Support hours: 9 AM–9 PM"}</p>
+          </div>
+          <button onClick={() => setSupportOpen(false)} aria-label="Close" className="size-8 grid place-items-center rounded-full hover:bg-white/10 text-muted-foreground">
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="mt-4 space-y-2">
+          <SheetOption icon={MessageCircle} label="Live Chat" desc={online ? `Usually replies in under ${minutes} min` : "Leave us a message"} onClick={() => { setSupportOpen(false); openLiveChat(); }} />
+          <SheetOption icon={Plus} label="Create Ticket" desc="Report an issue or request" onClick={() => { setSupportOpen(false); nav({ to: "/account/support/new" }); }} />
+          <SheetOption icon={Search} label="Track Ticket" desc="View your open tickets" onClick={() => { setSupportOpen(false); nav({ to: "/account/support" }); }} />
+          <SheetOption icon={PhoneCall} label="Call Support" desc="Request a callback" onClick={callSupport} />
+        </div>
+      </Sheet>
+
       {/* Contact hub sheet */}
+
       <Sheet open={contactOpen} onClose={() => setContactOpen(false)} lowMotion={lowMotion}>
         <div className="flex items-center justify-between">
           <div>
