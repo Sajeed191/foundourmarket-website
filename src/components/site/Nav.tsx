@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
 import { useSearchUI } from "@/lib/search-ui";
 import { NotificationBell } from "@/components/site/NotificationBell";
+import { BrandName } from "@/components/site/BrandName";
 import { CurrencySwitcher } from "@/components/site/CurrencySwitcher";
 import { MegaMenu } from "@/components/site/MegaMenu";
 import { supabase } from "@/integrations/supabase/client";
@@ -319,7 +320,7 @@ export function Nav() {
               </span>
               <span className="flex min-w-0 flex-col leading-none">
                 <span className="truncate text-[15px] sm:text-xl lg:text-[22px] font-semibold tracking-tight">
-                  FoundOurMarket<span className="text-accent">™</span>
+                  <BrandName />
                 </span>
                 <span
                   className={`overflow-hidden font-mono uppercase tracking-[0.2em] text-accent/80 truncate transition-[max-height,opacity,margin] duration-200 ease-out text-[8px] sm:text-[10px] ${
@@ -394,7 +395,7 @@ export function Nav() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 glass-strong border-white/10">
-                  <DropdownMenuLabel className="truncate">{user ? displayName : "Welcome to FoundOurMarket™"}</DropdownMenuLabel>
+                  <DropdownMenuLabel className="truncate">{user ? displayName : <>Welcome to <BrandName /></>}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {user ? (
                     <>

@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, Sparkles, ChevronRight } from "lucide-react";
 import { NAV, useAdminRoles, type NavItem } from "@/components/admin/AdminShell";
+import { BrandName } from "@/components/site/BrandName";
 
 /**
  * Mobile-only hamburger + slide-in drawer exposing the full admin navigation.
@@ -57,7 +58,7 @@ export function AdminNavDrawer() {
                     <Sparkles className="size-3.5 text-accent-foreground" />
                     <span className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/15" />
                   </span>
-                  <span className="font-display text-sm tracking-tight">FoundOurMarket™</span>
+                  <BrandName className="font-display text-sm tracking-tight" />
                 </Link>
                 <button onClick={() => setOpen(false)} className="size-7 grid place-items-center rounded-full hover:bg-white/5 transition-colors" aria-label="Close menu">
                   <X className="size-3.5" />

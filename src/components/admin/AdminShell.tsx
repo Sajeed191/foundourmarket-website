@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCommandCenter } from "@/lib/command-center";
 import { NotificationBell } from "@/components/site/NotificationBell";
+import { BrandName } from "@/components/site/BrandName";
 import { ThemeMenu } from "@/components/site/ThemeMenu";
 import { useAdminSupportUnread } from "@/lib/use-support-unread";
 import { useCustomerIntelSummary } from "@/lib/use-customer-intel-summary";
@@ -270,7 +271,7 @@ export function AdminShell({
                 <Sparkles className="size-3.5 text-accent-foreground" />
                 <span className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/15" />
               </span>
-              <span className="font-display text-sm tracking-tight">FoundOurMarket™</span>
+              <BrandName className="font-display text-sm tracking-tight" />
             </Link>
             <button onClick={() => setOpen(false)} className="lg:hidden size-7 grid place-items-center rounded-full hover:bg-white/5 transition-colors">
               <X className="size-3.5" />
@@ -489,7 +490,7 @@ export function AdminShell({
                 <Sparkles className="size-3 text-accent-foreground" />
                 <span className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/15" />
               </span>
-              <span className="font-display text-[13px] tracking-tight truncate max-w-[9.5rem]">FoundOurMarket™</span>
+              <BrandName className="font-display text-[13px] tracking-tight truncate max-w-[9.5rem]" />
             </Link>
             {/* Desktop breadcrumb/title sits in the center slot */}
             <div className="hidden lg:block min-w-0">

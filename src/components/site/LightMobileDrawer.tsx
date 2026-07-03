@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme, THEME_OPTIONS, type ThemePreference } from "@/lib/theme";
 import type { Category } from "@/lib/use-categories";
+import { BrandName } from "@/components/site/BrandName";
 
 const THEME_ICONS: Record<ThemePreference, React.ComponentType<{ className?: string }>> = {
   system: Monitor,
@@ -143,7 +144,7 @@ export function LightMobileDrawer({
           </span>
           <span className="flex min-w-0 flex-col leading-none">
             <span className="truncate text-[15px] font-semibold tracking-tight text-foreground">
-              FoundOurMarket<span className="text-accent">™</span>
+              <BrandName />
             </span>
             <span className="mt-0.5 font-mono uppercase tracking-[0.2em] text-accent/80 text-[8px]">
               Global Marketplace

@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Instagram, Twitter, Facebook, Youtube } from "lucide-react";
+import { BrandName } from "@/components/site/BrandName";
 
 const EASE = "cubic-bezier(0.2,0.8,0.2,1)";
 
@@ -89,7 +90,7 @@ export function Footer() {
     return (
       <footer className="relative px-4 sm:px-6 py-4 mobile-page-clearance lg:pb-4 border-t border-white/[0.05] bg-background">
         <div className="relative max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center">
-          <p className="text-[11px] text-muted-foreground/60 tracking-wide">© 2026 FoundOurMarket</p>
+          <p className="text-[11px] text-muted-foreground/60 tracking-wide">© 2026 <BrandName /></p>
           <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[11px] text-muted-foreground/60">
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
@@ -111,7 +112,7 @@ export function Footer() {
             aria-label="FoundOurMarket home"
             className="inline-block text-lg font-display font-medium tracking-tight text-foreground/90 hover:opacity-80 transition-opacity duration-200"
           >
-            FoundOurMarket
+            <BrandName />
           </Link>
           <p className="mt-2 text-[13px] text-muted-foreground/45 font-light">
             Built for precision global commerce.
@@ -172,7 +173,7 @@ export function Footer() {
         {/* ── 6. Copyright bar ── */}
         <div className="mt-12 pt-6 border-t border-white/[0.04] flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
           <p className="text-[11px] text-muted-foreground/40 font-light tracking-wide">
-            © 2026 FoundOurMarket
+            © 2026 <BrandName />
           </p>
           <nav className="flex gap-5 text-[11px] text-muted-foreground/40 font-light">
             <Link to="/privacy" className="hover:text-foreground/80 transition-colors duration-200">Privacy</Link>
