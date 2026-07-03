@@ -395,7 +395,7 @@ export function Nav() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 glass-strong border-white/10">
-                  <DropdownMenuLabel className="truncate">{user ? displayName : "Welcome to FoundOurMarket™"}</DropdownMenuLabel>
+                  <DropdownMenuLabel className="truncate">{user ? displayName : <>Welcome to <BrandName /></>}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {user ? (
                     <>
