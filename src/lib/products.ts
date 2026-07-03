@@ -266,7 +266,9 @@ export function rowToProduct(r: Row): Product {
     warehouseLocation: r.warehouse_location ?? "",
     restockEta: r.restock_eta ?? "",
     preorder: r.preorder ?? false,
-    reservedQuantity: r.reserved_quantity ?? 0,
+    // reserved_quantity is internal inventory data and is intentionally NOT
+    // exposed via the public products_public view.
+    reservedQuantity: 0,
     scheduledPublishAt: r.scheduled_publish_at ?? null,
     scheduledExpiryAt: r.scheduled_expiry_at ?? null,
     trending: r.trending ?? false,
