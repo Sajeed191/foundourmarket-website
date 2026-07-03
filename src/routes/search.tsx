@@ -503,13 +503,17 @@ function SearchPage() {
     if (search.stock === "in") rows = rows.filter((p) => p.inStock);
     if (search.free === "1") rows = rows.filter((p) => shippingFeeOf(p) <= 0);
     if (search.disc === "1") rows = rows.filter((p) => discountPercent(priceOf(p), compareOf(p)) != null);
-    return applyClientSort(
+    const sorted = applyClientSort(
       rows,
       sort,
       (p) => discountPercent(priceOf(p), compareOf(p)) ?? 0,
       priceOf,
     );
-  }, [rawRows, isTrending, search.stock, search.free, search.disc, sort, shippingFeeOf, compareOf, priceOf]);
+    // Default browse ordering (relevance, no active text search) reshuffles
+    // every 2 hours via the rotation bucket so the catalog stays fresh.
+    const isDefaultBrowse = (sort === "relevance" || !sort) && !(search.q ?? "").trim();
+    return isDefaultBrowse ? seededShuffle(sorted, rotBucket) : sorted;
+  }, [rawRows, isTrending, search.stock, search.free, search.disc, search.q, sort, rotBucket, shippingFeeOf, compareOf, priceOf]);
 
 
 
