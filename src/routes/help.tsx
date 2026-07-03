@@ -1,10 +1,11 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Search, ChevronDown, Mail, MessageCircle, Phone, PhoneCall, Copy, Check,
-  Package, RotateCcw, CreditCard, Truck, UserRound, LifeBuoy, ArrowRight, X,
+  Search, ChevronDown, ChevronRight, Mail, MessageCircle, Phone, PhoneCall, Copy, Check,
+  Package, RotateCcw, CreditCard, Truck, UserRound, LifeBuoy, ArrowRight, X, AlertTriangle,
   BookOpen, FileText, ShieldCheck, Store, Users, ThumbsUp, ThumbsDown, Send, Loader2,
+  Lock, Wrench, Command, Clock, TrendingUp, Sparkles,
 } from "lucide-react";
 import { loadCrisp, openCrispChat } from "@/lib/crisp";
 import { toast } from "sonner";
@@ -45,19 +46,10 @@ function HelpRouteShell() {
 }
 
 // ------- Data -------
-type Category = "Orders" | "Shipping" | "Payments" | "Returns" | "Account" | "Sellers";
+type Category = "Orders" | "Shipping" | "Payments" | "Returns" | "Account" | "Security" | "Sellers" | "Technical";
 type FAQ = { q: string; a: string; cat: Category };
 
 const SUPPORT_EMAIL = "support@foundourmarket.com";
-
-const CATEGORIES: { key: Category; icon: any }[] = [
-  { key: "Orders", icon: Package },
-  { key: "Shipping", icon: Truck },
-  { key: "Payments", icon: CreditCard },
-  { key: "Returns", icon: RotateCcw },
-  { key: "Account", icon: UserRound },
-  { key: "Sellers", icon: Store },
-];
 
 const FAQS: FAQ[] = [
   { cat: "Orders", q: "Where is my order?", a: "Open Account → Orders for live tracking, or use Track Order above. We email you the moment your parcel ships and again on out-for-delivery." },
@@ -70,8 +62,21 @@ const FAQS: FAQ[] = [
   { cat: "Returns", q: "How do refunds work?", a: "Once we receive your return, refunds are issued to your original payment method within 5–10 business days. You'll get an email at each step." },
   { cat: "Account", q: "How do I reset my password?", a: "Go to Sign in → Forgot password and we'll email you a secure reset link. Links expire after 60 minutes for security." },
   { cat: "Account", q: "How do I update my profile?", a: "Open Account → Profile to edit your name, email, addresses and notification preferences at any time." },
+  { cat: "Security", q: "How do you protect my account?", a: "We use encrypted sessions, secure password hashing and optional email verification. Never share your password — our team will never ask for it." },
   { cat: "Sellers", q: "How do I contact a seller?", a: "Open the order and tap 'Message Seller'. Verified sellers reply within 24h on average." },
   { cat: "Sellers", q: "Does my product include a warranty?", a: "Most electronics carry a 12-month manufacturer warranty. Check the product page for exact coverage." },
+  { cat: "Technical", q: "The app isn't loading correctly — what can I do?", a: "Refresh the page, clear your cache, or try another browser. If the issue continues, report it below and we'll investigate quickly." },
+];
+
+const CATEGORY_META: { key: Category; icon: any }[] = [
+  { key: "Orders", icon: Package },
+  { key: "Payments", icon: CreditCard },
+  { key: "Shipping", icon: Truck },
+  { key: "Account", icon: UserRound },
+  { key: "Security", icon: Lock },
+  { key: "Sellers", icon: Store },
+  { key: "Returns", icon: RotateCcw },
+  { key: "Technical", icon: Wrench },
 ];
 
 const QUICK_ACTIONS = [
@@ -79,18 +84,21 @@ const QUICK_ACTIONS = [
   { icon: RotateCcw, label: "Returns & Refunds", desc: "Start or check a return", to: "/returns" },
   { icon: CreditCard, label: "Payments", desc: "Methods & receipts", to: "/account/payments" },
   { icon: Truck, label: "Shipping", desc: "Times & tracking", to: "/shipping-policy" },
-  { icon: UserRound, label: "Account", desc: "Profile & security", to: "/account" },
   { icon: LifeBuoy, label: "Contact Support", desc: "Chat, email or call", to: "#contact" },
+  { icon: AlertTriangle, label: "Report an Issue", desc: "Something went wrong", to: "#contact" },
 ] as const;
 
 const RESOURCES = [
   { icon: BookOpen, label: "User Guide", to: "/about" },
   { icon: Truck, label: "Shipping Policy", to: "/shipping-policy" },
-  { icon: FileText, label: "Refund Policy", to: "/return-policy" },
-  { icon: Store, label: "Seller Guide", to: "/help/seller-assistance" },
-  { icon: Users, label: "Community", to: "/blog" },
-  { icon: ShieldCheck, label: "Buyer Protection", to: "/buyer-protection" },
+  { icon: FileText, label: "Returns Policy", to: "/return-policy" },
+  { icon: ShieldCheck, label: "Privacy Policy", to: "/privacy" },
+  { icon: FileText, label: "Terms", to: "/terms" },
+  { icon: Store, label: "Seller Center", to: "/help/seller-assistance" },
 ] as const;
+
+const TRENDING = ["Track order", "Refund status", "Change address", "Payment failed", "Reset password"];
+const RECENT_KEY = "foundour_help_recent";
 
 // ------- Helpers -------
 function highlight(text: string, query: string) {
@@ -107,34 +115,57 @@ function highlight(text: string, query: string) {
   );
 }
 
-// ------- Hero -------
+function scrollToId(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ------- Sticky search hero -------
 function Hero({ query, setQuery }: { query: string; setQuery: (v: string) => void }) {
   const [focus, setFocus] = useState(false);
-  const stats = [
-    { value: `${FAQS.length}+`, label: "FAQs" },
-    { value: "< 2 min", label: "Response Time" },
-    { value: "24/7", label: "Support" },
-  ];
-  const scrollToFaqs = () => document.getElementById("faqs")?.scrollIntoView({ behavior: "smooth" });
+  const [recent, setRecent] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(RECENT_KEY);
+      if (raw) setRecent(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  const commit = useCallback((term: string) => {
+    const t = term.trim();
+    if (!t) return;
+    setQuery(t);
+    setRecent((cur) => {
+      const next = [t, ...cur.filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, 5);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+    scrollToId("faqs");
+  }, [setQuery]);
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return FAQS.filter((f) => f.q.toLowerCase().includes(q)).slice(0, 5);
+  }, [query]);
+
+  const showPanel = focus && (query.trim() ? suggestions.length > 0 : recent.length > 0 || TRENDING.length > 0);
 
   return (
-    <section className="relative text-center pt-4">
+    <section className="relative text-center pt-2">
       <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 size-[520px] rounded-full blur-3xl opacity-30"
         style={{ background: "radial-gradient(closest-side, rgba(255,122,0,0.35), transparent 70%)" }} />
       <div className="relative">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04]">
-          <LifeBuoy className="size-3.5 text-orange-300" />
-          <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/70">Help Center</span>
-        </div>
-        <h1 className="mt-5 text-fluid-3xl font-display font-semibold tracking-tight">
-          How can we <span className="bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">help you</span> today?
+        <h1 className="text-fluid-3xl font-display font-semibold tracking-tight">
+          How can we <span className="bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">help you?</span>
         </h1>
         <p className="mt-3 text-sm sm:text-base text-white/55 max-w-md mx-auto">
-          Search our knowledge base or browse popular topics below.
+          Search our knowledge base or pick a topic below.
         </p>
 
-        <div className="mt-6 max-w-xl mx-auto">
-          <div className={`relative rounded-2xl border bg-white/[0.04] backdrop-blur-xl transition-all ${
+        {/* Sticky search */}
+        <div className="sticky top-[calc(var(--app-header-h,0px)+0.5rem)] z-20 mt-6 max-w-xl mx-auto">
+          <div className={`relative rounded-2xl border bg-[#0a0f24]/85 backdrop-blur-xl transition-all ${
             focus ? "border-orange-400/60 shadow-[0_0_0_4px_rgba(255,122,0,0.12)]" : "border-white/10"
           }`}>
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-orange-300" />
@@ -142,22 +173,58 @@ function Hero({ query, setQuery }: { query: string; setQuery: (v: string) => voi
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => setFocus(true)}
-              onBlur={() => setFocus(false)}
-              onKeyDown={(e) => { if (e.key === "Enter") scrollToFaqs(); }}
+              onBlur={() => setTimeout(() => setFocus(false), 150)}
+              onKeyDown={(e) => { if (e.key === "Enter") commit(query); }}
               aria-label="Search help topics"
               placeholder="Search for answers…"
-              className="w-full h-14 pl-12 pr-4 bg-transparent text-sm sm:text-base placeholder:text-white/40 focus:outline-none"
+              className="w-full h-14 pl-12 pr-24 bg-transparent text-sm sm:text-base placeholder:text-white/40 focus:outline-none"
             />
-          </div>
-        </div>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] text-white/40">
+              <Command className="size-3" /> K
+            </span>
 
-        <div className="mt-6 flex items-center justify-center gap-6 sm:gap-10">
-          {stats.map((s) => (
-            <div key={s.label} className="text-center">
-              <p className="font-display font-semibold text-lg sm:text-xl text-white">{s.value}</p>
-              <p className="text-[10px] uppercase tracking-widest text-white/40 mt-0.5">{s.label}</p>
-            </div>
-          ))}
+            <AnimatePresence>
+              {showPanel && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 right-0 top-[calc(100%+0.5rem)] rounded-2xl border border-white/10 bg-[#0a0f24]/95 backdrop-blur-xl p-2 text-left shadow-2xl">
+                  {query.trim() ? (
+                    suggestions.map((s) => (
+                      <button key={s.q} onMouseDown={(e) => e.preventDefault()} onClick={() => commit(s.q)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.06] transition text-sm">
+                        <Search className="size-4 text-white/40 shrink-0" />
+                        <span className="flex-1 truncate">{highlight(s.q, query)}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <>
+                      {recent.length > 0 && (
+                        <div className="px-2 pt-1 pb-2">
+                          <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/35 mb-1.5"><Clock className="size-3" /> Recent</p>
+                          <div className="flex flex-wrap gap-2">
+                            {recent.map((r) => (
+                              <button key={r} onMouseDown={(e) => e.preventDefault()} onClick={() => commit(r)}
+                                className="px-3 py-1.5 rounded-full text-xs bg-white/[0.05] border border-white/10 text-white/70 hover:bg-white/[0.09] transition">{r}</button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="px-2 pt-1 pb-1">
+                        <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/35 mb-1.5"><TrendingUp className="size-3" /> Trending</p>
+                        <div className="flex flex-wrap gap-2">
+                          {TRENDING.map((t) => (
+                            <button key={t} onMouseDown={(e) => e.preventDefault()} onClick={() => commit(t)}
+                              className="px-3 py-1.5 rounded-full text-xs bg-orange-500/10 border border-orange-400/15 text-orange-200 hover:bg-orange-500/20 transition">{t}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </section>
@@ -178,15 +245,15 @@ function SectionHeader({ title, sub }: { title: string; sub?: string }) {
 function QuickActions() {
   const nav = useNavigate();
   const go = (to: string) => {
-    if (to === "#contact") { document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" }); return; }
+    if (to.startsWith("#")) { scrollToId(to.slice(1)); return; }
     nav({ to });
   };
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
       {QUICK_ACTIONS.map((a) => (
-        <button key={a.label} onClick={() => go(a.to)}
-          className="group card-tile h-full text-left flex flex-col gap-3 min-h-[7rem]">
-          <span className="size-11 rounded-xl grid place-items-center bg-orange-500/10 border border-orange-400/15 text-orange-300 shrink-0">
+        <button key={a.label} onClick={() => go(a.to)} aria-label={a.label}
+          className="group card-tile h-full text-left flex flex-col gap-3 min-h-[7.5rem] active:scale-[0.98] transition-transform">
+          <span className="size-11 rounded-xl grid place-items-center bg-orange-500/10 border border-orange-400/15 text-orange-300 shrink-0 group-hover:scale-105 transition-transform">
             <a.icon className="size-5" />
           </span>
           <div className="mt-auto">
@@ -199,11 +266,34 @@ function QuickActions() {
   );
 }
 
+// ------- Categories -------
+function Categories({ onPick }: { onPick: (c: Category) => void }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {CATEGORY_META.map((c) => {
+        const count = FAQS.filter((f) => f.cat === c.key).length;
+        return (
+          <button key={c.key} onClick={() => onPick(c.key)} aria-label={`${c.key} — ${count} articles`}
+            className="group card-tile flex items-center gap-3 active:scale-[0.98] transition-transform">
+            <span className="size-10 rounded-xl grid place-items-center bg-orange-500/10 border border-orange-400/15 text-orange-300 shrink-0">
+              <c.icon className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1 text-left">
+              <p className="text-sm font-medium leading-tight truncate">{c.key}</p>
+              <p className="text-[11px] text-white/40 mt-0.5">{count} {count === 1 ? "article" : "articles"}</p>
+            </div>
+            <ChevronRight className="size-4 text-white/25 group-hover:text-white/60 group-hover:translate-x-0.5 transition shrink-0" />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ------- FAQ -------
-function FaqSection({ query, setQuery }: { query: string; setQuery: (v: string) => void }) {
-  const [cat, setCat] = useState<Category | "All">("All");
+function FaqSection({ query, cat, setCat }: { query: string; cat: Category | "All"; setCat: (c: Category | "All") => void }) {
   const [open, setOpen] = useState<string | null>(null);
-  const [expandAll, setExpandAll] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const reduce = useReducedMotion();
 
   const filtered = useMemo(() => {
@@ -213,47 +303,23 @@ function FaqSection({ query, setQuery }: { query: string; setQuery: (v: string) 
     return list;
   }, [cat, query]);
 
-  const toggle = useCallback((q: string) => {
-    setExpandAll(false);
-    setOpen((cur) => (cur === q ? null : q));
-  }, []);
+  const searching = query.trim().length > 0 || cat !== "All";
+  const visible = searching || showAll ? filtered : filtered.slice(0, 5);
+  const toggle = useCallback((q: string) => setOpen((cur) => (cur === q ? null : q)), []);
 
   return (
     <div id="faqs">
-      <div className="flex items-end justify-between gap-3 mb-4">
-        <div>
-          <h2 className="font-display font-semibold text-lg sm:text-xl">Frequently asked questions</h2>
-          <p className="text-xs text-white/45 mt-0.5">{filtered.length} {filtered.length === 1 ? "answer" : "answers"}</p>
-        </div>
-        <button onClick={() => { setExpandAll((v) => !v); setOpen(null); }}
-          className="text-xs text-white/60 hover:text-white transition shrink-0">
-          {expandAll ? "Collapse all" : "Expand all"}
+      <SectionHeader title="Popular questions" sub={searching ? `${filtered.length} ${filtered.length === 1 ? "answer" : "answers"}` : "The 5 most common questions"} />
+
+      {cat !== "All" && (
+        <button onClick={() => setCat("All")} className="mb-3 inline-flex items-center gap-1.5 text-xs text-orange-300 hover:text-orange-200 transition">
+          <X className="size-3.5" /> Clear “{cat}” filter
         </button>
-      </div>
+      )}
 
-      {/* sticky category chips */}
-      <div className="sticky top-[calc(var(--app-header-h,0px)+0.5rem)] z-10 -mx-4 px-4 py-2 overflow-x-auto scrollbar-hide bg-[#050816]/80 backdrop-blur-md">
-        <div className="flex gap-2 min-w-max">
-          {(["All", ...CATEGORIES.map((c) => c.key)] as (Category | "All")[]).map((k) => {
-            const active = cat === k;
-            return (
-              <button key={k} onClick={() => setCat(k)}
-                aria-pressed={active}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition ${
-                  active
-                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent"
-                    : "bg-white/[0.03] text-white/65 border-white/10 hover:bg-white/[0.07]"
-                }`}>
-                {k}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden divide-y divide-white/5">
-        {filtered.map((f) => {
-          const isOpen = expandAll || open === f.q;
+      <div className="rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden divide-y divide-white/5">
+        {visible.map((f) => {
+          const isOpen = open === f.q;
           return (
             <div key={`${f.cat}-${f.q}`}>
               <button onClick={() => toggle(f.q)} aria-expanded={isOpen}
@@ -282,6 +348,13 @@ function FaqSection({ query, setQuery }: { query: string; setQuery: (v: string) 
           </p>
         )}
       </div>
+
+      {!searching && filtered.length > 5 && (
+        <button onClick={() => setShowAll((v) => !v)}
+          className="mt-3 w-full h-11 rounded-2xl grid place-items-center border border-white/10 bg-white/[0.03] text-sm text-white/70 hover:bg-white/[0.06] transition">
+          {showAll ? "Show less" : `View all ${filtered.length} FAQs`}
+        </button>
+      )}
     </div>
   );
 }
@@ -307,11 +380,14 @@ function ContactSupport() {
   const openWhatsApp = (num: string) => window.open(`https://wa.me/${num.replace(/[^0-9]/g, "")}`, "_blank", "noopener,noreferrer");
 
   const channels = [
-    { icon: MessageCircle, label: "Live Chat", desc: online ? `Online · ~${minutes} min` : "Leave a message", onClick: openLiveChat },
-    { icon: Mail, label: "Email", desc: SUPPORT_EMAIL, onClick: () => { window.location.href = `mailto:${SUPPORT_EMAIL}`; } },
-    { icon: Phone, label: "WhatsApp", desc: "Replies in 5–30 min", onClick: () => (settings.whatsappNumbers.length ? setWaOpen(true) : toast.info("WhatsApp support coming soon")) },
-    { icon: PhoneCall, label: "Call Back", desc: "Request a callback", onClick: () => nav({ to: "/contact" }) },
+    { icon: MessageCircle, label: "Live Chat", resp: online ? `~${minutes} min` : "Leave a message", avail: "24/7", status: online ? "online" : "away", onClick: openLiveChat },
+    { icon: Phone, label: "WhatsApp", resp: "5–30 min", avail: "9am–9pm", status: settings.whatsappNumbers.length ? "online" : "soon", onClick: () => (settings.whatsappNumbers.length ? setWaOpen(true) : toast.info("WhatsApp support coming soon")) },
+    { icon: Mail, label: "Email", resp: "Under 24h", avail: SUPPORT_EMAIL, status: "always", onClick: () => { window.location.href = `mailto:${SUPPORT_EMAIL}`; } },
+    { icon: PhoneCall, label: "Request Callback", resp: "Same day", avail: "Business hrs", status: "always", onClick: () => nav({ to: "/contact" }) },
   ];
+
+  const statusDot = (s: string) => (s === "online" ? "#22c55e" : s === "away" ? "#f59e0b" : s === "soon" ? "#64748b" : "#38bdf8");
+  const statusLabel = (s: string) => (s === "online" ? "Online" : s === "away" ? "Away" : s === "soon" ? "Soon" : "Always on");
 
   return (
     <div id="contact" className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
@@ -324,16 +400,22 @@ function ContactSupport() {
       </div>
       <p className="text-xs text-white/45 mt-1">{online ? "All channels online now" : "High volume — replies may take a little longer"}</p>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
         {channels.map((c) => (
-          <button key={c.label} onClick={c.onClick}
-            className="group card-tile text-left flex items-center gap-3">
+          <button key={c.label} onClick={c.onClick} aria-label={c.label}
+            className="group card-tile text-left flex items-center gap-3 active:scale-[0.99] transition-transform">
             <span className="size-10 rounded-xl grid place-items-center bg-orange-500/10 border border-orange-400/15 text-orange-300 shrink-0">
               <c.icon className="size-5" />
             </span>
-            <div className="min-w-0">
-              <p className="text-sm font-medium leading-tight">{c.label}</p>
-              <p className="text-[11px] text-white/45 truncate">{c.desc}</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium leading-tight">{c.label}</p>
+                <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-wide text-white/45">
+                  <span className="size-1.5 rounded-full" style={{ background: statusDot(c.status) }} />
+                  {statusLabel(c.status)}
+                </span>
+              </div>
+              <p className="text-[11px] text-white/45 truncate mt-0.5">{c.resp} · {c.avail}</p>
             </div>
           </button>
         ))}
@@ -390,7 +472,7 @@ function Resources() {
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
       {RESOURCES.map((r) => (
         <Link key={r.label} to={r.to}
-          className="group card-tile flex items-center gap-3">
+          className="group card-tile flex items-center gap-3 active:scale-[0.98] transition-transform">
           <span className="size-9 rounded-lg grid place-items-center bg-white/[0.04] border border-white/10 text-orange-300 shrink-0">
             <r.icon className="size-4" />
           </span>
@@ -398,6 +480,36 @@ function Resources() {
           <ArrowRight className="size-3.5 text-white/30 group-hover:text-white group-hover:translate-x-0.5 transition" />
         </Link>
       ))}
+    </div>
+  );
+}
+
+// ------- Still need help CTA -------
+function StillNeedHelp() {
+  const openLiveChat = () => {
+    loadCrisp().then(() => openCrispChat()).catch(() => toast.error("Live chat is loading — try again in a moment"));
+  };
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 text-center">
+      <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 size-[360px] rounded-full blur-3xl opacity-25"
+        style={{ background: "radial-gradient(closest-side, rgba(255,122,0,0.4), transparent 70%)" }} />
+      <div className="relative">
+        <span className="inline-flex size-12 rounded-2xl items-center justify-center bg-orange-500/10 border border-orange-400/15 text-orange-300 mx-auto">
+          <Sparkles className="size-6" />
+        </span>
+        <h2 className="mt-4 font-display font-semibold text-xl sm:text-2xl">Still need help?</h2>
+        <p className="mt-2 text-sm text-white/55 max-w-sm mx-auto">Our team is here around the clock. Reach out and we'll get you sorted.</p>
+        <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button onClick={openLiveChat}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold active:scale-[0.98] transition-transform">
+            <MessageCircle className="size-4" /> Start Live Chat
+          </button>
+          <a href={`mailto:${SUPPORT_EMAIL}`}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-2xl border border-white/10 bg-white/[0.04] text-sm font-semibold hover:bg-white/[0.07] transition">
+            <Mail className="size-4" /> Send Email
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
@@ -485,10 +597,17 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 // ------- Page -------
 function HelpPage() {
   const [query, setQuery] = useState("");
+  const [cat, setCat] = useState<Category | "All">("All");
+
+  const pickCategory = useCallback((c: Category) => {
+    setCat(c);
+    setQuery("");
+    scrollToId("faqs");
+  }, []);
 
   return (
-    <div className="relative min-h-screen text-white" style={{ backgroundColor: "#050816" }}>
-      <div className="relative container-page py-8 sm:py-12 max-w-3xl space-y-12 sm:space-y-16">
+    <main className="relative min-h-screen text-white" style={{ backgroundColor: "#050816" }}>
+      <div className="relative container-page py-8 sm:py-12 max-w-3xl space-y-8 sm:space-y-10">
         <Hero query={query} setQuery={setQuery} />
 
         <Reveal>
@@ -497,23 +616,12 @@ function HelpPage() {
         </Reveal>
 
         <Reveal>
-          <SectionHeader title="Popular topics" sub="Browse answers by category" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {CATEGORIES.map((c) => (
-              <button key={c.key}
-                onClick={() => { setQuery(""); document.getElementById("faqs")?.scrollIntoView({ behavior: "smooth" }); }}
-                className="group card-tile flex items-center gap-3">
-                <span className="size-9 rounded-lg grid place-items-center bg-orange-500/10 border border-orange-400/15 text-orange-300 shrink-0">
-                  <c.icon className="size-4" />
-                </span>
-                <span className="text-sm font-medium flex-1 text-left">{c.key}</span>
-              </button>
-            ))}
-          </div>
+          <SectionHeader title="Popular categories" sub="Browse answers by topic" />
+          <Categories onPick={pickCategory} />
         </Reveal>
 
         <Reveal>
-          <FaqSection query={query} setQuery={setQuery} />
+          <FaqSection query={query} cat={cat} setCat={setCat} />
         </Reveal>
 
         <Reveal>
@@ -521,8 +629,12 @@ function HelpPage() {
         </Reveal>
 
         <Reveal>
-          <SectionHeader title="Help resources" sub="Guides & policies" />
+          <SectionHeader title="Resources" sub="Guides & policies" />
           <Resources />
+        </Reveal>
+
+        <Reveal>
+          <StillNeedHelp />
         </Reveal>
 
         <Reveal>
@@ -530,18 +642,11 @@ function HelpPage() {
         </Reveal>
 
         <footer className="pt-2 border-t border-white/5">
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-white/50">
-            <Link to="/shipping-policy" className="hover:text-white transition">Shipping</Link>
-            <Link to="/return-policy" className="hover:text-white transition">Returns</Link>
-            <Link to="/buyer-protection" className="hover:text-white transition">Buyer Protection</Link>
-            <Link to="/track" className="hover:text-white transition">Track Order</Link>
-            <Link to="/contact" className="hover:text-white transition">Contact</Link>
-          </div>
-          <p className="mt-4 text-center text-[10px] font-mono uppercase tracking-[0.3em] text-white/25">
+          <p className="text-center text-[10px] font-mono uppercase tracking-[0.3em] text-white/25">
             FoundOurMarket™ · Support, 24/7
           </p>
         </footer>
       </div>
-    </div>
+    </main>
   );
 }
