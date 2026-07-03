@@ -537,6 +537,7 @@ function OverviewCard({
   const t = TONES[tone];
   const inner = (
     <motion.div
+      data-uniform-card
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.95 }}
       transition={{ duration: 0.25, ease }}
@@ -549,12 +550,14 @@ function OverviewCard({
         className="pointer-events-none absolute inset-0 rounded-[20px] opacity-90"
         style={{ background: t.tint }}
       />
-      {/* Soft tinted corner glow (blurred; hidden on constrained GPUs) */}
+      {/* Soft tinted corner glow (blurred) — one uniform design in every env */}
       <div
         aria-hidden
+        data-uniform-glow
         className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"
         style={{ background: t.glow }}
       />
+
       {/* Icon badge (circular, top-left) */}
       <span className={`relative flex size-10 items-center justify-center rounded-full transition-transform group-hover:scale-105 ${t.icon}`}>
         <Icon className="size-5" strokeWidth={2} />
