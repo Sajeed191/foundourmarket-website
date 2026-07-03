@@ -137,18 +137,30 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Premium dual-handle price slider: gradient track + live value bubbles. */
+/** Premium dual-handle price slider: gradient track, live value bubbles above
+ *  each handle, and snapping to fixed price bands. */
 function PriceRangeSlider({
   max,
   value,
   onValueChange,
   fmt,
+  snapPoints,
 }: {
   max: number;
   value: [number, number];
   onValueChange: (v: number[]) => void;
   fmt: (usd: number) => string;
+  /** Sorted list of USD values the handles snap to (band edges). */
+  snapPoints: number[];
 }) {
+  const snap = (n: number) =>
+    snapPoints.reduce((best, p) => (Math.abs(p - n) < Math.abs(best - n) ? p : best), snapPoints[0]);
+  const handleChange = (v: number[]) => {
+    let lo = snap(v[0]);
+    let hi = snap(v[1]);
+    if (lo > hi) [lo, hi] = [hi, lo];
+    onValueChange([lo, hi]);
+  };
   return (
     <div className="pt-9 pb-1 px-1">
       <SliderPrimitive.Root
@@ -156,7 +168,7 @@ function PriceRangeSlider({
         max={max}
         step={10}
         value={value}
-        onValueChange={onValueChange}
+        onValueChange={handleChange}
         className="relative flex w-full touch-none select-none items-center"
       >
         <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-white/10">
@@ -173,6 +185,12 @@ function PriceRangeSlider({
           </SliderPrimitive.Thumb>
         ))}
       </SliderPrimitive.Root>
+      {/* Band tick labels under the track */}
+      <div className="mt-3 flex justify-between text-[10px] font-medium tabular-nums text-muted-foreground">
+        {snapPoints.map((p, i) => (
+          <span key={p}>{fmt(p)}{i === snapPoints.length - 1 ? "+" : ""}</span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -202,15 +220,9 @@ function FilterPanel({
   const set = (patch: Partial<Filters>) => onChange({ ...value, ...patch });
   const priceRange: [number, number] = [value.min ?? 0, value.max ?? PRICE_MAX];
 
-  // Quick price presets (in base USD). Displayed values are localised via fmt.
-  const pricePresets: { label: string; min?: number; max?: number }[] = [
-    { label: `Under ${fmt(50)}`, min: undefined, max: 50 },
-    { label: `${fmt(50)}–${fmt(200)}`, min: 50, max: 200 },
-    { label: `${fmt(200)}–${fmt(500)}`, min: 200, max: 500 },
-    { label: `${fmt(500)}+`, min: 500, max: undefined },
-  ];
-  const isPresetActive = (p: { min?: number; max?: number }) =>
-    (value.min ?? undefined) === p.min && (value.max ?? undefined) === p.max;
+  // Price band edges the slider handles snap to (in base USD). At the India
+  // rate (~83) these map to ₹0 · ₹4k · ₹16k · ₹41k · ₹41k+.
+  const PRICE_SNAP = [0, 50, 200, 500, PRICE_MAX];
 
   const toggles: { key: "stock" | "free" | "disc"; on: string; label: string; desc: string }[] = [
     { key: "stock", on: "in", label: "In stock only", desc: "Hide sold-out items" },
@@ -242,7 +254,7 @@ function FilterPanel({
         </div>
       </div>
 
-      {/* Price range slider + presets */}
+      {/* Price range slider */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <SectionLabel>Price</SectionLabel>
@@ -253,20 +265,10 @@ function FilterPanel({
         <PriceRangeSlider
           max={PRICE_MAX}
           value={priceRange}
+          snapPoints={PRICE_SNAP}
           onValueChange={(v) => set({ min: v[0] > 0 ? v[0] : undefined, max: v[1] < PRICE_MAX ? v[1] : undefined })}
           fmt={fmt}
         />
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {pricePresets.map((p) => (
-            <button
-              key={p.label}
-              onClick={() => set(isPresetActive(p) ? { min: undefined, max: undefined } : { min: p.min, max: p.max })}
-              className={`rounded-xl px-3 py-2.5 text-xs font-medium transition-all active:scale-95 ${isPresetActive(p) ? "bg-accent/15 text-accent ring-1 ring-accent/40" : "bg-white/[0.04] text-muted-foreground ring-1 ring-white/10 hover:text-foreground hover:bg-white/[0.07]"}`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Rating filter — segmented cards */}
