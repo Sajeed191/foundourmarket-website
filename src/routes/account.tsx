@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { openCrispChat } from "@/lib/crisp";
+import { openCrispChat, loadCrisp } from "@/lib/crisp";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { motion, useMotionValue, useTransform, animate, useScroll, AnimatePresence, useMotionValueEvent } from "framer-motion";
 import {
@@ -8,7 +8,11 @@ import {
   HelpCircle, LifeBuoy, MessageCircle, TrendingUp, ArrowRight, Star,
   Search, Zap, Gift, Tag, Flame, Truck, Lock, Globe, Crown,
   CheckCircle2, Box, Home, X, Plus, Minus, CreditCard, UserCog,
+  Mail, Phone, PhoneCall, Smartphone, Copy, Check, ArrowLeftRight, ShieldCheck,
 } from "lucide-react";
+import { useSupportSettings, resolveSupportStatus } from "@/lib/use-support-settings";
+import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRegion } from "@/lib/region";
