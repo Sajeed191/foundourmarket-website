@@ -844,6 +844,7 @@ function AccountUtilities({ user, avatarUrl, firstName, signOut }: { user: any; 
   const { online, minutes } = resolveSupportStatus(settings);
   const hasWhatsApp = settings.whatsappNumbers.length > 0;
 
+  const [supportOpen, setSupportOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
