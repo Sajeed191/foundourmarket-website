@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme, THEME_OPTIONS, type ThemePreference } from "@/lib/theme";
 import type { Category } from "@/lib/use-categories";
+import { BrandName } from "@/components/site/BrandName";
 
 const THEME_ICONS: Record<ThemePreference, React.ComponentType<{ className?: string }>> = {
   system: Monitor,
