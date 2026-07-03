@@ -2751,3 +2751,31 @@ body.hide-bottom-nav [data-app-header] {
   pointer-events: none !important;
   visibility: hidden !important;
 }
+
+/* ============================================================
+   Account Overview cards — ONE uniform, environment-independent design.
+   ------------------------------------------------------------
+   Root cause of Preview vs Production divergence: the runtime device
+   governors (`data-degrade-effects` from the live FPS/long-task governor,
+   and `data-gpu-unsafe` from the boot GPU gate) toggle <html> attributes at
+   runtime and the global kill-switch rules above strip these cards' hover
+   glow shadow and blurred corner glow. In Lovable Preview (fast desktop,
+   high FPS, no weak-GPU match) those attributes never turn on, so the cards
+   render full-effect. On a real phone (e.g. Vivo Z10R: weak-GPU match or
+   sub-45fps) the attributes flip on and the SAME code + SAME CSS bundle
+   renders flatter cards — a runtime-attribute difference, not a build/purge
+   difference. These overrides make the Overview cards immune to every device
+   heuristic so they scale responsively but look pixel-identical everywhere. */
+html[data-degrade-effects="true"] [data-uniform-card],
+html[data-gpu-unsafe="true"] [data-uniform-card] {
+  box-shadow: none !important;
+}
+html[data-degrade-effects="true"] [data-uniform-card]:hover,
+html[data-gpu-unsafe="true"] [data-uniform-card]:hover {
+  box-shadow: var(--tone-hover) !important;
+}
+html[data-degrade-effects="true"] [data-uniform-card] [data-uniform-glow],
+html[data-gpu-unsafe="true"] [data-uniform-card] [data-uniform-glow] {
+  display: block !important;
+  filter: blur(64px) !important;
+}
