@@ -372,6 +372,22 @@ function ProductPage() {
     add(product.slug, qty);
     toast.success(`${product.name} added to cart`);
   };
+  // Buy Now is fully independent from Add to Cart. Add to Cart ACCUMULATES
+  // (line += qty); Buy Now SETS the line to EXACTLY the selected qty so it is
+  // idempotent — clicking it repeatedly (or after Back navigation) never
+  // increments a stale persisted quantity. A short ref lock swallows rapid
+  // double-taps that would otherwise fire two writes before navigation.
+  const buyNowLock = useRef(false);
+  const handleBuyNow = () => {
+    if (isOOS || buyNowLock.current) return;
+    buyNowLock.current = true;
+    window.setTimeout(() => {
+      buyNowLock.current = false;
+    }, 700);
+    const inCart = items.some((i) => i.slug === product.slug);
+    if (inCart) setCartQty(product.slug, qty);
+    else add(product.slug, qty);
+  };
   const handleShare = () => {
     if (typeof window === "undefined") return;
     openShare({ title: product.name, text: product.tagline, url: window.location.href, image: product.image });
