@@ -1,11 +1,11 @@
 import { useRef, useMemo } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, X, Zap } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
 import { Price } from "@/components/site/Price";
-import { useCart } from "@/lib/cart";
+import { useBuyNow } from "@/lib/use-buy-now";
 import type { Product } from "@/lib/products";
 
 type Props = {
