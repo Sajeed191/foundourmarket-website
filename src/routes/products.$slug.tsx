@@ -749,7 +749,7 @@ function ProductPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{unitShipping <= 0 ? "Free delivery" : `Shipping ${format(unitShipping)}`}</p>
-                  <p className="text-xs text-muted-foreground">Arrives <span className="text-foreground">{deliveryWindow}</span> · 5–10 business days</p>
+                  <p className="text-xs text-muted-foreground">{deliveryWindow ? <>Arrives <span className="text-foreground">{deliveryWindow}</span> · 5–10 business days</> : "Arrives in 5–10 business days"}</p>
                 </div>
                 <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
               </div>
