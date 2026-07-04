@@ -654,20 +654,7 @@ function ProductPage() {
               </Suspense>
             )}
 
-            {/* Trust indicators */}
-            <div className="grid grid-cols-2 xs:grid-cols-4 gap-2 mb-5">
-              {[
-                { icon: Shield, label: "Secure Checkout" },
-                { icon: Truck, label: "Global Shipping" },
-                { icon: RotateCcw, label: product.returnEligible ? `${product.returnWindowDays}-Day Returns` : "No Returns" },
-                { icon: BadgeCheck, label: "Trusted Seller" },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-wider text-muted-foreground/80">
-                  <Icon className="size-3 text-accent shrink-0" />
-                  <span className="truncate">{label}</span>
-                </div>
-              ))}
-            </div>
+
 
             <div className="flex flex-wrap items-center gap-2 mb-5 text-[10px] font-mono uppercase tracking-widest">
 
