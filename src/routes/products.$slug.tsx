@@ -542,7 +542,8 @@ function ProductPage() {
                     key={item.id}
                     onClick={() => setActiveImg(i)}
                     aria-label={item.id === "video" ? "Play video" : `View image ${i + 1}`}
-                    className={`relative aspect-square rounded-xl overflow-hidden border transition-all bg-card ${i === activeImg ? "border-accent/70 ring-2 ring-accent/40 shadow-[0_6px_20px_-6px_oklch(0.74_0.19_49/0.55)]" : "border-white/10 opacity-55 hover:opacity-100 hover:border-accent/40"}`}
+                    aria-current={i === activeImg}
+                    className={`relative aspect-square rounded-xl overflow-hidden border transition-all active:scale-95 bg-card ${i === activeImg ? "border-accent/70 ring-2 ring-accent/40 shadow-[0_6px_20px_-6px_oklch(0.74_0.19_49/0.55)]" : "border-white/10 opacity-55 hover:opacity-100 hover:border-accent/40"}`}
                   >
                     {item.id === "video" ? (
                       <div className="w-full h-full bg-black grid place-items-center">
@@ -685,10 +686,12 @@ function ProductPage() {
                         key={v.id}
                         onClick={() => !oos && setVariantId(v.id)}
                         disabled={oos}
-                        className={`px-4 py-2 rounded-full text-xs border transition-colors ${sel ? "border-accent text-accent bg-accent/10" : "border-border hover:border-accent/50"} disabled:opacity-40 disabled:cursor-not-allowed disabled:line-through`}
+                        aria-pressed={sel}
+                        className={`min-h-11 px-4 py-2.5 rounded-full text-xs border transition-all active:scale-95 ${sel ? "border-accent text-accent bg-accent/10 shadow-[var(--shadow-ember)]" : "border-border hover:border-accent/50"} disabled:opacity-40 disabled:cursor-not-allowed disabled:line-through`}
                       >
                         {v.name}
                       </button>
+
                     );
                   })}
                 </div>
