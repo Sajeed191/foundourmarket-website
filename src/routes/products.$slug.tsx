@@ -815,25 +815,6 @@ function ProductPage() {
 
 
 
-
-
-
-            <Accordion title="Shipping & returns" icon={Truck}>
-              <ul className="text-sm text-muted-foreground space-y-2 leading-relaxed">
-                <li>• {unitShipping <= 0 ? "Free standard shipping on this product." : `Shipping for this product: ${format(unitShipping)} per unit.`}</li>
-                <li>• Standard delivery takes 5–10 business days.</li>
-                {product.returnEligible ? (
-                  <li>• Returns &amp; refunds accepted within {product.returnWindowDays} days of delivery — check <Link to="/returns" className="text-accent underline">return eligibility</Link>.</li>
-                ) : (
-                  <li>• This product is not eligible for returns or refunds.</li>
-                )}
-                {product.returnEligible && product.replacementEligible && (
-                  <li>• Eligible for replacement within {product.returnWindowDays} days of delivery.</li>
-                )}
-              </ul>
-            </Accordion>
-
-
             <Accordion title="FAQ" icon={Sparkles}>
               <ProductFaqList slug={product.slug} />
             </Accordion>
