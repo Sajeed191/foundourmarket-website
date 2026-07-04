@@ -719,8 +719,7 @@ function ProductPage() {
             </div>
 
             {product.features?.length > 0 && (
-              <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4">
-                <h2 className="mb-3 text-sm font-semibold">Key Features</h2>
+              <ProductInfoPanel title="Key Features" icon={Sparkles}>
                 <ul className="space-y-2">
                   {product.features.map((feat: string, i: number) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -729,12 +728,11 @@ function ProductPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </ProductInfoPanel>
             )}
 
             {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4">
-                <h2 className="mb-3 text-sm font-semibold">Specifications</h2>
+              <ProductInfoPanel title="Specifications" icon={Layers}>
                 <dl className="divide-y divide-border/60">
                   {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
                     <div key={k} className="flex gap-4 py-2 text-sm">
@@ -743,12 +741,11 @@ function ProductPage() {
                     </div>
                   ))}
                 </dl>
-              </div>
+              </ProductInfoPanel>
             )}
 
             {product.attributes && Object.keys(product.attributes).length > 0 && (
-              <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4">
-                <h2 className="mb-3 text-sm font-semibold">Details</h2>
+              <ProductInfoPanel title="Details" icon={Info}>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(product.attributes as Record<string, string>).map(([k, v]) => (
                     <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 px-3 py-1 text-xs">
@@ -757,8 +754,9 @@ function ProductPage() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </ProductInfoPanel>
             )}
+
 
 
             {/* Delivery */}
