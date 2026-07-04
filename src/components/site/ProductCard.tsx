@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
-import { Heart, Plus, Check, Star, Minus, Eye } from "lucide-react";
+import { Heart, Plus, Check, Star, Minus, Eye, Zap } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { type BadgeKey } from "@/lib/badges";
 import { useVisibleBadges, useBadgeEngine, type BadgeContext } from "@/lib/badge-visibility";
