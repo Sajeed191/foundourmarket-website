@@ -159,6 +159,43 @@
   --shadow-soft: 0 6px 20px -10px oklch(0 0 0 / 0.55);
 }
 
+/* ---------------------------------------------------------------
+   PRODUCT DETAILS PAGE — user-selected exact palette
+   Scoped to [data-product-page] only, so the rest of the site keeps
+   its global tokens. The PDP already consumes these semantic tokens
+   (bg-card, text-foreground, text-muted-foreground, bg-accent, etc.),
+   so retinting the tokens here restyles the whole page — improving
+   surface contrast and text hierarchy — without touching any markup,
+   animation, feature, or the orange brand identity.
+     Background      #05070D
+     Surface / Card  #0F172A
+     Primary CTA     #FF8A1F  (orange brand)
+     Accent / Gold   #FFC857  (highlights)
+     Text primary    #FFFFFF
+     Text secondary  #B8C1D1
+   --------------------------------------------------------------- */
+[data-product-page] {
+  --background: #05070d;
+  --foreground: #ffffff;
+  --card: #0f172a;
+  --card-foreground: #ffffff;
+  --popover: #0f172a;
+  --popover-foreground: #ffffff;
+  --secondary: #0f172a;
+  --secondary-foreground: #ffffff;
+  --muted: #0f172a;
+  --muted-foreground: #b8c1d1;
+  --primary: #ff8a1f;
+  --primary-foreground: #05070d;
+  --accent: #ff8a1f;
+  --accent-foreground: #05070d;
+  --ring: #ff8a1f;
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 12%);
+  /* Gold highlight token available to the page for emphasis accents. */
+  --gold: #ffc857;
+}
+
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
