@@ -98,25 +98,15 @@ export function QuickViewDialog({
           )}
 
           <div className="mt-4 flex items-center gap-2">
-            {cartQty > 0 ? (
-              <div className="flex h-12 flex-1 items-center justify-between rounded-full border border-accent/40 bg-accent/10 px-2">
-                <button onClick={() => setQty(product.slug, cartQty - 1)} aria-label="Decrease" className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15 active:scale-90">
-                  <Minus className="size-4" />
-                </button>
-                <span className="min-w-8 text-center font-semibold tabular-nums">{cartQty}</span>
-                <button onClick={() => setQty(product.slug, cartQty + 1)} aria-label="Increase" className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15 active:scale-90">
-                  <Plus className="size-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => add(product.slug)}
-                disabled={!product.inStock}
-                className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] text-sm font-semibold text-black shadow-[var(--shadow-ember)] transition-transform active:scale-[0.97] disabled:opacity-50"
-              >
-                {product.inStock ? <><Plus className="size-4" strokeWidth={2.5} /> Add to Cart</> : "Sold Out"}
-              </button>
-            )}
+            <button
+              onClick={onBuyNow}
+              disabled={!product.inStock}
+              aria-label={`Buy ${product.name} now`}
+              className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] text-sm font-semibold text-black shadow-[var(--shadow-ember)] transition-transform active:scale-[0.97] disabled:opacity-50"
+            >
+              {product.inStock ? <><Zap className="size-4" strokeWidth={2.5} /> Buy Now</> : "Sold Out"}
+            </button>
+
             <button
               onClick={() => toggle(product.slug)}
               aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
