@@ -1,5 +1,6 @@
-import { Link } from "@tanstack/react-router";
-import { Heart, Star, Plus, Minus, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Heart, Star, ArrowRight, Zap } from "lucide-react";
+import { useCallback, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
