@@ -24,6 +24,21 @@ export function QuickViewDialog({
   const { toggle } = useWishlistActions();
   const saved = useWishlistSaved(product.slug);
   const cartQty = useCartQty(product.slug);
+  const navigate = useNavigate();
+  const buyLock = useRef(false);
+
+  // Idempotent Buy Now: purchase exactly 1 unit, overwriting any stale
+  // persisted quantity, then head to checkout. Ref lock swallows double-taps.
+  const onBuyNow = useCallback(() => {
+    if (!product.inStock || buyLock.current) return;
+    buyLock.current = true;
+    window.setTimeout(() => { buyLock.current = false; }, 700);
+    const promise = cartQty > 0 ? setQty(product.slug, 1) : add(product.slug, 1);
+    void Promise.resolve(promise).finally(() => {
+      onOpenChange(false);
+      void navigate({ to: "/cart" });
+    });
+  }, [add, setQty, navigate, onOpenChange, product.slug, product.inStock, cartQty]);
 
   const price = priceOf(product);
   const originalPrice =
