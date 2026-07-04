@@ -269,14 +269,19 @@ function ProductPage() {
     return () => { active = false; window.clearTimeout(fallback); };
   }, [slug]);
 
-  const deliveryWindow = useMemo(() => {
+  // Computed on the client only. Rendering a date range during SSR causes a
+  // hydration mismatch whenever the server and client evaluate `new Date()` on
+  // different sides of a day/timezone boundary, so we defer to after mount.
+  const [deliveryWindow, setDeliveryWindow] = useState("");
+  useEffect(() => {
     const start = new Date();
     start.setDate(start.getDate() + 3);
     const end = new Date();
     end.setDate(end.getDate() + 6);
     const opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" };
-    return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
+    setDeliveryWindow(`${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`);
   }, []);
+
 
   // Real activity from the products table (total views / units sold). No
   // fabricated "today/this week" numbers — only show what we actually track.
@@ -744,7 +749,7 @@ function ProductPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{unitShipping <= 0 ? "Free delivery" : `Shipping ${format(unitShipping)}`}</p>
-                  <p className="text-xs text-muted-foreground">Arrives <span className="text-foreground">{deliveryWindow}</span> · 5–10 business days</p>
+                  <p className="text-xs text-muted-foreground">{deliveryWindow ? <>Arrives <span className="text-foreground">{deliveryWindow}</span> · 5–10 business days</> : "Arrives in 5–10 business days"}</p>
                 </div>
                 <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
               </div>
