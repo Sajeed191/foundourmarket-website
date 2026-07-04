@@ -1,11 +1,11 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Heart, Star, ArrowRight, Zap } from "lucide-react";
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
-import { useCartActions, useCartQty } from "@/lib/cart";
 import { useWishlistActions, useWishlistSaved } from "@/lib/wishlist";
+import { useBuyNow } from "@/lib/use-buy-now";
 import { Price } from "@/components/site/Price";
 import { ProductImage } from "@/components/site/ProductImage";
 import { formatSold } from "@/lib/format-sold";
@@ -20,25 +20,15 @@ export function QuickViewDialog({
   onOpenChange: (v: boolean) => void;
 }) {
   const { priceOf, compareOf } = useRegion();
-  const { add, setQty } = useCartActions();
   const { toggle } = useWishlistActions();
   const saved = useWishlistSaved(product.slug);
-  const cartQty = useCartQty(product.slug);
-  const navigate = useNavigate();
-  const buyLock = useRef(false);
+  const buyNow = useBuyNow();
 
-  // Idempotent Buy Now: purchase exactly 1 unit, overwriting any stale
-  // persisted quantity, then head to checkout. Ref lock swallows double-taps.
+  // Delegates to the single centralized Buy Now handler (see useBuyNow).
   const onBuyNow = useCallback(() => {
-    if (!product.inStock || buyLock.current) return;
-    buyLock.current = true;
-    window.setTimeout(() => { buyLock.current = false; }, 700);
-    const promise = cartQty > 0 ? setQty(product.slug, 1) : add(product.slug, 1);
-    void Promise.resolve(promise).finally(() => {
-      onOpenChange(false);
-      void navigate({ to: "/cart" });
-    });
-  }, [add, setQty, navigate, onOpenChange, product.slug, product.inStock, cartQty]);
+    onOpenChange(false);
+    buyNow(product);
+  }, [buyNow, onOpenChange, product]);
 
   const price = priceOf(product);
   const originalPrice =

@@ -1,10 +1,11 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Heart, Zap, Eye, TrendingDown } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { Price } from "@/components/site/Price";
 import { useCart } from "@/lib/cart";
+import { useBuyNow } from "@/lib/use-buy-now";
 import { useWishlist } from "@/lib/wishlist";
 
 import { computeBadges, DEFAULT_BADGE_SETTINGS } from "@/lib/badges";
@@ -32,11 +33,10 @@ export function WishlistCard({
   onQuickView,
 }: WishlistCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
-  const { add, setQty, items } = useCart();
+  const { items } = useCart();
   const { toggle } = useWishlist();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const navigate = useNavigate();
-  const buyLock = useRef(false);
+  const buyNow = useBuyNow();
   const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
 
   const price = priceOf(product);
@@ -73,13 +73,7 @@ export function WishlistCard({
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!product.inStock || buyLock.current) return;
-    buyLock.current = true;
-    window.setTimeout(() => { buyLock.current = false; }, 700);
-    const promise = cartQty > 0 ? setQty(product.slug, 1) : add(product.slug, 1);
-    void Promise.resolve(promise).finally(() => {
-      void navigate({ to: "/cart" });
-    });
+    buyNow(product);
   };
 
 

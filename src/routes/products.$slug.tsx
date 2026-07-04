@@ -3,7 +3,7 @@ import {
   Heart, Truck, Shield, RotateCcw, Minus, Plus, Scale,
   ChevronDown, Share2, Sparkles, Package, Clock, CheckCircle2, Users, ShoppingBag as ShoppingBagIcon, BadgeCheck, Play, Layers, Info,
 } from "lucide-react";
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
@@ -11,6 +11,7 @@ import { openShare, toPreviewImage } from "@/lib/share";
 import { useAllCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
+import { useBuyNow } from "@/lib/use-buy-now";
 import { useLayoutMetrics } from "@/lib/layout-metrics";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { RelatedProducts } from "@/components/site/RelatedProducts";
@@ -197,7 +198,8 @@ function ProductPage() {
   // customer purchase UI (sticky Buy Now dock) so staff aren't shown a shopping
   // bar while editing. Customers never reach this state.
   const [editorOpen, setEditorOpen] = useState(false);
-  const { add, setQty: setCartQty, items } = useCart();
+  const { add } = useCart();
+  const buyNow = useBuyNow();
   const { record } = useRecentlyViewed();
   const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
@@ -373,21 +375,13 @@ function ProductPage() {
     add(product.slug, qty);
     toast.success(`${product.name} added to cart`);
   };
-  // Buy Now is fully independent from Add to Cart. Add to Cart ACCUMULATES
-  // (line += qty); Buy Now SETS the line to EXACTLY the selected qty so it is
-  // idempotent — clicking it repeatedly (or after Back navigation) never
-  // increments a stale persisted quantity. A short ref lock swallows rapid
-  // double-taps that would otherwise fire two writes before navigation.
-  const buyNowLock = useRef(false);
+  // Buy Now uses the single centralized handler (see useBuyNow): it purchases
+  // EXACTLY the selected `qty`, SETS the line rather than accumulating (so it is
+  // idempotent across repeat clicks, Back navigation, and refresh), and is
+  // guarded by a shared double-tap lock. `navigate: false` lets the wrapping
+  // <Link to="/cart"> own routing so the page's existing markup is unchanged.
   const handleBuyNow = () => {
-    if (isOOS || buyNowLock.current) return;
-    buyNowLock.current = true;
-    window.setTimeout(() => {
-      buyNowLock.current = false;
-    }, 700);
-    const inCart = items.some((i) => i.slug === product.slug);
-    if (inCart) setCartQty(product.slug, qty);
-    else add(product.slug, qty);
+    buyNow(product, { qty, disabled: isOOS, navigate: false });
   };
   const handleShare = () => {
     if (typeof window === "undefined") return;
