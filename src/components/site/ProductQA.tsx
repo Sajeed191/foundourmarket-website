@@ -198,7 +198,7 @@ export function ProductQA({ productSlug }: { productSlug: string }) {
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16 border-t border-border">
       <div className="flex items-end justify-between flex-wrap gap-3 mb-8">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">Questions</p>
+          
           <h2 className="text-2xl sm:text-3xl font-display tracking-tight inline-flex items-center gap-3">
             <MessageCircleQuestion className="size-6 text-accent" /> Questions & Answers
           </h2>
