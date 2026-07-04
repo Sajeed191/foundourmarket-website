@@ -743,16 +743,29 @@ function ProductPage() {
 
 
 
-            {/* Delivery */}
-            <div className="mb-6 rounded-2xl border border-border bg-card/50 p-4 flex items-start gap-3">
-              <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent shrink-0">
-                <Truck className="size-4" />
+            {/* Delivery & Trust — everything presented once, with hierarchy */}
+            <div className="mb-6 rounded-2xl border border-border bg-card/50 overflow-hidden">
+              <div className="flex items-start gap-3 p-4">
+                <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent shrink-0">
+                  <Truck className="size-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{unitShipping <= 0 ? "Free delivery" : `Shipping ${format(unitShipping)}`}</p>
+                  <p className="text-xs text-muted-foreground">Arrives <span className="text-foreground">{deliveryWindow}</span> · 5–10 business days</p>
+                </div>
+                <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{unitShipping <= 0 ? "Free delivery" : `Shipping ${format(unitShipping)}`}</p>
-                <p className="text-xs text-muted-foreground">Arrives <span className="text-foreground">{deliveryWindow}</span></p>
+              <div aria-hidden className="h-px bg-border/60" />
+              <div className="grid grid-cols-2 divide-x divide-border/60">
+                <Link to="/returns" className="flex items-center gap-2.5 p-3.5 hover:bg-white/[0.03] transition-colors">
+                  <RotateCcw className="size-4 text-accent shrink-0" />
+                  <span className="text-[11px] font-medium leading-tight">{product.returnEligible ? `${product.returnWindowDays}-day returns` : "No returns"}</span>
+                </Link>
+                <Link to="/buyer-protection" className="flex items-center gap-2.5 p-3.5 hover:bg-white/[0.03] transition-colors">
+                  <Shield className="size-4 text-accent shrink-0" />
+                  <span className="text-[11px] font-medium leading-tight">Buyer Protection</span>
+                </Link>
               </div>
-              <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
             </div>
 
             {/* CTA (desktop) — Buy Now is the primary, attention-drawing action */}
