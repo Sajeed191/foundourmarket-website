@@ -269,14 +269,19 @@ function ProductPage() {
     return () => { active = false; window.clearTimeout(fallback); };
   }, [slug]);
 
-  const deliveryWindow = useMemo(() => {
+  // Computed on the client only. Rendering a date range during SSR causes a
+  // hydration mismatch whenever the server and client evaluate `new Date()` on
+  // different sides of a day/timezone boundary, so we defer to after mount.
+  const [deliveryWindow, setDeliveryWindow] = useState("5–10 business days");
+  useEffect(() => {
     const start = new Date();
     start.setDate(start.getDate() + 3);
     const end = new Date();
     end.setDate(end.getDate() + 6);
     const opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" };
-    return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
+    setDeliveryWindow(`${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`);
   }, []);
+
 
   // Real activity from the products table (total views / units sold). No
   // fabricated "today/this week" numbers — only show what we actually track.
