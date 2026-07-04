@@ -752,41 +752,44 @@ function ProductPage() {
               <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
             </div>
 
-            {/* CTA row (desktop) */}
-            <div className="hidden sm:flex items-center gap-3 mb-3">
-              <div className="flex items-center glass rounded-full">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease" className="size-12 grid place-items-center hover:text-accent transition-colors">
-                  <Minus className="size-4" />
-                </button>
-                <span className="w-10 text-center font-mono text-sm tabular-nums">{qty}</span>
-                <button onClick={() => setQty(qty + 1)} aria-label="Increase" className="size-12 grid place-items-center hover:text-accent transition-colors">
-                  <Plus className="size-4" />
+            {/* CTA (desktop) — Buy Now is the primary, attention-drawing action */}
+            <div className="hidden sm:block mb-8 space-y-2.5">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center glass rounded-full">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease quantity" className="size-12 grid place-items-center hover:text-accent transition-colors active:scale-90">
+                    <Minus className="size-4" />
+                  </button>
+                  <span className="w-10 text-center font-mono text-sm tabular-nums">{qty}</span>
+                  <button onClick={() => setQty(qty + 1)} aria-label="Increase quantity" className="size-12 grid place-items-center hover:text-accent transition-colors active:scale-90">
+                    <Plus className="size-4" />
+                  </button>
+                </div>
+                <Link
+                  to="/cart"
+                  onClick={handleBuyNow}
+                  aria-disabled={isOOS}
+                  className={`flex-1 text-center bg-accent text-accent-foreground font-bold py-4 rounded-full text-sm uppercase tracking-widest transition-all hover:brightness-110 hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 shadow-[var(--shadow-ember)] ${isOOS ? "pointer-events-none opacity-50" : ""}`}
+                >
+                  {isOOS ? "Out of stock" : "Buy Now"}
+                </Link>
+                <button
+                  aria-label="Add to compare"
+                  onClick={() => toggleCompare(product.slug)}
+                  disabled={!inCompare(product.slug) && compareFull}
+                  className={`size-12 grid place-items-center glass rounded-full transition-all hover:-translate-y-0.5 active:scale-90 disabled:opacity-40 ${inCompare(product.slug) ? "text-accent border-accent/40" : "hover:text-accent"}`}
+                >
+                  <Scale className="size-4" />
                 </button>
               </div>
               <button
                 onClick={handleAdd}
                 disabled={isOOS}
-                className="flex-1 bg-accent text-accent-foreground font-semibold py-3.5 rounded-full text-xs uppercase tracking-widest hover:brightness-110 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 shadow-[var(--shadow-ember)]"
+                className="w-full glass-strong text-foreground font-semibold py-3.5 rounded-full text-xs uppercase tracking-widest hover:bg-white/10 hover:-translate-y-0.5 active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:translate-y-0"
               >
-                {isOOS ? "Out of stock" : "Add to Cart"}
-              </button>
-              <button
-                aria-label="Compare"
-                onClick={() => toggleCompare(product.slug)}
-                disabled={!inCompare(product.slug) && compareFull}
-                className={`size-12 grid place-items-center glass rounded-full transition-all hover:-translate-y-0.5 disabled:opacity-40 ${inCompare(product.slug) ? "text-accent border-accent/40" : "hover:text-accent"}`}
-              >
-                <Scale className="size-4" />
+                {isOOS ? "Notify me when available" : "Add to Cart"}
               </button>
             </div>
 
-            <Link
-              to="/cart"
-              onClick={handleBuyNow}
-              className="hidden sm:block text-center w-full glass-strong text-foreground font-semibold py-3.5 rounded-full text-xs uppercase tracking-widest hover:bg-white/10 hover:-translate-y-0.5 transition-all mb-8"
-            >
-              Buy Now
-            </Link>
 
             <div data-product-sticky-threshold aria-hidden className="h-px w-full" />
 
