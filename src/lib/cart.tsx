@@ -419,6 +419,15 @@ export function useCartQty(slug: string) {
   );
 }
 
+/**
+ * Non-reactive read of the current persisted cart quantity for a slug.
+ * Used by the centralized Buy Now handler to decide (at click time) whether a
+ * line already exists — without subscribing the caller to cart updates.
+ */
+export function readCartQty(slug: string): number {
+  return cartQtySnapshot.get(slug) ?? 0;
+}
+
 export function useCartActions() {
   return useMemo(
     () => ({
