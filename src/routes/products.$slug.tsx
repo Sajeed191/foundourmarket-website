@@ -3,7 +3,7 @@ import {
   Heart, Truck, Shield, RotateCcw, Minus, Plus, Scale,
   ChevronDown, Share2, Sparkles, Package, Clock, CheckCircle2, Users, ShoppingBag as ShoppingBagIcon, BadgeCheck, Play,
 } from "lucide-react";
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
@@ -196,7 +196,7 @@ function ProductPage() {
   // customer purchase UI (sticky Buy Now dock) so staff aren't shown a shopping
   // bar while editing. Customers never reach this state.
   const [editorOpen, setEditorOpen] = useState(false);
-  const { add } = useCart();
+  const { add, setQty: setCartQty, items } = useCart();
   const { record } = useRecentlyViewed();
   const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
@@ -371,6 +371,22 @@ function ProductPage() {
   const handleAdd = () => {
     add(product.slug, qty);
     toast.success(`${product.name} added to cart`);
+  };
+  // Buy Now is fully independent from Add to Cart. Add to Cart ACCUMULATES
+  // (line += qty); Buy Now SETS the line to EXACTLY the selected qty so it is
+  // idempotent — clicking it repeatedly (or after Back navigation) never
+  // increments a stale persisted quantity. A short ref lock swallows rapid
+  // double-taps that would otherwise fire two writes before navigation.
+  const buyNowLock = useRef(false);
+  const handleBuyNow = () => {
+    if (isOOS || buyNowLock.current) return;
+    buyNowLock.current = true;
+    window.setTimeout(() => {
+      buyNowLock.current = false;
+    }, 700);
+    const inCart = items.some((i) => i.slug === product.slug);
+    if (inCart) setCartQty(product.slug, qty);
+    else add(product.slug, qty);
   };
   const handleShare = () => {
     if (typeof window === "undefined") return;
@@ -786,7 +802,7 @@ function ProductPage() {
 
             <Link
               to="/cart"
-              onClick={() => add(product.slug, qty)}
+              onClick={handleBuyNow}
               className="hidden sm:block text-center w-full glass-strong text-foreground font-semibold py-3.5 rounded-full text-xs uppercase tracking-widest hover:bg-white/10 hover:-translate-y-0.5 transition-all mb-8"
             >
               Buy Now
@@ -920,7 +936,7 @@ function ProductPage() {
           </button>
           <Link
             to="/cart"
-            onClick={() => !isOOS && add(product.slug, qty)}
+            onClick={handleBuyNow}
             aria-disabled={isOOS}
             className={`flex-1 text-center bg-accent text-accent-foreground font-bold py-2.5 rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-[var(--shadow-ember)] ${isOOS ? "pointer-events-none opacity-50" : ""}`}
           >
