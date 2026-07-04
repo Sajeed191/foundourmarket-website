@@ -936,7 +936,7 @@ function ProductPage() {
           </button>
           <Link
             to="/cart"
-            onClick={() => !isOOS && add(product.slug, qty)}
+            onClick={handleBuyNow}
             aria-disabled={isOOS}
             className={`flex-1 text-center bg-accent text-accent-foreground font-bold py-2.5 rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-[var(--shadow-ember)] ${isOOS ? "pointer-events-none opacity-50" : ""}`}
           >
