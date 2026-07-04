@@ -252,7 +252,7 @@ function BuyNowButtonImpl({ product }: { product: Product }) {
     </button>
   );
 }
-const AddToCartButton = memo(AddToCartButtonImpl, (a, b) => a.product.slug === b.product.slug && a.product.inStock === b.product.inStock && a.product.name === b.product.name);
+const BuyNowButton = memo(BuyNowButtonImpl, (a, b) => a.product.slug === b.product.slug && a.product.inStock === b.product.inStock && a.product.name === b.product.name);
 
 function ProductCardImpl({ product, context = "default", forceBadge, priority = false, highlight }: ProductCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
