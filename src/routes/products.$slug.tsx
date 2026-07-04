@@ -698,78 +698,8 @@ function ProductPage() {
               </div>
             )}
 
-            <div className="mb-6">
-              <ProductDescription description={product.description} />
-            </div>
-
-            {product.features?.length > 0 && (
-              <ProductInfoPanel title="Key Features" icon={Sparkles}>
-                <ul className="space-y-2">
-                  {product.features.map((feat: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <span className="mt-1 size-1.5 shrink-0 rounded-full bg-accent" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </ProductInfoPanel>
-            )}
-
-            {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <ProductInfoPanel title="Specifications" icon={Layers}>
-                <dl className="divide-y divide-border/60">
-                  {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
-                    <div key={k} className="flex gap-4 py-2 text-sm">
-                      <dt className="w-1/3 shrink-0 text-muted-foreground">{k}</dt>
-                      <dd className="flex-1 text-foreground">{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </ProductInfoPanel>
-            )}
-
-            {product.attributes && Object.keys(product.attributes).length > 0 && (
-              <ProductInfoPanel title="Details" icon={Info}>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(product.attributes as Record<string, string>).map(([k, v]) => (
-                    <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 px-3 py-1 text-xs">
-                      <span className="text-muted-foreground">{k}:</span>
-                      <span className="text-foreground">{v}</span>
-                    </span>
-                  ))}
-                </div>
-              </ProductInfoPanel>
-            )}
-
-
-
-            {/* Delivery & Trust — everything presented once, with hierarchy */}
-            <div className="mb-6 rounded-2xl border border-border bg-card/50 overflow-hidden">
-              <div className="flex items-start gap-3 p-4">
-                <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent shrink-0">
-                  <Truck className="size-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{unitShipping <= 0 ? "Free delivery" : `Shipping ${format(unitShipping)}`}</p>
-                  <p className="text-xs text-muted-foreground">Arrives <span className="text-foreground">{deliveryWindow}</span> · 5–10 business days</p>
-                </div>
-                <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
-              </div>
-              <div aria-hidden className="h-px bg-border/60" />
-              <div className="grid grid-cols-2 divide-x divide-border/60">
-                <Link to="/returns" className="flex items-center gap-2.5 p-3.5 hover:bg-white/[0.03] transition-colors">
-                  <RotateCcw className="size-4 text-accent shrink-0" />
-                  <span className="text-[11px] font-medium leading-tight">{product.returnEligible ? `${product.returnWindowDays}-day returns` : "No returns"}</span>
-                </Link>
-                <Link to="/buyer-protection" className="flex items-center gap-2.5 p-3.5 hover:bg-white/[0.03] transition-colors">
-                  <Shield className="size-4 text-accent shrink-0" />
-                  <span className="text-[11px] font-medium leading-tight">Buyer Protection</span>
-                </Link>
-              </div>
-            </div>
-
             {/* CTA (desktop) — Buy Now is the primary, attention-drawing action */}
-            <div className="hidden sm:block mb-8 space-y-2.5">
+            <div className="hidden sm:block mb-6 space-y-2.5">
               <div className="flex items-center gap-3">
                 <div className="flex items-center glass rounded-full">
                   <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease quantity" className="size-12 grid place-items-center hover:text-accent transition-colors active:scale-90">
@@ -800,11 +730,80 @@ function ProductPage() {
               <button
                 onClick={handleAdd}
                 disabled={isOOS}
-                className="w-full glass-strong text-foreground font-semibold py-3.5 rounded-full text-xs uppercase tracking-widest hover:bg-white/10 hover:-translate-y-0.5 active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+                className="w-full border border-border text-foreground font-semibold py-3.5 rounded-full text-xs uppercase tracking-widest hover:border-accent/50 hover:bg-white/[0.03] hover:-translate-y-0.5 active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:translate-y-0"
               >
                 {isOOS ? "Notify me when available" : "Add to Cart"}
               </button>
             </div>
+
+            {/* Delivery & Trust — everything presented once, with hierarchy */}
+            <div className="mb-6 rounded-2xl border border-border bg-card/50 overflow-hidden">
+              <div className="flex items-start gap-3 p-4">
+                <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent shrink-0">
+                  <Truck className="size-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{unitShipping <= 0 ? "Free delivery" : `Shipping ${format(unitShipping)}`}</p>
+                  <p className="text-xs text-muted-foreground">Arrives <span className="text-foreground">{deliveryWindow}</span> · 5–10 business days</p>
+                </div>
+                <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
+              </div>
+              <div aria-hidden className="h-px bg-border/60" />
+              <div className="grid grid-cols-2 divide-x divide-border/60">
+                <Link to="/returns" className="flex items-center gap-2.5 p-3.5 hover:bg-white/[0.03] transition-colors">
+                  <RotateCcw className="size-4 text-accent shrink-0" />
+                  <span className="text-[11px] font-medium leading-tight">{product.returnEligible ? `${product.returnWindowDays}-day returns` : "No returns"}</span>
+                </Link>
+                <Link to="/buyer-protection" className="flex items-center gap-2.5 p-3.5 hover:bg-white/[0.03] transition-colors">
+                  <Shield className="size-4 text-accent shrink-0" />
+                  <span className="text-[11px] font-medium leading-tight">Buyer Protection</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Product Highlights */}
+            {product.features?.length > 0 && (
+              <ProductInfoPanel title="Highlights" icon={Sparkles}>
+                <ul className="space-y-2.5">
+                  {product.features.map((feat: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-relaxed">
+                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </ProductInfoPanel>
+            )}
+
+            <div className="mb-6">
+              <ProductDescription description={product.description} />
+            </div>
+
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <ProductInfoPanel title="Specifications" icon={Layers}>
+                <dl className="divide-y divide-border/60">
+                  {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
+                    <div key={k} className="flex gap-4 py-2.5 text-sm">
+                      <dt className="w-1/3 shrink-0 text-muted-foreground">{k}</dt>
+                      <dd className="flex-1 text-foreground">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </ProductInfoPanel>
+            )}
+
+            {product.attributes && Object.keys(product.attributes).length > 0 && (
+              <ProductInfoPanel title="Details" icon={Info}>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(product.attributes as Record<string, string>).map(([k, v]) => (
+                    <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 px-3 py-1 text-xs">
+                      <span className="text-muted-foreground">{k}:</span>
+                      <span className="text-foreground">{v}</span>
+                    </span>
+                  ))}
+                </div>
+              </ProductInfoPanel>
+            )}
 
 
             <div data-product-sticky-threshold aria-hidden className="h-px w-full" />
