@@ -7,7 +7,7 @@ import { type BadgeKey } from "@/lib/badges";
 import { useVisibleBadges, useBadgeEngine, type BadgeContext } from "@/lib/badge-visibility";
 import { useProductBadges, type RenderBadge } from "@/lib/use-product-badges";
 import { useRegion } from "@/lib/region";
-import { useCartActions, useCartQty } from "@/lib/cart";
+import { useBuyNow } from "@/lib/use-buy-now";
 import { useWishlistActions, useWishlistSaved } from "@/lib/wishlist";
 import { ProductCardAdminControlsGate } from "@/components/admin/ProductCardAdminControlsGate";
 import { Price } from "@/components/site/Price";
