@@ -1,5 +1,6 @@
-import { Link } from "@tanstack/react-router";
-import { Heart, Star, Plus, Minus, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Heart, Star, ArrowRight, Zap } from "lucide-react";
+import { useCallback, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
@@ -23,6 +24,21 @@ export function QuickViewDialog({
   const { toggle } = useWishlistActions();
   const saved = useWishlistSaved(product.slug);
   const cartQty = useCartQty(product.slug);
+  const navigate = useNavigate();
+  const buyLock = useRef(false);
+
+  // Idempotent Buy Now: purchase exactly 1 unit, overwriting any stale
+  // persisted quantity, then head to checkout. Ref lock swallows double-taps.
+  const onBuyNow = useCallback(() => {
+    if (!product.inStock || buyLock.current) return;
+    buyLock.current = true;
+    window.setTimeout(() => { buyLock.current = false; }, 700);
+    const promise = cartQty > 0 ? setQty(product.slug, 1) : add(product.slug, 1);
+    void Promise.resolve(promise).finally(() => {
+      onOpenChange(false);
+      void navigate({ to: "/cart" });
+    });
+  }, [add, setQty, navigate, onOpenChange, product.slug, product.inStock, cartQty]);
 
   const price = priceOf(product);
   const originalPrice =
@@ -82,25 +98,15 @@ export function QuickViewDialog({
           )}
 
           <div className="mt-4 flex items-center gap-2">
-            {cartQty > 0 ? (
-              <div className="flex h-12 flex-1 items-center justify-between rounded-full border border-accent/40 bg-accent/10 px-2">
-                <button onClick={() => setQty(product.slug, cartQty - 1)} aria-label="Decrease" className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15 active:scale-90">
-                  <Minus className="size-4" />
-                </button>
-                <span className="min-w-8 text-center font-semibold tabular-nums">{cartQty}</span>
-                <button onClick={() => setQty(product.slug, cartQty + 1)} aria-label="Increase" className="grid size-9 place-items-center rounded-full text-accent transition-colors hover:bg-accent/15 active:scale-90">
-                  <Plus className="size-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => add(product.slug)}
-                disabled={!product.inStock}
-                className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] text-sm font-semibold text-black shadow-[var(--shadow-ember)] transition-transform active:scale-[0.97] disabled:opacity-50"
-              >
-                {product.inStock ? <><Plus className="size-4" strokeWidth={2.5} /> Add to Cart</> : "Sold Out"}
-              </button>
-            )}
+            <button
+              onClick={onBuyNow}
+              disabled={!product.inStock}
+              aria-label={`Buy ${product.name} now`}
+              className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] text-sm font-semibold text-black shadow-[var(--shadow-ember)] transition-transform active:scale-[0.97] disabled:opacity-50"
+            >
+              {product.inStock ? <><Zap className="size-4" strokeWidth={2.5} /> Buy Now</> : "Sold Out"}
+            </button>
+
             <button
               onClick={() => toggle(product.slug)}
               aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}

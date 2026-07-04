@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Heart, ShoppingCart, Check, Eye, TrendingDown } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { Heart, Zap, Eye, TrendingDown } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { Price } from "@/components/site/Price";
@@ -32,10 +32,11 @@ export function WishlistCard({
   onQuickView,
 }: WishlistCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
-  const { add, items } = useCart();
+  const { add, setQty, items } = useCart();
   const { toggle } = useWishlist();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [justAdded, setJustAdded] = useState(false);
+  const navigate = useNavigate();
+  const buyLock = useRef(false);
   const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
 
   const price = priceOf(product);
@@ -70,12 +71,17 @@ export function WishlistCard({
         className: b.className,
       }));
 
-  const handleAdd = (e: React.MouseEvent) => {
+  const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
-    add(product.slug);
-    setJustAdded(true);
-    window.setTimeout(() => setJustAdded(false), 900);
+    if (!product.inStock || buyLock.current) return;
+    buyLock.current = true;
+    window.setTimeout(() => { buyLock.current = false; }, 700);
+    const promise = cartQty > 0 ? setQty(product.slug, 1) : add(product.slug, 1);
+    void Promise.resolve(promise).finally(() => {
+      void navigate({ to: "/cart" });
+    });
   };
+
 
   useEffect(() => {
     setImgLoaded(false);
@@ -286,11 +292,11 @@ export function WishlistCard({
           </div>
           {product.inStock ? (
             <button
-              onClick={handleAdd}
-              aria-label={`Add ${product.name} to cart`}
-              className={`relative shrink-0 grid place-items-center size-10 rounded-xl bg-gradient-to-br from-accent to-[oklch(0.68_0.18_42)] text-black backdrop-blur-xl border border-white/20 shadow-[var(--shadow-ember)] transition-colors duration-300 hover:brightness-110 ${justAdded ? "animate-cart-pulse" : ""}`}
+              onClick={handleBuyNow}
+              aria-label={`Buy ${product.name} now`}
+              className="relative shrink-0 grid place-items-center size-10 rounded-xl bg-gradient-to-br from-accent to-[oklch(0.68_0.18_42)] text-black backdrop-blur-xl border border-white/20 shadow-[var(--shadow-ember)] transition-colors duration-300 hover:brightness-110"
             >
-              {justAdded ? <Check className="size-4" /> : <ShoppingCart className="size-4" />}
+              <Zap className="size-4" strokeWidth={2.5} />
               {cartQty > 0 && (
               <span data-product-text className="product-typography absolute -top-1.5 -right-1.5 grid place-items-center min-w-[16px] h-4 px-1 rounded-full bg-black text-white text-[9px] font-bold tabular-nums border border-white/20">
                   {cartQty}

@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
-import { Heart, Plus, Check, Star, Minus, Eye } from "lucide-react";
+import { Heart, Check, Star, Eye, Zap } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { type BadgeKey } from "@/lib/badges";
 import { useVisibleBadges, useBadgeEngine, type BadgeContext } from "@/lib/badge-visibility";
@@ -205,17 +205,30 @@ function QuickViewButtonImpl({ name, onOpen }: { name: string; onOpen: () => voi
 }
 const QuickViewButton = memo(QuickViewButtonImpl);
 
-function AddToCartButtonImpl({ product }: { product: Product }) {
+function BuyNowButtonImpl({ product }: { product: Product }) {
   const qty = useCartQty(product.slug);
   const { add, setQty } = useCartActions();
-  const [justAdded, setJustAdded] = useState(false);
+  const navigate = useNavigate();
+  const lock = useRef(false);
 
-  const onAdd = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+  // Buy Now purchases EXACTLY 1 unit and is idempotent: it never accumulates a
+  // stale persisted quantity. If the product is already a cart line we SET it to
+  // 1 (overwriting any prior value from context/localStorage/DB); otherwise we
+  // add a single unit. A short ref lock swallows rapid double-taps so we never
+  // fire duplicate writes/navigations before the route change lands. This also
+  // makes the flow correct after Back navigation and refreshes since we read the
+  // live persisted qty at click time and overwrite rather than increment.
+  const onBuyNow = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    void add(product.slug);
-    setJustAdded(true);
-    window.setTimeout(() => setJustAdded(false), 800);
-  }, [add, product.slug]);
+    e.stopPropagation();
+    if (!product.inStock || lock.current) return;
+    lock.current = true;
+    window.setTimeout(() => { lock.current = false; }, 700);
+    const promise = qty > 0 ? setQty(product.slug, 1) : add(product.slug, 1);
+    void Promise.resolve(promise).finally(() => {
+      void navigate({ to: "/cart" });
+    });
+  }, [add, setQty, navigate, product.slug, product.inStock, qty]);
 
   const gradient = "linear-gradient(135deg, #FFA52E 0%, #FF6A00 100%)";
   const glow = "0 6px 18px -4px rgba(255,122,0,0.45)";
@@ -228,32 +241,18 @@ function AddToCartButtonImpl({ product }: { product: Product }) {
     );
   }
 
-  if (qty > 0 && !justAdded) {
-    return (
-      <div className="flex h-[46px] sm:h-[52px] w-full items-center justify-between rounded-full px-2" style={{ background: gradient, boxShadow: glow }}>
-        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty - 1); }} aria-label="Decrease quantity" className={`grid size-11 place-items-center rounded-full text-black ${"active:scale-95 transition-transform"}`}>
-          <Minus className="size-5" strokeWidth={2.5} />
-        </button>
-        <span data-product-text className="product-typography min-w-7 text-center text-lg font-bold tabular-nums text-black">{qty}</span>
-        <button onClick={(e) => { e.preventDefault(); void setQty(product.slug, qty + 1); }} aria-label="Increase quantity" className={`grid size-11 place-items-center rounded-full text-black ${"active:scale-95 transition-transform"}`}>
-          <Plus className="size-5" strokeWidth={2.5} />
-        </button>
-      </div>
-    );
-  }
-
   return (
     <button
-      onClick={onAdd}
-      aria-label={`Add ${product.name} to cart`}
-      style={justAdded ? undefined : { background: gradient, boxShadow: glow }}
-      className={`product-typography inline-flex h-[46px] sm:h-[52px] w-full items-center justify-center gap-2 rounded-full text-[14px] sm:text-[16px] font-bold ${"transition-[filter,transform] duration-150 hover:brightness-105 hover:-translate-y-0.5 active:scale-[0.97]"} ${justAdded ? "bg-emerald-500 text-black" : "text-black"}`}
+      onClick={onBuyNow}
+      aria-label={`Buy ${product.name} now`}
+      style={{ background: gradient, boxShadow: glow }}
+      className={`product-typography inline-flex h-[46px] sm:h-[52px] w-full items-center justify-center gap-2 rounded-full text-[14px] sm:text-[16px] font-bold text-black ${"transition-[filter,transform] duration-150 hover:brightness-105 hover:-translate-y-0.5 active:scale-[0.97]"}`}
     >
-      {justAdded ? <><Check className="size-5 sm:size-6" /> Added</> : <><Plus className="size-5 sm:size-6" strokeWidth={2.75} /> Add to Cart</>}
+      <Zap className="size-5 sm:size-6" strokeWidth={2.75} /> Buy Now
     </button>
   );
 }
-const AddToCartButton = memo(AddToCartButtonImpl, (a, b) => a.product.slug === b.product.slug && a.product.inStock === b.product.inStock && a.product.name === b.product.name);
+const BuyNowButton = memo(BuyNowButtonImpl, (a, b) => a.product.slug === b.product.slug && a.product.inStock === b.product.inStock && a.product.name === b.product.name);
 
 function ProductCardImpl({ product, context = "default", forceBadge, priority = false, highlight }: ProductCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
@@ -405,7 +404,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
 
         {/* Button — sits directly below content, no filler gap. */}
         <div className="pt-1.5 sm:pt-4">
-          <AddToCartButton product={product} />
+          <BuyNowButton product={product} />
         </div>
       </div>
 
