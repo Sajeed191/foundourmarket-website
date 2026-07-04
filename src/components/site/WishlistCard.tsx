@@ -32,10 +32,11 @@ export function WishlistCard({
   onQuickView,
 }: WishlistCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
-  const { add, items } = useCart();
+  const { add, setQty, items } = useCart();
   const { toggle } = useWishlist();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [justAdded, setJustAdded] = useState(false);
+  const navigate = useNavigate();
+  const buyLock = useRef(false);
   const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
 
   const price = priceOf(product);
