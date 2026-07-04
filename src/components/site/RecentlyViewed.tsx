@@ -24,9 +24,10 @@ type Props = {
 /** Minimal recently-viewed card — image, name, price and add button only. */
 function MiniCard({ product }: { product: Product }) {
   const { priceOf } = useRegion();
-  const { add, items } = useCart();
-  const [justAdded, setJustAdded] = useState(false);
-  const inCart = items.some((i) => i.slug === product.slug);
+  const { add, setQty, items } = useCart();
+  const navigate = useNavigate();
+  const buyLock = useRef(false);
+  const cartQty = items.find((i) => i.slug === product.slug)?.qty ?? 0;
 
   return (
     <div data-product-card data-android-static-card className="group card-premium product-card-shell overflow-hidden p-2.5 flex flex-col">
@@ -48,14 +49,18 @@ function MiniCard({ product }: { product: Product }) {
         <button
           onClick={(e) => {
             e.preventDefault();
-            add(product.slug);
-            setJustAdded(true);
-            window.setTimeout(() => setJustAdded(false), 900);
+            if (!product.inStock || buyLock.current) return;
+            buyLock.current = true;
+            window.setTimeout(() => { buyLock.current = false; }, 700);
+            const promise = cartQty > 0 ? setQty(product.slug, 1) : add(product.slug, 1);
+            void Promise.resolve(promise).finally(() => {
+              void navigate({ to: "/cart" });
+            });
           }}
-          aria-label={`Add ${product.name} to cart`}
-          className={`shrink-0 grid place-items-center size-8 rounded-full bg-accent text-accent-foreground transition-colors hover:brightness-110 shadow-[var(--shadow-ember)] ${justAdded ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
+          aria-label={`Buy ${product.name} now`}
+          className="shrink-0 grid place-items-center size-8 rounded-full bg-accent text-accent-foreground transition-colors hover:brightness-110 shadow-[var(--shadow-ember)]"
         >
-          {justAdded || inCart ? <Check className="size-4" /> : <Plus className="size-4" />}
+          <Zap className="size-4" strokeWidth={2.5} />
         </button>
       </div>
     </div>
