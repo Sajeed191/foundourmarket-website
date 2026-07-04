@@ -447,8 +447,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">Reviews</p>
           <h2 className="text-2xl sm:text-3xl font-display tracking-tight">Customer Reviews</h2>
+
         </div>
         {trust !== null && hasReviews && (
           <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/[0.07] px-3.5 py-2">
