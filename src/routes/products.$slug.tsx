@@ -37,6 +37,7 @@ const AdminImageManager = lazy(() =>
 import { ImageLightbox } from "@/components/site/ImageLightbox";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductDescription } from "@/components/site/ProductDescription";
+import { ProductInfoPanel } from "@/components/site/ProductInfoPanel";
 import { TrustGuarantee } from "@/components/site/ProductTrustBlocks";
 import { formatSold } from "@/lib/format-sold";
 import { SellerTrustCard, ProductComparison } from "@/components/site/ProductSellerTrust";
