@@ -324,6 +324,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "(function(){var d=document.documentElement;try{var p=localStorage.getItem('fom-theme')||'system';var e=p==='system'?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;d.setAttribute('data-theme',e);d.classList.toggle('dark',e==='dark');}catch(x){d.setAttribute('data-theme','dark');d.classList.add('dark');}})();",
       },
       {
+        // Graphics Compatibility Mode: if the user explicitly enabled it, apply
+        // the existing render-safe path BEFORE first paint (no flash of the
+        // premium effects). Reuses data-render-safe; no GPU blocklist.
+        children:
+          "(function(){try{var d=document.documentElement;if(localStorage.getItem('fom-graphics-compat')==='on'){d.setAttribute('data-graphics-compat','true');d.setAttribute('data-render-safe','true');}}catch(e){}})();",
+      },
+
+      {
         // GPU-compositor safety gate. Some Android GPUs (Mali, PowerVR, software
         // renderers, very old Adreno) corrupt compositor tiles when many
         // backdrop-filter + large blur() + mix-blend-mode + 3D layers stack —
