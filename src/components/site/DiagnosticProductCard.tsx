@@ -50,12 +50,35 @@ export const DIAG_FEATURE_LABELS: Record<DiagFeature, string> = {
   filters: "All backdrop/filter effects OFF",
 };
 
+/**
+ * Rounding technique under test. All keep the visual rounded appearance while
+ * changing HOW the rounding is achieved, to avoid the outer-card
+ * overflow:hidden clip that triggers Chrome 149 Android tile corruption.
+ */
+export type RoundTechnique =
+  | "clip" // production baseline: outer card border-radius + overflow:hidden
+  | "radiusNoClip" // (1) keep outer border-radius, remove overflow:hidden
+  | "innerWrapper" // (2) outer card square+visible; inner wrapper does radius+clip
+  | "imageOnly" // (3) clip only the image, not the card
+  | "mask" // (4) replace clipping with a CSS mask
+  | "elementsOnly"; // (5) outer card rectangular; only image + buttons rounded
+
+export const ROUND_TECHNIQUE_LABELS: Record<RoundTechnique, string> = {
+  clip: "Baseline: outer border-radius + overflow:hidden (must corrupt)",
+  radiusNoClip: "(1) Keep border-radius, remove overflow:hidden",
+  innerWrapper: "(2) Move rounded corners to an inner wrapper",
+  imageOnly: "(3) Clip only the image, not the card",
+  mask: "(4) Replace clipping with a CSS mask",
+  elementsOnly: "(5) Rectangular card; only image + buttons rounded",
+};
+
 type Props = {
   product: Product;
   disable: DiagFeature;
+  round?: RoundTechnique;
 };
 
-function DiagnosticProductCardImpl({ product, disable }: Props) {
+function DiagnosticProductCardImpl({ product, disable, round = "clip" }: Props) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const [justSaved, setJustSaved] = useState(false);
 
