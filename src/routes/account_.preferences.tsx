@@ -151,6 +151,33 @@ function PreferencesPage() {
 
           <div className="rounded-2xl border border-border bg-card overflow-hidden mb-6">
             <div className="flex items-center gap-2 px-6 py-4 border-b border-border">
+              <MonitorSmartphone className="size-4 text-accent" />
+              <h2 className="font-display text-base font-semibold">Display &amp; performance</h2>
+            </div>
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">Graphics Compatibility Mode</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Reduces GPU effects for smoother, glitch-free rendering on
+                    devices that show flickering or banding while scrolling.
+                  </p>
+                </div>
+                <Toggle on={compatOn} onClick={toggleCompat} />
+              </div>
+              {suggestCompat && !compatOn && (
+                <p className="text-xs text-accent/90 mt-3 rounded-lg bg-accent/10 px-3 py-2">
+                  This device may benefit from Graphics Compatibility Mode if you
+                  notice display glitches while scrolling.
+                </p>
+              )}
+            </div>
+          </div>
+
+
+
+          <div className="rounded-2xl border border-border bg-card overflow-hidden mb-6">
+            <div className="flex items-center gap-2 px-6 py-4 border-b border-border">
               <Mail className="size-4 text-accent" />
               <h2 className="font-display text-base font-semibold">Email notifications</h2>
             </div>
