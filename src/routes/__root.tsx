@@ -568,7 +568,10 @@ function IsolationRoot() {
             <AdminModeProvider>
               {/* ISOLATION STEP 2: LayoutMetricsProvider added back (only this). */}
               <LayoutMetricsProvider>
-                <Outlet />
+                {/* ISOLATION STEP 3: BadgeEngineProvider added back (only this). */}
+                <BadgeEngineProvider>
+                  <Outlet />
+                </BadgeEngineProvider>
               </LayoutMetricsProvider>
             </AdminModeProvider>
           </WishlistProvider>
