@@ -96,7 +96,7 @@ function RailSection({
   title: string;
   icon: typeof Flame;
   items: Product[];
-  badge: string;
+  badge: BadgeKey;
 }) {
   const preview = items.slice(0, 4);
   if (preview.length === 0) return null;
