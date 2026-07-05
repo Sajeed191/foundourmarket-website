@@ -3051,3 +3051,18 @@ html[data-gpu-unsafe="true"] [data-uniform-card] [data-uniform-glow] {
   display: block !important;
   filter: blur(64px) !important;
 }
+
+/* ======================================================
+   GRAPHICS COMPATIBILITY MODE
+   Optional, user-controlled rendering fallback. Driven ONLY by the
+   html[data-graphics-compat="true"] attribute (set from
+   src/lib/graphics-compat.ts). No component-level branching.
+
+   Intentionally EMPTY for now — clean infrastructure only. Add any
+   compatibility overrides below, scoped to the selector.
+
+   Remove this entire section once the Chromium rendering issue is no
+   longer relevant.
+   ====================================================== */
+
+/* html[data-graphics-compat="true"] .some-selector { ... } */
