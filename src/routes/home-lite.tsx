@@ -49,13 +49,19 @@ import { useProducts } from "@/lib/use-products";
 import { useOrderRotationSeed, seededShuffle } from "@/lib/rotation";
 import { useRotationNonce } from "@/lib/use-rotation-nonce";
 import { ProductCard } from "@/components/site/ProductCard";
-import { DiagnosticProductCard, DIAG_FEATURE_LABELS, type DiagFeature } from "@/components/site/DiagnosticProductCard";
+import {
+  DiagnosticProductCard,
+  DIAG_FEATURE_LABELS,
+  ROUND_TECHNIQUE_LABELS,
+  type DiagFeature,
+  type RoundTechnique,
+} from "@/components/site/DiagnosticProductCard";
 import { Reveal } from "@/components/site/Reveal";
 import { LazyMount } from "@/components/site/LazyMount";
 import { SearchOverlay } from "@/components/site/SearchOverlay";
 
 // ⇩ Flip this to isolate the exact trigger (see the table above).
-const TEST_STAGE: number = 18;
+const TEST_STAGE: number = 20;
 
 // Maps a diagnostic stage (9–19) to the single feature disabled on the clone.
 const DIAG_STAGE_FEATURE: Record<number, DiagFeature> = {
@@ -70,6 +76,18 @@ const DIAG_STAGE_FEATURE: Record<number, DiagFeature> = {
   17: "gradients",
   18: "shadows",
   19: "filters",
+};
+
+// Stages 20+ keep the FULL clone (nothing disabled) but change HOW the rounded
+// look is produced, to keep rounded cards while avoiding the overflow:hidden
+// clip that corrupts Chrome 149. Test one technique at a time.
+//   20 → (1) Keep border-radius, remove overflow:hidden   ← implemented now
+//   21 → (2) Move rounded corners to an inner wrapper       (not yet implemented)
+//   22 → (3) Clip only the image, not the card             (not yet implemented)
+//   23 → (4) Replace clipping with a CSS mask              (not yet implemented)
+//   24 → (5) Rectangular card; only image + buttons rounded (not yet implemented)
+const DIAG_STAGE_ROUND: Record<number, RoundTechnique> = {
+  20: "radiusNoClip",
 };
 
 export const Route = createFileRoute("/home-lite")({
