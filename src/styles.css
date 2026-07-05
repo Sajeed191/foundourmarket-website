@@ -2614,14 +2614,17 @@ html[data-ff-css-filters="off"] *::after {
 html[data-ff-backdrop-filters="off"] *,
 html[data-ff-backdrop-filters="off"] *::before,
 html[data-ff-backdrop-filters="off"] *::after {
-  backdrop-filter: none !important;
+  backdrop-filter: initial !important;
+  -webkit-backdrop-filter: initial !important;
 }
 
 html[data-ff-blur-effects="off"] *,
 html[data-ff-blur-effects="off"] *::before,
 html[data-ff-blur-effects="off"] *::after {
   filter: none !important;
-  backdrop-filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: initial !important;
+  -webkit-backdrop-filter: initial !important;
 }
 
 html[data-ff-mix-blend-mode="off"] *,
