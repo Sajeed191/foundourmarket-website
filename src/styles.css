@@ -2891,10 +2891,10 @@ html[data-gpu-unsafe="true"] :not([aria-hidden="true"])[style*="blur("] {
   -webkit-filter: none !important;
 }
 
-/* Final targeted Chrome cold-refresh fix for the trust badges strip. The broad
+/* Targeted Chrome cold-refresh stabilization for the trust badges strip. The broad
    Android/GPU safety rules above intentionally flatten most layers with
-   !important, so this row-specific rule must stay last to ensure the verified
-   feature-row stabilization is actually applied. */
+   !important, so this row-specific rule must stay last to ensure the
+   feature-row stabilization is actually applied during diagnostics. */
 html .feature-row.feature-row {
   backface-visibility: hidden !important;
   transform: translate3d(0, 0, 0) !important;
