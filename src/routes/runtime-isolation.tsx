@@ -30,6 +30,9 @@ const STAGE = 3 as 1 | 2 | 3 | 4;
 const NEW_ARRIVALS_MODE = "boxes" as "section" | "spacer" | "boxes";
 const NEW_ARRIVALS_HEIGHT = 846;
 const NEW_ARRIVALS_BOX_HEIGHT = 190; // 4 rows × 190 + gaps/padding ≈ 846
+// FINAL COMPOSITOR EXPERIMENT: "A" = 8 boxes stacked vertically (no grid),
+// "B" = grid with only 4 boxes, "C" = grid with 8 boxes, minimal styles only.
+const BOX_MODE = "C" as "A" | "B" | "C";
 
 export const Route = createFileRoute("/runtime-isolation")({
   head: () => ({
@@ -176,13 +179,38 @@ function HomeSections({ products }: { products: Product[] }) {
       )}
       {/* HEIGHT-THRESHOLD EXPERIMENT: New Arrivals replaced by 8 plain colored
           boxes of the same total height — no ProductCard, images, observers, hooks. */}
-      {STAGE >= 3 && NEW_ARRIVALS_MODE === "boxes" && (
+      {STAGE >= 3 && NEW_ARRIVALS_MODE === "boxes" && BOX_MODE === "A" && (
+        // Test A: 8 boxes stacked vertically, NO grid.
+        <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              style={{ height: NEW_ARRIVALS_BOX_HEIGHT, background: i % 2 ? "#334155" : "#475569" }}
+            />
+          ))}
+        </div>
+      )}
+      {STAGE >= 3 && NEW_ARRIVALS_MODE === "boxes" && BOX_MODE === "B" && (
+        // Test B: grid restored, only 4 boxes.
+        <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                style={{ height: NEW_ARRIVALS_BOX_HEIGHT, background: i % 2 ? "#334155" : "#475569" }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {STAGE >= 3 && NEW_ARRIVALS_MODE === "boxes" && BOX_MODE === "C" && (
+        // Test C: grid, 8 boxes, ONLY width/height/background-color.
         <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                style={{ height: NEW_ARRIVALS_BOX_HEIGHT, background: i % 2 ? "#334155" : "#475569" }}
+                style={{ width: "100%", height: NEW_ARRIVALS_BOX_HEIGHT, backgroundColor: i % 2 ? "#334155" : "#475569" }}
               />
             ))}
           </div>
