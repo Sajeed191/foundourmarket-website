@@ -641,7 +641,7 @@ function RootComponent() {
                             />
                             <Toaster position="bottom-center" richColors />
                             <ShareDialog />
-                            <GraphicsCompatSuggestion />
+                            
                             <DebugPanel />
                             <WindowMetricsPanel />
                             <GlobalSearchMount />
