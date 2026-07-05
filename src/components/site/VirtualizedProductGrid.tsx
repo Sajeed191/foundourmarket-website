@@ -461,8 +461,16 @@ function TwoPhaseGrid({
     );
   }
 
-  // Two-phase Phase 2: mount the real grid directly (atomic commit).
-  if (canTwoPhase) return <>{children}</>;
+  // Two-phase Phase 2: mount the real grid.
+  if (canTwoPhase) {
+    // EXPERIMENT (?exp-stagger=on): insert one card per animation frame instead
+    // of committing the whole decoded batch in a single render. Default OFF →
+    // original atomic commit is completely unchanged.
+    if (staggerMountEnabled() && isValidElement(children)) {
+      return <StaggeredGridChildren grid={children as ReactElement} />;
+    }
+    return <>{children}</>;
+  }
 
   // Fallback: opacity gate.
   return (
