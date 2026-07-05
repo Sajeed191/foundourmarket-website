@@ -389,7 +389,7 @@ function TwoPhaseGrid({
     }
     const settle = (img: HTMLImageElement): Promise<void> => {
       const decode = () =>
-        typeof img.decode === "function"
+        !flagOff("ffImageDecoding") && typeof img.decode === "function"
           ? img.decode().catch(() => undefined)
           : nextFrames(1);
       if (img.complete && img.naturalWidth > 0) return decode();
