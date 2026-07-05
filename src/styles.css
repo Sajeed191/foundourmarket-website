@@ -1594,7 +1594,17 @@ html[data-android="true"] [data-product-image],
 html[data-low-end="true"] [data-product-image] {
   transform: none !important;
   will-change: auto !important;
-  transition: opacity 160ms ease !important;
+  /* Runtime-proven fix: the per-image opacity fade was the ONLY active
+     compositor trigger left on the product grid during scroll (images sampled
+     mid-transition at 0.31 / 0.70 / 0.98 while scrolling). Each animated fade
+     promotes the image to a temporary compositor layer, and rapid
+     promote/demote of many image layers during scroll is what recycles tiles
+     before raster completes on weak Mali / older Adreno GPUs (banding, stale /
+     duplicated tiles). Collapsing the transition to none makes decoded images
+     land in a single flat paint — the JS reveal still sets final opacity, it
+     just no longer animates. Desktop / iOS / Firefox keep the fade (scoped to
+     data-android / data-low-end). */
+  transition: none !important;
 }
 
 /* ===== Android compositor diagnostic guard for weak Mali / Adreno GPUs =====
