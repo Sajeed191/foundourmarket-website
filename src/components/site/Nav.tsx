@@ -295,7 +295,11 @@ export function Nav() {
           display: "block",
           filter: "none",
           visibility: "visible",
-          transform: "translateY(0)",
+          /* No transform: an identity translateY(0) still forces Chromium to
+             promote this fixed header to its own composited layer, which is the
+             layer that overlaps document-scrolling content and triggers the
+             Chrome 149 GPU-raster tile bug (duplicated tiles / horizontal
+             bands / stale fragments). Omitting it is a visual no-op. */
           opacity: 1,
           transition: "none",
           willChange: "auto",
