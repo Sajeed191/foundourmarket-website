@@ -55,7 +55,7 @@ import { LazyMount } from "@/components/site/LazyMount";
 import { SearchOverlay } from "@/components/site/SearchOverlay";
 
 // ⇩ Flip this to isolate the exact trigger (see the table above).
-const TEST_STAGE: number = 12;
+const TEST_STAGE: number = 17;
 
 // Maps a diagnostic stage (9–19) to the single feature disabled on the clone.
 const DIAG_STAGE_FEATURE: Record<number, DiagFeature> = {
