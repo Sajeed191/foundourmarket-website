@@ -83,6 +83,25 @@ function PreferencesPage() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [compat, setCompat] = useState<GraphicsCompatPref>("auto");
+  const [suggestCompat, setSuggestCompat] = useState(false);
+
+  useEffect(() => {
+    setCompat(readGraphicsCompatPref());
+    setSuggestCompat(isAndroidChromium());
+  }, []);
+
+  const compatOn = compat === "on";
+  const toggleCompat = () => {
+    const next: GraphicsCompatPref = compatOn ? "off" : "on";
+    setGraphicsCompatPref(next);
+    setCompat(next);
+    toast.success(
+      next === "on"
+        ? "Graphics Compatibility Mode enabled"
+        : "Graphics Compatibility Mode disabled",
+    );
+  };
 
   useEffect(() => {
     if (loading) return;
