@@ -562,6 +562,10 @@ function IsolationRoot() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
+      {/* ISOLATION STEP 4: ThemeProvider is a HARD dependency of the Header —
+          Nav calls useTheme(), which THROWS without it (SSR 500). Not a
+          "feature" provider, just required plumbing to render the shell. */}
+      <ThemeProvider>
       <AuthProvider>
         <RegionProvider>
           <WishlistProvider>
@@ -570,13 +574,33 @@ function IsolationRoot() {
               <LayoutMetricsProvider>
                 {/* ISOLATION STEP 3: BadgeEngineProvider added back (only this). */}
                 <BadgeEngineProvider>
-                  <Outlet />
+                  {/* ISOLATION STEP 4: restore Header + Bottom Navigation only.
+                      CartProvider is a HARD dependency — both Nav and
+                      MobileBottomNav call useCart(), which throws without it
+                      (useSearchUI has a safe no-op fallback, so SearchUIProvider
+                      is intentionally NOT added; NotificationBell uses a default
+                      context, so NotificationsProvider is NOT added either).
+                      Shell markup mirrors the normal app shell but omits Footer,
+                      DeferredShell, Toaster, etc. */}
+                  <CartProvider>
+                    <div data-app-shell className="min-h-dvh flex flex-col">
+                      <Nav />
+                      <main
+                        data-app-content
+                        className="flex-1 account-footer-gapless md:pb-0"
+                      >
+                        <Outlet />
+                      </main>
+                      <MobileBottomNav />
+                    </div>
+                  </CartProvider>
                 </BadgeEngineProvider>
               </LayoutMetricsProvider>
             </AdminModeProvider>
           </WishlistProvider>
         </RegionProvider>
       </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
