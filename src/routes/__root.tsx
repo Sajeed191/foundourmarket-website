@@ -445,10 +445,7 @@ function DeferredShell({
       {!isAuthRoute && <AdminCommandCenter />}
       <CompareTray />
       <InstallPrompt />
-      {/* STEP 3 ISOLATION (temporary): LiveChat is not mounted at all so no DOM,
-          listeners, timers, animation, or compositor layer is created for the
-          floating orb. Restore `{!hideLiveChat && <LiveChat />}` after testing. */}
-      {false && !hideLiveChat && <LiveChat />}
+      {!hideLiveChat && <LiveChat />}
       {!hideLiveChat && <SupportReplyWatcher />}
     </Suspense>
   );
