@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Flame, Award, Sparkles } from "lucide-react";
 import { fetchProducts, type Product } from "@/lib/products";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -40,8 +40,8 @@ const NEW_ARRIVALS_BOX_HEIGHT = 190; // 4 rows × 190 + gaps/padding ≈ 846
    | "box-shadow"
    | "background-shorthand"
    | "border";
- function cssTestStyle(i: number): React.CSSProperties {
-   const base: React.CSSProperties = {
+ function cssTestStyle(i: number): CSSProperties {
+   const base: CSSProperties = {
      width: "100%",
      height: NEW_ARRIVALS_BOX_HEIGHT,
      backgroundColor: i % 2 ? "#334155" : "#475569",
