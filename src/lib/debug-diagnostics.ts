@@ -264,6 +264,7 @@ function sampleCompositorLayerMap(): LayerMapEntry[] {
 
 function sampleScrollContainers(): ScrollContainerEntry[] {
   const entries: ScrollContainerEntry[] = [];
+  const seen: HTMLElement[] = [];
   const els = document.querySelectorAll("*");
   const limit = Math.min(els.length, 4000);
   for (let i = 0; i < limit; i++) {
@@ -274,8 +275,8 @@ function sampleScrollContainers(): ScrollContainerEntry[] {
     const x = /(auto|scroll)/.test(overflowX) && el.scrollWidth > el.clientWidth + 1;
     const y = /(auto|scroll)/.test(overflowY) && el.scrollHeight > el.clientHeight + 1;
     if (!x && !y) continue;
-    const nested = !!el.parentElement?.closest("[data-scroll-container]") || entries.some((e) => el.parentElement?.closest(e.selector));
-    el.dataset.scrollContainer = "true";
+    const nested = seen.some((parent) => parent.contains(el));
+    seen.push(el);
     entries.push({
       selector: describeElement(el),
       tag: el.tagName.toLowerCase(),
