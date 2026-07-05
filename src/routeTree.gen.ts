@@ -19,6 +19,7 @@ import { Route as SigninRouteImport } from './routes/signin'
 import { Route as ShippingPolicyRouteImport } from './routes/shipping-policy'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RuntimeIsolationRouteImport } from './routes/runtime-isolation'
+import { Route as RuntimeFreezeRafRouteImport } from './routes/runtime-freeze-raf'
 import { Route as RuntimeFreezeRouteImport } from './routes/runtime-freeze'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ReturnsRouteImport } from './routes/returns'
@@ -207,6 +208,11 @@ const SearchRoute = SearchRouteImport.update({
 const RuntimeIsolationRoute = RuntimeIsolationRouteImport.update({
   id: '/runtime-isolation',
   path: '/runtime-isolation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RuntimeFreezeRafRoute = RuntimeFreezeRafRouteImport.update({
+  id: '/runtime-freeze-raf',
+  path: '/runtime-freeze-raf',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RuntimeFreezeRoute = RuntimeFreezeRouteImport.update({
@@ -1012,6 +1018,7 @@ export interface FileRoutesByFullPath {
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/runtime-freeze': typeof RuntimeFreezeRoute
+  '/runtime-freeze-raf': typeof RuntimeFreezeRafRoute
   '/runtime-isolation': typeof RuntimeIsolationRoute
   '/search': typeof SearchRoute
   '/shipping-policy': typeof ShippingPolicyRoute
@@ -1163,6 +1170,7 @@ export interface FileRoutesByTo {
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/runtime-freeze': typeof RuntimeFreezeRoute
+  '/runtime-freeze-raf': typeof RuntimeFreezeRafRoute
   '/runtime-isolation': typeof RuntimeIsolationRoute
   '/search': typeof SearchRoute
   '/shipping-policy': typeof ShippingPolicyRoute
@@ -1314,6 +1322,7 @@ export interface FileRoutesById {
   '/returns': typeof ReturnsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/runtime-freeze': typeof RuntimeFreezeRoute
+  '/runtime-freeze-raf': typeof RuntimeFreezeRafRoute
   '/runtime-isolation': typeof RuntimeIsolationRoute
   '/search': typeof SearchRoute
   '/shipping-policy': typeof ShippingPolicyRoute
@@ -1467,6 +1476,7 @@ export interface FileRouteTypes {
     | '/returns'
     | '/robots.txt'
     | '/runtime-freeze'
+    | '/runtime-freeze-raf'
     | '/runtime-isolation'
     | '/search'
     | '/shipping-policy'
@@ -1618,6 +1628,7 @@ export interface FileRouteTypes {
     | '/returns'
     | '/robots.txt'
     | '/runtime-freeze'
+    | '/runtime-freeze-raf'
     | '/runtime-isolation'
     | '/search'
     | '/shipping-policy'
@@ -1768,6 +1779,7 @@ export interface FileRouteTypes {
     | '/returns'
     | '/robots.txt'
     | '/runtime-freeze'
+    | '/runtime-freeze-raf'
     | '/runtime-isolation'
     | '/search'
     | '/shipping-policy'
@@ -1920,6 +1932,7 @@ export interface RootRouteChildren {
   ReturnsRoute: typeof ReturnsRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   RuntimeFreezeRoute: typeof RuntimeFreezeRoute
+  RuntimeFreezeRafRoute: typeof RuntimeFreezeRafRoute
   RuntimeIsolationRoute: typeof RuntimeIsolationRoute
   SearchRoute: typeof SearchRoute
   ShippingPolicyRoute: typeof ShippingPolicyRoute
@@ -2038,6 +2051,13 @@ declare module '@tanstack/react-router' {
       path: '/runtime-isolation'
       fullPath: '/runtime-isolation'
       preLoaderRoute: typeof RuntimeIsolationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runtime-freeze-raf': {
+      id: '/runtime-freeze-raf'
+      path: '/runtime-freeze-raf'
+      fullPath: '/runtime-freeze-raf'
+      preLoaderRoute: typeof RuntimeFreezeRafRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/runtime-freeze': {
@@ -3177,6 +3197,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReturnsRoute: ReturnsRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   RuntimeFreezeRoute: RuntimeFreezeRoute,
+  RuntimeFreezeRafRoute: RuntimeFreezeRafRoute,
   RuntimeIsolationRoute: RuntimeIsolationRoute,
   SearchRoute: SearchRoute,
   ShippingPolicyRoute: ShippingPolicyRoute,
