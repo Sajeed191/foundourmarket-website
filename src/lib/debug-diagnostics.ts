@@ -51,6 +51,33 @@ export type Diagnostics = {
   paintCount: number;
   layoutShiftCount: number;
   createImageBitmapFailures: number;
+  compositorLayerMap: LayerMapEntry[];
+  scrollContainers: ScrollContainerEntry[];
+};
+
+export type LayerMapEntry = {
+  selector: string;
+  tag: string;
+  reasons: string[];
+  position: string;
+  transform: string;
+  willChange: string;
+  filter: string;
+  backdropFilter: string;
+  contain: string;
+  contentVisibility: string;
+  isolation: string;
+  overflow: string;
+  borderRadius: string;
+};
+
+export type ScrollContainerEntry = {
+  selector: string;
+  tag: string;
+  axis: "x" | "y" | "both";
+  nested: boolean;
+  overflowX: string;
+  overflowY: string;
 };
 
 const d: Diagnostics = {
@@ -83,6 +110,8 @@ const d: Diagnostics = {
   paintCount: 0,
   layoutShiftCount: 0,
   createImageBitmapFailures: 0,
+  compositorLayerMap: [],
+  scrollContainers: [],
 };
 
 
@@ -143,33 +172,120 @@ function readGpu() {
 
 }
 
-const LAYER_PROPS = [
-  "transform",
-  "filter",
-  "backdrop-filter",
-  "perspective",
-  "mix-blend-mode",
-  "will-change",
-];
+function isActiveValue(v: string, inactive: string[] = ["none", "auto", "normal", "visible", "0px"]): boolean {
+  const value = v.trim();
+  return value.length > 0 && !inactive.includes(value);
+}
 
-/** Rough count of elements that would be promoted to their own compositor
- *  layer. Not exact (Chrome's heuristics are internal) but a strong proxy. */
-function countCompositorLayers(): number {
-  let count = 0;
+function describeElement(el: Element): string {
+  const parts = [el.tagName.toLowerCase()];
+  const id = el.getAttribute("id");
+  if (id) parts.push(`#${id}`);
+  const data = Array.from(el.attributes)
+    .filter((a) => a.name.startsWith("data-") && a.value && a.name !== "data-render-token")
+    .slice(0, 2)
+    .map((a) => `[${a.name}="${a.value}"]`);
+  parts.push(...data);
+  const classes = (el.getAttribute("class") ?? "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((c) => `.${CSS.escape(c)}`);
+  parts.push(...classes);
+  return parts.join("");
+}
+
+/** Evidence map of elements matching known Chromium layer-promotion triggers.
+ *  Chrome's final layer tree is internal/driver-dependent; this is the exact
+ *  application-side trigger map used for A/B/A testing on the affected device. */
+function sampleCompositorLayerMap(): LayerMapEntry[] {
+  const map: LayerMapEntry[] = [];
   const els = document.querySelectorAll("*");
   // Cap traversal to avoid its own long task.
   const limit = Math.min(els.length, 4000);
   for (let i = 0; i < limit; i++) {
-    const cs = getComputedStyle(els[i] as Element);
-    for (const prop of LAYER_PROPS) {
-      const v = cs.getPropertyValue(prop);
-      if (v && v !== "none" && v !== "auto" && v !== "normal") {
-        count += 1;
-        break;
-      }
+    const el = els[i] as Element;
+    const cs = getComputedStyle(el);
+    const reasons: string[] = [];
+    const transform = cs.getPropertyValue("transform");
+    const willChange = cs.getPropertyValue("will-change");
+    const filter = cs.getPropertyValue("filter");
+    const backdropFilter = cs.getPropertyValue("backdrop-filter");
+    const contain = cs.getPropertyValue("contain");
+    const contentVisibility = cs.getPropertyValue("content-visibility");
+    const isolation = cs.getPropertyValue("isolation");
+    const perspective = cs.getPropertyValue("perspective");
+    const mixBlend = cs.getPropertyValue("mix-blend-mode");
+    const clipPath = cs.getPropertyValue("clip-path");
+    const mask = cs.getPropertyValue("mask-image");
+    const position = cs.getPropertyValue("position");
+    const overflowX = cs.getPropertyValue("overflow-x");
+    const overflowY = cs.getPropertyValue("overflow-y");
+    const borderRadius = cs.getPropertyValue("border-top-left-radius");
+    const animationName = cs.getPropertyValue("animation-name");
+
+    if (isActiveValue(transform)) reasons.push("transform");
+    if (isActiveValue(willChange)) reasons.push("will-change");
+    if (isActiveValue(filter)) reasons.push("filter");
+    if (isActiveValue(backdropFilter)) reasons.push("backdrop-filter");
+    if (isActiveValue(perspective)) reasons.push("perspective");
+    if (isActiveValue(mixBlend)) reasons.push("mix-blend-mode");
+    if (contain.includes("paint") || contain.includes("layout")) reasons.push(`contain:${contain}`);
+    if (contentVisibility === "auto") reasons.push("content-visibility:auto");
+    if (isolation === "isolate") reasons.push("isolation:isolate");
+    if (isActiveValue(clipPath)) reasons.push("clip-path");
+    if (isActiveValue(mask)) reasons.push("mask");
+    if (position === "fixed" || position === "sticky") reasons.push(`position:${position}`);
+    if ((overflowX === "hidden" || overflowY === "hidden" || overflowX === "clip" || overflowY === "clip") && isActiveValue(borderRadius)) {
+      reasons.push("overflow-clip+radius");
+    }
+    if (isActiveValue(animationName)) reasons.push(`animation:${animationName}`);
+
+    if (reasons.length > 0) {
+      map.push({
+        selector: describeElement(el),
+        tag: el.tagName.toLowerCase(),
+        reasons,
+        position,
+        transform,
+        willChange,
+        filter,
+        backdropFilter,
+        contain,
+        contentVisibility,
+        isolation,
+        overflow: `${overflowX}/${overflowY}`,
+        borderRadius,
+      });
     }
   }
-  return count;
+  return map.slice(0, 120);
+}
+
+function sampleScrollContainers(): ScrollContainerEntry[] {
+  const entries: ScrollContainerEntry[] = [];
+  const els = document.querySelectorAll("*");
+  const limit = Math.min(els.length, 4000);
+  for (let i = 0; i < limit; i++) {
+    const el = els[i] as HTMLElement;
+    const cs = getComputedStyle(el);
+    const overflowX = cs.getPropertyValue("overflow-x");
+    const overflowY = cs.getPropertyValue("overflow-y");
+    const x = /(auto|scroll)/.test(overflowX) && el.scrollWidth > el.clientWidth + 1;
+    const y = /(auto|scroll)/.test(overflowY) && el.scrollHeight > el.clientHeight + 1;
+    if (!x && !y) continue;
+    const nested = !!el.parentElement?.closest("[data-scroll-container]") || entries.some((e) => el.parentElement?.closest(e.selector));
+    el.dataset.scrollContainer = "true";
+    entries.push({
+      selector: describeElement(el),
+      tag: el.tagName.toLowerCase(),
+      axis: x && y ? "both" : x ? "x" : "y",
+      nested,
+      overflowX,
+      overflowY,
+    });
+  }
+  return entries.slice(0, 80);
 }
 
 function readMemory() {
@@ -267,7 +383,9 @@ export function installDebugDiagnostics() {
   // Periodic compositor layer + memory + DOM census sampling (every 2s).
   const sample = () => {
     try {
-      d.compositorLayers = countCompositorLayers();
+      d.compositorLayerMap = sampleCompositorLayerMap();
+      d.compositorLayers = d.compositorLayerMap.length;
+      d.scrollContainers = sampleScrollContainers();
       d.domNodeCount = document.getElementsByTagName("*").length;
       d.productCardCount = document.querySelectorAll("[data-product-card]").length;
       const imgs = document.getElementsByTagName("img");
