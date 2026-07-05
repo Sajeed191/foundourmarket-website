@@ -570,6 +570,8 @@ function IsolationRoot() {
         <RegionProvider>
           <WishlistProvider>
             <AdminModeProvider>
+              {/* ISOLATION STEP 5: CommandCenterProvider added back (only this). */}
+              <CommandCenterProvider>
               {/* ISOLATION STEP 2: LayoutMetricsProvider added back (only this). */}
               <LayoutMetricsProvider>
                 {/* ISOLATION STEP 3: BadgeEngineProvider added back (only this). */}
