@@ -670,6 +670,7 @@ function RootComponent() {
             </WishlistProvider>
           </NotificationsProvider>
         </AuthProvider>
+       </GraphicsCompatProvider>
       </ThemeProvider>
     </QueryClientProvider>
     </AppErrorBoundary>
