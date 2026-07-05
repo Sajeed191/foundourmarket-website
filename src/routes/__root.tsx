@@ -600,6 +600,7 @@ function IsolationRoot() {
           </WishlistProvider>
         </RegionProvider>
       </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
