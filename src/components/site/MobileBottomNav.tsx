@@ -348,27 +348,26 @@ export function MobileBottomNav() {
           const inner = (
             <>
                 <span
-                  className={`relative grid place-items-center size-9 rounded-2xl scale-100 ${
+                  className={`relative grid place-items-center size-9 rounded-2xl scale-100 transition-[transform,opacity] duration-[160ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-90 ${
                     iconsReady ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
                   }`}
                 >
 
                   {/* Soft radial energy field behind the active icon — a breathing
                       bloom. Runs ONLY in the fully-expanded state; frozen in
-                      compact and disabled on low-end (Android safe mode).
-                      EXPERIMENT: transition + animate-energy-breathe removed. */}
+                      compact and disabled on low-end (Android safe mode). */}
                   {!lowEnd && (
                     <span
                       aria-hidden
-                      className={`absolute inset-0 rounded-full blur-[7px] [background:radial-gradient(circle,color-mix(in_oklab,var(--color-accent)_55%,transparent)_0%,transparent_70%)] ${
-                        active && !compact ? "opacity-100" : "opacity-0"
+                      className={`absolute inset-0 rounded-full blur-[7px] transition-opacity duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] [background:radial-gradient(circle,color-mix(in_oklab,var(--color-accent)_55%,transparent)_0%,transparent_70%)] ${
+                        active && !compact ? "opacity-100 animate-energy-breathe" : "opacity-0"
                       }`}
                     />
                   )}
 
                   <span className="relative">
                     <Icon
-                      className={`size-[21px] ${
+                      className={`size-[21px] transition-colors duration-200 ${
                         active ? "text-accent" : "text-white/70"
                       }`}
                       strokeWidth={active ? 2.5 : 2}
@@ -383,8 +382,12 @@ export function MobileBottomNav() {
 
                 <span
                   aria-hidden={!labelsReady}
-                  // EXPERIMENT: transition + stagger delay removed.
-                  className={`h-3 max-w-full truncate leading-none ${
+                  style={
+                    labelsReady && stagger
+                      ? { transitionDelay: `${i * 40}ms` }
+                      : undefined
+                  }
+                  className={`h-3 max-w-full truncate leading-none transition-[opacity,transform] duration-[200ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
                     labelsReady ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-0.5 scale-90 opacity-0"
                   } ${
                     active ? "font-semibold text-accent" : "text-white/65"
