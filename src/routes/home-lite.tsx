@@ -13,9 +13,18 @@
 //
 // The whole experiment is removable by deleting THIS FILE only.
 //
-//   TEST_STAGE controls how much painted content is mounted:
-//     >= 1  → Hero
-//     >= 2  → Hero + Trending Products grid
+//   TEST_STAGE controls exactly what is mounted (Hero is always rendered and is
+//   never changed). Only what is rendered is gated — ProductCard,
+//   AdaptiveProductMedia and all CSS are untouched.
+//     1 → Hero only
+//     2 → Hero + full Trending grid (real ProductCards, normal 2-col)
+//     3 → Hero + Trending heading only (NO ProductCards)
+//     4 → Hero + Trending heading + exactly ONE real ProductCard
+//     5 → Hero + Trending heading + exactly TWO real ProductCards
+//     6 → Hero + Trending full grid layout, every card replaced by a colored
+//          placeholder div of identical cell size (NO ProductCard mounted)
+//     7 → Hero + Trending real ProductCards in a SINGLE-column layout
+//     8 → Hero + Trending real ProductCards in the normal TWO-column grid
 // ─────────────────────────────────────────────────────────────────────────────
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Search } from "lucide-react";
@@ -29,8 +38,8 @@ import { Reveal } from "@/components/site/Reveal";
 import { LazyMount } from "@/components/site/LazyMount";
 import { SearchOverlay } from "@/components/site/SearchOverlay";
 
-// ⇩ Flip this to grow the painted area one section at a time during testing.
-const TEST_STAGE = 2;
+// ⇩ Flip this to isolate the exact trigger (see the table above).
+const TEST_STAGE: number = 3;
 
 export const Route = createFileRoute("/home-lite")({
   head: () => ({
@@ -79,6 +88,18 @@ function HomeLite() {
       ).slice(0, 8),
     [products, rotationSeed, rotationNonce],
   );
+
+  // Which trending cards to mount for the current stage (only rendering is gated).
+  const trendingCards =
+    TEST_STAGE === 3 ? [] :
+    TEST_STAGE === 4 ? trending.slice(0, 1) :
+    TEST_STAGE === 5 ? trending.slice(0, 2) :
+    trending; // stages 2, 6, 7, 8 use the full set
+  const singleColumn = TEST_STAGE === 7;
+  const usePlaceholders = TEST_STAGE === 6;
+  const gridClass = singleColumn
+    ? "grid grid-cols-1 gap-3 sm:gap-4"
+    : "grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4";
 
   return (
     <>
@@ -154,21 +175,34 @@ function HomeLite() {
       {/* ── TRENDING (copied from index.tsx ProductSection grid, lines 226–231) ── */}
       {TEST_STAGE >= 2 && (
         <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto scroll-mt-24 block">
+          {/* Heading — rendered for every trending stage (>= 2). */}
           <Reveal className="flex justify-between items-end mb-4 sm:mb-6 gap-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">Hot right now</p>
               <h2 className="mt-1 font-display text-2xl sm:text-3xl font-semibold tracking-[-0.02em]">Trending Products</h2>
             </div>
           </Reveal>
-          <LazyMount minHeight={260}>
-            <div data-product-grid className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {trending.map((p, i) => (
-                <Reveal key={p.id ?? p.slug} delay={i} className="h-full" productCardFrame>
-                  <ProductCard product={p} compact forceBadge="trending" />
-                </Reveal>
-              ))}
-            </div>
-          </LazyMount>
+
+          {/* Card area — gated by stage. Stage 3 renders nothing below the heading. */}
+          {trendingCards.length > 0 && (
+            <LazyMount minHeight={260}>
+              <div data-product-grid className={gridClass}>
+                {trendingCards.map((p, i) => (
+                  <Reveal key={p.id ?? p.slug} delay={i} className="h-full" productCardFrame>
+                    {usePlaceholders ? (
+                      // Stage 6: identical grid cell size, no ProductCard mounted.
+                      <div
+                        aria-hidden
+                        className="h-full w-full rounded-3xl bg-accent/25 ring-1 ring-white/10 min-h-[240px]"
+                      />
+                    ) : (
+                      <ProductCard product={p} compact forceBadge="trending" />
+                    )}
+                  </Reveal>
+                ))}
+              </div>
+            </LazyMount>
+          )}
         </section>
       )}
     </>
