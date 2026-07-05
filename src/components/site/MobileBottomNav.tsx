@@ -186,6 +186,7 @@ export function MobileBottomNav() {
       if (rafId) return;
       // EXPERIMENT: disable ONLY this continuous rAF loop. Original line:
       // rafId = requestAnimationFrame(evaluate);
+      void evaluate;
       return;
     };
 
