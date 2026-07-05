@@ -561,7 +561,9 @@ function IsolationRoot() {
       <AuthProvider>
         <RegionProvider>
           <WishlistProvider>
-            <Outlet />
+            <AdminModeProvider>
+              <Outlet />
+            </AdminModeProvider>
           </WishlistProvider>
         </RegionProvider>
       </AuthProvider>
