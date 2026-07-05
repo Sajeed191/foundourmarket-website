@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 
 export const Route = createFileRoute("/gpu-diagnostics")({
-  component: GpuDiagnostics;
+  component: GpuDiagnostics,
 });
 
 /* ============================================================================
