@@ -49,17 +49,13 @@ import { useProducts } from "@/lib/use-products";
 import { useOrderRotationSeed, seededShuffle } from "@/lib/rotation";
 import { useRotationNonce } from "@/lib/use-rotation-nonce";
 import { ProductCard } from "@/components/site/ProductCard";
-import {
-  DiagnosticProductCard,
-  DIAG_FEATURE_LABELS,
-  type DiagFeature,
-} from "@/components/site/DiagnosticProductCard";
+import { DiagnosticProductCard, DIAG_FEATURE_LABELS, type DiagFeature } from "@/components/site/DiagnosticProductCard";
 import { Reveal } from "@/components/site/Reveal";
 import { LazyMount } from "@/components/site/LazyMount";
 import { SearchOverlay } from "@/components/site/SearchOverlay";
 
 // ⇩ Flip this to isolate the exact trigger (see the table above).
-const TEST_STAGE: number = 9;
+const TEST_STAGE: number = 10;
 
 // Maps a diagnostic stage (9–19) to the single feature disabled on the clone.
 const DIAG_STAGE_FEATURE: Record<number, DiagFeature> = {
@@ -132,8 +128,7 @@ function HomeLite() {
           : trending; // stages 2, 6, 7, 8, 9–19 use the full set
   const singleColumn = TEST_STAGE === 7;
   const usePlaceholders = TEST_STAGE === 6;
-  const diagFeature: DiagFeature | null =
-    TEST_STAGE >= 9 ? DIAG_STAGE_FEATURE[TEST_STAGE] ?? "none" : null;
+  const diagFeature: DiagFeature | null = TEST_STAGE >= 9 ? (DIAG_STAGE_FEATURE[TEST_STAGE] ?? "none") : null;
   const gridClass = singleColumn ? "grid grid-cols-1 gap-3 sm:gap-4" : "grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4";
 
   return (
