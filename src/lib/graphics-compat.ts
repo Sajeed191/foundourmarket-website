@@ -20,6 +20,7 @@
  *   data-render-safe="true"      → the existing CSS hook that swaps expensive
  *                                  GPU effects for CPU-friendly fallbacks.
  */
+import { useSyncExternalStore } from "react";
 
 export type GraphicsCompatPref = "auto" | "on" | "off";
 
