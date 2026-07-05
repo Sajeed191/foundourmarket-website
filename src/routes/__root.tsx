@@ -621,6 +621,7 @@ function RootComponent() {
     <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+       <GraphicsCompatProvider>
         <AuthProvider>
           <NotificationsProvider>
             <WishlistProvider>
