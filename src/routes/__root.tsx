@@ -16,6 +16,7 @@ import { RegionProvider } from "@/lib/region";
 import { CartProvider } from "@/lib/cart";
 import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
+import { GraphicsCompatProvider } from "@/lib/graphics-compat";
 import { WishlistProvider } from "@/lib/wishlist";
 import { WishlistAlertsProvider } from "@/lib/wishlist-alerts";
 import { NotificationsProvider } from "@/lib/notifications";
@@ -329,7 +330,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         // the existing render-safe path BEFORE first paint (no flash of the
         // premium effects). Reuses data-render-safe; no GPU blocklist.
         children:
-          "(function(){try{var d=document.documentElement;if(localStorage.getItem('fom-graphics-compat')==='on'){d.setAttribute('data-graphics-compat','true');d.setAttribute('data-render-safe','true');}}catch(e){}})();",
+          "(function(){try{if(localStorage.getItem('fom-graphics-compat')==='on'){document.documentElement.setAttribute('data-graphics-compat','true');}}catch(e){}})();",
       },
       {
         // TEMPORARY: Chrome/Chromium Android 149–150 GPU raster rounded-clip
@@ -621,6 +622,7 @@ function RootComponent() {
     <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+       <GraphicsCompatProvider>
         <AuthProvider>
           <NotificationsProvider>
             <WishlistProvider>
@@ -669,6 +671,7 @@ function RootComponent() {
             </WishlistProvider>
           </NotificationsProvider>
         </AuthProvider>
+       </GraphicsCompatProvider>
       </ThemeProvider>
     </QueryClientProvider>
     </AppErrorBoundary>
