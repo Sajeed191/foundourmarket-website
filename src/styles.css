@@ -422,9 +422,9 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
    Lightning CSS strips any `backdrop-filter: none|initial !important` override,
    so blur can only be kept off mobile by never emitting it below 768px (adding
    a real value in a min-width query is preserved, a removal is not). This
-   eliminates the backdrop-filter READBACK compositor layers on phones — the
-   source of the transient horizontal band on hard refresh — with zero mobile
-   visual change (mobile glass was already meant to be blur-free). */
+   eliminates backdrop-filter READBACK compositor layers on phones — one
+   suspected Chromium banding trigger — with zero mobile visual change (mobile
+   glass was already meant to be blur-free). */
 @media (min-width: 768px) {
   .glass { backdrop-filter: blur(20px); }
   .glass-strong { backdrop-filter: blur(24px) saturate(140%); }
@@ -472,13 +472,9 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
 .product-card-glass {
   position: relative;
   border-radius: 20px;
-  /* Root cause of Chromium stale-tile / duplicated-image corruption: a
-     `backdrop-filter` here repeats on every product card. Chromium gives each
-     one its own offscreen backdrop-readback layer that re-samples the page
-     behind it during scroll, producing duplicated tiles / horizontal bands /
-     stale textures (Firefox composites these differently, hence no corruption).
-     The blur was visually negligible behind an ~80%-opaque fill, so we drop it
-     and make the gradient fully opaque — pixel-identical card, no readback. */
+  /* Avoid per-card backdrop readback layers. This is a suspected Chromium
+     compositor risk and is intentionally covered by the binary-search harness;
+     do not treat it as a proven root cause without A/B/A device evidence. */
   background:
     radial-gradient(120% 90% at 50% -10%, oklch(0.74 0.19 49 / 0.08), transparent 55%),
     linear-gradient(180deg, oklch(0.2 0.012 260), oklch(0.15 0.009 260));
@@ -1277,7 +1273,7 @@ html[data-low-end="true"] .sm\:hover\:scale-\[1\.02\]:hover {
    ===================================================================== */
 
 /* 1. Kill all filters, backdrop-filters, blur and blends across the tree.
-      These are the single biggest source of compositor tile corruption. */
+      These are high-risk compositor features on affected Chromium builds. */
 html[data-low-end="true"] *,
 html[data-low-end="true"] *::before,
 html[data-low-end="true"] *::after {
@@ -1436,8 +1432,8 @@ html[data-degrade-effects="true"] [style*="blur("] {
    keep only the sticky header glass for its premium look. Animations stay on
    transform/opacity only. */
 @media (max-width: 767px) {
-  /* Backdrop-filter READBACK layers are the source of the transient horizontal
-     band on hard refresh (a backdrop-filter layer samples the framebuffer
+  /* Backdrop-filter READBACK layers are a suspected source of transient
+     bands on hard refresh (a backdrop-filter layer samples the framebuffer
      behind it; before it is rasterized on the first commit the sample is
      garbage, which clears on the next frame / on scroll).
      Blur is removed at the SOURCE on mobile — .glass/.glass-strong emit blur
@@ -1503,12 +1499,9 @@ html[data-degrade-effects="true"] [style*="blur("] {
 
 /* ===== Android compositor corruption guard (ALL Android devices) =====
    `content-visibility: auto`, `contain: paint`, and `isolation: isolate` on
-   repeated product cards are the confirmed trigger for Chrome/Samsung Android
-   GPU tile corruption (duplicated text/badges + rainbow bands) on Mali /
-   PowerVR / older Adreno GPUs. The perf gain is marginal; the corruption is
-   severe and reproduces on real hardware that is NOT flagged low-end. So we
-   strip these properties on every Android device, unconditionally, while
-   desktop keeps the optimization. */
+   repeated product cards are high-risk Chromium Android tile-invalidation
+   features. They remain under binary-search investigation and must not be
+   considered proven without reproduce → disable → re-enable device evidence. */
 html[data-android="true"] .cv-auto,
 html[data-android="true"] [data-product-card-frame],
 html[data-android="true"] .product-card-shell,
@@ -2781,11 +2774,10 @@ html[data-render-safe="true"] [style*="backdrop-filter"] {
 /* ════════════════════════════════════════════════════════════════════════
    GPU-COMPOSITOR SAFE MODE — data-gpu-unsafe="true"
    ────────────────────────────────────────────────────────────────────────
-   ROOT CAUSE: Chrome on Mali GPUs (and software/very-old renderers) corrupts
-   compositor tiles when many backdrop-filter + large blur() + mix-blend-mode
-   layers stack — producing black flashes, vanished hero, red/white stripes and
-   flicker. Adreno GPUs (e.g. Realme 5 Pro) composite the same tree correctly,
-   which is exactly why only certain devices fail.
+   WORKING HYPOTHESIS: Some Chromium Android GPU/driver combinations corrupt
+    compositor tiles when many backdrop-filter + large blur() + mix-blend-mode
+    layers stack — producing black flashes, vanished hero, red/white stripes and
+    flicker. This block is a compatibility safety layer, not proof of root cause.
 
    This block is gated purely on the detected GPU (see boot script). It REPLACES
    the GPU-heavy effects with visually-equivalent CPU-friendly ones: frosted
@@ -2888,7 +2880,7 @@ html[data-gpu-unsafe="true"] [style*="drop-shadow"] {
 
 /* 8. Foreground filter:blur() passes (Tailwind `blur-sm`/`blur`/`blur-lg`…
       utilities and inline `filter: blur(...)`) on NON-decorative content. Each
-      one allocates an offscreen GPU buffer and is a primary source of duplicated
+      one allocates an offscreen GPU buffer and is a possible source of duplicated
       textures / horizontal stripes on Mali/PowerVR. Strip the foreground blur
       (backdrop-filter is handled in rule 1); content paints crisp instead of
       soft — never corrupt. Backdrop-blur classes match too but only their
@@ -2965,7 +2957,7 @@ body.hide-bottom-nav [data-app-header] {
 /* ============================================================
    Account Overview cards — ONE uniform, environment-independent design.
    ------------------------------------------------------------
-   Root cause of Preview vs Production divergence: the runtime device
+    Known Preview vs Production divergence factor: the runtime device
    governors (`data-degrade-effects` from the live FPS/long-task governor,
    and `data-gpu-unsafe` from the boot GPU gate) toggle <html> attributes at
    runtime and the global kill-switch rules above strip these cards' hover
