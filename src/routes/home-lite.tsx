@@ -236,12 +236,16 @@ function HomeLite() {
             </div>
           </Reveal>
 
-          {/* Diagnostic banner — states exactly which feature is isolated. */}
-          {diagFeature && (
+          {/* Diagnostic banner — states exactly which feature/technique is isolated. */}
+          {diagRound ? (
+            <p className="mb-4 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-[13px] font-medium text-accent">
+              Diagnostic stage {TEST_STAGE}: {ROUND_TECHNIQUE_LABELS[diagRound]}
+            </p>
+          ) : diagFeature ? (
             <p className="mb-4 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-[13px] font-medium text-accent">
               Diagnostic stage {TEST_STAGE}: {DIAG_FEATURE_LABELS[diagFeature]}
             </p>
-          )}
+          ) : null}
 
           {/* Card area — gated by stage. Stage 3 renders nothing below the heading. */}
           {trendingCards.length > 0 && (
