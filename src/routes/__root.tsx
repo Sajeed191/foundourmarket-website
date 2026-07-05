@@ -329,7 +329,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         // the existing render-safe path BEFORE first paint (no flash of the
         // premium effects). Reuses data-render-safe; no GPU blocklist.
         children:
-          "(function(){try{var d=document.documentElement;if(localStorage.getItem('fom-graphics-compat')==='on'){d.setAttribute('data-graphics-compat','true');d.setAttribute('data-render-safe','true');}}catch(e){}})();",
+          "(function(){try{if(localStorage.getItem('fom-graphics-compat')==='on'){document.documentElement.setAttribute('data-graphics-compat','true');}}catch(e){}})();",
       },
       {
         // TEMPORARY: Chrome/Chromium Android 149–150 GPU raster rounded-clip
