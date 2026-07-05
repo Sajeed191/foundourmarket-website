@@ -166,6 +166,16 @@ function PreferencesPage() {
             </ul>
           </div>
 
+          <div className="rounded-2xl border border-border bg-card overflow-hidden mb-6">
+            <div className="flex items-center gap-2 px-6 py-4 border-b border-border">
+              <Info className="size-4 text-accent" />
+              <h2 className="font-display text-base font-semibold">About</h2>
+            </div>
+            <div className="divide-y divide-border">
+              <GraphicsEngineAbout />
+            </div>
+          </div>
+
           <div className="flex justify-end">
             <button onClick={save} disabled={saving} className="cta-primary disabled:opacity-50">
               {saving ? <Loader2 className="size-3.5 animate-spin" /> : <SettingsIcon className="size-3.5" />}
