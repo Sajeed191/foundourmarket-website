@@ -135,9 +135,6 @@ export function DebugPanel() {
             <button type="button" onClick={() => setAll(true)} style={btn}>
               All ON
             </button>
-            <button type="button" onClick={() => setAll(false)} style={btn}>
-              All OFF
-            </button>
             <button type="button" onClick={() => resetFlags()} style={btn}>
               Reset
             </button>
@@ -230,6 +227,7 @@ export function DebugPanel() {
             <Row k="Product cards" v={String(diag.productCardCount)} />
             <Row k="Images" v={`${diag.decodedImageCount}/${diag.imageCount} decoded`} />
             <Row k="Compositor layers" v={String(diag.compositorLayers)} />
+            <Row k="Scroll containers" v={String(diag.scrollContainers.length)} />
             <Row k="Paint entries" v={String(diag.paintCount)} />
             <Row k="Layout shifts" v={String(diag.layoutShiftCount)} />
             <Row k="FPS" v={String(diag.fps)} />
@@ -242,6 +240,7 @@ export function DebugPanel() {
             <Row k="React remounts" v={String(diag.reactRemounts)} />
             <Row k="Unexpected rerenders" v={String(diag.unexpectedRerenders)} />
             <Row k="Hydration mismatch" v={String(diag.hydrationMismatches)} />
+            <LayerMapSummary diag={diag} />
 
           </div>
         </div>
