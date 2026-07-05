@@ -248,7 +248,7 @@ function TwoPhaseGrid({
 }) {
   const [ready, setReady] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
-  const canTwoPhase = !!preloadSrcs && preloadSrcs.length > 0 && !flagOff("ffImageDecoding");
+  const canTwoPhase = !!preloadSrcs && preloadSrcs.length > 0;
 
   // Compute the first visible batch size: visible rows × columns (+1 slack).
   // Never relies on IntersectionObserver (unreliable right after a refresh).
