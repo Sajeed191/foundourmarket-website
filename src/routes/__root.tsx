@@ -560,6 +560,16 @@ function RootComponent() {
  */
 function IsolationRoot() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // ISOLATION STEP 7: restore ONLY the analytics / page-view initialization
+  // effect, byte-for-byte from AppRoot. Nothing else (no perf monitor,
+  // capability governor, motion tier, crisp preload, cache warm, GA4 bootstrap,
+  // OAuth handling, or other startup effects).
+  useEffect(() => {
+    trackPageView(pathname);
+    void captureAttribution();
+    import("@/lib/ga4").then((m) => m.ga4PageView(pathname)).catch(() => {});
+  }, [pathname]);
   return (
     <QueryClientProvider client={queryClient}>
       {/* ISOLATION STEP 4: ThemeProvider is a HARD dependency of the Header —
