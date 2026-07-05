@@ -11,6 +11,10 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { installRafInstrumentation } from "@/lib/raf-instrument";
+
+// rAF instrumentation (debugging experiment) — install as early as possible on the client.
+installRafInstrumentation();
 import { RenderExperiments } from "@/lib/render-experiments";
 import { RegionProvider } from "@/lib/region";
 import { CartProvider } from "@/lib/cart";
