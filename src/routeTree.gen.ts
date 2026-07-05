@@ -30,6 +30,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as GpuTestRouteImport } from './routes/gpu-test'
+import { Route as GpuDiagnosticsRouteImport } from './routes/gpu-diagnostics'
 import { Route as DealsRouteImport } from './routes/deals'
 import { Route as ContinueShoppingRouteImport } from './routes/continue-shopping'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -259,6 +260,11 @@ const HelpRoute = HelpRouteImport.update({
 const GpuTestRoute = GpuTestRouteImport.update({
   id: '/gpu-test',
   path: '/gpu-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GpuDiagnosticsRoute = GpuDiagnosticsRouteImport.update({
+  id: '/gpu-diagnostics',
+  path: '/gpu-diagnostics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DealsRoute = DealsRouteImport.update({
@@ -980,6 +986,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/continue-shopping': typeof ContinueShoppingRoute
   '/deals': typeof DealsRoute
+  '/gpu-diagnostics': typeof GpuDiagnosticsRoute
   '/gpu-test': typeof GpuTestRoute
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
@@ -1128,6 +1135,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/continue-shopping': typeof ContinueShoppingRoute
   '/deals': typeof DealsRoute
+  '/gpu-diagnostics': typeof GpuDiagnosticsRoute
   '/gpu-test': typeof GpuTestRoute
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
@@ -1276,6 +1284,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/continue-shopping': typeof ContinueShoppingRoute
   '/deals': typeof DealsRoute
+  '/gpu-diagnostics': typeof GpuDiagnosticsRoute
   '/gpu-test': typeof GpuTestRoute
   '/help': typeof HelpRouteWithChildren
   '/login': typeof LoginRoute
@@ -1426,6 +1435,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/continue-shopping'
     | '/deals'
+    | '/gpu-diagnostics'
     | '/gpu-test'
     | '/help'
     | '/login'
@@ -1574,6 +1584,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/continue-shopping'
     | '/deals'
+    | '/gpu-diagnostics'
     | '/gpu-test'
     | '/help'
     | '/login'
@@ -1721,6 +1732,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/continue-shopping'
     | '/deals'
+    | '/gpu-diagnostics'
     | '/gpu-test'
     | '/help'
     | '/login'
@@ -1870,6 +1882,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   ContinueShoppingRoute: typeof ContinueShoppingRoute
   DealsRoute: typeof DealsRoute
+  GpuDiagnosticsRoute: typeof GpuDiagnosticsRoute
   GpuTestRoute: typeof GpuTestRoute
   HelpRoute: typeof HelpRouteWithChildren
   LoginRoute: typeof LoginRoute
@@ -2076,6 +2089,13 @@ declare module '@tanstack/react-router' {
       path: '/gpu-test'
       fullPath: '/gpu-test'
       preLoaderRoute: typeof GpuTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gpu-diagnostics': {
+      id: '/gpu-diagnostics'
+      path: '/gpu-diagnostics'
+      fullPath: '/gpu-diagnostics'
+      preLoaderRoute: typeof GpuDiagnosticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deals': {
@@ -3103,6 +3123,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   ContinueShoppingRoute: ContinueShoppingRoute,
   DealsRoute: DealsRoute,
+  GpuDiagnosticsRoute: GpuDiagnosticsRoute,
   GpuTestRoute: GpuTestRoute,
   HelpRoute: HelpRouteWithChildren,
   LoginRoute: LoginRoute,
