@@ -25,7 +25,7 @@ import { useRotationNonce } from "@/lib/use-rotation-nonce";
  * Each section is replicated EXACTLY as production renders it in
  * src/routes/index.tsx. No providers or startup effects restored.
  */
-const STAGE = 3 as 1 | 2 | 3 | 4;
+const STAGE = 2 as 1 | 2 | 3 | 4;
 
 export const Route = createFileRoute("/runtime-isolation")({
   head: () => ({
