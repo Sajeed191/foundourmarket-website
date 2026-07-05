@@ -4,6 +4,11 @@ import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { getResponsiveImage } from "@/lib/product-images";
 import { getStorageResponsive } from "@/lib/storage-image";
 import { publishGridTelemetry, isScrollRestoring } from "@/lib/grid-telemetry";
+import { useFlag } from "@/lib/use-debug-flag";
+
+function flagOff(name: string): boolean {
+  return typeof document !== "undefined" && document.documentElement.dataset[name] === "off";
+}
 
 /** How gridReady was reached (mirrors telemetry `committedVia`). */
 type GridReadyReason = "decode-complete" | "safety-timeout" | "empty" | "instant";
@@ -32,13 +37,14 @@ const DEFAULT_SIZES = "(min-width: 1024px) 300px, (min-width: 640px) 45vw, 76vw"
 function warmImage(rawSrc: string): Promise<void> {
   return new Promise<void>((resolve) => {
     if (typeof window === "undefined" || !rawSrc) return resolve();
+    const disableAsyncDecoding = flagOff("ffImageDecoding");
     const bundled = getResponsiveImage(rawSrc);
     const storage = bundled ? null : getStorageResponsive(rawSrc);
     const srcset = bundled?.srcset ?? storage?.srcset;
     const src = storage?.src ?? rawSrc;
 
     const img = new Image();
-    img.decoding = "async";
+    img.decoding = disableAsyncDecoding ? "sync" : "async";
     if (srcset) {
       img.sizes = DEFAULT_SIZES;
       img.srcset = srcset;
@@ -46,7 +52,7 @@ function warmImage(rawSrc: string): Promise<void> {
     img.src = src;
 
     const finish = () => {
-      if (typeof img.decode === "function") {
+      if (!disableAsyncDecoding && typeof img.decode === "function") {
         img.decode().then(() => resolve()).catch(() => resolve());
       } else {
         resolve();
@@ -71,12 +77,13 @@ function warmImage(rawSrc: string): Promise<void> {
 function probeArea(rawSrc: string): Promise<{ src: string; area: number }> {
   return new Promise((resolve) => {
     if (typeof window === "undefined" || !rawSrc) return resolve({ src: rawSrc, area: 0 });
+    const disableAsyncDecoding = flagOff("ffImageDecoding");
     const bundled = getResponsiveImage(rawSrc);
     const storage = bundled ? null : getStorageResponsive(rawSrc);
     const srcset = bundled?.srcset ?? storage?.srcset;
     const src = storage?.src ?? rawSrc;
     const img = new Image();
-    img.decoding = "async";
+    img.decoding = disableAsyncDecoding ? "sync" : "async";
     if (srcset) {
       img.sizes = DEFAULT_SIZES;
       img.srcset = srcset;
@@ -241,7 +248,7 @@ function TwoPhaseGrid({
 }) {
   const [ready, setReady] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
-  const canTwoPhase = !!preloadSrcs && preloadSrcs.length > 0;
+  const canTwoPhase = !!preloadSrcs && preloadSrcs.length > 0 && !flagOff("ffImageDecoding");
 
   // Compute the first visible batch size: visible rows × columns (+1 slack).
   // Never relies on IntersectionObserver (unreliable right after a refresh).
@@ -732,6 +739,7 @@ export function VirtualizedProductGrid<T>({
   getImageSrc,
 }: Props<T>) {
   const windowExperiment = useWindowExperiment();
+  const virtualizationEnabled = useFlag("virtualization");
   const big = items.length > virtualizeThreshold;
   const stableKey = getKey ?? ((item: T) => {
     const candidate = item as { id?: string | null; slug?: string | null };
@@ -750,7 +758,7 @@ export function VirtualizedProductGrid<T>({
     : undefined;
 
   // Large catalogs: bounded, transform-free rendering.
-  if (big) {
+  if (big && virtualizationEnabled) {
     if (windowExperiment) {
       return (
         <WindowedGrid
@@ -778,7 +786,8 @@ export function VirtualizedProductGrid<T>({
     );
   }
 
-  // Small lists: plain responsive grid (also the SSR / first-paint output).
+  // Small lists, or explicit `?ff-disable=virtualization`: plain responsive grid
+  // with no IntersectionObserver sentinel and no scroll windowing.
   return (
     <TwoPhaseGrid cols={cols} itemCount={items.length} preloadSrcs={preloadSrcs} className={className}>
       <div data-product-grid className={className}>
