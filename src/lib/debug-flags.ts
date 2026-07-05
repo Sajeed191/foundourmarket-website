@@ -5,9 +5,9 @@
  * rebuild. State persists in localStorage and is mirrored onto
  * <html data-ff-*="on|off"> so CSS kill-switches react instantly.
  *
- * Default = every flag ON (production behavior). Flip flags OFF one at a
- * time (or in halves — true binary search) on the real device until the
- * corruption disappears; the last flag you turned OFF is the culprit.
+ * Default = every flag ON (production behavior). Flip exactly ONE flag OFF at
+ * a time on the real device. The harness deliberately rejects broad/multi-flag
+ * disabling so every observation remains attributable to one rendering feature.
  *
  * Remove this file (and DebugPanel + the data-ff CSS block) once the root
  * cause is fixed.
@@ -401,7 +401,7 @@ export const FLAG_LABELS: Record<DebugFlag, string> = {
 const STORAGE_KEY = "fom_debug_flags";
 const BISECT_LOG_KEY = "fom_bisect_report";
 const BISECT_STYLE_ID = "fom-bisect-one-property-style";
-const QUERY_KEY = "ff"; // ?ff=off:blur,gpuTransforms  or  ?ff=only:hero
+const QUERY_KEY = "ff"; // ?ff=off:blur — only the first requested feature is applied
 
 type FlagState = Record<DebugFlag, boolean>;
 
@@ -498,7 +498,7 @@ function notify() {
   listeners.forEach((l) => l());
 }
 
-/** Parse ?ff=... and ?debug= once at startup. */
+/** Parse ?ff=... and ?debug= once at startup. Only one OFF feature is accepted. */
 function parseQuery() {
   if (typeof window === "undefined") return;
   const params = new URLSearchParams(window.location.search);
@@ -546,42 +546,36 @@ function parseQuery() {
     "image-transformations": "imageTransformations",
     "palette-extraction": "paletteExtraction",
   };
+  const requested: string[] = [];
   const disable = (raw: string) => {
     const key = raw.trim().toLowerCase();
     const alias = aliases[key];
     if (alias) {
       enabled = true;
+      for (const f of DEBUG_FLAGS) state[f] = true;
       state[alias] = false;
       return;
     }
     const direct = DEBUG_FLAGS.find((f) => f.toLowerCase() === key.replace(/-/g, ""));
     if (direct) {
       enabled = true;
+      for (const f of DEBUG_FLAGS) state[f] = true;
       state[direct] = false;
     }
   };
   for (const key of Object.keys(aliases)) {
     const param = `ff-disable-${key}`;
-    if (params.has(param)) disable(key);
+    if (params.has(param)) requested.push(key);
   }
   const disabledList = params.get("ff-disable");
-  if (disabledList) disabledList.split(",").forEach(disable);
+  if (disabledList) requested.push(...disabledList.split(","));
   const ff = params.get(QUERY_KEY);
-  if (!ff) return;
-  enabled = true;
-  // off:a,b,c  -> turn those off
-  // only:a,b   -> turn ONLY those on, everything else off
-  const [mode, listRaw] = ff.includes(":") ? ff.split(":") : ["off", ff];
-  const list = (listRaw ?? "").split(",").map((s) => s.trim()).filter(Boolean) as DebugFlag[];
-  if (mode === "only") {
-    for (const f of DEBUG_FLAGS) state[f] = false;
-    for (const f of list) if (f in state) state[f] = true;
-  } else {
-    for (const f of list) {
-      if (f in state) state[f] = false;
-      else disable(String(f));
-    }
+  if (ff) {
+    const [, listRaw] = ff.includes(":") ? ff.split(":") : ["off", ff];
+    requested.push(...(listRaw ?? "").split(","));
   }
+  const first = requested.map((s) => s.trim()).filter(Boolean)[0];
+  if (first) disable(first);
 }
 
 export function initDebugFlags() {
@@ -639,6 +633,9 @@ export function getAllFlags(): FlagState {
 
 export function setFlag(flag: DebugFlag, value: boolean) {
   enabled = true;
+  if (!value) {
+    for (const f of DEBUG_FLAGS) state[f] = true;
+  }
   state[flag] = value;
   applyDom();
   persist();
@@ -647,7 +644,8 @@ export function setFlag(flag: DebugFlag, value: boolean) {
 
 export function setAll(value: boolean) {
   enabled = true;
-  for (const f of DEBUG_FLAGS) state[f] = value;
+  for (const f of DEBUG_FLAGS) state[f] = true;
+  void value;
   applyDom();
   persist();
   notify();
@@ -857,19 +855,9 @@ export const RUNNER_SINGLES: RunnerStep[] = [
   { id: "s-sw", label: "25. Service Worker", combo: false, features: [f("serviceWorker")] },
 ];
 
-/** Two-feature fallback — only reached if every single feature fails A/B/A. */
-export const RUNNER_COMBOS: RunnerStep[] = [
-  { id: "c-transform-overflow", label: "transform + overflow", combo: true, features: [b("product-card-transform"), b("product-card-overflow")] },
-  { id: "c-transform-contain", label: "transform + contain", combo: true, features: [b("product-card-transform"), b("card-frame-contain")] },
-  { id: "c-transform-cv", label: "transform + content-visibility", combo: true, features: [b("product-card-transform"), b("card-frame-content-visibility")] },
-  { id: "c-backdrop-blur", label: "backdrop-filter + blur", combo: true, features: [b("card-backdrop-filter"), b("card-blur")] },
-  { id: "c-contain-cv", label: "contain + content-visibility", combo: true, features: [b("card-frame-contain"), b("card-frame-content-visibility")] },
-  { id: "c-willchange-transform", label: "will-change + transform", combo: true, features: [b("product-card-will-change"), b("product-card-transform")] },
-  { id: "c-decoding-srcset", label: "image decoding + srcset", combo: true, features: [b("product-image-decoding-async"), b("product-image-srcset")] },
-  { id: "c-virtualization-lazy", label: "virtualization + lazy loading", combo: true, features: [f("virtualization"), b("product-image-lazy-loading")] },
-];
+export const RUNNER_COMBOS: RunnerStep[] = [];
 
-export const RUNNER_STEPS: RunnerStep[] = [...RUNNER_SINGLES, ...RUNNER_COMBOS];
+export const RUNNER_STEPS: RunnerStep[] = RUNNER_SINGLES;
 
 const RUNNER_KEY = "fom_bisect_runner";
 
@@ -909,6 +897,10 @@ function applyRunnerFeatures() {
   activeBisectTest = null;
   bisectOverrideEnabled = false;
   if (!step) {
+    applyDom();
+    return;
+  }
+  if (step.features.length !== 1) {
     applyDom();
     return;
   }
