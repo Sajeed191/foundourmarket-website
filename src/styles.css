@@ -2348,6 +2348,25 @@ html[data-android="true"] .feature-card:hover {
   border-color: oklch(0.74 0.19 49 / 0.35) !important;
 }
 
+/* ===== Chrome/Brave-Android mix-blend readback elimination =====
+   `mix-blend-mode` (overlay) forces Chromium to allocate an offscreen
+   isolation buffer AND read the backdrop pixels back from the GPU framebuffer
+   to blend them every composited frame. On affected Android GPUs (Adreno/Mali
+   under Chrome/Brave) that per-frame readback over scrolling content is the
+   root trigger for horizontal colour bands, stale image tiles and duplicated
+   textures — a hard refresh clears the buffer until the next scroll. Firefox
+   (WebRender) blends without this readback path, which is why it is unaffected.
+
+   These overlays are barely-visible film-grain noise (opacity 0.025–0.04).
+   Collapsing them to normal compositing removes the readback layer with no
+   perceptible visual change. Android-only: desktop, iOS and Firefox keep the
+   original overlay blend untouched. */
+html[data-android="true"] .noise-layer::before,
+html[data-android="true"] .mix-blend-overlay,
+html[data-android="true"] [style*="mix-blend"] {
+  mix-blend-mode: normal !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .search-cta { animation: none; }
   .search-cta__shimmer::after { animation: none; display: none; }
