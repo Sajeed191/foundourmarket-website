@@ -1,11 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Mail, Bell, Settings as SettingsIcon } from "lucide-react";
+import { ArrowLeft, Loader2, Mail, Bell, Settings as SettingsIcon, MonitorSmartphone } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { ThemeSelector } from "@/components/site/ThemeSelector";
+import {
+  readGraphicsCompatPref,
+  setGraphicsCompatPref,
+  isAndroidChromium,
+  type GraphicsCompatPref,
+} from "@/lib/graphics-compat";
 
 export const Route = createFileRoute("/account_/preferences")({
   head: () => ({ meta: [{ title: "Preferences — FoundOurMarket™" }] }),
@@ -77,6 +83,25 @@ function PreferencesPage() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [compat, setCompat] = useState<GraphicsCompatPref>("auto");
+  const [suggestCompat, setSuggestCompat] = useState(false);
+
+  useEffect(() => {
+    setCompat(readGraphicsCompatPref());
+    setSuggestCompat(isAndroidChromium());
+  }, []);
+
+  const compatOn = compat === "on";
+  const toggleCompat = () => {
+    const next: GraphicsCompatPref = compatOn ? "off" : "on";
+    setGraphicsCompatPref(next);
+    setCompat(next);
+    toast.success(
+      next === "on"
+        ? "Graphics Compatibility Mode enabled"
+        : "Graphics Compatibility Mode disabled",
+    );
+  };
 
   useEffect(() => {
     if (loading) return;
@@ -123,6 +148,33 @@ function PreferencesPage() {
           <div className="mb-6">
             <ThemeSelector />
           </div>
+
+          <div className="rounded-2xl border border-border bg-card overflow-hidden mb-6">
+            <div className="flex items-center gap-2 px-6 py-4 border-b border-border">
+              <MonitorSmartphone className="size-4 text-accent" />
+              <h2 className="font-display text-base font-semibold">Display &amp; performance</h2>
+            </div>
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">Graphics Compatibility Mode</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Reduces GPU effects for smoother, glitch-free rendering on
+                    devices that show flickering or banding while scrolling.
+                  </p>
+                </div>
+                <Toggle on={compatOn} onClick={toggleCompat} />
+              </div>
+              {suggestCompat && !compatOn && (
+                <p className="text-xs text-accent/90 mt-3 rounded-lg bg-accent/10 px-3 py-2">
+                  This device may benefit from Graphics Compatibility Mode if you
+                  notice display glitches while scrolling.
+                </p>
+              )}
+            </div>
+          </div>
+
+
 
           <div className="rounded-2xl border border-border bg-card overflow-hidden mb-6">
             <div className="flex items-center gap-2 px-6 py-4 border-b border-border">
