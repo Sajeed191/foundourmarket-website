@@ -503,6 +503,69 @@ function parseQuery() {
   if (typeof window === "undefined") return;
   const params = new URLSearchParams(window.location.search);
   if (params.has("debug")) enabled = params.get("debug") !== "0";
+  const aliases: Record<string, DebugFlag> = {
+    backdrop: "backdropFilters",
+    "backdrop-filter": "backdropFilters",
+    blur: "blurEffects",
+    filter: "cssFilters",
+    "mix-blend": "mixBlendMode",
+    "mix-blend-mode": "mixBlendMode",
+    cv: "contentVisibility",
+    "content-visibility": "contentVisibility",
+    contain: "containment",
+    containment: "containment",
+    "will-change": "willChange",
+    transform: "transform",
+    transforms: "transform",
+    "gpu-transform": "gpuTransforms",
+    "gpu-transforms": "gpuTransforms",
+    sticky: "stickyPosition",
+    fixed: "fixedPosition",
+    mask: "cssMasks",
+    masks: "cssMasks",
+    "clip-path": "clipPath",
+    overflow: "overflowClipping",
+    "overflow-clipping": "overflowClipping",
+    framer: "jsAnimations",
+    "framer-motion": "jsAnimations",
+    animations: "animations",
+    "css-animations": "animations",
+    translate3d: "gpuTransforms",
+    translatez: "gpuTransforms",
+    shadow: "boxShadows",
+    shadows: "boxShadows",
+    "box-shadow": "boxShadows",
+    gradient: "gradients",
+    gradients: "gradients",
+    lazy: "lazyLoading",
+    "lazy-loading": "lazyLoading",
+    virtualization: "virtualization",
+    "intersection-observer": "virtualization",
+    "object-fit": "objectFit",
+    "image-decoding": "imageDecoding",
+    "image-transformations": "imageTransformations",
+    "palette-extraction": "paletteExtraction",
+  };
+  const disable = (raw: string) => {
+    const key = raw.trim().toLowerCase();
+    const alias = aliases[key];
+    if (alias) {
+      enabled = true;
+      state[alias] = false;
+      return;
+    }
+    const direct = DEBUG_FLAGS.find((f) => f.toLowerCase() === key.replace(/-/g, ""));
+    if (direct) {
+      enabled = true;
+      state[direct] = false;
+    }
+  };
+  for (const key of Object.keys(aliases)) {
+    const param = `ff-disable-${key}`;
+    if (params.has(param)) disable(key);
+  }
+  const disabledList = params.get("ff-disable");
+  if (disabledList) disabledList.split(",").forEach(disable);
   const ff = params.get(QUERY_KEY);
   if (!ff) return;
   enabled = true;
@@ -514,7 +577,10 @@ function parseQuery() {
     for (const f of DEBUG_FLAGS) state[f] = false;
     for (const f of list) if (f in state) state[f] = true;
   } else {
-    for (const f of list) if (f in state) state[f] = false;
+    for (const f of list) {
+      if (f in state) state[f] = false;
+      else disable(String(f));
+    }
   }
 }
 
