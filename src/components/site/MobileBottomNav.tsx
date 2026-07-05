@@ -184,10 +184,7 @@ export function MobileBottomNav() {
     const schedule = (isScrolling: boolean) => {
       pendingScrolling = isScrolling;
       if (rafId) return;
-      // EXPERIMENT: disable ONLY this continuous rAF loop. Original line:
-      // rafId = requestAnimationFrame(evaluate);
-      void evaluate;
-      return;
+      rafId = requestAnimationFrame(evaluate);
     };
 
     const onScroll = () => {
