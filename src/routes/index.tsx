@@ -25,6 +25,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 import heroProductImg from "@/assets/hero-product.jpg";
 import { ProductCard } from "@/components/site/ProductCard";
+// TEMPORARY EXPERIMENT (Trending section only): reuse Browse's grid so cards
+// mount incrementally in batches of 16 via IncrementalGrid instead of all at
+// once. Remove this import when reverting the experiment.
+import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid";
 import { AdaptiveProductMedia } from "@/components/site/AdaptiveProductMedia";
 import { useFlag } from "@/lib/use-debug-flag";
 import { SearchButton } from "@/components/site/SearchButton";
@@ -223,13 +227,35 @@ function ProductSection({
         </div>
       ) : (
         <LazyMount minHeight={minHeight}>
-          <div data-product-grid className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {preview.map((p, i) => (
-              <Reveal key={p.id ?? p.slug} delay={i} className="h-full" productCardFrame><ProductCard product={p} compact forceBadge={sectionBadge} /></Reveal>
-            ))}
-          </div>
+          {sectionKey === "trending" ? (
+            // TEMPORARY EXPERIMENT — Trending only. Same ProductCard, same DOM
+            // wrapper (data-product-grid / data-product-card-frame), same CSS
+            // classes, same data/sorting/limit. The ONLY change is *when* cards
+            // mount: VirtualizedProductGrid → IncrementalGrid stages the initial
+            // mount in batches of 16 (virtualizeThreshold={0} forces the batched
+            // path), exactly as Browse (/search) does. No virtualization,
+            // no unmounting, no pagination.
+            <VirtualizedProductGrid
+              items={preview}
+              virtualizeThreshold={0}
+              cols={{ base: 2, lg: 4 }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+              getKey={(p) => p.id ?? p.slug}
+              getImageSrc={(p) => p.image}
+              renderItem={(p) => (
+                <ProductCard product={p} compact forceBadge={sectionBadge} />
+              )}
+            />
+          ) : (
+            <div data-product-grid className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {preview.map((p, i) => (
+                <Reveal key={p.id ?? p.slug} delay={i} className="h-full" productCardFrame><ProductCard product={p} compact forceBadge={sectionBadge} /></Reveal>
+              ))}
+            </div>
+          )}
           <ViewAllButton to={viewAllTo} />
         </LazyMount>
+
       )}
     </SectionTracker>
   );
