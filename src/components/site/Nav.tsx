@@ -166,7 +166,11 @@ export function Nav() {
     topNav.style.opacity = "1";
     topNav.style.visibility = "visible";
     topNav.style.pointerEvents = "";
-    topNav.style.transform = "translateY(0)";
+    // Intentionally do NOT set a transform here. Visibility is driven by
+    // display/opacity/visibility above; an identity translateY(0) would only
+    // re-promote the fixed header to a composited layer (Chrome 149 GPU-raster
+    // tile corruption trigger) with no visual effect.
+    topNav.style.transform = "";
   }, []);
 
   // Single source of truth for hiding/restoring the top nav around search.
