@@ -32,7 +32,35 @@ const NEW_ARRIVALS_HEIGHT = 846;
 const NEW_ARRIVALS_BOX_HEIGHT = 190; // 4 rows × 190 + gaps/padding ≈ 846
 // FINAL COMPOSITOR EXPERIMENT: "A" = 8 boxes stacked vertically (no grid),
 // "B" = grid with only 4 boxes, "C" = grid with 8 boxes, minimal styles only.
-const BOX_MODE = "C" as "A" | "B" | "C";
+ const BOX_MODE = "D" as "A" | "B" | "C" | "D";
+ // CSS PROPERTY ISOLATION: baseline = width/height/background-color, add ONE at a time.
+ const CSS_TEST = "border-radius" as
+   | "border-radius"
+   | "overflow"
+   | "box-shadow"
+   | "background-shorthand"
+   | "border";
+ function cssTestStyle(i: number): React.CSSProperties {
+   const base: React.CSSProperties = {
+     width: "100%",
+     height: NEW_ARRIVALS_BOX_HEIGHT,
+     backgroundColor: i % 2 ? "#334155" : "#475569",
+   };
+   switch (CSS_TEST) {
+     case "border-radius":
+       return { ...base, borderRadius: 16 };
+     case "overflow":
+       return { ...base, overflow: "hidden" };
+     case "box-shadow":
+       return { ...base, boxShadow: "0 10px 30px rgba(0,0,0,0.35)" };
+     case "background-shorthand": {
+       const { backgroundColor, ...rest } = base;
+       return { ...rest, background: i % 2 ? "#334155" : "#475569" };
+     }
+     case "border":
+       return { ...base, border: "1px solid #64748b" };
+   }
+ }
 
 export const Route = createFileRoute("/runtime-isolation")({
   head: () => ({
