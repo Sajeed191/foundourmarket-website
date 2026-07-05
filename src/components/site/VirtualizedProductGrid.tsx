@@ -1,4 +1,4 @@
-import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Children, cloneElement, isValidElement, memo, useEffect, useLayoutEffect, useRef, useState, type ReactElement } from "react";
 import { publishWindowMetrics, resetWindowMetrics } from "@/lib/window-metrics";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { getResponsiveImage } from "@/lib/product-images";
@@ -233,6 +233,51 @@ function prewarmNextBatch(preloadSrcs: string[] | undefined, currentK: number): 
  * When `preloadSrcs` is unavailable we fall back to the lighter opacity gate:
  * the real grid mounts hidden and reveals after its own images decode.
  */
+
+/**
+ * TEMPORARY EXPERIMENT — read `?exp-stagger=on` (client-only, default OFF).
+ *
+ * When ON, TwoPhaseGrid Phase 2 no longer commits the whole decoded batch in a
+ * single React render. Instead it inserts exactly ONE product card per animation
+ * frame until all cards are in the DOM. Nothing else changes — same ProductCard,
+ * same images, same wrappers, same grid <div>, same className, same CSS, same
+ * virtualization. The ONLY difference is the DOM-insertion schedule, isolating
+ * whether the corruption is caused by a large atomic DOM/texture upload.
+ */
+function staggerMountEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return /[?&]exp-stagger(=on|=1|=true)?\b/.test(window.location.search);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Renders the SAME grid element it is handed, but reveals its card-frame
+ * children one-per-requestAnimationFrame instead of all at once. Card frames,
+ * keys, grid <div>, className and props are preserved exactly (via cloneElement);
+ * only how many frames exist in the DOM on each frame changes.
+ */
+function StaggeredGridChildren({ grid }: { grid: ReactElement }) {
+  const frames = Children.toArray(
+    (grid.props as { children?: React.ReactNode }).children,
+  );
+  const total = frames.length;
+  const [count, setCount] = useState(() => Math.min(1, total));
+
+  useEffect(() => {
+    if (count >= total) {
+      gridLog("stagger-mount complete →", { insertedPerCommit: 1, total });
+      return;
+    }
+    const id = requestAnimationFrame(() => setCount((c) => Math.min(total, c + 1)));
+    return () => cancelAnimationFrame(id);
+  }, [count, total]);
+
+  return cloneElement(grid, undefined, frames.slice(0, count));
+}
+
 function TwoPhaseGrid({
   cols,
   itemCount,
@@ -416,8 +461,16 @@ function TwoPhaseGrid({
     );
   }
 
-  // Two-phase Phase 2: mount the real grid directly (atomic commit).
-  if (canTwoPhase) return <>{children}</>;
+  // Two-phase Phase 2: mount the real grid.
+  if (canTwoPhase) {
+    // EXPERIMENT (?exp-stagger=on): insert one card per animation frame instead
+    // of committing the whole decoded batch in a single render. Default OFF →
+    // original atomic commit is completely unchanged.
+    if (staggerMountEnabled() && isValidElement(children)) {
+      return <StaggeredGridChildren grid={children as ReactElement} />;
+    }
+    return <>{children}</>;
+  }
 
   // Fallback: opacity gate.
   return (
