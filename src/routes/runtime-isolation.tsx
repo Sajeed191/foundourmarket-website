@@ -30,6 +30,9 @@ const STAGE = 3 as 1 | 2 | 3 | 4;
 const NEW_ARRIVALS_MODE = "boxes" as "section" | "spacer" | "boxes";
 const NEW_ARRIVALS_HEIGHT = 846;
 const NEW_ARRIVALS_BOX_HEIGHT = 190; // 4 rows × 190 + gaps/padding ≈ 846
+// FINAL COMPOSITOR EXPERIMENT: "A" = 8 boxes stacked vertically (no grid),
+// "B" = grid with only 4 boxes, "C" = grid with 8 boxes, minimal styles only.
+const BOX_MODE = "A" as "A" | "B" | "C";
 
 export const Route = createFileRoute("/runtime-isolation")({
   head: () => ({
