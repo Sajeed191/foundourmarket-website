@@ -26,6 +26,10 @@ import { useRotationNonce } from "@/lib/use-rotation-nonce";
  * src/routes/index.tsx. No providers or startup effects restored.
  */
 const STAGE = 3 as 1 | 2 | 3 | 4;
+// HEIGHT-THRESHOLD EXPERIMENT knobs. New Arrivals rendered height ≈ 846px.
+const NEW_ARRIVALS_MODE = "spacer" as "section" | "spacer" | "boxes";
+const NEW_ARRIVALS_HEIGHT = 846;
+const NEW_ARRIVALS_BOX_HEIGHT = 190; // 4 rows × 190 + gaps/padding ≈ 846
 
 export const Route = createFileRoute("/runtime-isolation")({
   head: () => ({
