@@ -33,10 +33,31 @@ export function resizedStorageImage(url: string, width: number, quality = 62): s
     u.searchParams.set("width", String(Math.round(width)));
     u.searchParams.set("quality", String(quality));
     u.searchParams.set("resize", "contain");
+    // Mali GPU compatibility: on devices flagged data-gpu-unsafe, pin the
+    // transform endpoint to WebP so Chrome never negotiates AVIF (a riskier
+    // Skia/Mali decode+raster path). No effect on any other device.
+    if (
+      typeof document !== "undefined" &&
+      document.documentElement.dataset.gpuUnsafe === "true"
+    ) {
+      u.searchParams.set("format", "webp");
+    }
     return u.toString();
   } catch {
     return url;
   }
+}
+
+/**
+ * Single, small, WebP-only storage source for Mali GPU-unsafe devices. Caps the
+ * requested width at 480px and returns ONE candidate (no srcset) so Chrome
+ * cannot use high-DPR selection to pull the 960w texture. Layout dimensions and
+ * aspect ratio are unchanged — only the downloaded bitmap is smaller. Returns
+ * null for non-storage URLs so callers keep their existing handling.
+ */
+export function getStorageSafeSrc(url: string, quality = 62): string | null {
+  if (!isStorageObjectUrl(url)) return null;
+  return resizedStorageImage(url, 480, quality);
 }
 
 // Card-appropriate widths. Caps at 960 because product cards never display
