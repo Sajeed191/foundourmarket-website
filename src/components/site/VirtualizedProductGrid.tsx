@@ -642,19 +642,14 @@ function WindowedGrid<T>({
 
   // Track scroll position (rAF-throttled).
   useEffect(() => {
-    let raf = 0;
+    // EXPERIMENT: rAF disabled — update scroll position directly on each event.
     const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        setScrollY(window.scrollY || window.pageYOffset || 0);
-      });
+      setScrollY(window.scrollY || window.pageYOffset || 0);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      if (raf) cancelAnimationFrame(raf);
     };
   }, []);
 
