@@ -120,7 +120,7 @@ function extractEdgeColor(data: Uint8ClampedArray, size: number): RGB {
 export function getImagePalette(src: string): Promise<ImagePalette> {
   // EXPERIMENT: palette extraction disabled — no canvas readback. Always return fallback.
   return Promise.resolve(FALLBACK_PALETTE);
-  // eslint-disable-next-line no-unreachable
+  /* ORIGINAL BODY (restore for rollback):
   if (cache.has(src)) return Promise.resolve(cache.get(src)!);
   if (inflight.has(src)) return inflight.get(src)!;
   if (typeof window === "undefined" || typeof document === "undefined") {
@@ -162,6 +162,7 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
 
   inflight.set(src, promise);
   return promise;
+  */
 }
 
 /**
