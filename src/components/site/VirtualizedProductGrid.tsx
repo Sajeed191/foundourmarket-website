@@ -162,12 +162,8 @@ function gridLog(...args: unknown[]): void {
 /** Wait N animation frames — a "decode barrier flush" so the compositor and
  * rasterizer are synced before we mount the real grid. */
 function nextFrames(n: number): Promise<void> {
-  return new Promise<void>((resolve) => {
-    if (typeof requestAnimationFrame !== "function") return resolve();
-    let left = n;
-    const tick = () => (--left <= 0 ? resolve() : requestAnimationFrame(tick));
-    requestAnimationFrame(tick);
-  });
+  // EXPERIMENT: rAF disabled — resolve directly instead of waiting frames.
+  return Promise.resolve();
 }
 
 /**
