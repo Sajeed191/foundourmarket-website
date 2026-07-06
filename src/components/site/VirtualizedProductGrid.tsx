@@ -293,11 +293,8 @@ function TwoPhaseGrid({
     const y = window.scrollY;
     const start = performance.now();
     const LOCK_MS = 220;
-    const hold = () => {
-      if (Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
-      if (performance.now() - start < LOCK_MS) requestAnimationFrame(hold);
-    };
-    requestAnimationFrame(hold);
+    // EXPERIMENT: rAF disabled — perform the scroll pin once, synchronously.
+    if (Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
     publishGridTelemetry({ scrollLockDurationMs: LOCK_MS });
   };
 
