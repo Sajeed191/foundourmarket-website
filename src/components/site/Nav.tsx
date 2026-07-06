@@ -286,6 +286,21 @@ export function Nav() {
 
   return (
     <>
+      {/* TEMPORARY EXPERIMENT — neutralize ONLY the header's compositor hints
+          while keeping the rAF loop, scroll state machine, logic and DOM intact.
+          Scoped strictly to the header subtree. Rollback: delete this <style>. */}
+      <style>{`
+        [data-app-header],
+        [data-app-header] * {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          will-change: auto !important;
+          transform: none !important;
+          transition: none !important;
+          animation: none !important;
+          filter: none !important;
+        }
+      `}</style>
       <div
         ref={topNavRef}
         data-app-header
