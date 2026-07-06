@@ -118,6 +118,9 @@ function extractEdgeColor(data: Uint8ClampedArray, size: number): RGB {
  * read (CORS), or extraction otherwise fails. Never throws.
  */
 export function getImagePalette(src: string): Promise<ImagePalette> {
+  // EXPERIMENT: palette extraction disabled — no canvas readback. Always return fallback.
+  return Promise.resolve(FALLBACK_PALETTE);
+  /* ORIGINAL BODY (restore for rollback):
   if (cache.has(src)) return Promise.resolve(cache.get(src)!);
   if (inflight.has(src)) return inflight.get(src)!;
   if (typeof window === "undefined" || typeof document === "undefined") {
@@ -159,6 +162,7 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
 
   inflight.set(src, promise);
   return promise;
+  */
 }
 
 /**
@@ -171,9 +175,12 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
  * CORS) or extraction fails — callers should fall back to getImagePalette().
  */
 export function getImagePaletteFromElement(
-  src: string,
-  img: HTMLImageElement,
+  _src: string,
+  _img: HTMLImageElement,
 ): ImagePalette | null {
+  // EXPERIMENT: palette extraction disabled — no canvas readback. Always return fallback.
+  return FALLBACK_PALETTE;
+  /* ORIGINAL BODY (restore for rollback):
   const cached = cache.get(src);
   if (cached) return cached;
   if (typeof document === "undefined") return null;
@@ -191,9 +198,9 @@ export function getImagePaletteFromElement(
     cache.set(src, palette);
     return palette;
   } catch {
-    // Tainted canvas (CORS) or other failure — caller uses the async path.
     return null;
   }
+  */
 }
 
 /** Synchronous cache peek for SSR-safe first paint. */
