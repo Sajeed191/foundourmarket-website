@@ -174,22 +174,8 @@ function nextFrames(n: number): Promise<void> {
  * gridReady is delayed until scroll is stable. No-op when not restoring.
  */
 function waitForScrollSettled(): Promise<void> {
-  return new Promise<void>((resolve) => {
-    if (typeof window === "undefined" || !isScrollRestoring()) return resolve();
-    let last = window.scrollY;
-    let stableFrames = 0;
-    const start = performance.now();
-    const tick = () => {
-      const y = window.scrollY;
-      if (Math.abs(y - last) <= 1) stableFrames += 1;
-      else stableFrames = 0;
-      last = y;
-      // Settled = 2 consecutive stable frames, or hard cap at 400ms.
-      if (stableFrames >= 2 || performance.now() - start > 400) return resolve();
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  });
+  // EXPERIMENT: rAF disabled — resolve directly (no per-frame scroll polling).
+  return Promise.resolve();
 }
 
 /**
