@@ -55,10 +55,21 @@ function ProductImageImpl({
     rootDataset?.ffImageDecoding === "off" || activePropTest === "product-image-image-decode";
   // Bundled demo assets ship a build-time srcset; real (storage-hosted) product
   // images get an on-the-fly resized srcset so we never download the original.
+  // Mali GPU compatibility: when the boot probe flagged data-gpu-unsafe, drop
+  // srcset entirely (no high-DPR selection → Chrome never pulls the 960w
+  // candidate) and serve one small WebP source: the bundled 288px safeSrc for
+  // demo assets, or a capped 480px WebP for storage images. Every other device
+  // keeps the exact current srcset behavior.
+  const gpuUnsafe = rootDataset?.gpuUnsafe === "true";
   const bundled = disableSrcset ? null : getResponsiveImage(src);
   const storage = disableSrcset || bundled ? null : getStorageResponsive(src);
-  const srcset = disableSrcset ? undefined : (bundled?.srcset ?? storage?.srcset);
-  const resolvedSrc = storage?.src ?? src;
+  const gpuSafeStorageSrc =
+    gpuUnsafe && !disableSrcset && !bundled ? getStorageSafeSrc(src) : null;
+  const srcset =
+    disableSrcset || gpuUnsafe ? undefined : (bundled?.srcset ?? storage?.srcset);
+  const resolvedSrc = gpuUnsafe
+    ? (bundled?.safeSrc ?? gpuSafeStorageSrc ?? storage?.src ?? src)
+    : (storage?.src ?? src);
 
   const imgRef = useRef<HTMLImageElement | null>(null);
   const activeSrcRef = useRef(resolvedSrc);
