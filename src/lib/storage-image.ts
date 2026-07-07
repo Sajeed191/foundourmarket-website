@@ -7,9 +7,9 @@
 // The render endpoint negotiates WebP/AVIF automatically from the browser's
 // `Accept` header, so no `format` param is needed. Unknown/extra query params
 // (e.g. cache-busting `?v=`) are preserved.
+import { isGpuUnsafe } from "@/lib/gpu-compat";
 
 const OBJECT_SEGMENT = "/storage/v1/object/public/";
-import { isGpuUnsafe } from "@/lib/gpu-compat";
 const RENDER_SEGMENT = "/storage/v1/render/image/public/";
 
 /** True when the URL is a Supabase Storage public-object URL we can resize. */
