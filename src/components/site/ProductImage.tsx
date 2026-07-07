@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { getResponsiveImage } from "@/lib/product-images";
 import { getStorageResponsive, getStorageSafeSrc } from "@/lib/storage-image";
+import { isGpuUnsafe } from "@/lib/gpu-compat";
 
 type Props = {
   src: string;
