@@ -2849,10 +2849,9 @@ html[data-render-safe="true"] [style*="backdrop-filter"] {
    so gpu-unsafe devices render the ORIGINAL design again: rounded product
    cards, fixed floating navigation, bottom dock and decorative glow layers.
 
-   The single remaining experiment lives at the very end of this file
-   ("HOMEPAGE-SCOPED COMPOSITOR TEST") and neutralises compositor-heavy
-   rendering ONLY inside the homepage hero, category sections and the floating
-   support widget on gpu-unsafe devices. Everything else is untouched. */
+   The single remaining experiment lives at the very end of this file and
+   neutralises ONLY the fixed mobile bottom dock's compositor-layer promotion on
+   gpu-unsafe devices. Everything else is untouched. */
 
 /* Targeted Chrome cold-refresh stabilization for the trust badges strip. The broad
    Android/GPU safety rules above intentionally flatten most layers with
