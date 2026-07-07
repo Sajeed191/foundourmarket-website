@@ -178,12 +178,14 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
  * CORS) or extraction fails — callers should fall back to getImagePalette().
  */
 export function getImagePaletteFromElement(
-  _src: string,
-  _img: HTMLImageElement,
+  src: string,
+  img: HTMLImageElement,
 ): ImagePalette | null {
-  // EXPERIMENT: palette extraction disabled — no canvas readback. Always return fallback.
-  return FALLBACK_PALETTE;
-  /* ORIGINAL BODY (restore for rollback):
+  // GPU compatibility: skip canvas readback on GPU-unsafe devices (per-image
+  // GPU→CPU texture readback adds Mali texture-memory pressure). Fallback keeps
+  // the neutral background — rendering is unchanged. Other devices sample normally.
+  if (isGpuUnsafe()) return FALLBACK_PALETTE;
+
   const cached = cache.get(src);
   if (cached) return cached;
   if (typeof document === "undefined") return null;
@@ -203,7 +205,6 @@ export function getImagePaletteFromElement(
   } catch {
     return null;
   }
-  */
 }
 
 /** Synchronous cache peek for SSR-safe first paint. */
