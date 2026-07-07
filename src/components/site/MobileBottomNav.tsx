@@ -280,8 +280,16 @@ export function MobileBottomNav() {
   // color for every theme and state, so no theme resolution is needed here to
   // pick a surface tone (avoids any hydration color switch / flash).
 
-  const compact = navState !== "visible_full";
-  const hidden = navState === "hidden";
+  // EXPERIMENT (gpu-unsafe devices only): take the bottom dock OFF its fixed
+  // compositor overlay layer and render it in normal document flow with no
+  // transform / will-change / animation / transition. Every other device keeps
+  // the fixed, scroll-reactive dock unchanged. Read after the mount gate above,
+  // so `data-gpu-unsafe` is already resolved and there is no hydration mismatch.
+  const gpuUnsafe =
+    typeof document !== "undefined" &&
+    document.documentElement.dataset.gpuUnsafe === "true";
+  const compact = gpuUnsafe ? false : navState !== "visible_full";
+  const hidden = gpuUnsafe ? false : navState === "hidden";
   // Low tier (e.g. Android 8 / Oppo A3s WebView): opacity + translateY only.
   // No stagger, no icon scale, no breathing glow — the safety mode.
   const lowEnd = motionTier === "low";
