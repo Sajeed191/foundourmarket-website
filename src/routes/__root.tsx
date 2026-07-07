@@ -758,6 +758,7 @@ function AppRoot() {
                               hideLiveChat={isCheckoutRoute || isTicketRoute}
                             />
                             <Toaster position="bottom-center" richColors />
+                            <GpuCompatBanner />
                             <ShareDialog />
                             
                             <DebugPanel />
