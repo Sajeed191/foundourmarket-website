@@ -2849,10 +2849,9 @@ html[data-render-safe="true"] [style*="backdrop-filter"] {
    so gpu-unsafe devices render the ORIGINAL design again: rounded product
    cards, fixed floating navigation, bottom dock and decorative glow layers.
 
-   The single remaining experiment lives at the very end of this file
-   ("HOMEPAGE-SCOPED COMPOSITOR TEST") and neutralises compositor-heavy
-   rendering ONLY inside the homepage hero, category sections and the floating
-   support widget on gpu-unsafe devices. Everything else is untouched. */
+   The single remaining experiment lives at the very end of this file and
+   neutralises ONLY the fixed mobile bottom dock's compositor-layer promotion on
+   gpu-unsafe devices. Everything else is untouched. */
 
 /* Targeted Chrome cold-refresh stabilization for the trust badges strip. The broad
    Android/GPU safety rules above intentionally flatten most layers with
@@ -3001,47 +3000,27 @@ html[data-graphics-compat="true"] [data-app-bottom-nav] .nav-glass[aria-hidden="
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   HOMEPAGE-SCOPED COMPOSITOR TEST — data-gpu-unsafe="true" ONLY
+   ISOLATED EXPERIMENT — gpuUnsafe bottom dock layer promotion ONLY
    ──────────────────────────────────────────────────────────────────────
-   Single isolated experiment. On gpu-unsafe devices we neutralise every
-   compositor-heavy rendering feature ONLY inside the homepage hero, the
-   category sections (Browse / Main Categories), the floating 24/7 support
-   widget, and their decorative hero backgrounds / glow-orb layers.
+   On the affected Chromium 149 / Mali path, the strongest remaining suspect is
+   the fixed mobile bottom dock's always-promoted transform layer: it is fixed,
+   scroll-state driven, uses transform-gpu / translate classes, and carries
+   transform+opacity transitions directly over the scrolling document. Keep the
+   dock mounted, fixed, visible and functional; remove only its compositor-layer
+   promotion on gpuUnsafe devices. */
+html[data-gpu-unsafe="true"] [data-app-bottom-nav],
+html[data-gpu-unsafe="true"] [data-app-bottom-nav] * {
+  will-change: auto !important;
+  transition: none !important;
+  animation: none !important;
+}
 
-   These are the only sections tagged with [data-gpu-experiment] (hero +
-   categories) plus the support orb [data-floating-control]. Everything else
-   — product cards, product images, product grid, navigation, footer, search,
-   buttons and typography — is completely untouched, so the original design is
-   fully preserved and only these decorative homepage layers are flattened.
-
-   Rollback: delete this whole block and remove the two [data-gpu-experiment]
-   attributes in src/routes/index.tsx. */
-html[data-gpu-unsafe="true"] [data-gpu-experiment],
-html[data-gpu-unsafe="true"] [data-gpu-experiment] *,
-html[data-gpu-unsafe="true"] [data-gpu-experiment]::before,
-html[data-gpu-unsafe="true"] [data-gpu-experiment]::after,
-html[data-gpu-unsafe="true"] [data-floating-control],
-html[data-gpu-unsafe="true"] [data-floating-control] *,
-html[data-gpu-unsafe="true"] [data-floating-control]::before,
-html[data-gpu-unsafe="true"] [data-floating-control]::after {
+html[data-gpu-unsafe="true"] [data-app-bottom-nav],
+html[data-gpu-unsafe="true"] [data-app-bottom-nav] .nav-glass {
   transform: none !important;
   translate: none !important;
   rotate: none !important;
   scale: none !important;
   perspective: none !important;
-  will-change: auto !important;
-  transition: none !important;
-  animation: none !important;
-  filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  mix-blend-mode: normal !important;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
-  mask-composite: initial !important;
-  clip-path: none !important;
-  contain: none !important;
-  content-visibility: visible !important;
-  isolation: auto !important;
   backface-visibility: visible !important;
 }
