@@ -77,14 +77,6 @@ export function Nav() {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { open: searchOpen, openSearch } = useSearchUI();
   const [isAdmin, setIsAdmin] = useState(false);
-  // EXPERIMENT (gpu-unsafe devices only): take the top nav OFF its fixed
-  // compositor overlay layer and render it in normal document flow. Detected
-  // after mount to avoid an SSR/hydration mismatch; every other device keeps
-  // the fixed header unchanged.
-  const [gpuUnsafe, setGpuUnsafe] = useState(false);
-  useEffect(() => {
-    setGpuUnsafe(document.documentElement.dataset.gpuUnsafe === "true");
-  }, []);
 
   useEffect(() => {
     if (!user) { setIsAdmin(false); return; }
