@@ -8,6 +8,7 @@
 // module-level in-flight map dedupes concurrent extractions.
 
 import { isStorageObjectUrl, resizedStorageImage } from "@/lib/storage-image";
+import { isGpuUnsafe } from "@/lib/gpu-compat";
 
 
 export type ImagePalette = {
