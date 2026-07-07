@@ -130,11 +130,14 @@ export function isDegraded(): boolean {
   return document.documentElement.dataset.degradeEffects === "true";
 }
 
-/** True when the boot-time GPU gate put the page in Compatibility Mode. */
-export function isGpuUnsafe(): boolean {
-  if (typeof document === "undefined") return false;
-  return document.documentElement.dataset.gpuUnsafe === "true";
-}
+/**
+ * True when the boot-time GPU gate put the page in Compatibility Mode.
+ * Canonical implementation lives in `./gpu-compat` — imported and re-exported
+ * here so the many existing `@/lib/runtime-capability` consumers keep working
+ * while every compatibility decision resolves to the same single helper.
+ */
+import { isGpuUnsafe } from "./gpu-compat";
+export { isGpuUnsafe };
 
 export function subscribeDegraded(fn: (degraded: boolean) => void): () => void {
   listeners.add(fn);

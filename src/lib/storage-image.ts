@@ -7,6 +7,7 @@
 // The render endpoint negotiates WebP/AVIF automatically from the browser's
 // `Accept` header, so no `format` param is needed. Unknown/extra query params
 // (e.g. cache-busting `?v=`) are preserved.
+import { isGpuUnsafe } from "@/lib/gpu-compat";
 
 const OBJECT_SEGMENT = "/storage/v1/object/public/";
 const RENDER_SEGMENT = "/storage/v1/render/image/public/";
@@ -36,10 +37,7 @@ export function resizedStorageImage(url: string, width: number, quality = 62): s
     // Mali GPU compatibility: on devices flagged data-gpu-unsafe, pin the
     // transform endpoint to WebP so Chrome never negotiates AVIF (a riskier
     // Skia/Mali decode+raster path). No effect on any other device.
-    if (
-      typeof document !== "undefined" &&
-      document.documentElement.dataset.gpuUnsafe === "true"
-    ) {
+    if (isGpuUnsafe()) {
       u.searchParams.set("format", "webp");
     }
     return u.toString();

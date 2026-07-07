@@ -8,6 +8,7 @@
 // module-level in-flight map dedupes concurrent extractions.
 
 import { isStorageObjectUrl, resizedStorageImage } from "@/lib/storage-image";
+import { isGpuUnsafe } from "@/lib/gpu-compat";
 
 
 export type ImagePalette = {
@@ -118,9 +119,12 @@ function extractEdgeColor(data: Uint8ClampedArray, size: number): RGB {
  * read (CORS), or extraction otherwise fails. Never throws.
  */
 export function getImagePalette(src: string): Promise<ImagePalette> {
-  // EXPERIMENT: palette extraction disabled — no canvas readback. Always return fallback.
-  return Promise.resolve(FALLBACK_PALETTE);
-  /* ORIGINAL BODY (restore for rollback):
+  // GPU compatibility: skip palette extraction on GPU-unsafe devices. This
+  // second decode + 32px canvas getImageData() forces a per-image GPU→CPU
+  // texture readback that adds to Mali texture-memory pressure. Fallback keeps
+  // rendering identical (neutral background). All other devices extract normally.
+  if (isGpuUnsafe()) return Promise.resolve(FALLBACK_PALETTE);
+
   if (cache.has(src)) return Promise.resolve(cache.get(src)!);
   if (inflight.has(src)) return inflight.get(src)!;
   if (typeof window === "undefined" || typeof document === "undefined") {
@@ -162,7 +166,6 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
 
   inflight.set(src, promise);
   return promise;
-  */
 }
 
 /**
@@ -175,12 +178,14 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
  * CORS) or extraction fails — callers should fall back to getImagePalette().
  */
 export function getImagePaletteFromElement(
-  _src: string,
-  _img: HTMLImageElement,
+  src: string,
+  img: HTMLImageElement,
 ): ImagePalette | null {
-  // EXPERIMENT: palette extraction disabled — no canvas readback. Always return fallback.
-  return FALLBACK_PALETTE;
-  /* ORIGINAL BODY (restore for rollback):
+  // GPU compatibility: skip canvas readback on GPU-unsafe devices (per-image
+  // GPU→CPU texture readback adds Mali texture-memory pressure). Fallback keeps
+  // the neutral background — rendering is unchanged. Other devices sample normally.
+  if (isGpuUnsafe()) return FALLBACK_PALETTE;
+
   const cached = cache.get(src);
   if (cached) return cached;
   if (typeof document === "undefined") return null;
@@ -200,7 +205,6 @@ export function getImagePaletteFromElement(
   } catch {
     return null;
   }
-  */
 }
 
 /** Synchronous cache peek for SSR-safe first paint. */

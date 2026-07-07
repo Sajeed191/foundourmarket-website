@@ -21,6 +21,8 @@
  *      The flag clears a short, tier-aware delay after scrolling stops.
  */
 
+import { isGpuUnsafe } from "@/lib/gpu-compat";
+
 export type MotionTier = "high" | "mid" | "low";
 
 // ── Cheap tier signals ──────────────────────────────────────────────────────
@@ -67,9 +69,9 @@ export function computeMotionTier(): MotionTier {
   // Explicit intent or an already-active safe/compat mode → strictest tier.
   if (readReducedMotion() || readSaveData()) return "low";
   if (
-    typeof document !== "undefined" &&
-    (document.documentElement.dataset.lowEnd === "true" ||
-      document.documentElement.dataset.gpuUnsafe === "true")
+    isGpuUnsafe() ||
+    (typeof document !== "undefined" &&
+      document.documentElement.dataset.lowEnd === "true")
   ) {
     return "low";
   }

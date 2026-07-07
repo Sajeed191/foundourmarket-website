@@ -2893,6 +2893,11 @@ html[data-gpu-unsafe="true"] *::after {
   will-change: auto !important;
   isolation: auto !important;
   contain: none !important;
+  /* Drop compositor-layer promotion hints (translateZ/translate3d rely on
+     these to allocate extra GPU tiles). Flattening backface + 3D context
+     removes overlay planes that Mali corrupts, without touching 2D layout. */
+  backface-visibility: visible !important;
+  -webkit-backface-visibility: visible !important;
   -webkit-mask: none !important;
   mask: none !important;
   mask-image: none !important;
@@ -2964,20 +2969,22 @@ html[data-gpu-unsafe="true"] :not([aria-hidden="true"])[style*="blur("] {
 /* Targeted Chrome cold-refresh stabilization for the trust badges strip. The broad
    Android/GPU safety rules above intentionally flatten most layers with
    !important, so this row-specific rule must stay last to ensure the
-   feature-row stabilization is actually applied during diagnostics. */
-html .feature-row.feature-row {
+   feature-row stabilization is actually applied during diagnostics.
+   Excluded on data-gpu-unsafe devices: forcing translate3d/translateZ +
+   will-change there re-promotes GPU layers we are deliberately flattening. */
+html:not([data-gpu-unsafe="true"]) .feature-row.feature-row {
   backface-visibility: hidden !important;
   transform: translate3d(0, 0, 0) !important;
   will-change: transform !important;
 }
 
-html .feature-row .feature-card {
+html:not([data-gpu-unsafe="true"]) .feature-row .feature-card {
   backface-visibility: hidden !important;
   contain: layout !important;
   transform: translateZ(0) !important;
 }
 
-html .feature-row .feature-card * {
+html:not([data-gpu-unsafe="true"]) .feature-row .feature-card * {
   will-change: auto !important;
 }
 
@@ -3104,71 +3111,3 @@ html[data-graphics-compat="true"] [data-app-bottom-nav] .nav-glass[data-compact]
 html[data-graphics-compat="true"] [data-app-bottom-nav] .nav-glass[aria-hidden="true"] {
   transform: translateY(140%) !important;
 }
-
-
-/* =====================================================================
-   EXPERIMENT: NEUTRALIZE COMPOSITOR-HEAVY CSS EFFECTS (temporary)
-   ---------------------------------------------------------------------
-   Diagnostic-only global override to test whether Android Chromium
-   (Oppo F9) rendering corruption is caused by compositor-heavy CSS.
-   Removes ONLY: backdrop-filter, filter, mix-blend-mode, mask /
-   mask-image / -webkit-mask, and clip-path. Transforms, positioning,
-   DOM structure, JS, rAF, observers and Framer Motion are untouched.
-   ROLLBACK: delete this entire block (from this comment to the end of
-   file marker below).
-   ===================================================================== */
-*,
-*::before,
-*::after {
-  backdrop-filter: none !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-  mask: none !important;
-  mask-image: none !important;
-  -webkit-mask: none !important;
-  -webkit-mask-image: none !important;
-  clip-path: none !important;
-}
-/* === END EXPERIMENT: NEUTRALIZE COMPOSITOR-HEAVY CSS EFFECTS === */
-
-/* =====================================================================
-   EXPERIMENT: NEUTRALIZE CSS PAINT/COMPOSITING CONTAINMENT (temporary)
-   ---------------------------------------------------------------------
-   Diagnostic-only global override to test whether Android Chromium
-   (Oppo F9) rendering corruption is caused by containment/isolation.
-   Neutralizes ONLY: contain, content-visibility, contain-intrinsic-size,
-   isolation — globally, including any inline styles and Tailwind
-   utilities (CSS !important overrides non-important inline styles).
-   Everything else (JS, rAF, observers, animations, CSS effects,
-   virtualization, layout, transforms) is untouched.
-   ROLLBACK: delete this entire block (from this comment to the end-of-
-   block marker below).
-   ===================================================================== */
-* {
-  contain: none !important;
-  content-visibility: visible !important;
-  contain-intrinsic-size: auto !important;
-  isolation: auto !important;
-}
-/* === END EXPERIMENT: NEUTRALIZE CSS PAINT/COMPOSITING CONTAINMENT === */
-
-/* =====================================================================
-   EXPERIMENT: FLATTEN TO A SINGLE COMPOSITED LAYER (temporary)
-   ---------------------------------------------------------------------
-   Diagnostic-only. Tests whether Chromium HARDWARE-OVERLAY / compositor
-   layer promotion (not GPU tile rasterization) is responsible for the
-   Mali-G72 (Oppo F9) corruption. Only on data-gpu-unsafe="true" devices,
-   the entire app subtree is forced into ONE composited backing texture
-   via an imperceptible opacity, which disqualifies per-element hardware-
-   overlay planes and collapses the persistent fixed nav overlays into the
-   root layer. `opacity` does NOT establish a containing block for
-   position:fixed descendants, so the fixed navs stay pinned and the
-   visual layout is unchanged. No transforms, animations, DOM, images,
-   src/srcset, or effects are altered.
-   ROLLBACK: delete this entire block (from this comment to the end-of-
-   block marker below).
-   ===================================================================== */
-html[data-gpu-unsafe="true"] #root {
-  opacity: 0.999;
-}
-/* === END EXPERIMENT: FLATTEN TO A SINGLE COMPOSITED LAYER === */
