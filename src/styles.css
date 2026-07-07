@@ -2556,6 +2556,30 @@ html[data-chromium149-roundedclip-workaround="true"] [data-product-card] {
   overflow: visible;
 }
 
+/* ISOLATED EXPERIMENT — inner product-media rounded-clip trigger.
+   The outer [data-product-card] clip above was already lowered, but the INNER
+   [data-product-media] wrapper (shared by ProductCard/AdaptiveProductMedia AND
+   WishlistCard via the [data-product-media] marker) still uses
+   `border-radius + overflow:hidden`, which is the SAME Chromium 149/150
+   fast-rounded-corner MaskFilterInfo path that corrupts adjacent GPU raster
+   tiles in repeated card lists (Home Trending, Cart, Saved, Account).
+
+   Fix: drop ONLY the media wrapper's rounded *overflow* clip (the mask-filter
+   trigger) and round the image itself via border-radius:inherit instead —
+   replaced <img> elements clip their own content to border-radius natively, so
+   the corners stay visually rounded without a composited rounded-corner mask.
+   Gated to the affected-browser attribute already set in src/routes/__root.tsx,
+   scoped to product media only — no shell/nav/hero/category/global changes.
+   Rollback: delete this block. */
+html[data-chromium149-roundedclip-workaround="true"] [data-product-media] {
+  overflow: visible;
+}
+html[data-chromium149-roundedclip-workaround="true"] [data-product-media] [data-product-image] {
+  border-radius: inherit;
+}
+
+
+
 html[data-ultra-low-end="true"] [data-product-card],
 html[data-ultra-low-end="true"] [data-product-card-frame],
 html[data-ultra-low-end="true"] [data-product-media],
