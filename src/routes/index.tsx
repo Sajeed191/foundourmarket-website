@@ -561,6 +561,7 @@ function Home() {
 
       {/* 2 · Premium rotating product showcase hero */}
       <section
+        data-gpu-experiment="hero"
         className="relative z-30 px-3 sm:px-6 lg:px-10 pb-3 sm:pb-5"
         style={{
           background: "var(--gradient-hero)",
