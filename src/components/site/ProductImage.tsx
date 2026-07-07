@@ -130,9 +130,9 @@ function ProductImageImpl({
       alt={alt}
       width={width}
       height={height}
-      loading={gpuUnsafe || priority || disableLazyLoading ? "eager" : "lazy"}
-      fetchPriority={gpuUnsafe || priority ? "high" : "low"}
-      decoding={gpuUnsafe ? "sync" : disableAsyncDecoding ? "sync" : "async"}
+      loading={priority || disableLazyLoading ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : gpuUnsafe ? "low" : "low"}
+      decoding={disableAsyncDecoding ? "sync" : "async"}
       data-product-image
       suppressHydrationWarning
       style={style}
