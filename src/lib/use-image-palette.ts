@@ -5,6 +5,7 @@ import {
   FALLBACK_PALETTE,
   type ImagePalette,
 } from "@/lib/image-palette";
+import { isGpuUnsafe } from "@/lib/gpu-compat";
 
 /**
  * Returns the adaptive palette for a product image. Reads from the synchronous
