@@ -286,21 +286,6 @@ export function Nav() {
 
   return (
     <>
-      {/* TEMPORARY EXPERIMENT — neutralize ONLY the header's compositor hints
-          while keeping the rAF loop, scroll state machine, logic and DOM intact.
-          Scoped strictly to the header subtree. Rollback: delete this <style>. */}
-      <style>{`
-        [data-app-header],
-        [data-app-header] * {
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-          will-change: auto !important;
-          transform: none !important;
-          transition: none !important;
-          animation: none !important;
-          filter: none !important;
-        }
-      `}</style>
       <div
         ref={topNavRef}
         data-app-header
@@ -325,8 +310,6 @@ export function Nav() {
           backfaceVisibility: "visible",
           contain: "none",
           perspective: "none",
-          // gpu-unsafe: leave the fixed-overlay layer entirely — normal flow.
-          ...(gpuUnsafe ? { position: "static" as const, zIndex: "auto" } : null),
         }}
         className="fixed inset-x-0 top-0 z-[99999] px-[max(0.75rem,var(--mobile-safe-left))] sm:px-4 pt-[calc(var(--mobile-safe-top)+0.4rem)] sm:pt-[calc(var(--mobile-safe-top)+0.6rem)]"
       >
