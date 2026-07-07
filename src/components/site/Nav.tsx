@@ -476,8 +476,7 @@ export function Nav() {
         style={{
           // Synced to the real pinned header height (expanded/compact) to avoid
           // any gap or overlap; calc() is only the pre-measure fallback.
-          // gpu-unsafe: the header is now in-flow, so no reserved spacer is needed.
-          height: gpuUnsafe ? 0 : headerHeight != null ? `${headerHeight}px` : "calc(var(--mobile-safe-top) + 4.75rem)",
+          height: headerHeight != null ? `${headerHeight}px` : "calc(var(--mobile-safe-top) + 4.75rem)",
           // Reserved header space carries the page background so it stays
           // continuous with the content below — no darker/blank band on refresh.
           background: "var(--background)",
