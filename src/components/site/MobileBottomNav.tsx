@@ -304,22 +304,53 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <nav
-      data-app-bottom-nav
-      data-phase={navState}
-      data-ready={ready ? "" : undefined}
-      aria-label="Primary mobile navigation"
-      style={{
-        background: "transparent",
-        opacity: ready ? 1 : 0,
-        transform: ready ? "translateY(0)" : "translateY(16px)",
-        visibility: ready ? "visible" : "hidden",
-        transition:
-          "opacity 200ms cubic-bezier(0.2,0.8,0.2,1), transform 200ms cubic-bezier(0.2,0.8,0.2,1)",
+    <>
+      {gpuUnsafe && (
+        // Scoped hard-strip: removes EVERY compositor-layer hint from the dock
+        // subtree (transform / will-change / animation / transition) so nothing
+        // in this component can promote a persistent GPU layer. gpu-unsafe only.
+        <style>{`
+          [data-app-bottom-nav][data-gpu-flat],
+          [data-app-bottom-nav][data-gpu-flat] * {
+            transform: none !important;
+            will-change: auto !important;
+            transition: none !important;
+            animation: none !important;
+            backface-visibility: visible !important;
+          }
+        `}</style>
+      )}
+      <nav
+        data-app-bottom-nav
+        data-gpu-flat={gpuUnsafe ? "" : undefined}
+        data-phase={navState}
+        data-ready={ready ? "" : undefined}
+        aria-label="Primary mobile navigation"
+        style={
+          gpuUnsafe
+            ? {
+                background: "transparent",
+                opacity: 1,
+                transform: "none",
+                visibility: "visible",
+                transition: "none",
+              }
+            : {
+                background: "transparent",
+                opacity: ready ? 1 : 0,
+                transform: ready ? "translateY(0)" : "translateY(16px)",
+                visibility: ready ? "visible" : "hidden",
+                transition:
+                  "opacity 200ms cubic-bezier(0.2,0.8,0.2,1), transform 200ms cubic-bezier(0.2,0.8,0.2,1)",
+              }
+        }
+        className={
+          gpuUnsafe
+            ? "md:hidden static inset-x-0 z-[var(--z-bottom-nav)] px-[max(0.875rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)]"
+            : "md:hidden fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] px-[max(0.875rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
+        }
+      >
 
-      }}
-      className="md:hidden fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] px-[max(0.875rem,var(--mobile-safe-left))] pb-[calc(var(--mobile-safe-bottom)+var(--mobile-nav-edge-gap))] pt-[var(--mobile-nav-top-gap)] pointer-events-none"
-    >
 
       <ul
         data-compact={compact ? "" : undefined}
