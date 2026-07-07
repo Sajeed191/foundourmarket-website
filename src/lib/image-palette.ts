@@ -119,9 +119,12 @@ function extractEdgeColor(data: Uint8ClampedArray, size: number): RGB {
  * read (CORS), or extraction otherwise fails. Never throws.
  */
 export function getImagePalette(src: string): Promise<ImagePalette> {
-  // EXPERIMENT: palette extraction disabled — no canvas readback. Always return fallback.
-  return Promise.resolve(FALLBACK_PALETTE);
-  /* ORIGINAL BODY (restore for rollback):
+  // GPU compatibility: skip palette extraction on GPU-unsafe devices. This
+  // second decode + 32px canvas getImageData() forces a per-image GPU→CPU
+  // texture readback that adds to Mali texture-memory pressure. Fallback keeps
+  // rendering identical (neutral background). All other devices extract normally.
+  if (isGpuUnsafe()) return Promise.resolve(FALLBACK_PALETTE);
+
   if (cache.has(src)) return Promise.resolve(cache.get(src)!);
   if (inflight.has(src)) return inflight.get(src)!;
   if (typeof window === "undefined" || typeof document === "undefined") {
@@ -163,7 +166,6 @@ export function getImagePalette(src: string): Promise<ImagePalette> {
 
   inflight.set(src, promise);
   return promise;
-  */
 }
 
 /**
