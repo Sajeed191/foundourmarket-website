@@ -3000,25 +3000,48 @@ html[data-graphics-compat="true"] [data-app-bottom-nav] .nav-glass[aria-hidden="
   transform: translateY(140%) !important;
 }
 
-/* ------------------------------------------------------------------
-   GPU-UNSAFE: square product cards (no rounded clipping).
+/* ══════════════════════════════════════════════════════════════════════
+   HOMEPAGE-SCOPED COMPOSITOR TEST — data-gpu-unsafe="true" ONLY
+   ──────────────────────────────────────────────────────────────────────
+   Single isolated experiment. On gpu-unsafe devices we neutralise every
+   compositor-heavy rendering feature ONLY inside the homepage hero, the
+   category sections (Browse / Main Categories), the floating 24/7 support
+   widget, and their decorative hero backgrounds / glow-orb layers.
 
-   On gpu-unsafe devices only, rounded corners on product cards force
-   the compositor to allocate a mask/clip buffer per card. Under scroll
-   on the affected Chromium/Mali combos this clip masking is a proven
-   corruption source. We flatten ONLY the product card shell, its media
-   containers and the product image to plain square rectangles and drop
-   the overflow:hidden that existed purely for rounded clipping.
+   These are the only sections tagged with [data-gpu-experiment] (hero +
+   categories) plus the support orb [data-floating-control]. Everything else
+   — product cards, product images, product grid, navigation, footer, search,
+   buttons and typography — is completely untouched, so the original design is
+   fully preserved and only these decorative homepage layers are flattened.
 
-   Scope is limited to product-card elements — badges, buttons, chips,
-   navigation, images, transforms and animations are untouched.
-   ------------------------------------------------------------------ */
-html[data-gpu-unsafe="true"] [data-product-card],
-html[data-gpu-unsafe="true"] [data-product-media],
-html[data-gpu-unsafe="true"] [data-product-media] img {
-  border-radius: 0 !important;
-}
-html[data-gpu-unsafe="true"] [data-product-card],
-html[data-gpu-unsafe="true"] [data-product-media] {
-  overflow: visible !important;
+   Rollback: delete this whole block and remove the two [data-gpu-experiment]
+   attributes in src/routes/index.tsx. */
+html[data-gpu-unsafe="true"] [data-gpu-experiment],
+html[data-gpu-unsafe="true"] [data-gpu-experiment] *,
+html[data-gpu-unsafe="true"] [data-gpu-experiment]::before,
+html[data-gpu-unsafe="true"] [data-gpu-experiment]::after,
+html[data-gpu-unsafe="true"] [data-floating-control],
+html[data-gpu-unsafe="true"] [data-floating-control] *,
+html[data-gpu-unsafe="true"] [data-floating-control]::before,
+html[data-gpu-unsafe="true"] [data-floating-control]::after {
+  transform: none !important;
+  translate: none !important;
+  rotate: none !important;
+  scale: none !important;
+  perspective: none !important;
+  will-change: auto !important;
+  transition: none !important;
+  animation: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  mask-composite: initial !important;
+  clip-path: none !important;
+  contain: none !important;
+  content-visibility: visible !important;
+  isolation: auto !important;
+  backface-visibility: visible !important;
 }
