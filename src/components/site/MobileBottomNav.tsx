@@ -465,5 +465,6 @@ export function MobileBottomNav() {
         })}
       </ul>
     </nav>
+    </>
   );
 }
