@@ -2904,55 +2904,90 @@ html[data-gpu-unsafe="true"] [data-uniform-card] [data-uniform-glow] {
   filter: blur(64px) !important;
 }
 
-/* ======================================================
-   GRAPHICS COMPATIBILITY MODE
-   Optional, user-controlled rendering fallback. Driven ONLY by the
-   html[data-graphics-compat="true"] attribute (set from
-   src/lib/graphics-compat.ts). No component-level branching.
+/* =====================================================================
+   GPU COMPATIBILITY MODE (production)
+   ---------------------------------------------------------------------
+   One feature, two triggers, identical behaviour:
+     • html[data-gpu-unsafe="true"]     — set automatically by the WebGL
+       renderer gate in src/routes/__root.tsx for the small number of
+       devices whose Chromium GPU-rasterization path corrupts compositor
+       tiles (Mali / PowerVR / VideoCore / Vivante / software renderers /
+       very old engines). The on-screen banner (GpuCompatBanner) explains it.
+     • html[data-graphics-compat="true"] — set when the user manually turns
+       on Compatibility Mode in Settings.
 
-   Intentionally EMPTY for now — clean infrastructure only. Add any
-   compatibility overrides below, scoped to the selector.
+   This section ONLY reduces GPU / compositor pressure. Rounded corners,
+   layout, navigation (top + bottom), product cards, hero, categories and
+   typography are all preserved, so the site looks almost identical.
+   Remove once Chromium <=150 support is no longer relevant.
+   ===================================================================== */
 
-   Remove this entire section once the Chromium rendering issue is no
-   longer relevant.
-   ====================================================== */
-
-html[data-graphics-compat="true"] [data-product-card] {
-  overflow: visible !important;
+/* 1 · Drop purely-decorative floating layers (orbs, glow blobs, parallax). */
+html[data-gpu-unsafe="true"] .orb,
+html[data-gpu-unsafe="true"] [data-decorative],
+html[data-gpu-unsafe="true"] [data-parallax],
+html[data-graphics-compat="true"] .orb,
+html[data-graphics-compat="true"] [data-decorative],
+html[data-graphics-compat="true"] [data-parallax] {
+  display: none !important;
 }
 
-/* ------------------------------------------------------------------
-   Bottom-navigation compositor workaround (device-specific corruption).
-
-   Root cause (proven by isolation experiments): a continuously
-   evaluated scroll-synchronized requestAnimationFrame combined with a
-   GPU-promoted fixed bottom-navigation layer (transform-gpu +
-   will-change + transform/opacity transitions + the breathing glow
-   animation) corrupts compositing over a complex scrolling page on some
-   Chromium/GPU combinations (e.g. Oppo F9).
-
-   When Compatibility Mode is ON we neutralise ONLY the bottom nav's
-   compositing hints and animations — the rAF loop, state machine,
-   scroll logic and DOM are untouched, and every other device keeps the
-   full premium experience. The 2D translateY positions are re-declared
-   so the show/compact/hidden states still work WITHOUT forcing a
-   composited layer (no translateZ, no will-change).
-   ------------------------------------------------------------------ */
-html[data-graphics-compat="true"] [data-app-bottom-nav],
-html[data-graphics-compat="true"] [data-app-bottom-nav] * {
-  transition: none !important;
+/* 2 · Stop continuous glow / ambient / breathing animations (constant repaint). */
+html[data-gpu-unsafe="true"] .animate-glow,
+html[data-gpu-unsafe="true"] .animate-glow-breathe,
+html[data-gpu-unsafe="true"] .animate-ambient,
+html[data-gpu-unsafe="true"] .animate-energy-breathe,
+html[data-gpu-unsafe="true"] .animate-orb,
+html[data-gpu-unsafe="true"] .animate-orb-breathe,
+html[data-gpu-unsafe="true"] .animate-flame-pulse,
+html[data-graphics-compat="true"] .animate-glow,
+html[data-graphics-compat="true"] .animate-glow-breathe,
+html[data-graphics-compat="true"] .animate-ambient,
+html[data-graphics-compat="true"] .animate-energy-breathe,
+html[data-graphics-compat="true"] .animate-orb,
+html[data-graphics-compat="true"] .animate-orb-breathe,
+html[data-graphics-compat="true"] .animate-flame-pulse {
   animation: none !important;
+}
+
+/* 3 · Remove expensive blur / backdrop-blur (the biggest Mali GPU cost).
+   Keep a near-opaque surface so glass panels still read as elevated panels. */
+html[data-gpu-unsafe="true"] [class*="backdrop-blur"],
+html[data-gpu-unsafe="true"] .glass,
+html[data-gpu-unsafe="true"] .glass-strong,
+html[data-graphics-compat="true"] [class*="backdrop-blur"],
+html[data-graphics-compat="true"] .glass,
+html[data-graphics-compat="true"] .glass-strong {
+  backdrop-filter: initial !important;
+  -webkit-backdrop-filter: initial !important;
+  background-color: color-mix(in srgb, var(--color-background) 90%, black) !important;
+}
+
+/* 4 · Neutralise decorative blur() filter layers (soft glow behind cards). */
+html[data-gpu-unsafe="true"] [aria-hidden="true"][class*="blur-"],
+html[data-graphics-compat="true"] [aria-hidden="true"][class*="blur-"] {
+  filter: none !important;
+}
+
+/* 5 · Reduce shadow blur radius on major surfaces (smaller composited shadow). */
+html[data-gpu-unsafe="true"] .card-premium,
+html[data-gpu-unsafe="true"] .card-elevated,
+html[data-gpu-unsafe="true"] [data-product-card],
+html[data-graphics-compat="true"] .card-premium,
+html[data-graphics-compat="true"] .card-elevated,
+html[data-graphics-compat="true"] [data-product-card] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* 6 · Shorter durations + no will-change churn = fewer composited frames. */
+html[data-gpu-unsafe="true"] *,
+html[data-gpu-unsafe="true"] *::before,
+html[data-gpu-unsafe="true"] *::after,
+html[data-graphics-compat="true"] *,
+html[data-graphics-compat="true"] *::before,
+html[data-graphics-compat="true"] *::after {
+  animation-duration: 0.6s !important;
+  transition-duration: 0.2s !important;
   will-change: auto !important;
 }
 
-/* Re-declare the dock surface positions as plain 2D transforms so the
-   nav stays fully functional but is no longer GPU-promoted. */
-html[data-graphics-compat="true"] [data-app-bottom-nav] .nav-glass {
-  transform: translateY(0) !important;
-}
-html[data-graphics-compat="true"] [data-app-bottom-nav] .nav-glass[data-compact] {
-  transform: translateY(0.125rem) !important;
-}
-html[data-graphics-compat="true"] [data-app-bottom-nav] .nav-glass[aria-hidden="true"] {
-  transform: translateY(140%) !important;
-}
