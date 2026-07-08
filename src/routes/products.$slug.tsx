@@ -696,9 +696,6 @@ function ProductPage() {
                   {originalPrice && originalPrice > effectivePrice && (
                     <span className="fom-price-compare text-base font-mono">{format(originalPrice)}</span>
                   )}
-                  {discountPct && (
-                    <DiscountBadge percent={discountPct} />
-                  )}
                 </div>
                 {originalPrice && originalPrice > effectivePrice && (
                   <div className="mt-2 flex flex-wrap items-center gap-2">
