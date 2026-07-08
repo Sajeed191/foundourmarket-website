@@ -15,10 +15,6 @@ export function DiscountBadge({
   percent: number;
   className?: string;
 }) {
-  if (!percent || percent <= 0) return null;
-  return (
-    <span data-product-text className={cn("fom-discount-badge", className)}>
-      {percent}% OFF
-    </span>
-  );
+  // Product percentage badges removed sitewide per design decision.
+  return null;
 }
