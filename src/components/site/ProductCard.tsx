@@ -253,9 +253,12 @@ function BuyNowButtonImpl({ product }: { product: Product }) {
     );
   }
 
-  // Quantity stepper — shown once the item is in the cart and the success
-  // flash has finished. Reflects the real cart quantity.
-  if (qty > 0 && !added) {
+  // Quantity stepper — shown ONLY after the standalone "Adding…" and "✓ Added"
+  // confirmation states have finished. The cart qty updates optimistically
+  // during "Adding…", so we must also exclude adding/added here or the
+  // confirmation step would be skipped.
+  if (qty > 0 && !added && !adding) {
+
     return (
       <div
         data-product-text
