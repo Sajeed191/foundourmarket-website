@@ -127,10 +127,10 @@ export function GpuCompatBanner() {
 
   async function copyDiagnostics() {
     const text = formatDiagnostics(diagnostics ?? collectCompatDiagnostics());
+    let ok = false;
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
+      ok = true;
     } catch {
       // Clipboard API unavailable/blocked — fall back to a hidden textarea.
       try {
@@ -142,12 +142,13 @@ export function GpuCompatBanner() {
         ta.select();
         document.execCommand("copy");
         document.body.removeChild(ta);
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 2000);
+        ok = true;
       } catch {
         /* give up silently */
       }
     }
+    if (ok) toast.success("Diagnostics copied successfully.");
+    else toast.error("Couldn't copy diagnostics.");
   }
 
   function persistDismiss() {
