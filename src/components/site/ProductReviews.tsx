@@ -106,6 +106,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [reportFor, setReportFor] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(6);
+  const [expanded, setExpanded] = useState(false);
 
   const load = useCallback(async () => {
     const table = (isAdmin ? "product_reviews" : "product_reviews_public") as "product_reviews_public";
@@ -523,6 +524,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
           )}
 
           {/* ── Single smart action card ─────────────────────────────────── */}
+          {expanded && (
           <div className="mb-8 rounded-3xl border border-white/10 bg-card/50 backdrop-blur-xl p-5 sm:p-7 relative overflow-hidden">
             <div className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full opacity-50" style={{ background: "var(--gradient-ember-soft)" }} />
 
@@ -584,11 +586,12 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
               </div>
             )}
           </div>
+          )}
 
 
 
           {/* Trust boosters */}
-          {hasReviews && (
+          {expanded && hasReviews && (
             <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <StatCard icon={<Users className="size-4" />} value={verifiedCount.toLocaleString()} label="Verified Buyers" />
               <StatCard icon={<Star className="size-4" />} value={avg.toFixed(1)} label="Average Rating" />
@@ -598,7 +601,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
           )}
 
           {/* Review highlights */}
-          {highlights.length > 0 && (
+          {expanded && highlights.length > 0 && (
             <div className="mb-8 rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-5">
               <p className="mb-3 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Customers love</p>
               <div className="flex flex-wrap gap-2">
@@ -612,7 +615,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
           )}
 
           {/* Customer photos gallery */}
-          {galleryMedia.length > 0 && (
+          {expanded && galleryMedia.length > 0 && (
             <div className="mb-8">
               <h3 className="mb-4 text-sm font-display tracking-tight flex items-center gap-2">
                 <Camera className="size-4 text-accent" /> Customer Photos &amp; Videos
@@ -646,6 +649,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
           )}
 
           {/* Filters + sort + write CTA */}
+          {expanded && (
           <div className="mb-8 space-y-3">
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {filterChips.map((c) => (
@@ -681,6 +685,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
               </div>
             </div>
           </div>
+          )}
 
           {/* List / empty state */}
           {sorted.length === 0 ? (
@@ -689,7 +694,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
             <>
               <ul className="grid gap-5 sm:grid-cols-2">
                 <AnimatePresence>
-                  {visible.map((r) => {
+                  {(expanded ? visible : sorted.slice(0, 2)).map((r) => {
                     // Admin: resolve author by UUID. Public: use denormalized fields.
                     const prof = r.user_id ? profiles[r.user_id] : undefined;
                     const name = (prof?.full_name ?? r.author_name) || "Customer";
@@ -764,7 +769,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                             </div>
 
                             {r.title && <p className="mt-4 text-base font-display leading-snug">{r.title}</p>}
-                            {r.body && <p className="mt-2 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{r.body}</p>}
+                            {r.body && <ReviewBody text={r.body} />}
 
                             {r.media?.length > 0 && (
                               <div className="mt-4 flex flex-wrap gap-2">
@@ -881,7 +886,18 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                 </AnimatePresence>
               </ul>
 
-              {visibleCount < sorted.length && (
+              {!expanded && sorted.length > 2 && (
+                <div className="mt-6 grid place-items-center">
+                  <button
+                    onClick={() => setExpanded(true)}
+                    className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/[0.08] px-6 py-3 text-[11px] font-mono uppercase tracking-widest text-accent transition-all hover:border-accent/50 hover:bg-accent/[0.12]"
+                  >
+                    View all reviews ({sorted.length}) <ChevronRight className="size-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {expanded && visibleCount < sorted.length && (
                 <div className="mt-8 grid place-items-center">
                   <button
                     onClick={() => setVisibleCount((c) => c + 6)}
@@ -934,6 +950,26 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 }
 
 /* ---------- Sub components ---------- */
+
+function ReviewBody({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const isLong = text.length > 180 || text.split("\n").length > 3;
+  return (
+    <div className="mt-2">
+      <p className={cn("text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap", !open && isLong && "line-clamp-3")}>
+        {text}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="mt-1 text-[11px] font-mono uppercase tracking-widest text-accent hover:brightness-110"
+        >
+          {open ? "Read less" : "Read more"}
+        </button>
+      )}
+    </div>
+  );
+}
 
 function SmartActions({
   purchase, primary, onBuyAgain, buyingAgain, onAsk, onSave, isSaved,
