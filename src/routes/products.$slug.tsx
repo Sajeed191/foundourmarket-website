@@ -655,7 +655,7 @@ function ProductPage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="mb-4"
+                className="mb-3"
               >
                 <div className="flex items-baseline gap-3 sm:gap-4 flex-wrap">
                   <span className="text-4xl sm:text-5xl font-display font-semibold tracking-tight text-gradient-ember tabular-nums">{format(effectivePrice)}</span>
