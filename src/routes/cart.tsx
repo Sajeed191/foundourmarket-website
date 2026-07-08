@@ -412,7 +412,7 @@ function CartPage() {
           >
             <div className="flex-1 min-w-0 leading-none">
               <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/80">Total · {count} {count === 1 ? "item" : "items"}</p>
-              <motion.p key={total} initial={{ scale: 1.06 }} animate={{ scale: 1 }} className="font-mono text-[15px] text-accent leading-tight truncate mt-0.5">{format(total)}</motion.p>
+              <motion.p key={total} initial={{ scale: 1.06 }} animate={{ scale: 1 }} className="fom-price-current font-mono text-[16px] leading-tight truncate mt-0.5">{format(total)}</motion.p>
             </div>
             <Link to="/checkout" className="shrink-0 bg-accent text-accent-foreground font-bold px-5 py-2.5 rounded-xl text-[11px] uppercase tracking-widest inline-flex items-center gap-2 whitespace-nowrap transition-all active:scale-95 shadow-[0_0_20px_hsl(var(--accent)/0.5)]">
               <Lock className="size-3.5" /> Checkout
