@@ -613,7 +613,17 @@ function ProductPage() {
             transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent/90 mb-1.5 mt-4 lg:mt-0">{product.tagline}</p>
-            <h1 className="text-[1.35rem] sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-2.5 text-balance leading-[1.22] sm:leading-[1.12]">{product.name}</h1>
+            <h1 className={`text-[1.35rem] sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-1 text-balance leading-[1.22] sm:leading-[1.12] ${titleExpanded ? "" : "line-clamp-3"}`}>{product.name}</h1>
+            {product.name.length > 70 && (
+              <button
+                onClick={() => setTitleExpanded((v) => !v)}
+                className="mb-2.5 text-[11px] font-mono uppercase tracking-widest text-accent hover:underline"
+                aria-expanded={titleExpanded}
+              >
+                {titleExpanded ? "Read less" : "Read more"}
+              </button>
+            )}
+
 
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <StarRating
