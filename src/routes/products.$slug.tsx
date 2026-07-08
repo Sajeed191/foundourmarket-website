@@ -221,6 +221,12 @@ function ProductPage() {
   // True once images + variants have resolved from the server.
   const [dataReady, setDataReady] = useState(false);
   const [mobileDockVisible, setMobileDockVisible] = useState(false);
+  // True while the auto-hide Bottom Navigation is in its hidden phase. Used to
+  // slide the sticky purchase dock flush to the screen bottom (no empty gap).
+  const [navHidden, setNavHidden] = useState(false);
+  // The inline purchase card — the sticky dock is the exact inverse of this
+  // element's viewport visibility (only one purchase section shows at a time).
+  const inlinePurchaseRef = useRef<HTMLDivElement>(null);
   const [titleExpanded, setTitleExpanded] = useState(false);
   const [showAllBadges, setShowAllBadges] = useState(false);
   // Single-open accordion group for the detail sections below the fold.
@@ -311,39 +317,48 @@ function ProductPage() {
   }, [product?.slug]);
 
   useEffect(() => {
-    // Smart reveal: hide at the very top, reveal once the user scrolls past
-    // the hero area (~200px), and keep it visible while they explore details,
-    // reviews and FAQ. Scrolling up never hides it — only returning to the top.
-    const REVEAL_AT = 200; // px scrolled down from top
-    const HIDE_AT = 80;    // px — treated as "very top of page"
-    let ticking = false;
+    // Intelligent dual-action visibility: the sticky bottom purchase dock is the
+    // exact inverse of the inline purchase card's viewport presence. While the
+    // inline card is even partially visible we keep the sticky dock hidden; only
+    // once the inline card is 100% out of view does the sticky dock fade/slide
+    // in. Uses a single IntersectionObserver — no continuous scroll math.
+    const el = inlinePurchaseRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      // No observer support → fall back to always showing the sticky dock so a
+      // purchase action is never unavailable.
+      setMobileDockVisible(false);
+      return;
+    }
 
-    const evaluate = () => {
-      ticking = false;
-      const y = window.scrollY || document.documentElement.scrollTop || 0;
-      setMobileDockVisible((prev) => {
-        if (y <= HIDE_AT) return false;
-        if (y >= REVEAL_AT) return true;
-        return prev; // hysteresis zone — keep current state, no flicker
-      });
-    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        // Show the sticky dock only when the inline card is fully off-screen.
+        setMobileDockVisible(!entry.isIntersecting);
+      },
+      { threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [product?.slug, dataReady]);
 
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(evaluate);
-    };
+  useEffect(() => {
+    // Track the auto-hide Bottom Navigation's phase via a cheap attribute
+    // observer (fires only on state change — no scroll listeners here). When the
+    // nav hides, the sticky dock slides flush to the bottom; when it returns the
+    // dock lifts back above it with a small safe gap.
+    if (typeof MutationObserver === "undefined") return;
+    const nav = document.querySelector("[data-app-bottom-nav]");
+    if (!nav) return;
 
-    evaluate();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    window.visualViewport?.addEventListener("resize", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      window.visualViewport?.removeEventListener("resize", onScroll);
-    };
+    const sync = () => setNavHidden(nav.getAttribute("data-phase") === "hidden");
+    sync();
+    const mo = new MutationObserver(sync);
+    mo.observe(nav, { attributes: true, attributeFilter: ["data-phase"] });
+    return () => mo.disconnect();
   }, [product?.slug]);
+
+
 
   if (loading) {
     return <ProductPageSkeleton />;
@@ -810,7 +825,7 @@ function ProductPage() {
                 Compact glass card: wishlist/share on top, CTA row below (Add to
                 Cart morphs into a quantity selector after a successful add),
                 trust strip at the base. GPU-friendly (no backdrop blur). */}
-            <div className="mb-4 rounded-[20px] border border-white/10 bg-card/60 p-3 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.6)] sm:p-3.5">
+            <div ref={inlinePurchaseRef} className="mb-4 rounded-[20px] border border-white/10 bg-card/60 p-3 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.6)] sm:p-3.5">
               {/* Row 1 — wishlist + share */}
               <div className="flex items-center justify-end gap-2">
                 <button
@@ -1083,7 +1098,7 @@ function ProductPage() {
       {/* Sticky mobile purchase dock — only mounts once the page is fully
           initialized and the user has scrolled past the hero. */}
       {showPurchaseDock && (
-      <div ref={layoutMetrics.setCtaElement} data-app-cta data-product-cta data-floating-control className="sm:hidden fixed inset-x-0 z-[var(--z-floating-controls)] h-[var(--product-dock-height)] px-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300" style={{ bottom: "var(--product-dock-bottom)" }}>
+      <div ref={layoutMetrics.setCtaElement} data-app-cta data-product-cta data-floating-control className="sm:hidden fixed inset-x-0 z-[var(--z-floating-controls)] h-[var(--product-dock-height)] px-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300 transition-[bottom] ease-out will-change-transform" style={{ bottom: navHidden ? "calc(var(--mobile-safe-bottom) + var(--product-dock-gap))" : "var(--product-dock-bottom)", transitionDuration: "220ms" }}>
         <div className="flex h-full items-center gap-2.5 rounded-[24px] border border-white/10 px-3" style={{ background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))", backdropFilter: "blur(32px) saturate(160%)", WebkitBackdropFilter: "blur(32px) saturate(160%)", boxShadow: "0 24px 60px -18px oklch(0 0 0 / 0.9)" }}>
           <button
             onClick={() => toggleWishlist(product.slug)}
