@@ -951,6 +951,26 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
 /* ---------- Sub components ---------- */
 
+function ReviewBody({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const isLong = text.length > 180 || text.split("\n").length > 3;
+  return (
+    <div className="mt-2">
+      <p className={cn("text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap", !open && isLong && "line-clamp-3")}>
+        {text}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="mt-1 text-[11px] font-mono uppercase tracking-widest text-accent hover:brightness-110"
+        >
+          {open ? "Read less" : "Read more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function SmartActions({
   purchase, primary, onBuyAgain, buyingAgain, onAsk, onSave, isSaved,
 }: {
