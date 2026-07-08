@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,23 +9,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useGpuUnsafe } from "@/lib/gpu-compat";
-import { X } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
 
 const DISMISS_KEY = "fom-compat-banner-dismissed";
 
 /**
  * Compatibility Mode notice — shown ONCE on gpu-unsafe devices only.
  *
- * The WebGL boot gate (src/routes/__root.tsx) flags a very small number of
- * devices with a known Chromium GPU-rasterization issue and enables
- * Compatibility Mode (GPU-pressure reductions in src/styles.css). This banner
- * tells the user why, offers to continue, and links a "Learn More" dialog with
- * the full explanation. Dismissal is remembered in localStorage.
+ * UI/UX ONLY. Detection (useGpuUnsafe) and Compatibility Mode logic are
+ * untouched. This is a compact bottom sheet on mobile that never covers the
+ * bottom navigation or floating support buttons, and a small bottom-right toast
+ * on tablet/desktop. Swipe down or tap X to dismiss (remembered in localStorage);
+ * Learn More opens the existing dialog.
  */
 export function GpuCompatBanner() {
   const gpuUnsafe = useGpuUnsafe();
   const [visible, setVisible] = useState(false);
+  const [entered, setEntered] = useState(false);
   const [learnMore, setLearnMore] = useState(false);
+
+  // Swipe-to-dismiss tracking
+  const dragStartY = useRef<number | null>(null);
+  const [dragY, setDragY] = useState(0);
 
   useEffect(() => {
     if (!gpuUnsafe) return;
@@ -35,45 +40,87 @@ export function GpuCompatBanner() {
       /* storage disabled — still show this session */
     }
     setVisible(true);
+    // Trigger enter animation on next frame.
+    const id = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(id);
   }, [gpuUnsafe]);
 
   function dismiss() {
-    setVisible(false);
+    setEntered(false);
     try {
       localStorage.setItem(DISMISS_KEY, "1");
     } catch {
       /* ignore */
     }
+    // Let the 180ms out-animation play before unmounting.
+    window.setTimeout(() => setVisible(false), 180);
+  }
+
+  function onPointerDown(e: React.PointerEvent) {
+    dragStartY.current = e.clientY;
+  }
+  function onPointerMove(e: React.PointerEvent) {
+    if (dragStartY.current === null) return;
+    const delta = e.clientY - dragStartY.current;
+    if (delta > 0) setDragY(delta);
+  }
+  function onPointerUp() {
+    if (dragStartY.current === null) return;
+    if (dragY > 40) {
+      dismiss();
+    } else {
+      setDragY(0);
+    }
+    dragStartY.current = null;
   }
 
   if (!gpuUnsafe || !visible) return null;
+
+  const translateY = entered ? dragY : 8;
 
   return (
     <>
       <div
         role="status"
-        className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-md rounded-2xl border border-border/60 bg-card/95 p-4 shadow-lg backdrop-blur-none sm:inset-x-auto sm:right-4 sm:bottom-4"
+        aria-live="polite"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className="gpu-compat-banner"
+        style={{
+          opacity: entered ? 1 : 0,
+          transform: `translateY(${translateY}px)`,
+          transition: dragStartY.current !== null ? "none" : "opacity 180ms ease-out, transform 180ms ease-out",
+        }}
       >
-        <button
-          type="button"
-          onClick={dismiss}
-          aria-label="Dismiss"
-          className="absolute right-2 top-2 rounded-full p-1 text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <p className="pr-6 text-sm leading-relaxed text-foreground">
-          Your browser has a known graphics compatibility issue on this device.
-          We&apos;ve enabled Compatibility Mode to improve stability. Updating to
-          a newer Chromium-based browser may completely resolve the issue.
-        </p>
-        <div className="mt-3 flex items-center gap-2">
-          <Button size="sm" onClick={dismiss}>
-            Continue
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => setLearnMore(true)}>
+        <span className="gpu-compat-banner__icon" aria-hidden="true">
+          <AlertTriangle className="h-4 w-4" />
+        </span>
+
+        <div className="gpu-compat-banner__text">
+          <p className="gpu-compat-banner__title">Graphics Compatibility Mode</p>
+          <p className="gpu-compat-banner__desc">
+            Some graphics effects have been reduced for better stability.
+          </p>
+        </div>
+
+        <div className="gpu-compat-banner__actions">
+          <button
+            type="button"
+            onClick={() => setLearnMore(true)}
+            className="gpu-compat-banner__learn"
+          >
             Learn More
-          </Button>
+          </button>
+          <button
+            type="button"
+            onClick={dismiss}
+            aria-label="Dismiss"
+            className="gpu-compat-banner__close"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
