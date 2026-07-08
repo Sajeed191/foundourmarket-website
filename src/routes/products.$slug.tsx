@@ -3,7 +3,7 @@ import {
   Heart, Truck, Shield, RotateCcw, Minus, Plus, Scale,
   ChevronDown, Share2, Sparkles, Package, Clock, CheckCircle2, Users, ShoppingBag as ShoppingBagIcon, Play, Layers, Info,
 } from "lucide-react";
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
@@ -207,6 +207,7 @@ function ProductPage() {
   const [images, setImages] = useState<ProductImage[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [activeImg, setActiveImg] = useState(0);
+  const thumbStripRef = useRef<HTMLDivElement>(null);
   const [variantId, setVariantId] = useState<string | null>(null);
   const [fbtSlugs, setFbtSlugs] = useState<string[]>([]);
   const [alsoViewed, setAlsoViewed] = useState<string[]>([]);
@@ -363,6 +364,13 @@ function ProductPage() {
   })();
   const galleryImages = galleryMedia.filter((m) => m.id !== "video");
   const activeMedia = galleryMedia[activeImg] ?? galleryMedia[0];
+
+  // Keep the selected thumbnail fully visible within the scroll strip.
+  useEffect(() => {
+    const el = thumbStripRef.current?.querySelector<HTMLElement>(`[data-thumb-index="${activeImg}"]`);
+    el?.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+  }, [activeImg]);
+
   const hasVideoFirst = galleryMedia[0]?.id === "video";
   const lightboxIndex = hasVideoFirst ? Math.max(0, activeImg - 1) : activeImg;
   const handleLightboxIndexChange = (i: number) => setActiveImg(hasVideoFirst ? i + 1 : i);
@@ -597,14 +605,19 @@ function ProductPage() {
 
 
             {galleryMedia.length > 1 && (
-              <div className="mt-2.5 flex gap-2.5 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x" style={{ scrollbarWidth: "none" }}>
+              <div
+                ref={thumbStripRef}
+                className="mt-2.5 flex gap-2.5 overflow-x-auto scrollbar-hide px-4 py-1 scroll-smooth snap-x"
+                style={{ scrollbarWidth: "none", scrollPaddingLeft: "1rem", scrollPaddingRight: "1rem" }}
+              >
                 {galleryMedia.map((item, i) => (
                   <button
                     key={item.id}
+                    data-thumb-index={i}
                     onClick={() => setActiveImg(i)}
                     aria-label={item.id === "video" ? "Play video" : `View image ${i + 1}`}
                     aria-current={i === activeImg}
-                    className={`relative size-16 sm:size-[72px] shrink-0 snap-start rounded-xl overflow-hidden border transition-all active:scale-95 bg-card ${i === activeImg ? "border-accent/70 ring-2 ring-accent/40 shadow-[0_6px_20px_-6px_oklch(0.74_0.19_49/0.55)]" : "border-white/10 opacity-55 hover:opacity-100 hover:border-accent/40"}`}
+                    className={`relative size-16 sm:size-[72px] shrink-0 snap-start rounded-2xl overflow-hidden border-2 transition-[border-color,box-shadow,opacity] active:scale-95 bg-card ${i === activeImg ? "border-accent/80 shadow-[0_6px_20px_-6px_oklch(0.74_0.19_49/0.6)]" : "border-white/10 opacity-55 hover:opacity-100 hover:border-accent/40"}`}
                   >
                     {item.id === "video" ? (
                       <div className="w-full h-full bg-black grid place-items-center">
@@ -617,6 +630,7 @@ function ProductPage() {
                 ))}
               </div>
             )}
+
 
 
 
