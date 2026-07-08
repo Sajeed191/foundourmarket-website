@@ -116,7 +116,6 @@ export function GpuCompatBanner() {
   useEffect(() => {
     if (advancedOpen) {
       setDiagnostics(collectCompatDiagnostics());
-      setCopied(false);
     }
   }, [advancedOpen]);
 
