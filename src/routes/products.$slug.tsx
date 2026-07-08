@@ -221,6 +221,12 @@ function ProductPage() {
   // True once images + variants have resolved from the server.
   const [dataReady, setDataReady] = useState(false);
   const [mobileDockVisible, setMobileDockVisible] = useState(false);
+  // True while the auto-hide Bottom Navigation is in its hidden phase. Used to
+  // slide the sticky purchase dock flush to the screen bottom (no empty gap).
+  const [navHidden, setNavHidden] = useState(false);
+  // The inline purchase card — the sticky dock is the exact inverse of this
+  // element's viewport visibility (only one purchase section shows at a time).
+  const inlinePurchaseRef = useRef<HTMLDivElement>(null);
   const [titleExpanded, setTitleExpanded] = useState(false);
   const [showAllBadges, setShowAllBadges] = useState(false);
   // Single-open accordion group for the detail sections below the fold.
