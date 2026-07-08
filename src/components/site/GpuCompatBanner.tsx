@@ -8,8 +8,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useGpuUnsafe } from "@/lib/gpu-compat";
-import { AlertTriangle, X } from "lucide-react";
+import {
+  collectCompatDiagnostics,
+  formatDiagnostics,
+  type CompatDiagnostics,
+} from "@/lib/compat-diagnostics";
+import { AlertTriangle, Check, Copy, X } from "lucide-react";
 
 const DISMISS_KEY = "fom-compat-banner-dismissed";
 const DISMISS_TS_KEY = "fom-compat-banner-dismissed-at";
