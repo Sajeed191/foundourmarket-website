@@ -1024,7 +1024,7 @@ function ProductPage() {
             <span className="text-[8px] font-mono uppercase tracking-widest text-muted-foreground/70">Total</span>
             {currencyReady ? (
               <span className="flex items-baseline gap-1.5">
-                <span className="text-base font-display font-semibold tabular-nums text-gradient-ember whitespace-nowrap">{format(effectivePrice * qty)}</span>
+                <span className="fom-price-current text-base font-display whitespace-nowrap">{format(effectivePrice * qty)}</span>
                 {discountPct && (
                   <span className="text-[9px] font-mono font-bold text-accent whitespace-nowrap">−{discountPct}%</span>
                 )}
