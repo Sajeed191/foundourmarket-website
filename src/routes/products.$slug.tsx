@@ -215,6 +215,10 @@ function ProductPage() {
   const [dataReady, setDataReady] = useState(false);
   const [mobileDockVisible, setMobileDockVisible] = useState(false);
   const [titleExpanded, setTitleExpanded] = useState(false);
+  // Single-open accordion group for the detail sections below the fold.
+  const [openSection, setOpenSection] = useState<string | null>("specs");
+  const toggleSection = (id: string) => setOpenSection((cur) => (cur === id ? null : id));
+
 
 
   useEffect(() => {
@@ -625,7 +629,7 @@ function ProductPage() {
             )}
 
 
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <div className="flex items-center gap-3 mb-3 flex-wrap">
               <StarRating
                 rating={product.rating}
                 count={product.reviews}
@@ -642,7 +646,8 @@ function ProductPage() {
             )}
 
             {/* subtle gradient separator */}
-            <div aria-hidden className="h-px w-full mb-4 bg-gradient-to-r from-border/0 via-border/70 to-border/0" />
+            <div aria-hidden className="h-px w-full mb-3 bg-gradient-to-r from-border/0 via-border/70 to-border/0" />
+
 
             {/* Premium animated price block */}
             {currencyReady ? (
@@ -650,7 +655,7 @@ function ProductPage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="mb-4"
+                className="mb-3"
               >
                 <div className="flex items-baseline gap-3 sm:gap-4 flex-wrap">
                   <span className="text-4xl sm:text-5xl font-display font-semibold tracking-tight text-gradient-ember tabular-nums">{format(effectivePrice)}</span>
@@ -681,7 +686,7 @@ function ProductPage() {
 
             {/* Real activity strip — only rendered when we have genuine data */}
             {socialProof && (socialProof.sold > 0 || socialProof.views > 0) && (
-              <div className="mb-5 flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-widest">
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-widest">
                 {socialProof.sold > 0 && (
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-muted-foreground/90">
                     <ShoppingBagIcon className="size-3 text-accent" /> {formatSold(socialProof.sold)} sold
@@ -703,7 +708,7 @@ function ProductPage() {
 
 
 
-            <div className="flex flex-wrap items-center gap-2 mb-5 text-[10px] font-mono uppercase tracking-widest">
+            <div className="flex flex-wrap items-center gap-2 mb-4 text-[10px] font-mono uppercase tracking-widest">
 
               {isOOS ? (
                 <span className="px-2.5 py-1 rounded-full bg-muted text-muted-foreground">Out of stock</span>
@@ -721,7 +726,8 @@ function ProductPage() {
 
             {/* Variants */}
             {variants.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-4">
+
                 <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Variant</p>
                 <div className="flex flex-wrap gap-2">
                   {variants.map((v) => {
@@ -745,7 +751,7 @@ function ProductPage() {
             )}
 
             {/* CTA (desktop) — Buy Now is the primary, attention-drawing action */}
-            <div className="hidden sm:block mb-6 space-y-2.5">
+            <div className="hidden sm:block mb-4 space-y-2.5">
               <div className="flex items-center gap-3">
                 <div className="flex items-center glass rounded-full">
                   <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease quantity" className="size-12 grid place-items-center hover:text-accent transition-colors active:scale-90">
@@ -783,7 +789,8 @@ function ProductPage() {
             </div>
 
             {/* Delivery & Trust — everything presented once, with hierarchy */}
-            <div className="mb-6 rounded-2xl border border-border bg-card/50 overflow-hidden">
+            <div className="mb-4 rounded-2xl border border-border bg-card/50 overflow-hidden">
+
               <div className="flex items-start gap-3 p-4">
                 <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent shrink-0">
                   <Truck className="size-4" />
@@ -821,12 +828,12 @@ function ProductPage() {
               </ProductInfoPanel>
             )}
 
-            <div className="mb-6">
+            <div className="mb-4">
               <ProductDescription description={product.description} />
             </div>
 
             {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <Accordion title="Specifications" icon={Layers}>
+              <Accordion title="Specifications" icon={Layers} open={openSection === "specs"} onToggle={() => toggleSection("specs")}>
                 <dl className="divide-y divide-border/60">
                   {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
                     <div key={k} className="flex gap-4 py-2.5 text-sm">
@@ -839,7 +846,7 @@ function ProductPage() {
             )}
 
             {product.attributes && Object.keys(product.attributes).length > 0 && (
-              <Accordion title="Details" icon={Info}>
+              <Accordion title="Details" icon={Info} open={openSection === "details"} onToggle={() => toggleSection("details")}>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(product.attributes as Record<string, string>).map(([k, v]) => (
                     <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 px-3 py-1 text-xs">
@@ -855,15 +862,16 @@ function ProductPage() {
 
             <div data-product-sticky-threshold aria-hidden className="h-px w-full" />
 
-            <div className="pt-6 sm:pt-8 border-t border-border">
+            <div className="pt-5 sm:pt-6 border-t border-border">
               <SellerTrustCard product={product} />
             </div>
 
 
 
-            <Accordion title="FAQ" icon={Sparkles}>
+            <Accordion title="FAQ" icon={Sparkles} open={openSection === "faq"} onToggle={() => toggleSection("faq")}>
               <ProductFaqList slug={product.slug} />
             </Accordion>
+
 
           </motion.div>
         </div>
@@ -1078,12 +1086,29 @@ function ProductPageSkeleton() {
 
 
 
-function Accordion({ title, icon: Icon, defaultOpen = false, children }: { title: string; icon: typeof Package; defaultOpen?: boolean; children: React.ReactNode }) {
-  const [open, setOpen] = useState(defaultOpen);
+function Accordion({
+  title,
+  icon: Icon,
+  defaultOpen = false,
+  children,
+  open: openProp,
+  onToggle,
+}: {
+  title: string;
+  icon: typeof Package;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  /** When provided, the accordion is controlled (used for single-open groups). */
+  open?: boolean;
+  onToggle?: () => void;
+}) {
+  const [openState, setOpen] = useState(defaultOpen);
+  const open = openProp !== undefined ? openProp : openState;
+  const toggle = () => (onToggle ? onToggle() : setOpen((v) => !v));
   return (
-    <div className="border-t border-border mt-6 pt-6">
+    <div className="border-t border-border mt-4 pt-4">
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggle}
         className="flex items-center justify-between w-full group"
         aria-expanded={open}
       >
@@ -1108,6 +1133,7 @@ function Accordion({ title, icon: Icon, defaultOpen = false, children }: { title
     </div>
   );
 }
+
 
 function Faq({ q, a }: { q: string; a: string }) {
   return (
