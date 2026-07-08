@@ -368,6 +368,28 @@ function ProductPage() {
   const originalPrice = compareOf(product) ?? (product.discount ? effectivePrice * (1 + product.discount / 100) : null);
   const discountPct = discountPercent(effectivePrice, originalPrice);
 
+  // Unified hero badge list — merchandising badges plus the sale/low-stock
+  // pills, in priority order. The gallery renders at most 2 and collapses the
+  // rest into a single "+N" pill so badges never overlap or clip.
+  const heroBadges: { key: string; label: string; emoji?: string; className: string }[] = [
+    ...(discountPct
+      ? [{ key: "sale", label: `${discountPct}% OFF`, emoji: "🏷️", className: "bg-accent text-accent-foreground" }]
+      : []),
+    ...computeBadges(product, DEFAULT_BADGE_SETTINGS, 4).map((b) => ({
+      key: b.key,
+      label: b.label,
+      emoji: b.emoji,
+      className: b.className,
+    })),
+    ...(lowStock
+      ? [{ key: "lowstock", label: `Only ${effectiveStock} left`, emoji: "⚠️", className: "bg-destructive/90 text-destructive-foreground" }]
+      : []),
+  ];
+  const visibleBadges = heroBadges.slice(0, 2);
+  const hiddenBadgeCount = heroBadges.length - visibleBadges.length;
+
+
+
   // The sticky purchase dock must never mount until the whole page is ready:
   // product + variants + images loaded, main image decoded, and currency
   // resolved. Combined with the scroll gate this prevents overlap, layout
