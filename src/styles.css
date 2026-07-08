@@ -538,41 +538,55 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
 }
 
 /* ============================================================
-   FoundOurMarket — Global premium price typography system
+   FoundOurMarket — Global premium price typography system v2
    One reusable design used for every price across the site.
    UI-only. No filters, no backdrop-filter, no blur, no glow,
-   no layout shift — background-clip:text is a cheap paint.
+   no heavy shadow, no layout shift. background-clip:text is a
+   cheap paint; a solid premium color is always painted first so
+   any browser that can't clip the gradient stays fully readable.
    ============================================================ */
 
-/* Current / featured price — soft warm white → champagne → premium orange.
-   The metallic sheen comes from a linear gradient clipped to the glyphs;
-   a tiny low-opacity text-shadow adds premium depth while staying sharp. */
+/* Current / featured price — soft champagne → warm gold → premium orange.
+   Solid premium gold is the base color (the guaranteed fallback); the
+   metallic gradient is layered on top only where background-clip:text is
+   supported, so text is never invisible or low-contrast anywhere. */
 .fom-price-current {
   display: inline-block;
   font-weight: 800;
   letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
+  line-height: 1.1;
   white-space: nowrap;
-  background: linear-gradient(
-    180deg,
-    oklch(0.99 0.012 90) 0%,
-    oklch(0.94 0.045 82) 46%,
-    oklch(0.80 0.165 58) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 1px 1.5px oklch(0.20 0.02 55 / 0.22);
+  /* Solid premium fallback — used verbatim when gradient clipping is off. */
+  color: oklch(0.86 0.11 74);
 }
 
-/* Original / struck price — muted gray, smaller weight, clean strike. */
+/* Layer the metallic gradient only when the browser supports clipping it to
+   text. @supports guards the transparent fill so unsupported engines keep the
+   solid gold color above and never render invisible text. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .fom-price-current {
+    background: linear-gradient(
+      180deg,
+      oklch(0.97 0.02 88) 0%,
+      oklch(0.90 0.09 80) 45%,
+      oklch(0.80 0.165 58) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* Original / struck price — muted graphite gray, lighter weight, clean strike.
+   Never competes with the current price. */
 .fom-price-compare {
   display: inline-block;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
+  line-height: 1.1;
   white-space: nowrap;
   color: oklch(0.66 0.008 260);
   -webkit-text-fill-color: oklch(0.66 0.008 260);
@@ -581,21 +595,52 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
   text-decoration-color: oklch(0.66 0.008 260 / 0.55);
 }
 
-/* Light / grey themes: keep WCAG contrast — deepen the metallic ramp so the
-   price stays legible against light surfaces. */
+/* Global discount capsule — one consistent badge for 5% … 100% off.
+   Fixed height, perfectly centered, never clips, identical on every device. */
+.fom-discount-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: oklch(0.99 0 0);
+  background: linear-gradient(135deg, oklch(0.66 0.22 24) 0%, oklch(0.58 0.24 22) 100%);
+  box-shadow: 0 1px 3px oklch(0.30 0.14 24 / 0.35);
+}
+@media (min-width: 640px) {
+  .fom-discount-badge {
+    height: 24px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+}
+
+/* Light / grey themes: keep WCAG AA contrast — deepen the metallic ramp and
+   the solid fallback so the price stays legible against light surfaces. */
 [data-theme="light"] .fom-price-current,
 [data-theme="grey"] .fom-price-current {
-  background: linear-gradient(
-    180deg,
-    oklch(0.42 0.06 70) 0%,
-    oklch(0.55 0.13 60) 45%,
-    oklch(0.62 0.19 49) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
+  color: oklch(0.55 0.16 55);
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  [data-theme="light"] .fom-price-current,
+  [data-theme="grey"] .fom-price-current {
+    background: linear-gradient(
+      180deg,
+      oklch(0.46 0.09 68) 0%,
+      oklch(0.54 0.14 60) 45%,
+      oklch(0.60 0.19 49) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }
 [data-theme="light"] .fom-price-compare,
 [data-theme="grey"] .fom-price-compare {
@@ -603,6 +648,7 @@ html[data-low-end="true"] .animate-float-slow { animation: none; }
   -webkit-text-fill-color: oklch(0.48 0.01 260);
   text-decoration-color: oklch(0.48 0.01 260 / 0.55);
 }
+
 
 
 /* ---- Cinematic card variation system ---- */
