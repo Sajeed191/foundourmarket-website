@@ -521,8 +521,7 @@ function ProductPage() {
                   {visibleBadges.map((b) => (
                     <span
                       key={b.key}
-                      className="inline-flex h-9 w-auto max-w-full items-center gap-2 rounded-full px-4 text-[12px] font-semibold leading-none whitespace-nowrap text-white ring-1 ring-[oklch(0.74_0.19_49/0.32)] shadow-[0_8px_24px_oklch(0_0_0/0.4)] backdrop-blur-md"
-                      style={{ background: "oklch(0.18 0.01 260 / 0.92)" }}
+                      className={`inline-flex h-9 w-auto max-w-full items-center gap-2 rounded-full px-4 text-[12px] font-semibold uppercase leading-none tracking-wide whitespace-nowrap ring-1 ring-black/15 shadow-[0_6px_20px_oklch(0_0_0/0.45)] drop-shadow-[0_1px_2px_oklch(0_0_0/0.6)] ${b.className}`}
                     >
                       {b.emoji && <span aria-hidden className="shrink-0 text-[13px] leading-none">{b.emoji}</span>}
                       <span className="truncate">{b.label}</span>
@@ -531,14 +530,15 @@ function ProductPage() {
                   {hiddenBadgeCount > 0 && (
                     <span
                       aria-label={`${hiddenBadgeCount} more badges`}
-                      className="inline-flex h-9 items-center rounded-full px-4 text-[12px] font-semibold font-mono leading-none text-white ring-1 ring-[oklch(0.74_0.19_49/0.32)] shadow-[0_8px_24px_oklch(0_0_0/0.4)] backdrop-blur-md"
-                      style={{ background: "oklch(0.18 0.01 260 / 0.92)" }}
+                      className="inline-flex h-9 items-center rounded-full px-4 text-[12px] font-semibold font-mono uppercase tracking-wide leading-none text-white ring-1 ring-white/15 shadow-[0_6px_20px_oklch(0_0_0/0.45)] backdrop-blur-md"
+                      style={{ background: "oklch(0.18 0.01 260 / 0.85)" }}
                     >
                       +{hiddenBadgeCount}
                     </span>
                   )}
 
                 </div>
+
 
 
                 {/* Floating stock pill — premium glass */}
