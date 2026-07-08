@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ShoppingBag, Search, User, Heart, Menu, X, LayoutDashboard,
+  ShoppingBag, User, Heart, Menu, X, LayoutDashboard,
   Smartphone, Shirt, Home as HomeIcon, Store, Package, Truck, Clock,
   ChevronRight, LifeBuoy, Settings, ShieldCheck, FileText, Mail, LogIn,
   Sparkles, TrendingUp, Zap, Dumbbell, Gem, Grid3x3, Crown, Flame,
