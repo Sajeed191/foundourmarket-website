@@ -204,7 +204,7 @@ function ProductPage() {
   const { record } = useRecentlyViewed();
   const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
-  const [qty, setQty] = useState(1);
+  
   // Purchase-button UI states (visual only — underlying cart/buy-now logic unchanged).
   const [addState, setAddState] = useState<"idle" | "loading" | "success">("idle");
   const [buyState, setBuyState] = useState<"idle" | "loading">("idle");
