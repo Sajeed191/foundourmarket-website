@@ -12,48 +12,64 @@ import { useGpuUnsafe } from "@/lib/gpu-compat";
 import { AlertTriangle, X } from "lucide-react";
 
 const DISMISS_KEY = "fom-compat-banner-dismissed";
+const DISMISS_TS_KEY = "fom-compat-banner-dismissed-at";
+const DISMISS_DAYS = 30;
 
 /**
- * Compatibility Mode notice — shown ONCE on gpu-unsafe devices only.
+ * Optional browser-update URL. Rendered as a secondary modal action ONLY when
+ * present. Left null by default (no reliable per-browser update deep-link);
+ * set to a support URL if one becomes available.
+ */
+const UPDATE_BROWSER_URL: string | null = null;
+
+/**
+ * Compatibility Mode notice — shown on gpu-unsafe devices only.
  *
  * UI/UX ONLY. Detection (useGpuUnsafe) and Compatibility Mode logic are
- * untouched. Compact bottom sheet on mobile, small bottom-right toast on
- * desktop. Never covers the bottom nav or floating support buttons.
+ * untouched. Compact notification card: bottom-right toast on desktop, compact
+ * bottom sheet above the nav on mobile. Never covers the bottom nav or floating
+ * support widgets.
  *
- * State management:
- *   - bannerDismissed → persisted in localStorage
- *   - isCompatDialogOpen → single boolean; while the "Learn More" dialog is
- *     open the banner is fully unmounted (renders only when
- *     gpuUnsafe && !isCompatDialogOpen && !bannerDismissed) and floating
- *     support widgets are hidden via a document flag. Closing the dialog
- *     restores the banner without replaying its entrance animation.
+ * State:
+ *   - bannerDismissed → localStorage, suppressed for 30 days
+ *   - compatDialogOpen → single boolean. Banner renders only when
+ *     gpuUnsafe && !bannerDismissed && !compatDialogOpen. While the dialog is
+ *     open, floating support widgets are hidden via a document flag. Radix
+ *     Dialog provides focus trap, ESC-to-close, and focus restore.
  */
 export function GpuCompatBanner() {
   const gpuUnsafe = useGpuUnsafe();
   const [bannerDismissed, setBannerDismissed] = useState(false);
-  const [isCompatDialogOpen, setIsCompatDialogOpen] = useState(false);
+  const [compatDialogOpen, setCompatDialogOpen] = useState(false);
   const [entered, setEntered] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
-  // Remembers whether the entrance animation already played, so returning from
-  // the dialog does not replay it.
   const hasAnimatedIn = useRef(false);
-
-  // Swipe-to-dismiss tracking
   const dragStartY = useRef<number | null>(null);
   const [dragY, setDragY] = useState(0);
 
-  // Read persisted dismissal once.
+  // Read persisted dismissal once — honor the 30-day suppression window.
   useEffect(() => {
     try {
-      if (localStorage.getItem(DISMISS_KEY) === "1") setBannerDismissed(true);
+      if (localStorage.getItem(DISMISS_KEY) === "1") {
+        const at = Number(localStorage.getItem(DISMISS_TS_KEY) || 0);
+        if (at && Date.now() - at < DISMISS_DAYS * 86400_000) {
+          setBannerDismissed(true);
+        } else {
+          // Window expired — clear so it can show again.
+          localStorage.removeItem(DISMISS_KEY);
+          localStorage.removeItem(DISMISS_TS_KEY);
+        }
+      }
     } catch {
       /* storage disabled — still show this session */
     }
   }, []);
 
-  const shouldRenderBanner = gpuUnsafe && !isCompatDialogOpen && !bannerDismissed;
+  const shouldRenderBanner =
+    gpuUnsafe && !bannerDismissed && !compatDialogOpen && !leaving;
 
-  // Play the entrance animation only the first time the banner appears.
+  // Entrance animation plays only the first time the banner appears.
   useEffect(() => {
     if (!shouldRenderBanner) return;
     if (hasAnimatedIn.current) {
@@ -72,18 +88,28 @@ export function GpuCompatBanner() {
   useEffect(() => {
     if (typeof document === "undefined") return;
     const d = document.documentElement;
-    if (isCompatDialogOpen) d.setAttribute("data-compat-dialog-open", "true");
+    if (compatDialogOpen) d.setAttribute("data-compat-dialog-open", "true");
     else d.removeAttribute("data-compat-dialog-open");
     return () => d.removeAttribute("data-compat-dialog-open");
-  }, [isCompatDialogOpen]);
+  }, [compatDialogOpen]);
 
-  function dismiss() {
-    setBannerDismissed(true);
+  function persistDismiss() {
     try {
       localStorage.setItem(DISMISS_KEY, "1");
+      localStorage.setItem(DISMISS_TS_KEY, String(Date.now()));
     } catch {
       /* ignore */
     }
+  }
+
+  function dismiss() {
+    // Fade-out (150ms) then unmount + persist.
+    setLeaving(true);
+    setEntered(false);
+    window.setTimeout(() => {
+      setBannerDismissed(true);
+      persistDismiss();
+    }, 150);
   }
 
   function onPointerDown(e: React.PointerEvent) {
@@ -96,11 +122,8 @@ export function GpuCompatBanner() {
   }
   function onPointerUp() {
     if (dragStartY.current === null) return;
-    if (dragY > 40) {
-      dismiss();
-    } else {
-      setDragY(0);
-    }
+    if (dragY > 40) dismiss();
+    else setDragY(0);
     dragStartY.current = null;
   }
 
@@ -108,7 +131,7 @@ export function GpuCompatBanner() {
 
   return (
     <>
-      {shouldRenderBanner && (
+      {(shouldRenderBanner || leaving) && gpuUnsafe && !bannerDismissed && (
         <div
           role="status"
           aria-live="polite"
@@ -123,7 +146,7 @@ export function GpuCompatBanner() {
             transition:
               dragStartY.current !== null
                 ? "none"
-                : "opacity 180ms ease-out, transform 180ms ease-out",
+                : "opacity 200ms ease-out, transform 200ms ease-out",
           }}
         >
           <span className="gpu-compat-banner__icon" aria-hidden="true">
@@ -131,16 +154,19 @@ export function GpuCompatBanner() {
           </span>
 
           <div className="gpu-compat-banner__text">
-            <p className="gpu-compat-banner__title">Graphics Compatibility Mode</p>
+            <p className="gpu-compat-banner__title">
+              Graphics Compatibility Mode Enabled
+            </p>
             <p className="gpu-compat-banner__desc">
-              Some graphics effects have been reduced for better stability.
+              Some visual effects have been reduced to improve stability on your
+              browser.
             </p>
           </div>
 
           <div className="gpu-compat-banner__actions">
             <button
               type="button"
-              onClick={() => setIsCompatDialogOpen(true)}
+              onClick={() => setCompatDialogOpen(true)}
               className="gpu-compat-banner__learn"
             >
               Learn More
@@ -157,29 +183,38 @@ export function GpuCompatBanner() {
         </div>
       )}
 
-      <Dialog open={isCompatDialogOpen} onOpenChange={setIsCompatDialogOpen}>
-        <DialogContent className="gpu-compat-dialog max-w-md">
+      <Dialog open={compatDialogOpen} onOpenChange={setCompatDialogOpen}>
+        <DialogContent
+          className="gpu-compat-dialog max-w-md"
+          aria-labelledby="compat-dialog-title"
+          aria-describedby="compat-dialog-desc"
+        >
           <DialogHeader>
-            <DialogTitle>About Compatibility Mode</DialogTitle>
-            <DialogDescription>Why you&apos;re seeing this notice</DialogDescription>
+            <DialogTitle id="compat-dialog-title">
+              About Compatibility Mode
+            </DialogTitle>
+            <DialogDescription id="compat-dialog-desc">
+              Why you&apos;re seeing this notice
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
-            <p>
-              This is a graphics rendering issue in your current browser&apos;s
-              GPU engine on this device — not a problem with the website itself.
-            </p>
-            <p>
-              Firefox is unaffected, and newer Chromium-based browser versions
-              have already fixed similar rendering issues.
-            </p>
-            <p>
-              Compatibility Mode reduces the graphics workload to improve
-              stability, but it cannot fully correct a browser rendering bug.
-              Updating your browser is the most reliable fix.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setIsCompatDialogOpen(false)}>Got it</Button>
+          <ul className="space-y-2 text-sm leading-relaxed text-muted-foreground">
+            <li>Your browser has a known graphics rendering issue on this device.</li>
+            <li>Your data and purchases are completely safe.</li>
+            <li>The website is functioning normally.</li>
+            <li>Compatibility Mode reduces the graphics workload for stability.</li>
+            <li>Firefox and newer Chromium versions already include fixes.</li>
+            <li>Updating your browser is the recommended fix.</li>
+          </ul>
+          <DialogFooter className="gap-2 sm:gap-2">
+            {UPDATE_BROWSER_URL && (
+              <Button
+                variant="outline"
+                onClick={() => window.open(UPDATE_BROWSER_URL!, "_blank", "noopener")}
+              >
+                Update Browser
+              </Button>
+            )}
+            <Button onClick={() => setCompatDialogOpen(false)}>Got it</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
