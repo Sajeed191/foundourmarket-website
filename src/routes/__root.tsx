@@ -47,6 +47,7 @@ import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
 import { installStartupDiagnostics, useRenderDiagnostics } from "@/lib/startup-diagnostics";
 import { initDebugFlags, getFlag } from "@/lib/debug-flags";
 import { installDebugDiagnostics, patchImageDecode } from "@/lib/debug-diagnostics";
+import { initCompatConfidence } from "@/lib/compat-confidence";
 import { DebugPanel } from "@/components/site/DebugPanel";
 
 import { WindowMetricsPanel } from "@/components/site/WindowMetricsPanel";
