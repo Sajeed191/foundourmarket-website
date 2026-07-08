@@ -708,7 +708,7 @@ function ProductPage() {
 
 
 
-            <div className="flex flex-wrap items-center gap-2 mb-5 text-[10px] font-mono uppercase tracking-widest">
+            <div className="flex flex-wrap items-center gap-2 mb-4 text-[10px] font-mono uppercase tracking-widest">
 
               {isOOS ? (
                 <span className="px-2.5 py-1 rounded-full bg-muted text-muted-foreground">Out of stock</span>
