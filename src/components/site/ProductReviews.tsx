@@ -685,6 +685,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
               </div>
             </div>
           </div>
+          )}
 
           {/* List / empty state */}
           {sorted.length === 0 ? (
