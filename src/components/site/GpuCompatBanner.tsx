@@ -31,12 +31,7 @@ const DISMISS_KEY = "fom-compat-banner-dismissed";
 const DISMISS_TS_KEY = "fom-compat-banner-dismissed-at";
 const DISMISS_DAYS = 30;
 
-/**
- * Optional browser-update URL. Rendered as a secondary modal action ONLY when
- * present. Left null by default (no reliable per-browser update deep-link);
- * set to a support URL if one becomes available.
- */
-const UPDATE_BROWSER_URL: string | null = null;
+
 
 /**
  * Compatibility Mode notice — shown on gpu-unsafe devices only.
