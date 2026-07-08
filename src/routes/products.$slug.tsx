@@ -807,66 +807,73 @@ function ProductPage() {
             )}
 
             {/* Premium purchase panel — unique FoundOurMarket design.
-                Compact glass card: quantity + wishlist/share on top, dual CTAs
-                below, trust strip at the base. GPU-friendly (no backdrop blur). */}
+                Compact glass card: wishlist/share on top, CTA row below (Add to
+                Cart morphs into a quantity selector after a successful add),
+                trust strip at the base. GPU-friendly (no backdrop blur). */}
             <div className="mb-4 rounded-[20px] border border-white/10 bg-card/60 p-3 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.6)] sm:p-3.5">
-              {/* Row 1 — quantity selector + wishlist + share */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="inline-flex items-center rounded-2xl border border-white/10 bg-white/[0.03]">
-                  <button
-                    onClick={() => setQty(Math.max(1, qty - 1))}
-                    disabled={qty <= 1}
-                    aria-label="Decrease quantity"
-                    className="grid size-11 place-items-center rounded-l-2xl text-foreground/80 transition-colors hover:text-accent active:scale-90 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  >
-                    <Minus className="size-4" />
-                  </button>
-                  <span aria-live="polite" className="w-9 text-center font-mono text-sm tabular-nums">{qty}</span>
-                  <button
-                    onClick={() => setQty(qty + 1)}
-                    aria-label="Increase quantity"
-                    className="grid size-11 place-items-center rounded-r-2xl text-foreground/80 transition-colors hover:text-accent active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  >
-                    <Plus className="size-4" />
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => toggleWishlist(product.slug)}
-                    aria-label={inWishlist(product.slug) ? "Remove from wishlist" : "Add to wishlist"}
-                    aria-pressed={inWishlist(product.slug)}
-                    className={`grid size-11 place-items-center rounded-2xl border transition-all active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${inWishlist(product.slug) ? "border-accent/50 bg-accent/15 text-accent" : "border-white/10 bg-white/[0.03] text-foreground/70 hover:text-accent hover:border-accent/40"}`}
-                  >
-                    <Heart className={`size-[18px] ${inWishlist(product.slug) ? "fill-accent" : ""}`} />
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    aria-label="Share this product"
-                    className="grid size-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-foreground/70 transition-all hover:text-accent hover:border-accent/40 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  >
-                    <Share2 className="size-[18px]" />
-                  </button>
-                </div>
+              {/* Row 1 — wishlist + share */}
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  onClick={() => toggleWishlist(product.slug)}
+                  aria-label={inWishlist(product.slug) ? "Remove from wishlist" : "Add to wishlist"}
+                  aria-pressed={inWishlist(product.slug)}
+                  className={`grid size-11 place-items-center rounded-2xl border transition-all active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${inWishlist(product.slug) ? "border-accent/50 bg-accent/15 text-accent" : "border-white/10 bg-white/[0.03] text-foreground/70 hover:text-accent hover:border-accent/40"}`}
+                >
+                  <Heart className={`size-[18px] ${inWishlist(product.slug) ? "fill-accent" : ""}`} />
+                </button>
+                <button
+                  onClick={handleShare}
+                  aria-label="Share this product"
+                  className="grid size-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-foreground/70 transition-all hover:text-accent hover:border-accent/40 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <Share2 className="size-[18px]" />
+                </button>
               </div>
 
-              {/* Row 2 — Add to Cart + Buy Now (equal width) */}
+              {/* Row 2 — Add to Cart (morphs into quantity selector) + Buy Now */}
               <div className="mt-3 grid grid-cols-2 gap-2.5">
-                <button
-                  onClick={handleAdd}
-                  disabled={isOOS || addState !== "idle"}
-                  aria-label={isOOS ? "Notify me when available" : "Add to cart"}
-                  className="inline-flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] px-3 text-sm font-bold text-black shadow-[var(--shadow-ember)] transition-transform active:scale-[0.97] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-                >
-                  {isOOS ? (
-                    "Notify Me"
-                  ) : addState === "loading" ? (
-                    <><Loader2 className="size-4 animate-spin" /> Adding…</>
-                  ) : addState === "success" ? (
-                    <><Check className="size-4" strokeWidth={3} /> Added</>
-                  ) : (
-                    <><ShoppingCart className="size-4" strokeWidth={2.5} /> Add to Cart</>
-                  )}
-                </button>
+                {showQtySelector ? (
+                  <div
+                    key="qty"
+                    role="group"
+                    aria-label="Quantity in cart"
+                    className="inline-flex h-[54px] items-center justify-between rounded-2xl border border-accent/40 bg-white/[0.03] px-1 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200 will-change-transform"
+                  >
+                    <button
+                      onClick={decCartQty}
+                      aria-label={cartQty <= 1 ? "Remove from cart" : "Decrease quantity"}
+                      className="grid size-11 place-items-center rounded-xl text-foreground/80 transition-colors hover:text-accent active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      <Minus className="size-4" />
+                    </button>
+                    <span aria-live="polite" className="min-w-8 text-center font-mono text-sm font-semibold tabular-nums">{cartQty}</span>
+                    <button
+                      onClick={incCartQty}
+                      aria-label="Increase quantity"
+                      className="grid size-11 place-items-center rounded-xl text-foreground/80 transition-colors hover:text-accent active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      <Plus className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    key="add"
+                    onClick={handleAdd}
+                    disabled={isOOS || addState !== "idle"}
+                    aria-label={isOOS ? "Notify me when available" : "Add to cart"}
+                    className="inline-flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] px-3 text-sm font-bold text-black shadow-[var(--shadow-ember)] transition-transform active:scale-[0.97] disabled:opacity-60 motion-safe:animate-in motion-safe:fade-in duration-200 will-change-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+                  >
+                    {isOOS ? (
+                      "Notify Me"
+                    ) : addState === "loading" ? (
+                      <><Loader2 className="size-4 animate-spin" /> Adding…</>
+                    ) : addState === "success" ? (
+                      <span className="inline-flex items-center gap-2 motion-safe:animate-in motion-safe:zoom-in-75 duration-200"><Check className="size-4" strokeWidth={3} /> Added</span>
+                    ) : (
+                      <><ShoppingCart className="size-4" strokeWidth={2.5} /> Add to Cart</>
+                    )}
+                  </button>
+                )}
                 <Link
                   to="/cart"
                   onClick={handleBuyNow}
@@ -883,6 +890,7 @@ function ProductPage() {
                   )}
                 </Link>
               </div>
+
 
               {/* Trust strip */}
               <div className="mt-3 flex items-center gap-3 overflow-x-auto pt-2.5 text-[11px] text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
