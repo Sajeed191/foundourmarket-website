@@ -364,6 +364,13 @@ function ProductPage() {
   })();
   const galleryImages = galleryMedia.filter((m) => m.id !== "video");
   const activeMedia = galleryMedia[activeImg] ?? galleryMedia[0];
+
+  // Keep the selected thumbnail fully visible within the scroll strip.
+  useEffect(() => {
+    const el = thumbStripRef.current?.querySelector<HTMLElement>(`[data-thumb-index="${activeImg}"]`);
+    el?.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+  }, [activeImg]);
+
   const hasVideoFirst = galleryMedia[0]?.id === "video";
   const lightboxIndex = hasVideoFirst ? Math.max(0, activeImg - 1) : activeImg;
   const handleLightboxIndexChange = (i: number) => setActiveImg(hasVideoFirst ? i + 1 : i);
