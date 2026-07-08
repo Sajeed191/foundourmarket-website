@@ -601,7 +601,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
           )}
 
           {/* Review highlights */}
-          {highlights.length > 0 && (
+          {expanded && highlights.length > 0 && (
             <div className="mb-8 rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-5">
               <p className="mb-3 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Customers love</p>
               <div className="flex flex-wrap gap-2">
