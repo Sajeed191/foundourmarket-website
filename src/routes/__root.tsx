@@ -623,6 +623,11 @@ function AppRoot() {
 
   useEffect(() => {
     initDebugFlags();
+    // Affected-Device Confidence System: loads persisted per-device evidence,
+    // re-scores (a previously-confirmed device activates immediately), and
+    // installs always-on runtime-evidence listeners. Compatibility Mode only
+    // activates at score >= 90% (suspect hardware + verified runtime anomalies).
+    initCompatConfidence();
     installDebugDiagnostics();
     patchImageDecode();
     installStartupDiagnostics();
