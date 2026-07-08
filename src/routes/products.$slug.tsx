@@ -391,9 +391,6 @@ function ProductPage() {
   // pills, in priority order. The gallery renders at most 2 and collapses the
   // rest into a single "+N" pill so badges never overlap or clip.
   const heroBadges: { key: string; label: string; emoji?: string; className: string }[] = [
-    ...(discountPct
-      ? [{ key: "sale", label: `${discountPct}% OFF`, emoji: "🏷️", className: "bg-accent text-accent-foreground" }]
-      : []),
     ...computeBadges(product, DEFAULT_BADGE_SETTINGS, 4).map((b) => ({
       key: b.key,
       label: b.label,
