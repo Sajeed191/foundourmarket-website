@@ -886,7 +886,18 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                 </AnimatePresence>
               </ul>
 
-              {visibleCount < sorted.length && (
+              {!expanded && sorted.length > 2 && (
+                <div className="mt-6 grid place-items-center">
+                  <button
+                    onClick={() => setExpanded(true)}
+                    className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/[0.08] px-6 py-3 text-[11px] font-mono uppercase tracking-widest text-accent transition-all hover:border-accent/50 hover:bg-accent/[0.12]"
+                  >
+                    View all reviews ({sorted.length}) <ChevronRight className="size-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {expanded && visibleCount < sorted.length && (
                 <div className="mt-8 grid place-items-center">
                   <button
                     onClick={() => setVisibleCount((c) => c + 6)}
