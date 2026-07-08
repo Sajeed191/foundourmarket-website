@@ -769,7 +769,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                             </div>
 
                             {r.title && <p className="mt-4 text-base font-display leading-snug">{r.title}</p>}
-                            {r.body && <p className="mt-2 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{r.body}</p>}
+                            {r.body && <ReviewBody text={r.body} />}
 
                             {r.media?.length > 0 && (
                               <div className="mt-4 flex flex-wrap gap-2">
