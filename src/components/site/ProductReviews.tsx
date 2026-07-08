@@ -649,6 +649,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
           )}
 
           {/* Filters + sort + write CTA */}
+          {expanded && (
           <div className="mb-8 space-y-3">
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {filterChips.map((c) => (
