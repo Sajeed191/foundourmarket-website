@@ -825,7 +825,7 @@ function ProductPage() {
                 Compact glass card: wishlist/share on top, CTA row below (Add to
                 Cart morphs into a quantity selector after a successful add),
                 trust strip at the base. GPU-friendly (no backdrop blur). */}
-            <div className="mb-4 rounded-[20px] border border-white/10 bg-card/60 p-3 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.6)] sm:p-3.5">
+            <div ref={inlinePurchaseRef} className="mb-4 rounded-[20px] border border-white/10 bg-card/60 p-3 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.6)] sm:p-3.5">
               {/* Row 1 — wishlist + share */}
               <div className="flex items-center justify-end gap-2">
                 <button
