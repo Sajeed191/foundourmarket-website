@@ -354,7 +354,7 @@ function CartPage() {
                 )}
                 <div className="border-t border-border pt-3 flex justify-between items-baseline text-base">
                   <dt className="font-medium">Total</dt>
-                  <motion.dd key={total} initial={{ scale: 1.08 }} animate={{ scale: 1 }} className="font-mono text-accent">{format(total)}</motion.dd>
+                  <motion.dd key={total} initial={{ scale: 1.08 }} animate={{ scale: 1 }} className="fom-price-current font-mono text-lg">{format(total)}</motion.dd>
                 </div>
               </dl>
 
