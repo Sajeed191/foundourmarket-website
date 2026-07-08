@@ -428,14 +428,14 @@ function ProductPage() {
 
   const handleAdd = () => {
     if (addState !== "idle") return;
-    // Existing add-to-cart logic — unchanged.
-    add(product.slug, qty);
+    // Existing add-to-cart logic — unchanged (adds a single unit).
+    add(product.slug, 1);
     toast.success(`${product.name} added to cart`);
-    // Visual state progression: Adding… → Added → back to normal.
+    // Visual progression: Adding… → ✓ Added (held ~1s) → quantity selector.
     setAddState("loading");
     addTimers.current.push(
-      setTimeout(() => setAddState("success"), 450),
-      setTimeout(() => setAddState("idle"), 1900),
+      setTimeout(() => setAddState("success"), 400),
+      setTimeout(() => setAddState("idle"), 1400),
     );
   };
   // Buy Now uses the single centralized handler (see useBuyNow): it purchases
