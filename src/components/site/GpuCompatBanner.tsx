@@ -59,7 +59,7 @@ export function GpuCompatBanner() {
   const [compatDialogOpen, setCompatDialogOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [diagnostics, setDiagnostics] = useState<CompatDiagnostics | null>(null);
-  const [copied, setCopied] = useState(false);
+  
   const [entered, setEntered] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
