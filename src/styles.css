@@ -3004,7 +3004,7 @@ html[data-graphics-compat="true"] *::after {
   right: 12px;
   width: calc(100% - 24px);
   bottom: calc(var(--app-bottom-nav-height) + 12px);
-  z-index: 700; /* below floating controls (800) */
+  z-index: 100; /* banner sits above nav, below dialog/backdrop */
   display: flex;
   align-items: center;
   gap: 12px;
