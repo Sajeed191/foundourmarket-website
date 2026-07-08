@@ -907,9 +907,6 @@ function ProductPage() {
 
             <div data-product-sticky-threshold aria-hidden className="h-px w-full" />
 
-            <div className="pt-5 sm:pt-6 border-t border-border">
-              <SellerTrustCard product={product} />
-            </div>
 
 
 
