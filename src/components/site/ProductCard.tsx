@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useWishlistActions, useWishlistSaved } from "@/lib/wishlist";
 import { ProductCardAdminControlsGate } from "@/components/admin/ProductCardAdminControlsGate";
 import { Price } from "@/components/site/Price";
+import { DiscountBadge } from "@/components/site/DiscountBadge";
 import { AdaptiveProductMedia } from "@/components/site/AdaptiveProductMedia";
 import { QuickViewDialog } from "@/components/site/QuickViewDialog";
 import { formatSold } from "@/lib/format-sold";
