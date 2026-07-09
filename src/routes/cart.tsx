@@ -422,9 +422,10 @@ function CartPage() {
       </div>
 
 
-      {/* Sticky mobile checkout dock — one shared visibility state, GPU
-          transform + opacity only. Slides flush to the screen bottom when the
-          Bottom Navigation hides and returns smoothly when it reappears. */}
+      {/* Sticky mobile checkout bar — premium glass-dark floating dock. One
+          shared visibility state, GPU transform + opacity only (no
+          backdrop-filter / heavy blur). Slides flush to the screen bottom when
+          the Bottom Navigation hides and returns smoothly when it reappears. */}
       {count > 0 && (
         <div
           className="lg:hidden fixed inset-x-0 z-[var(--z-floating-controls)] px-3 pointer-events-none will-change-transform"
@@ -434,28 +435,47 @@ function CartPage() {
             transition: "transform 220ms cubic-bezier(0.22,1,0.36,1)",
           }}
         >
-          <div
-            className="pointer-events-auto rounded-2xl px-4 py-2.5 flex items-center gap-3 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9),0_0_28px_-14px_hsl(var(--accent)/0.45)]"
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 30 }}
+            className="pointer-events-auto relative overflow-hidden rounded-[22px] px-4 py-3 flex items-center gap-3.5 border border-white/[0.08]"
             style={{
-              background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))",
-              backdropFilter: "blur(32px) saturate(160%)",
-              WebkitBackdropFilter: "blur(32px) saturate(160%)",
+              background: "linear-gradient(150deg, oklch(0.23 0.018 60 / 0.97), oklch(0.15 0.008 40 / 0.98))",
+              boxShadow: "0 18px 44px -22px oklch(0 0 0 / 0.85), inset 0 1px 0 oklch(1 0 0 / 0.05), 0 0 34px -20px hsl(var(--accent) / 0.55)",
             }}
           >
-            <div className="flex-1 min-w-0 leading-none">
-              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/80 inline-flex items-center gap-1">
-                <Lock className="size-2.5 text-accent" /> Total · {count} {count === 1 ? "item" : "items"}
+            {/* Subtle static orange ambient glow — no blur filter. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -top-10 -left-8 h-28 w-28 rounded-full opacity-40"
+              style={{ background: "radial-gradient(closest-side, hsl(var(--accent) / 0.4), transparent)" }}
+            />
+
+            <div className="flex-1 min-w-0 leading-none relative">
+              <p className="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground/80 inline-flex items-center gap-1.5">
+                <ShoppingBag className="size-3 text-accent" /> Ready to Checkout · {count} {count === 1 ? "item" : "items"}
               </p>
-              <motion.p key={total} initial={{ scale: 1.06 }} animate={{ scale: 1 }} className="fom-price-current font-mono text-[16px] leading-tight truncate mt-0.5">{format(total)}</motion.p>
-              {totalSavings > 0 && (
-                <p className="text-[9px] font-semibold text-accent leading-none mt-0.5">You save {format(totalSavings)}</p>
-              )}
-              <p className="text-[8px] uppercase tracking-widest text-muted-foreground/70 mt-1">Secure Payment · Fast Delivery · Easy Returns</p>
+              <div className="flex items-baseline gap-2 mt-1.5">
+                <AnimatedAmount value={total} format={format} className="fom-price-current font-mono text-[19px] leading-none tracking-tight" />
+                {totalSavings > 0 && <SavingsPill value={totalSavings} format={format} />}
+              </div>
+              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                {shipping === 0 && <StatusChip icon={Truck} tone="accent">Free shipping</StatusChip>}
+                {discount > 0 && <StatusChip icon={Sparkles} tone="accent">Coupon applied</StatusChip>}
+                {ship?.etaIso && (
+                  <StatusChip icon={Clock}>
+                    {new Date(ship.etaIso).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  </StatusChip>
+                )}
+              </div>
+              <p className="text-[8.5px] uppercase tracking-[0.14em] text-muted-foreground/60 mt-1.5">Secure Payment · Fast Delivery · Easy Returns</p>
             </div>
-            <div className="shrink-0 w-[42%] max-w-[168px]">
+
+            <div className="shrink-0 w-[42%] max-w-[172px]">
               <CheckoutButton disabled={count === 0} label="Checkout" compact />
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
