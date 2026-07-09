@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { ProductCard } from "@/components/site/ProductCard";
+import { ProductRail } from "@/components/site/ProductRail";
 import type { Product } from "@/lib/products";
 
 type Props = {
