@@ -1,11 +1,9 @@
-import { useRef, useMemo } from "react";
-import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, X, Zap } from "lucide-react";
+import { useMemo } from "react";
+import { X } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
-import { useRegion } from "@/lib/region";
-import { Price } from "@/components/site/Price";
-import { useBuyNow } from "@/lib/use-buy-now";
+import { ProductCard } from "@/components/site/ProductCard";
+import { ProductRail } from "@/components/site/ProductRail";
 import type { Product } from "@/lib/products";
 
 type Props = {
@@ -21,44 +19,12 @@ type Props = {
   limit?: number;
 };
 
-/** Minimal recently-viewed card — image, name, price and add button only. */
-function MiniCard({ product }: { product: Product }) {
-  const { priceOf } = useRegion();
-  const buyNow = useBuyNow();
-
-  return (
-    <div data-product-card data-android-static-card className="group card-premium product-card-shell overflow-hidden p-2.5 flex flex-col">
-      <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
-        <div data-product-media className="relative aspect-square rounded-xl overflow-hidden bg-black/40 mb-2.5">
-          <img
-            data-product-image
-            src={product.image}
-            alt={product.name}
-            loading="lazy"
-            decoding="sync"
-            className="w-full h-full object-cover transition-[opacity] duration-500"
-          />
-        </div>
-        <h4 data-product-text className="product-typography product-title-text text-xs sm:text-sm font-medium line-clamp-1 group-hover:text-accent transition-colors">{product.name}</h4>
-      </Link>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <Price value={priceOf(product)} className="font-display font-semibold text-sm tabular-nums leading-none" />
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            buyNow(product);
-          }}
-          aria-label={`Buy ${product.name} now`}
-          className="shrink-0 grid place-items-center size-8 rounded-full bg-accent text-accent-foreground transition-colors hover:brightness-110 shadow-[var(--shadow-ember)]"
-        >
-          <Zap className="size-4" strokeWidth={2.5} />
-        </button>
-      </div>
-    </div>
-
-  );
-}
-
+/**
+ * Recently Viewed rail — uses the exact same premium ProductCard used across
+ * Home, Flash Deals, Trending, Search and Recommendations. Mobile shows the
+ * shared snap ProductRail; sm+ shows the shared responsive product grid. No
+ * bespoke card design remains.
+ */
 export function RecentlyViewed({
   excludeSlug,
   title = "Recently Viewed",
@@ -68,7 +34,6 @@ export function RecentlyViewed({
 }: Props) {
   const { products, loading } = useProducts();
   const { slugs, clear } = useRecentlyViewed();
-  const scrollerRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
     const active = excludeSlug ? slugs.filter((s) => s !== excludeSlug) : slugs;
@@ -76,61 +41,46 @@ export function RecentlyViewed({
     return active.map((s) => map.get(s)).filter(Boolean).slice(0, limit) as Product[];
   }, [products, slugs, excludeSlug, limit]);
 
-  function scroll(dir: -1 | 1) {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const amount = el.clientWidth * 0.85;
-    el.scrollBy({ left: amount * dir, behavior: "smooth" });
+  if (loading) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <div className="mb-5 h-7 w-44 rounded-lg bg-white/[0.05] animate-pulse" />
+        <div className="sm:hidden -mx-4 flex gap-2.5 overflow-hidden px-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="shrink-0 w-[54%] aspect-[4/5] rounded-2xl bg-card animate-pulse" />
+          ))}
+        </div>
+        <div className="hidden sm:grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="aspect-[4/5] rounded-2xl bg-card animate-pulse" />
+          ))}
+        </div>
+      </section>
+    );
   }
 
-  if (loading || items.length === 0) return null;
+  if (items.length === 0) return null;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-      <div className="flex items-end justify-between gap-4 mb-5">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 motion-safe:animate-fade-in">
+      <div className="flex items-end justify-between gap-4 mb-4 sm:mb-5 px-1">
         <div>
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2">{eyebrow}</p>
-          <h2 className="text-xl sm:text-2xl font-display tracking-tight">{title}</h2>
-          <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+          <h2 className="text-lg sm:text-2xl md:text-3xl font-display font-semibold tracking-tight">{title}</h2>
+          <p className="text-[11px] sm:text-sm text-muted-foreground mt-0.5">{subtitle}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={clear}
-            aria-label="Clear history"
-            className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors"
-          >
-            <X className="size-3" /> Clear
-          </button>
-          <button
-            onClick={() => scroll(-1)}
-            aria-label="Scroll left"
-            className="hidden sm:grid size-9 place-items-center rounded-full border border-border hover:border-accent/40 hover:text-accent transition-colors"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
-          <button
-            onClick={() => scroll(1)}
-            aria-label="Scroll right"
-            className="hidden sm:grid size-9 place-items-center rounded-full border border-border hover:border-accent/40 hover:text-accent transition-colors"
-          >
-            <ChevronRight className="size-4" />
-          </button>
-        </div>
+        <button
+          onClick={clear}
+          aria-label="Clear history"
+          className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent transition-colors shrink-0"
+        >
+          <X className="size-3" /> Clear
+        </button>
       </div>
 
-      <div
-        ref={scrollerRef}
-        className="flex gap-2.5 sm:gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0 pb-2 scroll-smooth"
-        style={{ scrollbarWidth: "none", scrollPaddingLeft: "1rem", scrollPaddingRight: "1rem" }}
-      >
-        {items.map((p) => (
-          <div
-            key={p.id ?? p.slug}
-            className="snap-start shrink-0 w-[44%] xs:w-[40%] sm:w-[28%] md:w-[22%] lg:w-[18%] last:mr-4 sm:last:mr-0"
-          >
-            <MiniCard product={p} />
-          </div>
-        ))}
+      <ProductRail products={items} compact />
+      <div data-product-grid className="hidden sm:grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+        {items.map((p) => <ProductCard key={p.id ?? p.slug} product={p} compact />)}
       </div>
     </section>
   );
