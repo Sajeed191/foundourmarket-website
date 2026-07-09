@@ -450,12 +450,7 @@ function CartPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              bottom: "var(--product-dock-bottom)",
-              ["--nav-shift" as string]: navHidden
-                ? "translateY(calc(var(--product-dock-bottom) - var(--mobile-safe-bottom)))"
-                : "translateY(0)",
-            }}
+            style={{ bottom: "var(--product-dock-bottom)" }}
           >
             <div
               className="will-change-transform"
