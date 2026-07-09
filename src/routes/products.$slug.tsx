@@ -27,6 +27,8 @@ import { computeBadges, DEFAULT_BADGE_SETTINGS } from "@/lib/badges";
 import { fetchActiveFaqs, type ProductFaq } from "@/lib/product-faqs";
 import { recordEvent, fetchFBT, fetchAlsoViewed } from "@/lib/personalization";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
+import { RecommendedForYou } from "@/components/site/RecommendedForYou";
+import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { useIsProductAdmin } from "@/lib/use-admin";
 // Admin-only editors: lazy so customers never download the heavy admin graph
 // (framer-motion menus, server-fn clients) on a product page. Gated by isAdmin.
