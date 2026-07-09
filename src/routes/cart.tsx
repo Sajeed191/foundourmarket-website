@@ -484,50 +484,180 @@ function CartPage() {
   );
 }
 
+/** Fire a short haptic pulse on supported devices (no-op elsewhere). */
+function haptic(ms = 12) {
+  try {
+    navigator.vibrate?.(ms);
+  } catch {
+    /* unsupported */
+  }
+}
+
+/**
+ * Smoothly count a currency value up/down when it changes (rAF-interpolated,
+ * eased). Respects reduced-motion by snapping. GPU-free, no layout shift.
+ */
+function AnimatedAmount({
+  value, format, className,
+}: {
+  value: number;
+  format: (n: number) => string;
+  className?: string;
+}) {
+  const [display, setDisplay] = useState(value);
+  const fromRef = useRef(value);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    const from = fromRef.current;
+    const to = value;
+    if (from === to) return;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      fromRef.current = to;
+      setDisplay(to);
+      return;
+    }
+    const start = performance.now();
+    const dur = 420;
+    cancelAnimationFrame(rafRef.current);
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(from + (to - from) * eased);
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+      else fromRef.current = to;
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [value]);
+
+  return <span className={className}>{format(display)}</span>;
+}
+
+/** Green savings pill that softly pulses whenever the saved amount increases. */
+function SavingsPill({ value, format }: { value: number; format: (n: number) => string }) {
+  const controls = useAnimationControls();
+  const prev = useRef(value);
+  useEffect(() => {
+    if (value > prev.current) {
+      controls.start({ scale: [1, 1.14, 1], transition: { duration: 0.4, ease: "easeOut" } });
+    }
+    prev.current = value;
+  }, [value, controls]);
+  return (
+    <motion.span
+      animate={controls}
+      className="inline-flex items-center rounded-full bg-emerald-500/12 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 will-change-transform"
+    >
+      You save {format(value)}
+    </motion.span>
+  );
+}
+
+/** Compact status chip for shipping / coupon / delivery ETA. */
+function StatusChip({
+  icon: Icon, children, tone,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+  tone?: "accent";
+}) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide ${
+        tone === "accent"
+          ? "bg-accent/12 text-accent"
+          : "bg-white/[0.05] text-muted-foreground"
+      }`}
+    >
+      <Icon className="size-2.5" /> {children}
+    </span>
+  );
+}
+
 /**
  * Premium checkout CTA matching the Product page Buy Now feel — hover brighten,
- * press scale, a brief loading spinner and a success check before navigating.
- * GPU transform/opacity only; no layout shift (fixed height, content swapped).
+ * press scale, tap ripple, haptics, a brief loading spinner and a success check
+ * before navigating. GPU transform/opacity only; no layout shift (fixed height,
+ * content swapped). First appearance emits a one-shot glow.
  */
 function CheckoutButton({ disabled, label, compact }: { disabled?: boolean; label: string; compact?: boolean }) {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<"idle" | "loading" | "done">("idle");
+  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
+
+  function spawnRipple(e: React.PointerEvent<HTMLButtonElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const id = Date.now() + Math.random();
+    setRipples((r) => [...r, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+    window.setTimeout(() => setRipples((r) => r.filter((x) => x.id !== id)), 620);
+  }
 
   function go() {
     if (disabled || phase !== "idle") return;
+    haptic(14);
     setPhase("loading");
     window.setTimeout(() => {
       setPhase("done");
+      haptic(20);
       window.setTimeout(() => navigate({ to: "/checkout" }), 320);
     }, 420);
   }
 
   return (
     <button
+      onPointerDown={spawnRipple}
       onClick={go}
       disabled={disabled}
       aria-label={label}
-      className={`group relative w-full overflow-hidden bg-accent text-accent-foreground font-bold rounded-full uppercase tracking-widest transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none shadow-[0_0_20px_hsl(var(--accent)/0.4)] ${compact ? "min-h-[46px] text-[11px] px-4" : "min-h-[52px] text-xs px-5"} inline-flex items-center justify-center gap-2 will-change-transform`}
+      className={`group relative w-full overflow-hidden bg-accent text-accent-foreground font-bold rounded-full uppercase tracking-widest transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none shadow-[0_0_20px_hsl(var(--accent)/0.4)] ${compact ? "min-h-[48px] text-[11px] px-4" : "min-h-[54px] text-xs px-5"} inline-flex items-center justify-center gap-2 will-change-transform`}
     >
+      {/* One-shot appearance glow ring. */}
+      <motion.span
+        aria-hidden
+        initial={{ opacity: 0.6, scale: 0.9 }}
+        animate={{ opacity: 0, scale: 1.15 }}
+        transition={{ duration: 1.1, ease: "easeOut" }}
+        className="pointer-events-none absolute inset-0 rounded-full"
+        style={{ boxShadow: "0 0 26px 4px hsl(var(--accent) / 0.55)" }}
+      />
+
+      {/* Tap ripples. */}
+      {ripples.map((r) => (
+        <motion.span
+          key={r.id}
+          aria-hidden
+          initial={{ opacity: 0.45, scale: 0 }}
+          animate={{ opacity: 0, scale: 4 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="pointer-events-none absolute rounded-full bg-white/40"
+          style={{ left: r.x - 40, top: r.y - 40, width: 80, height: 80 }}
+        />
+      ))}
+
       <AnimatePresence mode="wait" initial={false}>
         {phase === "loading" ? (
-          <motion.span key="loading" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }} className="inline-flex items-center gap-2">
+          <motion.span key="loading" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }} className="relative inline-flex items-center gap-2">
             <Loader2 className="size-4 animate-spin" />
           </motion.span>
         ) : phase === "done" ? (
-          <motion.span key="done" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} className="inline-flex items-center gap-2">
+          <motion.span key="done" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} className="relative inline-flex items-center gap-2">
             <Check className="size-4" strokeWidth={3} />
           </motion.span>
         ) : (
-          <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inline-flex items-center gap-2 whitespace-nowrap">
+          <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative inline-flex items-center gap-2 whitespace-nowrap">
             <Lock className="size-3.5" /> {label}
-            <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
           </motion.span>
         )}
       </AnimatePresence>
     </button>
   );
 }
+
 
 function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
