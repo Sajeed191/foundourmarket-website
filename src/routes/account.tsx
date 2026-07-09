@@ -553,13 +553,6 @@ function OverviewCard({
         className="pointer-events-none absolute inset-0 rounded-[20px] opacity-90"
         style={{ background: t.tint }}
       />
-      {/* Soft tinted corner glow (blurred) — one uniform design in every env */}
-      <div
-        aria-hidden
-        data-uniform-glow
-        className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"
-        style={{ background: t.glow }}
-      />
 
       {/* Icon badge (circular, top-left) */}
       <span className={`relative flex size-10 items-center justify-center rounded-full transition-transform group-hover:scale-105 ${t.icon}`}>
@@ -735,8 +728,6 @@ function UtilityCard({
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className="group relative h-full min-h-[150px] flex flex-col text-left rounded-[20px] p-4 sm:p-[18px] overflow-hidden bg-white/[0.03] border border-accent/15 shadow-[0_6px_20px_-8px_rgba(0,0,0,0.5)] transition-colors duration-200 hover:border-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
     >
-      {/* radial glow behind icon */}
-      <span aria-hidden className="pointer-events-none absolute -top-6 -left-4 size-24 rounded-full blur-2xl opacity-50 transition-opacity duration-200 group-hover:opacity-70" style={{ background: glow }} />
 
       {/* ripple */}
       {ripple && (
@@ -1032,7 +1023,7 @@ function FooterAction({ icon: Icon, label, to, onClick }: { icon: typeof Package
 function EmptyState({ icon: Icon = Star, title, body, cta, extra }: { icon?: typeof Package; title: string; body: string; cta?: React.ReactNode; extra?: React.ReactNode }) {
   return (
     <div className="card-premium rounded-2xl border-dashed p-5 sm:p-6 flex flex-col items-center text-center relative overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 size-40 rounded-full blur-3xl opacity-40" style={{ background: "var(--gradient-ember)" }} />
+      
       <motion.div
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
@@ -1171,7 +1162,7 @@ function FlashSaleStrip() {
         className="relative block overflow-hidden rounded-3xl glass-strong p-4 sm:p-5 group hover:border-accent/50 transition-colors"
       >
         <div aria-hidden className="absolute inset-0 -z-10 opacity-70" style={{ background: "var(--gradient-ember-soft)" }} />
-        <div aria-hidden className="absolute -top-16 -right-10 size-56 rounded-full blur-3xl opacity-60" style={{ background: "var(--gradient-ember)" }} />
+        
         <div className="relative flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <motion.span
@@ -1411,7 +1402,6 @@ function TrackingWidget({ journey, format }: { journey: Journey; format: (n: num
         {detailsLink}
       </div>
       <div className="card-premium rounded-2xl p-4 sm:p-5 relative overflow-hidden">
-        <div aria-hidden className="absolute -top-16 -right-10 size-48 rounded-full blur-3xl opacity-40" style={{ background: "var(--gradient-ember)" }} />
 
         {/* Product row */}
         <div className="relative flex items-start gap-3 mb-4">
@@ -1523,7 +1513,7 @@ function ReturnTimeline({ ret, format }: { ret: Return; format: (n: number) => s
         <Link to="/account/returns" className="action-link">Details <ArrowRight className="size-3" /></Link>
       </div>
       <div className="card-premium rounded-2xl p-4 sm:p-5 relative overflow-hidden">
-        <div aria-hidden className="absolute -top-16 -right-10 size-48 rounded-full blur-3xl opacity-40" style={{ background: "var(--gradient-ember)" }} />
+        
         <div className="relative flex items-center justify-between gap-3 mb-4">
           <div className="min-w-0">
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Return #{ret.id.slice(0, 8)}</p>
@@ -1604,11 +1594,6 @@ function HubCard({
         className="relative h-full min-h-[112px] overflow-hidden rounded-2xl p-4 sm:p-5 card-premium hover:shadow-[var(--shadow-soft)]"
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50 bg-gradient-to-br from-white/[0.04] to-transparent" />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"
-          style={{ background: t.glow }}
-        />
         <div className="relative flex items-start justify-between">
           <span className={`size-11 rounded-2xl grid place-items-center transition-transform group-hover:scale-105 ${t.icon}`}>
             <Icon className="size-5" />
@@ -1640,11 +1625,6 @@ function SupportCard({
       transition={{ duration: 0.25, ease }}
       className="relative h-full min-h-[100px] overflow-hidden rounded-2xl p-4 sm:p-5 card-premium hover:shadow-[var(--shadow-soft)] text-left"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"
-        style={{ background: t.glow }}
-      />
       <span className={`relative size-10 rounded-xl grid place-items-center transition-transform group-hover:scale-105 ${t.icon}`}>
         <Icon className="size-[18px]" />
       </span>
