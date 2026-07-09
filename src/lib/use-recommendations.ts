@@ -127,7 +127,7 @@ function buildRecommendations(products: Product[], signals: Signals, limit: numb
       if (isNew(p)) score += 5 + affinity * 8;
 
       // 9 — recently discounted matching interests
-      const disc = discountPercent(p);
+      const disc = p.discount ?? 0;
       if (disc > 0) score += Math.min(disc / 10, 6) * (0.5 + affinity);
 
       // Curated flags nudge quality without dominating behaviour.
