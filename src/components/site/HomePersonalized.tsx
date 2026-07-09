@@ -1,31 +1,28 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, Sparkles } from "lucide-react";
-import { fetchPersonalizedSlugs, fetchTrendingSlugs } from "@/lib/personalization";
+import { TrendingUp } from "lucide-react";
+import { fetchTrendingSlugs } from "@/lib/personalization";
 import { RecommendationStrip } from "./RecommendationStrip";
+import { RecommendedForYou } from "./RecommendedForYou";
 import { useAuth } from "@/lib/auth";
 
 export function HomePersonalized() {
   const { user } = useAuth();
-  const [personal, setPersonal] = useState<string[]>([]);
   const [trending, setTrending] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchPersonalizedSlugs(8).then(setPersonal);
     fetchTrendingSlugs(8).then(setTrending);
   }, [user?.id]);
 
-  if (!personal.length && !trending.length) return null;
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6">
-      {personal.length > 0 && (
-        <RecommendationStrip
-          title={user ? "Picked for you" : "Discover something you'll love"}
-          subtitle={user ? "Based on what you've browsed recently" : "Curated highlights across the marketplace"}
-          icon={<Sparkles className="size-3" />}
-          slugs={personal}
-        />
-      )}
+      <RecommendedForYou
+        title={user ? "Recommended For You" : "Discover Something You'll Love"}
+        subtitle={
+          user
+            ? "Curated from what you browse, save, and shop"
+            : "Curated highlights across the marketplace"
+        }
+      />
       {trending.length > 0 && (
         <RecommendationStrip
           title="Trending this week"

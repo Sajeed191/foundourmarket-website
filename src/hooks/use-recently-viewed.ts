@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const KEY = "fom_recently_viewed";
-const MAX = 12;
+const MAX = 30;
 
 /**
  * Recently-viewed history is ACCOUNT-based and DB-backed.
