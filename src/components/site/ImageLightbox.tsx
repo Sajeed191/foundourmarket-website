@@ -240,10 +240,11 @@ export function ImageLightbox({
     if (axis.current === "y" && swipeClosing.current) {
       const c = containerRef.current;
       const dy = e.clientY - (dragStart.current?.y ?? e.clientY);
-      if (dy > 110) {
+      if (Math.abs(dy) > 110) {
+        const dir = dy > 0 ? 1 : -1;
         if (c) {
           c.style.transition = "transform 240ms ease, opacity 240ms ease";
-          c.style.transform = `translate3d(0, ${window.innerHeight}px, 0)`;
+          c.style.transform = `translate3d(0, ${dir * window.innerHeight}px, 0)`;
           c.style.opacity = "0";
         }
         setTimeout(onClose, 200);
