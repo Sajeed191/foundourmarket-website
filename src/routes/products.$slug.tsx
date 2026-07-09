@@ -333,12 +333,18 @@ function ProductPage() {
     const io = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        // Show the sticky dock only when the inline card is fully off-screen.
-        setMobileDockVisible(!entry.isIntersecting);
+        // Show the sticky dock ONLY when the inline card has scrolled completely
+        // ABOVE the viewport (the user is past the main purchase section). When
+        // the card is still below the fold (not yet reached) its top edge is
+        // below the viewport bottom → keep the dock hidden so it never appears
+        // on initial load. As soon as any part of the card is visible, hide.
+        const scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        setMobileDockVisible(scrolledPast);
       },
       { threshold: 0 },
     );
     io.observe(el);
+
     return () => io.disconnect();
   }, [product?.slug, dataReady]);
 
