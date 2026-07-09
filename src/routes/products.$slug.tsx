@@ -1111,6 +1111,12 @@ function ProductPage() {
         </div>
       </LazyMount>
       <LazyMount minHeight={160}>
+        <RecommendedForYou excludeSlug={product.slug} />
+      </LazyMount>
+      <LazyMount minHeight={160}>
+        <RecentlyViewed excludeSlug={product.slug} />
+      </LazyMount>
+      <LazyMount minHeight={160}>
         <ProductComparison product={product} />
       </LazyMount>
 
