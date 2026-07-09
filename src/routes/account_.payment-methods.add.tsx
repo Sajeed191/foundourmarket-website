@@ -183,8 +183,6 @@ function AddPaymentMethodPage() {
                     : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
                 }`}
               >
-                {active && (
-                )}
                 <div className="relative flex items-center gap-3">
                   <span
                     className={`grid size-10 place-items-center rounded-xl border transition ${
