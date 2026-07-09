@@ -1,11 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Minus, Plus, X, ArrowRight, ShoppingBag, Bookmark, RotateCcw, Heart,
   Truck, ShieldCheck, ChevronDown, Lock, MapPin, Clock,
-  AlertTriangle, CheckCircle2, Loader2, Undo2, Sparkles, Share2, Star,
+  AlertTriangle, CheckCircle2, Loader2, Undo2, Sparkles, Share2, Star, Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
@@ -62,6 +62,37 @@ function CartPage() {
 
   const [promo, setPromo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
+
+  // Mirror the auto-hide Bottom Navigation's phase so the sticky checkout dock
+  // slides flush to the screen bottom when the nav hides, and returns smoothly
+  // when it reappears — the exact same single-source-of-truth pattern used by
+  // the product page purchase dock. Transform + opacity only (GPU-accelerated).
+  const [navHidden, setNavHidden] = useState(false);
+  useEffect(() => {
+    if (typeof MutationObserver === "undefined") return;
+    let mo: MutationObserver | undefined;
+    let raf = 0;
+    const sync = () => {
+      const nav = document.querySelector("[data-app-bottom-nav]");
+      setNavHidden(nav?.getAttribute("data-phase") === "hidden");
+    };
+    const attach = () => {
+      const nav = document.querySelector("[data-app-bottom-nav]");
+      if (!nav) { raf = requestAnimationFrame(attach); return; }
+      sync();
+      mo = new MutationObserver(sync);
+      mo.observe(nav, { attributes: true, attributeFilter: ["data-phase"] });
+    };
+    attach();
+    window.addEventListener("pageshow", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      mo?.disconnect();
+      window.removeEventListener("pageshow", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, []);
 
   // Pull the latest admin pricing/shipping when the cart opens.
   useEffect(() => { refreshProducts(); }, []);
@@ -358,13 +389,9 @@ function CartPage() {
                 </div>
               </dl>
 
-              <Link
-                to="/checkout"
-                className={`group w-full mt-5 bg-accent text-accent-foreground font-bold py-3.5 rounded-full text-xs uppercase tracking-widest hover:brightness-110 transition-all inline-flex items-center justify-center gap-2 shadow-[0_0_20px_hsl(var(--accent)/0.35)] ${count === 0 ? "pointer-events-none opacity-50" : ""}`}
-              >
-                <Lock className="size-3.5" /> Secure Checkout
-                <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
+              <div className="mt-5">
+                <CheckoutButton disabled={count === 0} label="Secure Checkout" />
+              </div>
 
               {/* Razorpay trust badge */}
               <div className="mt-3.5 flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
@@ -395,15 +422,20 @@ function CartPage() {
       </div>
 
 
-      {/* Sticky mobile checkout dock — compact bar that floats ~12px above the
-          bottom nav, respecting the device safe area. */}
+      {/* Sticky mobile checkout dock — one shared visibility state, GPU
+          transform + opacity only. Slides flush to the screen bottom when the
+          Bottom Navigation hides and returns smoothly when it reappears. */}
       {count > 0 && (
         <div
-          className="lg:hidden fixed inset-x-0 z-40 px-3 pointer-events-none"
-          style={{ bottom: "calc(var(--app-bottom-nav-height) + 0.75rem)" }}
+          className="lg:hidden fixed inset-x-0 z-[var(--z-floating-controls)] px-3 pointer-events-none will-change-transform"
+          style={{
+            bottom: "var(--product-dock-bottom)",
+            transform: navHidden ? "translateY(calc(var(--product-dock-bottom) - var(--mobile-safe-bottom)))" : "translateY(0)",
+            transition: "transform 220ms cubic-bezier(0.22,1,0.36,1)",
+          }}
         >
           <div
-            className="pointer-events-auto rounded-2xl p-1 pl-4 flex items-center gap-3 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9),0_0_28px_-14px_hsl(var(--accent)/0.45)]"
+            className="pointer-events-auto rounded-2xl px-4 py-2.5 flex items-center gap-3 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9),0_0_28px_-14px_hsl(var(--accent)/0.45)]"
             style={{
               background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))",
               backdropFilter: "blur(32px) saturate(160%)",
@@ -411,17 +443,69 @@ function CartPage() {
             }}
           >
             <div className="flex-1 min-w-0 leading-none">
-              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/80">Total · {count} {count === 1 ? "item" : "items"}</p>
+              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/80 inline-flex items-center gap-1">
+                <Lock className="size-2.5 text-accent" /> Total · {count} {count === 1 ? "item" : "items"}
+              </p>
               <motion.p key={total} initial={{ scale: 1.06 }} animate={{ scale: 1 }} className="fom-price-current font-mono text-[16px] leading-tight truncate mt-0.5">{format(total)}</motion.p>
+              {totalSavings > 0 && (
+                <p className="text-[9px] font-semibold text-accent leading-none mt-0.5">You save {format(totalSavings)}</p>
+              )}
+              <p className="text-[8px] uppercase tracking-widest text-muted-foreground/70 mt-1">Secure Payment · Fast Delivery · Easy Returns</p>
             </div>
-            <Link to="/checkout" className="shrink-0 bg-accent text-accent-foreground font-bold px-5 py-2.5 rounded-xl text-[11px] uppercase tracking-widest inline-flex items-center gap-2 whitespace-nowrap transition-all active:scale-95 shadow-[0_0_20px_hsl(var(--accent)/0.5)]">
-              <Lock className="size-3.5" /> Checkout
-            </Link>
+            <div className="shrink-0 w-[42%] max-w-[168px]">
+              <CheckoutButton disabled={count === 0} label="Checkout" compact />
+            </div>
           </div>
         </div>
       )}
 
+
     </div>
+  );
+}
+
+/**
+ * Premium checkout CTA matching the Product page Buy Now feel — hover brighten,
+ * press scale, a brief loading spinner and a success check before navigating.
+ * GPU transform/opacity only; no layout shift (fixed height, content swapped).
+ */
+function CheckoutButton({ disabled, label, compact }: { disabled?: boolean; label: string; compact?: boolean }) {
+  const navigate = useNavigate();
+  const [phase, setPhase] = useState<"idle" | "loading" | "done">("idle");
+
+  function go() {
+    if (disabled || phase !== "idle") return;
+    setPhase("loading");
+    window.setTimeout(() => {
+      setPhase("done");
+      window.setTimeout(() => navigate({ to: "/checkout" }), 320);
+    }, 420);
+  }
+
+  return (
+    <button
+      onClick={go}
+      disabled={disabled}
+      aria-label={label}
+      className={`group relative w-full overflow-hidden bg-accent text-accent-foreground font-bold rounded-full uppercase tracking-widest transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none shadow-[0_0_20px_hsl(var(--accent)/0.4)] ${compact ? "min-h-[46px] text-[11px] px-4" : "min-h-[52px] text-xs px-5"} inline-flex items-center justify-center gap-2 will-change-transform`}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {phase === "loading" ? (
+          <motion.span key="loading" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }} className="inline-flex items-center gap-2">
+            <Loader2 className="size-4 animate-spin" />
+          </motion.span>
+        ) : phase === "done" ? (
+          <motion.span key="done" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} className="inline-flex items-center gap-2">
+            <Check className="size-4" strokeWidth={3} />
+          </motion.span>
+        ) : (
+          <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inline-flex items-center gap-2 whitespace-nowrap">
+            <Lock className="size-3.5" /> {label}
+            <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </button>
   );
 }
 
