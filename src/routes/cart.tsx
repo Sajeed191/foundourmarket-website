@@ -190,20 +190,9 @@ function CartPage() {
       </div>
 
 
-      {/* Undo remove banner */}
-      <AnimatePresence>
-        {lastRemoved && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3"
-          >
-            <span className="text-sm text-muted-foreground">Item removed from cart.</span>
-            <button onClick={() => undoRemove()} className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest font-bold text-accent hover:brightness-110">
-              <Undo2 className="size-3.5" /> Undo
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Premium auto-dismiss undo toast */}
+      <UndoToast lastRemoved={lastRemoved} onUndo={undoRemove} />
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
         <div className="lg:col-span-2 space-y-3">
@@ -462,43 +451,33 @@ function CartPage() {
               }}
             >
               <div
-                className="pointer-events-auto relative overflow-hidden rounded-[22px] px-4 py-3 flex items-center gap-3.5 border border-white/[0.08]"
+                className="pointer-events-auto relative overflow-hidden rounded-[24px] px-4 py-3.5 flex items-center gap-4 border border-white/[0.08]"
                 style={{
                   background: "linear-gradient(150deg, oklch(0.23 0.018 60 / 0.97), oklch(0.15 0.008 40 / 0.98))",
-                  boxShadow: "0 18px 44px -22px oklch(0 0 0 / 0.85), inset 0 1px 0 oklch(1 0 0 / 0.05), 0 0 34px -20px hsl(var(--accent) / 0.55)",
+                  boxShadow: "0 14px 36px -22px oklch(0 0 0 / 0.7), inset 0 1px 0 oklch(1 0 0 / 0.05), 0 0 30px -22px hsl(var(--accent) / 0.5)",
                 }}
               >
-                {/* Subtle static orange ambient glow — no blur filter. */}
+                {/* Very soft orange ambient glow — no blur filter. */}
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute -top-10 -left-8 h-28 w-28 rounded-full opacity-40"
-                  style={{ background: "radial-gradient(closest-side, hsl(var(--accent) / 0.4), transparent)" }}
+                  className="pointer-events-none absolute -top-10 -left-8 h-28 w-28 rounded-full opacity-30"
+                  style={{ background: "radial-gradient(closest-side, hsl(var(--accent) / 0.35), transparent)" }}
                 />
 
                 <div className="flex-1 min-w-0 leading-none relative">
-                  <p className="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground/80 inline-flex items-center gap-1.5">
-                    <ShoppingBag className="size-3 text-accent" /> Ready to Checkout · {count} {count === 1 ? "item" : "items"}
-                  </p>
-                  <div className="flex items-baseline gap-2 mt-1.5">
-                    <AnimatedAmount value={total} format={format} className="fom-price-current font-mono text-[19px] leading-none tracking-tight" />
+                  <AnimatedAmount value={total} format={format} className="fom-price-current font-mono text-[24px] leading-none tracking-tight" />
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {shipping === 0 && <StatusChip icon={Truck} tone="accent">Free shipping</StatusChip>}
                     {totalSavings > 0 && <SavingsPill value={totalSavings} format={format} />}
                   </div>
-                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                    {shipping === 0 && <StatusChip icon={Truck} tone="accent">Free shipping</StatusChip>}
-                    {discount > 0 && <StatusChip icon={Sparkles} tone="accent">Coupon applied</StatusChip>}
-                    {ship?.etaIso && (
-                      <StatusChip icon={Clock}>
-                        {new Date(ship.etaIso).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                      </StatusChip>
-                    )}
-                  </div>
-                  <p className="text-[8.5px] uppercase tracking-[0.14em] text-muted-foreground/60 mt-1.5">Secure Payment · Fast Delivery · Easy Returns</p>
+                  <p className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground/60 mt-2">Secure Payment · Easy Returns</p>
                 </div>
 
-                <div className="shrink-0 w-[42%] max-w-[172px]">
+                <div className="shrink-0 w-[44%] max-w-[172px]">
                   <CheckoutButton disabled={count === 0} label="Checkout" compact />
                 </div>
               </div>
+
             </div>
           </motion.div>
         )}
@@ -517,6 +496,99 @@ function haptic(ms = 12) {
     /* unsupported */
   }
 }
+
+/**
+ * Premium auto-dismissing undo toast. Appears (fade + slide down) after an item
+ * is removed, auto-hides after 4s with a shrinking progress indicator, and
+ * updates in place when another item is removed before it dismisses (no
+ * stacking). Tapping UNDO restores the item and dismisses immediately.
+ * Fixed-position + GPU transform/opacity only — no layout shift, no page move.
+ */
+function UndoToast({
+  lastRemoved,
+  onUndo,
+}: {
+  lastRemoved: { slug: string; qty: number; at: number } | null;
+  onUndo: () => void;
+}) {
+  const DURATION = 4000;
+  const [visible, setVisible] = useState(false);
+  const [progress, setProgress] = useState(1);
+  const dismissedAt = useRef<number | null>(null);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    if (!lastRemoved || lastRemoved.at === dismissedAt.current) return;
+    setVisible(true);
+    const start = performance.now();
+    cancelAnimationFrame(rafRef.current);
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / DURATION);
+      setProgress(1 - t);
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        dismissedAt.current = lastRemoved.at;
+        setVisible(false);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [lastRemoved?.at]);
+
+  function handleUndo() {
+    cancelAnimationFrame(rafRef.current);
+    if (lastRemoved) dismissedAt.current = lastRemoved.at;
+    setVisible(false);
+    haptic(12);
+    onUndo();
+  }
+
+  return (
+    <AnimatePresence>
+      {visible && lastRemoved && (
+        <motion.div
+          initial={{ opacity: 0, y: -14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -14 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed left-1/2 z-[var(--z-floating-controls)] w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 will-change-transform"
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
+        >
+          <div
+            className="relative overflow-hidden rounded-2xl border border-white/[0.08] px-4 py-3"
+            style={{
+              background: "linear-gradient(150deg, oklch(0.23 0.018 60 / 0.98), oklch(0.15 0.008 40 / 0.98))",
+              boxShadow: "0 16px 40px -20px oklch(0 0 0 / 0.85), inset 0 1px 0 oklch(1 0 0 / 0.05)",
+            }}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 text-sm text-foreground/90">
+                <span className="grid size-6 place-items-center rounded-full bg-white/[0.06]">
+                  <X className="size-3 text-muted-foreground" />
+                </span>
+                Item removed
+              </span>
+              <button
+                onClick={handleUndo}
+                className="inline-flex items-center gap-1.5 rounded-full bg-accent/12 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-accent transition hover:brightness-110 active:scale-95"
+              >
+                <Undo2 className="size-3.5" /> Undo
+              </button>
+            </div>
+            {/* Remaining-time progress indicator */}
+            <span
+              aria-hidden
+              className="absolute bottom-0 left-0 h-[3px] rounded-full bg-accent/70 will-change-[width]"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 
 /**
  * Smoothly count a currency value up/down when it changes (rAF-interpolated,
@@ -577,7 +649,7 @@ function SavingsPill({ value, format }: { value: number; format: (n: number) => 
       animate={controls}
       className="inline-flex items-center rounded-full bg-emerald-500/12 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 will-change-transform"
     >
-      You save {format(value)}
+      Save {format(value)}
     </motion.span>
   );
 }
