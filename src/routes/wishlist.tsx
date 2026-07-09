@@ -110,18 +110,67 @@ function LazyMount({ children, minHeight = 320 }: { children: ReactNode; minHeig
   return <div ref={ref} style={show ? undefined : { minHeight }}>{show ? children : null}</div>;
 }
 
+// Preserves horizontal scroll position per-carousel across remounts / navigation.
+const carouselScroll = new Map<string, number>();
+
+function ProductCarousel({ id, products }: { id: string; products: Product[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const saved = carouselScroll.get(id);
+    if (saved) el.scrollLeft = saved;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => carouselScroll.set(id, el.scrollLeft));
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, [id]);
+
+  return (
+    <div className="-mx-4 sm:mx-0">
+      <div
+        ref={ref}
+        data-product-grid
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-3 pt-1 sm:gap-5 sm:px-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        style={{ scrollPaddingLeft: "1rem", overscrollBehaviorX: "contain", WebkitOverflowScrolling: "touch" }}
+      >
+        {products.map((p) => (
+          <div
+            key={p.id ?? p.slug}
+            data-product-card-frame
+            className="w-[46%] shrink-0 snap-start min-[420px]:w-[42%] sm:w-[240px] lg:w-[260px]"
+          >
+            <ProductCard product={p} />
+          </div>
+        ))}
+        <div aria-hidden className="w-1 shrink-0" />
+      </div>
+    </div>
+  );
+}
+
 function ProductSection({
   eyebrow,
   title,
+  subtitle,
   icon,
   products,
   viewAllTo,
+  carousel = false,
 }: {
   eyebrow: string;
   title: string;
+  subtitle?: string;
   icon: ReactNode;
   products: Product[];
   viewAllTo?: string;
+  carousel?: boolean;
 }) {
   if (products.length === 0) return null;
   return (
@@ -132,6 +181,7 @@ function ProductSection({
             {icon} {eyebrow}
           </p>
           <h2 className="text-lg font-display font-semibold tracking-tight sm:text-2xl">{title}</h2>
+          {subtitle && <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{subtitle}</p>}
         </div>
         {viewAllTo && (
           <Link
@@ -142,11 +192,15 @@ function ProductSection({
           </Link>
         )}
       </div>
-      <div data-product-grid className={GRID}>
-        {products.map((p) => (
-          <ProductCard key={p.id ?? p.slug} product={p} />
-        ))}
-      </div>
+      {carousel ? (
+        <ProductCarousel id={title} products={products} />
+      ) : (
+        <div data-product-grid className={GRID}>
+          {products.map((p) => (
+            <ProductCard key={p.id ?? p.slug} product={p} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
