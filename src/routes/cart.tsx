@@ -508,6 +508,99 @@ function haptic(ms = 12) {
 }
 
 /**
+ * Premium auto-dismissing undo toast. Appears (fade + slide down) after an item
+ * is removed, auto-hides after 4s with a shrinking progress indicator, and
+ * updates in place when another item is removed before it dismisses (no
+ * stacking). Tapping UNDO restores the item and dismisses immediately.
+ * Fixed-position + GPU transform/opacity only — no layout shift, no page move.
+ */
+function UndoToast({
+  lastRemoved,
+  onUndo,
+}: {
+  lastRemoved: { slug: string; qty: number; at: number } | null;
+  onUndo: () => void;
+}) {
+  const DURATION = 4000;
+  const [visible, setVisible] = useState(false);
+  const [progress, setProgress] = useState(1);
+  const dismissedAt = useRef<number | null>(null);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    if (!lastRemoved || lastRemoved.at === dismissedAt.current) return;
+    setVisible(true);
+    const start = performance.now();
+    cancelAnimationFrame(rafRef.current);
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / DURATION);
+      setProgress(1 - t);
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        dismissedAt.current = lastRemoved.at;
+        setVisible(false);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [lastRemoved?.at]);
+
+  function handleUndo() {
+    cancelAnimationFrame(rafRef.current);
+    if (lastRemoved) dismissedAt.current = lastRemoved.at;
+    setVisible(false);
+    haptic(12);
+    onUndo();
+  }
+
+  return (
+    <AnimatePresence>
+      {visible && lastRemoved && (
+        <motion.div
+          initial={{ opacity: 0, y: -14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -14 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed left-1/2 z-[var(--z-floating-controls)] w-[calc(100%-1.5rem)] max-w-sm -translate-x-1/2 will-change-transform"
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
+        >
+          <div
+            className="relative overflow-hidden rounded-2xl border border-white/[0.08] px-4 py-3"
+            style={{
+              background: "linear-gradient(150deg, oklch(0.23 0.018 60 / 0.98), oklch(0.15 0.008 40 / 0.98))",
+              boxShadow: "0 16px 40px -20px oklch(0 0 0 / 0.85), inset 0 1px 0 oklch(1 0 0 / 0.05)",
+            }}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 text-sm text-foreground/90">
+                <span className="grid size-6 place-items-center rounded-full bg-white/[0.06]">
+                  <X className="size-3 text-muted-foreground" />
+                </span>
+                Item removed
+              </span>
+              <button
+                onClick={handleUndo}
+                className="inline-flex items-center gap-1.5 rounded-full bg-accent/12 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-accent transition hover:brightness-110 active:scale-95"
+              >
+                <Undo2 className="size-3.5" /> Undo
+              </button>
+            </div>
+            {/* Remaining-time progress indicator */}
+            <span
+              aria-hidden
+              className="absolute bottom-0 left-0 h-[3px] rounded-full bg-accent/70 will-change-[width]"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+
+/**
  * Smoothly count a currency value up/down when it changes (rAF-interpolated,
  * eased). Respects reduced-motion by snapping. GPU-free, no layout shift.
  */
