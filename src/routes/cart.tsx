@@ -63,6 +63,37 @@ function CartPage() {
   const [promo, setPromo] = useState<AutoPromo>(null);
   const [ship, setShip] = useState<ShipState>(null);
 
+  // Mirror the auto-hide Bottom Navigation's phase so the sticky checkout dock
+  // slides flush to the screen bottom when the nav hides, and returns smoothly
+  // when it reappears — the exact same single-source-of-truth pattern used by
+  // the product page purchase dock. Transform + opacity only (GPU-accelerated).
+  const [navHidden, setNavHidden] = useState(false);
+  useEffect(() => {
+    if (typeof MutationObserver === "undefined") return;
+    let mo: MutationObserver | undefined;
+    let raf = 0;
+    const sync = () => {
+      const nav = document.querySelector("[data-app-bottom-nav]");
+      setNavHidden(nav?.getAttribute("data-phase") === "hidden");
+    };
+    const attach = () => {
+      const nav = document.querySelector("[data-app-bottom-nav]");
+      if (!nav) { raf = requestAnimationFrame(attach); return; }
+      sync();
+      mo = new MutationObserver(sync);
+      mo.observe(nav, { attributes: true, attributeFilter: ["data-phase"] });
+    };
+    attach();
+    window.addEventListener("pageshow", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      mo?.disconnect();
+      window.removeEventListener("pageshow", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, []);
+
   // Pull the latest admin pricing/shipping when the cart opens.
   useEffect(() => { refreshProducts(); }, []);
 
