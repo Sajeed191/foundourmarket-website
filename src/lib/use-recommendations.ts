@@ -103,7 +103,7 @@ function buildRecommendations(products: Product[], signals: Signals, limit: numb
       (p) =>
         p.inStock &&
         !p.hideFromRecommendations &&
-        p.status === "active" &&
+        (p.status === "published" || p.status === "preorder") &&
         !exclude.has(p.slug),
     )
     .map((p) => {
