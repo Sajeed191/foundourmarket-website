@@ -94,6 +94,22 @@ function CartPage() {
     };
   }, []);
 
+  // Single source of truth: when the main Order Summary card is visible (even
+  // partially) the floating mini checkout bar must be hidden — never both at
+  // once. IntersectionObserver only (no scroll polling / reflows).
+  const summaryRef = useRef<HTMLDivElement | null>(null);
+  const [summaryVisible, setSummaryVisible] = useState(true);
+  useEffect(() => {
+    const el = summaryRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => setSummaryVisible(entry.isIntersecting),
+      { threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   // Pull the latest admin pricing/shipping when the cart opens.
   useEffect(() => { refreshProducts(); }, []);
 
