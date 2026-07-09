@@ -74,7 +74,19 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Canonical motion language ──────────────────────────────────────────
+     One shared easing + timing scale for the whole site. Components reference
+     these tokens so every interaction speaks the same visual language. */
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-micro: 150ms;   /* micro interactions   120–180ms */
+  --motion-button: 180ms;  /* buttons              160–200ms */
+  --motion-card: 200ms;    /* cards                180–220ms */
+  --motion-panel: 240ms;   /* panels               220–260ms */
+  --motion-sheet: 290ms;   /* bottom sheets        260–320ms */
+  --motion-page: 300ms;    /* page transitions     250–350ms */
 }
+
 
 :root {
   --radius: 1rem;
