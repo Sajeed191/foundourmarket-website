@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useMemo } from "react";
 import { useProducts } from "@/lib/use-products";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductRail } from "@/components/site/ProductRail";
@@ -29,7 +28,7 @@ export function RelatedProducts({
   initial = 4,
 }: Props) {
   const { products, loading } = useProducts();
-  const [showAll, setShowAll] = useState(false);
+  
 
   const items = useMemo(() => {
     const exclude = new Set<string>(excludeSlugs);
@@ -50,8 +49,7 @@ export function RelatedProducts({
 
   if (loading || items.length === 0) return null;
 
-  const visible = showAll ? items : items.slice(0, initial);
-  const hasMore = items.length > initial;
+  const visible = items;
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -75,18 +73,8 @@ export function RelatedProducts({
           </div>
         ))}
       </div>
-
-      {hasMore && !showAll && (
-        <div className="mt-5 grid place-items-center">
-          <button
-            onClick={() => setShowAll(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/[0.08] px-6 py-3 text-[11px] font-mono uppercase tracking-widest text-accent transition-all hover:border-accent/50 hover:bg-accent/[0.12]"
-          >
-            View all related products ({items.length}) <ChevronDown className="size-3.5" />
-          </button>
-        </div>
-      )}
     </section>
+
   );
 }
 
