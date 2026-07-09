@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { ProductCard } from "@/components/site/ProductCard";
+import { ProductRail } from "@/components/site/ProductRail";
 import type { Product } from "@/lib/products";
 
 type Props = {
@@ -59,7 +60,11 @@ export function RelatedProducts({
         <h2 className="text-xl sm:text-3xl md:text-4xl font-display tracking-tight">{title}</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4 items-stretch">
+      <ProductRail products={visible} compact />
+      <div
+        data-product-grid
+        className="hidden sm:grid grid-cols-3 lg:grid-cols-4 gap-4 items-stretch"
+      >
         {visible.map((p) => (
           <div
             key={p.id ?? p.slug}
