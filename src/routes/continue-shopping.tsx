@@ -377,6 +377,7 @@ function ContinueShoppingPage() {
             {visible.map((entry) => (
               <ActivityCard key={entry.product.slug} entry={entry} />
             ))}
+            <ViewAllCard productCount={products.length} />
           </motion.div>
         </>
       )}
