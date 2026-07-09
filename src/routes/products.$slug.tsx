@@ -317,51 +317,88 @@ function ProductPage() {
   }, [product?.slug]);
 
   useEffect(() => {
-    // Intelligent dual-action visibility: the sticky bottom purchase dock is the
-    // exact inverse of the inline purchase card's viewport presence. While the
-    // inline card is even partially visible we keep the sticky dock hidden; only
-    // once the inline card is 100% out of view does the sticky dock fade/slide
-    // in. Uses a single IntersectionObserver — no continuous scroll math.
+    // ── Single source of truth for sticky-dock visibility ──────────────────
+    // The dock is the exact inverse of the inline purchase card's presence:
+    // it shows ONLY once the card has fully scrolled ABOVE the viewport, and
+    // hides the moment any part of the card re-enters. All triggers funnel into
+    // one rAF-batched `recompute` so the state can never get stuck stale.
     const el = inlinePurchaseRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
-      // No observer support → fall back to always showing the sticky dock so a
-      // purchase action is never unavailable.
+    if (!el) {
       setMobileDockVisible(false);
       return;
     }
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        // Show the sticky dock ONLY when the inline card has scrolled completely
-        // ABOVE the viewport (the user is past the main purchase section). When
-        // the card is still below the fold (not yet reached) its top edge is
-        // below the viewport bottom → keep the dock hidden so it never appears
-        // on initial load. As soon as any part of the card is visible, hide.
-        const scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-        setMobileDockVisible(scrolledPast);
-      },
-      { threshold: 0 },
-    );
-    io.observe(el);
+    let raf = 0;
+    const recompute = () => {
+      raf = 0;
+      const rect = el.getBoundingClientRect();
+      // Fully above the viewport → the main purchase section is behind us.
+      setMobileDockVisible(rect.bottom <= 0);
+    };
+    // Coalesce every trigger into a single frame — cancels any pending update
+    // first so overlapping events never run competing state commits.
+    const schedule = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(recompute);
+    };
 
-    return () => io.disconnect();
+    // Primary signal: IntersectionObserver reacts to scroll + reflow with no
+    // continuous scroll math.
+    let io: IntersectionObserver | undefined;
+    if (typeof IntersectionObserver !== "undefined") {
+      io = new IntersectionObserver(schedule, { threshold: [0] });
+      io.observe(el);
+    }
+    // Secondary re-sync sources IO can miss: bfcache back/forward restore, tab
+    // visibility restore, resize/orientation, mobile keyboard open/close.
+    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("orientationchange", schedule, { passive: true });
+    window.addEventListener("pageshow", schedule);
+    document.addEventListener("visibilitychange", schedule);
+    schedule();
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      io?.disconnect();
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("orientationchange", schedule);
+      window.removeEventListener("pageshow", schedule);
+      document.removeEventListener("visibilitychange", schedule);
+    };
   }, [product?.slug, dataReady]);
 
   useEffect(() => {
     // Track the auto-hide Bottom Navigation's phase via a cheap attribute
-    // observer (fires only on state change — no scroll listeners here). When the
-    // nav hides, the sticky dock slides flush to the bottom; when it returns the
-    // dock lifts back above it with a small safe gap.
+    // observer (fires only on state change — no scroll listeners here). The nav
+    // may not be mounted yet (hydration gate / admin mode), so we retry until it
+    // exists, then re-sync on restore events so the dock can never freeze at the
+    // wrong bottom offset.
     if (typeof MutationObserver === "undefined") return;
-    const nav = document.querySelector("[data-app-bottom-nav]");
-    if (!nav) return;
-
-    const sync = () => setNavHidden(nav.getAttribute("data-phase") === "hidden");
-    sync();
-    const mo = new MutationObserver(sync);
-    mo.observe(nav, { attributes: true, attributeFilter: ["data-phase"] });
-    return () => mo.disconnect();
+    let mo: MutationObserver | undefined;
+    let raf = 0;
+    const sync = () => {
+      const nav = document.querySelector("[data-app-bottom-nav]");
+      setNavHidden(nav?.getAttribute("data-phase") === "hidden");
+    };
+    const attach = () => {
+      const nav = document.querySelector("[data-app-bottom-nav]");
+      if (!nav) {
+        raf = requestAnimationFrame(attach);
+        return;
+      }
+      sync();
+      mo = new MutationObserver(sync);
+      mo.observe(nav, { attributes: true, attributeFilter: ["data-phase"] });
+    };
+    attach();
+    window.addEventListener("pageshow", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      mo?.disconnect();
+      window.removeEventListener("pageshow", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
   }, [product?.slug]);
 
 
