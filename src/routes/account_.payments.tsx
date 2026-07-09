@@ -68,7 +68,6 @@ function MethodCard({
         m.brand,
       )} p-5 backdrop-blur-xl shadow-[0_8px_40px_-12px_rgba(255,122,26,0.25)]`}
     >
-      <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-primary/20 blur-3xl" />
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           {upi ? (
@@ -287,7 +286,6 @@ function PaymentsPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="sm:col-span-2 relative overflow-hidden rounded-2xl border border-dashed border-primary/25 bg-white/[0.03] p-12 text-center"
             >
-              <span className="pointer-events-none absolute left-1/2 top-0 size-48 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
               <div className="relative mx-auto grid size-16 place-items-center rounded-2xl border border-primary/30 bg-primary/10 text-primary animate-float-soft">
                 <CreditCard className="size-7" />
               </div>

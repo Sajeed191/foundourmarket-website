@@ -183,9 +183,6 @@ function AddPaymentMethodPage() {
                     : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
                 }`}
               >
-                {active && (
-                  <span className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-primary/25 blur-2xl" />
-                )}
                 <div className="relative flex items-center gap-3">
                   <span
                     className={`grid size-10 place-items-center rounded-xl border transition ${
@@ -225,7 +222,6 @@ function AddPaymentMethodPage() {
 
       {/* Security section */}
       <div className="mt-7 relative overflow-hidden rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.06] p-5">
-        <span className="pointer-events-none absolute -left-10 -top-10 size-40 rounded-full bg-emerald-500/15 blur-3xl" />
         <div className="relative flex items-center gap-2 text-emerald-300">
           <ShieldCheck className="size-5" />
           <h2 className="text-sm font-semibold">Your payment data is protected</h2>

@@ -108,7 +108,6 @@ export function GlobalCheckoutBeta(p: Props) {
           className="relative overflow-hidden glass border border-sky-400/20 rounded-3xl p-6 sm:p-8"
           style={{ boxShadow: "0 30px 80px -40px color-mix(in oklab, #5b9dff 60%, transparent)" }}
         >
-          <div aria-hidden className="pointer-events-none absolute -top-16 -right-12 size-56 rounded-full" style={{ background: "radial-gradient(circle, rgba(91,157,255,0.22), transparent 70%)" }} />
           <div className="relative">
             <div className="flex items-center gap-2.5 mb-4">
               <span className="size-10 grid place-items-center rounded-2xl bg-sky-400/12 border border-sky-400/25 text-sky-300">
