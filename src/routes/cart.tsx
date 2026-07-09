@@ -422,15 +422,20 @@ function CartPage() {
       </div>
 
 
-      {/* Sticky mobile checkout dock — compact bar that floats ~12px above the
-          bottom nav, respecting the device safe area. */}
+      {/* Sticky mobile checkout dock — one shared visibility state, GPU
+          transform + opacity only. Slides flush to the screen bottom when the
+          Bottom Navigation hides and returns smoothly when it reappears. */}
       {count > 0 && (
         <div
-          className="lg:hidden fixed inset-x-0 z-40 px-3 pointer-events-none"
-          style={{ bottom: "calc(var(--app-bottom-nav-height) + 0.75rem)" }}
+          className="lg:hidden fixed inset-x-0 z-[var(--z-floating-controls)] px-3 pointer-events-none will-change-transform"
+          style={{
+            bottom: "var(--product-dock-bottom)",
+            transform: navHidden ? "translateY(calc(var(--product-dock-bottom) - var(--mobile-safe-bottom)))" : "translateY(0)",
+            transition: "transform 220ms cubic-bezier(0.22,1,0.36,1)",
+          }}
         >
           <div
-            className="pointer-events-auto rounded-2xl p-1 pl-4 flex items-center gap-3 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9),0_0_28px_-14px_hsl(var(--accent)/0.45)]"
+            className="pointer-events-auto rounded-2xl px-4 py-2.5 flex items-center gap-3 border border-white/10 shadow-[0_24px_60px_-18px_oklch(0_0_0/0.9),0_0_28px_-14px_hsl(var(--accent)/0.45)]"
             style={{
               background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))",
               backdropFilter: "blur(32px) saturate(160%)",
@@ -438,15 +443,22 @@ function CartPage() {
             }}
           >
             <div className="flex-1 min-w-0 leading-none">
-              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/80">Total · {count} {count === 1 ? "item" : "items"}</p>
+              <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/80 inline-flex items-center gap-1">
+                <Lock className="size-2.5 text-accent" /> Total · {count} {count === 1 ? "item" : "items"}
+              </p>
               <motion.p key={total} initial={{ scale: 1.06 }} animate={{ scale: 1 }} className="fom-price-current font-mono text-[16px] leading-tight truncate mt-0.5">{format(total)}</motion.p>
+              {totalSavings > 0 && (
+                <p className="text-[9px] font-semibold text-accent leading-none mt-0.5">You save {format(totalSavings)}</p>
+              )}
+              <p className="text-[8px] uppercase tracking-widest text-muted-foreground/70 mt-1">Secure Payment · Fast Delivery · Easy Returns</p>
             </div>
-            <Link to="/checkout" className="shrink-0 bg-accent text-accent-foreground font-bold px-5 py-2.5 rounded-xl text-[11px] uppercase tracking-widest inline-flex items-center gap-2 whitespace-nowrap transition-all active:scale-95 shadow-[0_0_20px_hsl(var(--accent)/0.5)]">
-              <Lock className="size-3.5" /> Checkout
-            </Link>
+            <div className="shrink-0 w-[42%] max-w-[168px]">
+              <CheckoutButton disabled={count === 0} label="Checkout" compact />
+            </div>
           </div>
         </div>
       )}
+
 
     </div>
   );
