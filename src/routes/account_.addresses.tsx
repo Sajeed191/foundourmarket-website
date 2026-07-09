@@ -346,7 +346,6 @@ function StatCard({ icon, label, value, subtle }: { icon: React.ReactNode; label
       <div className="flex items-center gap-2 text-accent mb-2">{icon}</div>
       <p className={`font-display font-semibold truncate ${subtle ? "text-muted-foreground text-sm" : "text-lg"}`}>{value}</p>
       <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-0.5">{label}</p>
-      <div className="absolute -right-6 -bottom-6 size-16 rounded-full bg-accent/5 blur-xl" />
     </div>
   );
 }

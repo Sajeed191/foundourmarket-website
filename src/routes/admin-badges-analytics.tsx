@@ -127,7 +127,6 @@ function BadgeAnalyticsInner() {
             transition={{ delay: i * 0.05 }}
             className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/50 p-4 backdrop-blur"
           >
-            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-accent/10 blur-2xl" />
             <s.icon className="h-4 w-4 text-accent mb-2" />
             <div className="text-2xl font-bold tracking-tight">
               <Counter value={s.value} suffix={s.suffix} />

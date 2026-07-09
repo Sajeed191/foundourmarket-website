@@ -347,7 +347,6 @@ function CatChip({
 function EmptyDeals() {
   return (
     <motion.div {...fadeUp} className="card-premium rounded-2xl border-dashed p-10 sm:p-14 flex flex-col items-center text-center relative overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 size-40 rounded-full blur-3xl opacity-40" style={{ background: "var(--gradient-ember)" }} />
       <motion.div
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}

@@ -282,7 +282,6 @@ function ReturnsPage() {
                 className="relative rounded-3xl p-5 sm:p-6 ring-1 ring-accent/20 backdrop-blur-xl overflow-hidden"
                 style={{ background: "linear-gradient(135deg, rgba(255,122,0,0.10), rgba(255,255,255,0.03))" }}
               >
-                <div aria-hidden className="absolute -top-16 -right-16 size-48 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #FF7A00, transparent 70%)" }} />
                 <div className="relative flex items-start gap-4">
                   <div className="shrink-0 relative">
                     <div className="size-11 grid place-items-center rounded-2xl bg-accent/15 ring-1 ring-accent/30">
@@ -414,7 +413,6 @@ function EligibilityCard({ item, status, delay }: { item: Item; status: Eligibil
       className="relative rounded-3xl p-4 sm:p-5 ring-1 ring-white/10 backdrop-blur-xl overflow-hidden"
       style={{ background: "rgba(255,255,255,0.03)" }}
     >
-      <div aria-hidden className="absolute -top-20 -right-20 size-56 rounded-full blur-3xl opacity-20" style={{ background: `radial-gradient(circle, ${badge.color}, transparent 70%)` }} />
       <div className="relative flex gap-4">
         <div className="shrink-0 size-20 sm:size-24 rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10 relative">
           {item.image ? (

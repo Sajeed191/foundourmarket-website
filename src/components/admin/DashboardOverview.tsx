@@ -170,7 +170,6 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
           className="col-span-2 lg:col-span-2 lg:row-span-2 relative overflow-hidden card-premium rounded-2xl p-4 sm:p-5"
         >
           <div className="pointer-events-none absolute -top-20 left-1/4 size-72 rounded-full opacity-40" style={{ background: "var(--gradient-ember)", filter: "blur(44px)" }} />
-          <div className="pointer-events-none absolute -bottom-24 -right-10 size-56 rounded-full opacity-25" style={{ background: "radial-gradient(circle, oklch(0.55 0.18 280 / 0.6), transparent 70%)", filter: "blur(40px)" }} />
 
           <div className="relative flex items-start justify-between mb-3">
             <div>
@@ -405,7 +404,6 @@ export function DashboardOverview({ orders, products, customersCount }: Props) {
 function Stat({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
     <div className="card-premium relative overflow-hidden rounded-2xl p-4 h-full group">
-      <div className="absolute -top-12 -right-12 size-32 rounded-full opacity-30 group-hover:opacity-70 transition-opacity duration-500" style={{ background: "var(--gradient-ember-soft)", filter: "blur(24px)" }} />
       <div className="relative flex items-center gap-2 mb-2.5">
         <span className="grid place-items-center size-7 rounded-lg bg-accent/10 border border-accent/20 text-accent">{icon}</span>
         <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-muted-foreground truncate">{label}</span>

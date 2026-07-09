@@ -77,7 +77,6 @@ function StatTile({ label, value, icon, accent = "amber", delta, sub, big = fals
       className={`group relative overflow-hidden rounded-2xl glass glass-reflect p-4 ${big ? "sm:col-span-2" : ""}`}
       style={{ boxShadow: "inset 0 1px 0 oklch(1 0 0 / 0.06), 0 18px 40px -28px oklch(0 0 0 / 0.8)" }}
     >
-      <div className="pointer-events-none absolute -top-10 -right-8 size-24 rounded-full opacity-25 group-hover:opacity-45 transition-opacity duration-500" style={{ background: "var(--gradient-ember-soft)", filter: "blur(22px)" }} />
       <div className="relative flex items-center gap-2 mb-2.5">
         <span className={tones[accent]}>{icon}</span>
         <span className="text-[9px] font-mono uppercase tracking-[0.26em] text-muted-foreground/80">{label}</span>

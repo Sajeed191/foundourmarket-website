@@ -951,7 +951,6 @@ function Kpi({ label, value, icon, tone }: { label: string; value: number; icon?
   const toneCls = tone === "emerald" ? "text-emerald-400" : tone === "amber" ? "text-amber-400" : tone === "orange" ? "text-orange-400" : tone === "destructive" ? "text-destructive" : "";
   return (
     <div className="group relative overflow-hidden card-premium rounded-2xl p-4 hover:border-accent/40 transition-colors">
-      <div className="absolute -top-16 -right-16 size-32 rounded-full bg-accent/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative">
         <div className="flex items-center justify-between text-muted-foreground mb-1">
           <span className="text-[10px] uppercase tracking-widest leading-tight">{label}</span>
