@@ -628,8 +628,6 @@ function ReturnsPage() {
                 transition={{ delay: 0.06 + i * 0.04 }}
                 className="relative shrink-0 w-[42%] sm:w-auto rounded-2xl ring-1 ring-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3.5 overflow-hidden"
               >
-                <div aria-hidden className="absolute -top-8 -right-8 size-20 rounded-full blur-2xl opacity-40"
-                  style={{ background: `radial-gradient(closest-side, ${TONE_GLOW[c.tone]}, transparent)` }} />
                 <c.icon className={cn("relative size-4 mb-2", TONE_CLASS[c.tone].split(" ")[0])} />
                 <p className="relative text-2xl font-display font-semibold leading-none tabular-nums">{c.value}</p>
                 <p className="relative mt-1.5 text-[10px] uppercase tracking-wider text-white/50 leading-tight">{c.label}</p>
@@ -794,8 +792,6 @@ function ReturnsPage() {
                   className="relative rounded-2xl ring-1 ring-white/[0.07] bg-white/[0.03] backdrop-blur-xl px-6 py-12 text-center overflow-hidden"
                 >
                   <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF7A00]/50 to-transparent" />
-                  <div aria-hidden className="absolute -bottom-20 left-1/2 -translate-x-1/2 size-64 rounded-full blur-3xl opacity-20"
-                    style={{ background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)" }} />
                   <motion.div
                     initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.08, type: "spring", stiffness: 220, damping: 18 }}
@@ -1089,8 +1085,6 @@ function ReturnsPage() {
       <Dialog open={emailOpen} onOpenChange={(o) => { setEmailOpen(o); if (!o) setSending(false); }}>
         <DialogContent className="bg-[#050816] border-white/[0.08] text-white max-w-[22rem] rounded-2xl p-0 overflow-hidden">
           <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF7A00]/70 to-transparent" />
-          <div aria-hidden className="absolute -top-24 -right-16 size-56 rounded-full blur-3xl opacity-25 pointer-events-none"
-            style={{ background: "radial-gradient(circle, #FF7A00 0%, transparent 70%)" }} />
 
           <motion.div
             initial={{ opacity: 0, y: 8 }}

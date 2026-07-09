@@ -379,8 +379,6 @@ function TrackPage() {
               variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}
               className="relative glass-strong rounded-3xl p-5 sm:p-6 ring-1 ring-white/10 overflow-hidden"
             >
-              <div aria-hidden className="absolute -top-20 -right-20 w-60 h-60 rounded-full blur-3xl opacity-30"
-                style={{ background: "radial-gradient(circle, var(--color-accent), transparent 70%)" }} />
 
               <div className="flex items-start justify-between gap-3 mb-5 relative">
                 <div className="min-w-0">

@@ -29,8 +29,6 @@ export function TrustHeaderCards() {
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
           className={`${card} relative overflow-hidden p-3.5`}
         >
-          <div aria-hidden className="absolute -top-8 -right-8 size-20 rounded-full blur-2xl opacity-30"
-            style={{ background: "radial-gradient(closest-side,#FF7A00,transparent)" }} />
           <s.icon className="relative size-4 text-orange-300" />
           <p className="relative mt-2 text-base font-display font-semibold leading-none">{s.value}</p>
           <p className="relative mt-1 text-[10px] uppercase tracking-wider text-white/50">{s.label}</p>
@@ -206,8 +204,6 @@ const TRUST_POINTS = [
 export function StripeTrustSection() {
   return (
     <div className={`${card} relative overflow-hidden p-5 sm:p-7`}>
-      <div aria-hidden className="absolute -top-20 -right-20 size-56 rounded-full blur-3xl opacity-20"
-        style={{ background: "radial-gradient(closest-side,#FF7A00,transparent)" }} />
       <div className="relative">
         <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-orange-300">Why shop with us</p>
         <h3 className="mt-1 font-display font-semibold text-lg sm:text-xl">Why Shop With <BrandName /></h3>
