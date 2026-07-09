@@ -25,7 +25,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 import heroProductImg from "@/assets/hero-product.jpg";
 import { ProductCard } from "@/components/site/ProductCard";
-import { ProductRail } from "@/components/site/ProductRail";
 // TEMPORARY EXPERIMENT (Trending section only): reuse Browse's grid so cards
 // mount incrementally in batches of 16 via IncrementalGrid instead of all at
 // once. Remove this import when reverting the experiment.
@@ -236,29 +235,23 @@ function ProductSection({
             // mount in batches of 16 (virtualizeThreshold={0} forces the batched
             // path), exactly as Browse (/search) does. No virtualization,
             // no unmounting, no pagination.
-            <>
-              <ProductRail products={preview} compact />
-              <VirtualizedProductGrid
-                items={preview}
-                virtualizeThreshold={0}
-                cols={{ base: 2, lg: 4 }}
-                className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
-                getKey={(p) => p.id ?? p.slug}
-                getImageSrc={(p) => p.image}
-                renderItem={(p) => (
-                  <ProductCard product={p} compact forceBadge={sectionBadge} />
-                )}
-              />
-            </>
+            <VirtualizedProductGrid
+              items={preview}
+              virtualizeThreshold={0}
+              cols={{ base: 2, lg: 4 }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+              getKey={(p) => p.id ?? p.slug}
+              getImageSrc={(p) => p.image}
+              renderItem={(p) => (
+                <ProductCard product={p} compact forceBadge={sectionBadge} />
+              )}
+            />
           ) : (
-            <>
-              <ProductRail products={preview} compact />
-              <div data-product-grid className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {preview.map((p, i) => (
-                  <Reveal key={p.id ?? p.slug} delay={i} className="h-full" productCardFrame><ProductCard product={p} compact forceBadge={sectionBadge} /></Reveal>
-                ))}
-              </div>
-            </>
+            <div data-product-grid className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {preview.map((p, i) => (
+                <Reveal key={p.id ?? p.slug} delay={i} className="h-full" productCardFrame><ProductCard product={p} compact forceBadge={sectionBadge} /></Reveal>
+              ))}
+            </div>
           )}
           <ViewAllButton to={viewAllTo} />
         </LazyMount>
