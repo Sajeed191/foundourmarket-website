@@ -619,15 +619,23 @@ function ContinueShoppingPage() {
                     <div
                       key={e.product.id ?? e.product.slug}
                       data-product-card-frame
-                      className="flex flex-col"
+                      className="group/frame relative flex flex-col"
                       onClickCapture={() => { void recordEvent({ type: "view", productSlug: e.product.slug }); }}
                     >
-                      <ProductCard product={e.product} />
-                      <div
-                        className={`mt-1.5 inline-flex max-w-full items-center gap-1.5 self-start rounded-full px-2.5 py-1 ring-1 ${status.pill} ${status.fg}`}
+                      {/* Remove this product from Continue Shopping history. */}
+                      <button
+                        aria-label={`Remove ${e.product.name} from Continue Shopping`}
+                        onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); void handleRemoveOne(e.product.slug); }}
+                        className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-white/10 bg-black/55 text-white/80 opacity-0 backdrop-blur-sm transition-all hover:text-accent focus:opacity-100 group-hover/frame:opacity-100"
                       >
-                        <StatusIcon className="size-3 shrink-0" />
-                        <span className="truncate text-[10px] font-semibold uppercase tracking-wider">{status.text}</span>
+                        <X className="size-3.5" />
+                      </button>
+                      {/* Marketing badges hidden here — this is a personal surface. */}
+                      <ProductCard product={e.product} hideBadges />
+                      {/* One minimal activity line — information, not a badge. */}
+                      <div className={`mt-2 flex max-w-full items-center gap-1.5 self-start ${status.fg}`}>
+                        <StatusIcon className="size-3.5 shrink-0" />
+                        <span className="truncate text-[12px] sm:text-[13px] font-medium">{status.text}</span>
                       </div>
                     </div>
                   );
