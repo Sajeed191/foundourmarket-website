@@ -112,8 +112,9 @@ function money(n: number, market: string): string {
 }
 
 /**
- * The single primary status shown on a card. Each status has its own icon and
- * color so the meaning is recognizable at a glance — never more than one.
+ * The single primary activity shown below each card. Minimal, left-aligned,
+ * information — never a marketing badge. Each activity has its own icon and a
+ * muted, semantically-tinted color.
  */
 type Status = {
   key: string;
@@ -121,55 +122,73 @@ type Status = {
   Icon: ComponentType<{ className?: string }>;
   /** Icon + text color class. */
   fg: string;
-  /** Subtle pill background + ring color class. */
-  pill: string;
 };
 
+/** "Today" / "Yesterday" / "" for a timestamp — used for cart/wishlist context. */
+function dayContext(at: number | null): string {
+  if (at == null) return "";
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  if (at >= start.getTime()) return "Today";
+  if (at >= start.getTime() - DAY) return "Yesterday";
+  return "";
+}
+
+/** Human "Viewed …" phrasing with minute-level granularity. */
+function viewedPhrase(at: number | null): { text: string; Icon: ComponentType<{ className?: string }> } {
+  if (at == null) return { text: "Viewed Recently", Icon: Clock };
+  const d = Date.now() - at;
+  if (d < 60 * 1000) return { text: "Viewed Just Now", Icon: Clock };
+  if (d < 60 * 60 * 1000) {
+    const m = Math.max(1, Math.round(d / 60000));
+    return { text: `Viewed ${m} minute${m > 1 ? "s" : ""} ago`, Icon: Clock };
+  }
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  if (at >= start.getTime()) {
+    const h = Math.round(d / (60 * 60 * 1000));
+    return { text: h >= 1 ? `Viewed ${h} hour${h > 1 ? "s" : ""} ago` : "Viewed Today", Icon: Clock };
+  }
+  if (at >= start.getTime() - DAY) return { text: "Viewed Yesterday", Icon: CalendarDays };
+  return { text: "Viewed This Week", Icon: CalendarDays };
+}
+
 /**
- * Exactly ONE primary status per product, chosen by strict priority:
- *   1. In Your Cart   2. Saved for Later   3. Price Dropped / Increased
- *   4. Back in Stock  5. Low Stock         6. Viewed Today
- *   7. Viewed Yesterday   8. Viewed This Week
+ * Exactly ONE primary activity per product, chosen by strict priority:
+ *   1. Added to Cart   2. Saved to Wishlist   3. Price Dropped / Increased
+ *   4. Back in Stock   5. Low Stock           6-8. Viewed (recency)
  *
  * A price label is only ever produced when a real, stored viewed price differs
  * from the current price — never globally.
  */
 function statusOf(e: Entry, market: string): Status {
-  // 1. In Your Cart — cart identity always wins.
+  // 1. Added to Cart — cart identity always wins.
   if (e.inCart) {
-    return { key: "cart", text: "In Your Cart", Icon: ShoppingCart, fg: "text-accent", pill: "bg-accent/10 ring-accent/25" };
+    const d = dayContext(e.at);
+    return { key: "cart", text: d ? `Added to Cart ${d}` : "In Your Cart", Icon: ShoppingCart, fg: "text-accent" };
   }
-  // 2. Saved for Later.
+  // 2. Saved to Wishlist.
   if (e.kind === "wishlist") {
-    return { key: "wishlist", text: "Saved for Later", Icon: Heart, fg: "text-purple-400", pill: "bg-purple-400/10 ring-purple-400/25" };
+    const d = dayContext(e.at);
+    return { key: "wishlist", text: d ? `Saved ${d}` : "Saved for Later", Icon: Heart, fg: "text-purple-400" };
   }
   // 3. Real price change vs the price the user actually saw.
   if (e.priceChange === "drop") {
     const extra = e.savings > 0 ? ` · Save ${money(e.savings, market)}` : e.pricePercent > 0 ? ` · ${e.pricePercent}% off` : "";
-    return { key: "drop", text: `Price Dropped${extra}`, Icon: ArrowDown, fg: "text-emerald-400", pill: "bg-emerald-400/10 ring-emerald-400/25" };
+    return { key: "drop", text: `Price Dropped${extra}`, Icon: ArrowDown, fg: "text-emerald-400" };
   }
   if (e.priceChange === "increase") {
-    return { key: "increase", text: "Price Increased", Icon: ArrowUp, fg: "text-rose-400", pill: "bg-rose-400/10 ring-rose-400/25" };
+    return { key: "increase", text: "Price Increased", Icon: ArrowUp, fg: "text-rose-400" };
   }
   // 4. Back in Stock — was out of stock when last viewed, in stock now.
   if (e.backInStock) {
-    return { key: "back", text: "Back in Stock", Icon: PackageCheck, fg: "text-sky-400", pill: "bg-sky-400/10 ring-sky-400/25" };
+    return { key: "back", text: "Back in Stock", Icon: PackageCheck, fg: "text-sky-400" };
   }
   // 5. Low Stock.
   if (e.lowStock) {
-    return { key: "low", text: "Low Stock", Icon: AlertTriangle, fg: "text-amber-400", pill: "bg-amber-400/10 ring-amber-400/25" };
+    return { key: "low", text: `Only ${e.product.stockQuantity} Left`, Icon: AlertTriangle, fg: "text-amber-400" };
   }
   // 6-8. Recency-based, neutral.
-  if (e.at != null) {
-    const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
-    if (e.at >= startOfToday.getTime()) {
-      return { key: "today", text: "Viewed Today", Icon: Clock, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
-    }
-    if (e.at >= startOfToday.getTime() - DAY) {
-      return { key: "yesterday", text: "Viewed Yesterday", Icon: CalendarDays, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
-    }
-  }
-  return { key: "week", text: "Viewed This Week", Icon: CalendarDays, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
+  const v = viewedPhrase(e.at);
+  return { key: "viewed", text: v.text, Icon: v.Icon, fg: "text-muted-foreground" };
 }
 
 function ContinueShoppingPage() {
