@@ -279,8 +279,11 @@ function WishlistPage() {
     return sorted;
   }, [items, query, filter, sort, drops, priceOf, compareOf, shippingFeeOf]);
 
-  const activeFilter = FILTERS.find((f) => f.key === filter)!;
-  const activeSort = SORTS.find((s) => s.key === sort)!;
+  const hasActiveFilter = filter !== "all" || query.trim().length > 0;
+  const clearFilters = () => {
+    setFilter("all");
+    setQuery("");
+  };
 
   if (loading || !user || wlLoading || pLoading || !currencyReady) {
     return (
