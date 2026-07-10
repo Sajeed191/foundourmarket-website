@@ -47,8 +47,13 @@ type Entry = {
   at: number | null;
   views: number;
   purchased: boolean;
-  priceDrop: boolean;
   compared: boolean;
+  inCart: boolean;
+  // Real price-change signal derived from the price the user actually saw.
+  priceChange: PriceChange;
+  savings: number;
+  pricePercent: number;
+  lowStock: boolean;
 };
 
 type FilterKey = "recent" | "week" | "stock" | "drop";
