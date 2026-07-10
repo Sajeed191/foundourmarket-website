@@ -190,12 +190,13 @@ export function useRecommendations(opts: { limit?: number; excludeSlug?: string 
       products,
       { recent, wishlist, cart, purchased },
       limit + (excludeSlug ? 1 : 0),
+      market,
     ).filter((p) => p.slug !== excludeSlug);
     const out = list.slice(0, limit);
     cacheRef.current = { sig: signature, result: out };
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signature, limit]);
+  }, [signature, limit, market]);
 
   return { products: result, loading: loading && result.length === 0 };
 }
