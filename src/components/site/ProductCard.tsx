@@ -25,6 +25,12 @@ type ProductCardProps = {
   priority?: boolean;
   /** When set, occurrences of this term in the title are highlighted. */
   highlight?: string;
+  /**
+   * Suppress all top-left marketing badges (Trending, Premium, Flash Deal,
+   * Bestseller, New, …). Used on personal surfaces like Continue Shopping where
+   * the card communicates the user's own activity, not promotional context.
+   */
+  hideBadges?: boolean;
 };
 
 /** Highlight matched search terms within a piece of text. */
@@ -307,7 +313,7 @@ function BuyNowButtonImpl({ product }: { product: Product }) {
 const BuyNowButton = memo(BuyNowButtonImpl, (a, b) => a.product.slug === b.product.slug && a.product.inStock === b.product.inStock && a.product.name === b.product.name);
 
 
-function ProductCardImpl({ product, context = "default", forceBadge, priority = false, highlight }: ProductCardProps) {
+function ProductCardImpl({ product, context = "default", forceBadge, priority = false, highlight, hideBadges = false }: ProductCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const [quickOpen, setQuickOpen] = useState(false);
   const price = priceOf(product);
@@ -386,7 +392,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
           alt={`${product.name} — ${product.tagline || product.category}`}
           priority={priority}
         >
-          <ProductBadges badges={badges} />
+          <ProductBadges badges={hideBadges ? [] : badges} />
           <WishlistButton slug={product.slug} name={product.name} />
         </AdaptiveProductMedia>
       </Link>
@@ -464,6 +470,7 @@ export const ProductCard = memo(ProductCardImpl, (a, b) => {
     a.forceBadge === b.forceBadge &&
     a.compact === b.compact &&
     a.priority === b.priority &&
-    a.highlight === b.highlight
+    a.highlight === b.highlight &&
+    a.hideBadges === b.hideBadges
   );
 });

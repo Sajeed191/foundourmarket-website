@@ -115,6 +115,10 @@ export function useRecentlyViewed() {
   const [entries, setEntries] = useState<RecentlyViewedEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const userIdRef = useRef<string | null>(null);
+  // Always-fresh mirror of `entries` so destructive ops can return exactly what
+  // was removed (for Undo) without depending on stale closures.
+  const entriesRef = useRef<RecentlyViewedEntry[]>([]);
+  useEffect(() => { entriesRef.current = entries; }, [entries]);
 
   const load = useCallback(async () => {
     const { data } = await supabase.auth.getUser();
@@ -155,8 +159,9 @@ export function useRecentlyViewed() {
     }
   }, []);
 
-  /** Remove a single product from view history. */
-  const remove = useCallback(async (slug: string) => {
+  /** Remove a single product from view history. Returns the removed entries. */
+  const remove = useCallback(async (slug: string): Promise<RecentlyViewedEntry[]> => {
+    const removed = entriesRef.current.filter((e) => e.slug === slug);
     setEntries((prev) => prev.filter((e) => e.slug !== slug));
     const userId = userIdRef.current;
     if (userId) {
@@ -176,9 +181,11 @@ export function useRecentlyViewed() {
       delete ts[slug];
       writeLocalTs(ts);
     }
+    return removed;
   }, []);
 
-  const clear = useCallback(async () => {
+  const clear = useCallback(async (): Promise<RecentlyViewedEntry[]> => {
+    const removed = entriesRef.current;
     setEntries([]);
     const userId = userIdRef.current;
     if (userId) {
@@ -195,9 +202,73 @@ export function useRecentlyViewed() {
       writeLocal([]);
       writeLocalTs({});
     }
+    return removed;
+  }, []);
+
+  /**
+   * Remove every view recorded at or after `cutoffTs`. Powers "Clear viewed
+   * today" (cutoff = start of today) and "Clear last 7 days" (cutoff = now − 7d).
+   * Returns the removed entries so the caller can offer Undo.
+   */
+  const clearSince = useCallback(async (cutoffTs: number): Promise<RecentlyViewedEntry[]> => {
+    const removed = entriesRef.current.filter((e) => e.at >= cutoffTs);
+    if (removed.length === 0) return [];
+    const removedSlugs = new Set(removed.map((e) => e.slug));
+    setEntries((prev) => prev.filter((e) => e.at < cutoffTs));
+    const userId = userIdRef.current;
+    if (userId) {
+      try {
+        await supabase
+          .from("recommendation_events")
+          .delete()
+          .eq("user_id", userId)
+          .eq("event_type", "view")
+          .gte("created_at", new Date(cutoffTs).toISOString());
+      } catch {
+        /* ignore */
+      }
+    } else {
+      writeLocal(readLocal().filter((s) => !removedSlugs.has(s)));
+      const ts = readLocalTs();
+      for (const s of removedSlugs) delete ts[s];
+      writeLocalTs(ts);
+    }
+    return removed;
+  }, []);
+
+  /** Re-insert previously-removed entries, preserving their timestamps (Undo). */
+  const restore = useCallback(async (toRestore: RecentlyViewedEntry[]) => {
+    if (!toRestore.length) return;
+    setEntries((prev) => {
+      const seen = new Set(prev.map((e) => e.slug));
+      const merged = [...prev, ...toRestore.filter((e) => !seen.has(e.slug))];
+      merged.sort((a, b) => b.at - a.at);
+      return merged.slice(0, MAX);
+    });
+    const userId = userIdRef.current;
+    if (userId) {
+      const rows = toRestore.map((e) => ({
+        user_id: userId,
+        event_type: "view",
+        product_slug: e.slug,
+        weight: 1,
+        created_at: new Date(e.at).toISOString(),
+      }));
+      try {
+        await (supabase.from as any)("recommendation_events").insert(rows);
+      } catch {
+        /* ignore */
+      }
+    } else {
+      const restoreSlugs = toRestore.map((e) => e.slug);
+      writeLocal([...new Set([...restoreSlugs, ...readLocal()])].slice(0, MAX));
+      const ts = readLocalTs();
+      for (const e of toRestore) ts[e.slug] = e.at;
+      writeLocalTs(ts);
+    }
   }, []);
 
   const slugs = useMemo(() => entries.map((e) => e.slug), [entries]);
 
-  return { slugs, entries, record, remove, clear, loading };
+  return { slugs, entries, record, remove, clear, clearSince, restore, loading };
 }

@@ -15,14 +15,18 @@ import {
   AlertTriangle,
   Clock,
   CalendarDays,
+  MoreHorizontal,
+  Trash2,
+  X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useCompare } from "@/hooks/use-compare";
-import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
+import { useRecentlyViewed, type RecentlyViewedEntry } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
 import { recordEvent } from "@/lib/personalization";
 import { buildVisibleMap } from "@/lib/product-availability";
@@ -30,6 +34,24 @@ import { getViewedPrices, comparePrice, type PriceChange } from "@/lib/viewed-pr
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { type Product } from "@/lib/products";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/continue-shopping")({
   head: () => ({
@@ -90,8 +112,9 @@ function money(n: number, market: string): string {
 }
 
 /**
- * The single primary status shown on a card. Each status has its own icon and
- * color so the meaning is recognizable at a glance — never more than one.
+ * The single primary activity shown below each card. Minimal, left-aligned,
+ * information — never a marketing badge. Each activity has its own icon and a
+ * muted, semantically-tinted color.
  */
 type Status = {
   key: string;
@@ -99,55 +122,73 @@ type Status = {
   Icon: ComponentType<{ className?: string }>;
   /** Icon + text color class. */
   fg: string;
-  /** Subtle pill background + ring color class. */
-  pill: string;
 };
 
+/** "Today" / "Yesterday" / "" for a timestamp — used for cart/wishlist context. */
+function dayContext(at: number | null): string {
+  if (at == null) return "";
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  if (at >= start.getTime()) return "Today";
+  if (at >= start.getTime() - DAY) return "Yesterday";
+  return "";
+}
+
+/** Human "Viewed …" phrasing with minute-level granularity. */
+function viewedPhrase(at: number | null): { text: string; Icon: ComponentType<{ className?: string }> } {
+  if (at == null) return { text: "Viewed Recently", Icon: Clock };
+  const d = Date.now() - at;
+  if (d < 60 * 1000) return { text: "Viewed Just Now", Icon: Clock };
+  if (d < 60 * 60 * 1000) {
+    const m = Math.max(1, Math.round(d / 60000));
+    return { text: `Viewed ${m} minute${m > 1 ? "s" : ""} ago`, Icon: Clock };
+  }
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  if (at >= start.getTime()) {
+    const h = Math.round(d / (60 * 60 * 1000));
+    return { text: h >= 1 ? `Viewed ${h} hour${h > 1 ? "s" : ""} ago` : "Viewed Today", Icon: Clock };
+  }
+  if (at >= start.getTime() - DAY) return { text: "Viewed Yesterday", Icon: CalendarDays };
+  return { text: "Viewed This Week", Icon: CalendarDays };
+}
+
 /**
- * Exactly ONE primary status per product, chosen by strict priority:
- *   1. In Your Cart   2. Saved for Later   3. Price Dropped / Increased
- *   4. Back in Stock  5. Low Stock         6. Viewed Today
- *   7. Viewed Yesterday   8. Viewed This Week
+ * Exactly ONE primary activity per product, chosen by strict priority:
+ *   1. Added to Cart   2. Saved to Wishlist   3. Price Dropped / Increased
+ *   4. Back in Stock   5. Low Stock           6-8. Viewed (recency)
  *
  * A price label is only ever produced when a real, stored viewed price differs
  * from the current price — never globally.
  */
 function statusOf(e: Entry, market: string): Status {
-  // 1. In Your Cart — cart identity always wins.
+  // 1. Added to Cart — cart identity always wins.
   if (e.inCart) {
-    return { key: "cart", text: "In Your Cart", Icon: ShoppingCart, fg: "text-accent", pill: "bg-accent/10 ring-accent/25" };
+    const d = dayContext(e.at);
+    return { key: "cart", text: d ? `Added to Cart ${d}` : "In Your Cart", Icon: ShoppingCart, fg: "text-accent" };
   }
-  // 2. Saved for Later.
+  // 2. Saved to Wishlist.
   if (e.kind === "wishlist") {
-    return { key: "wishlist", text: "Saved for Later", Icon: Heart, fg: "text-purple-400", pill: "bg-purple-400/10 ring-purple-400/25" };
+    const d = dayContext(e.at);
+    return { key: "wishlist", text: d ? `Saved ${d}` : "Saved for Later", Icon: Heart, fg: "text-purple-400" };
   }
   // 3. Real price change vs the price the user actually saw.
   if (e.priceChange === "drop") {
     const extra = e.savings > 0 ? ` · Save ${money(e.savings, market)}` : e.pricePercent > 0 ? ` · ${e.pricePercent}% off` : "";
-    return { key: "drop", text: `Price Dropped${extra}`, Icon: ArrowDown, fg: "text-emerald-400", pill: "bg-emerald-400/10 ring-emerald-400/25" };
+    return { key: "drop", text: `Price Dropped${extra}`, Icon: ArrowDown, fg: "text-emerald-400" };
   }
   if (e.priceChange === "increase") {
-    return { key: "increase", text: "Price Increased", Icon: ArrowUp, fg: "text-rose-400", pill: "bg-rose-400/10 ring-rose-400/25" };
+    return { key: "increase", text: "Price Increased", Icon: ArrowUp, fg: "text-rose-400" };
   }
   // 4. Back in Stock — was out of stock when last viewed, in stock now.
   if (e.backInStock) {
-    return { key: "back", text: "Back in Stock", Icon: PackageCheck, fg: "text-sky-400", pill: "bg-sky-400/10 ring-sky-400/25" };
+    return { key: "back", text: "Back in Stock", Icon: PackageCheck, fg: "text-sky-400" };
   }
   // 5. Low Stock.
   if (e.lowStock) {
-    return { key: "low", text: "Low Stock", Icon: AlertTriangle, fg: "text-amber-400", pill: "bg-amber-400/10 ring-amber-400/25" };
+    return { key: "low", text: `Only ${e.product.stockQuantity} Left`, Icon: AlertTriangle, fg: "text-amber-400" };
   }
   // 6-8. Recency-based, neutral.
-  if (e.at != null) {
-    const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
-    if (e.at >= startOfToday.getTime()) {
-      return { key: "today", text: "Viewed Today", Icon: Clock, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
-    }
-    if (e.at >= startOfToday.getTime() - DAY) {
-      return { key: "yesterday", text: "Viewed Yesterday", Icon: CalendarDays, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
-    }
-  }
-  return { key: "week", text: "Viewed This Week", Icon: CalendarDays, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
+  const v = viewedPhrase(e.at);
+  return { key: "viewed", text: v.text, Icon: v.Icon, fg: "text-muted-foreground" };
 }
 
 function ContinueShoppingPage() {
@@ -157,7 +198,39 @@ function ContinueShoppingPage() {
   const { items: cartItems } = useCart();
   const { slugs: wishSlugs } = useWishlist();
   const { slugs: compareSlugs } = useCompare();
-  const { slugs: recentSlugs, entries: recentEntries } = useRecentlyViewed();
+  const { slugs: recentSlugs, entries: recentEntries, remove, clear, clearSince, restore } = useRecentlyViewed();
+
+  // Confirmation dialog for the destructive "Clear all history" action.
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  // Undo helper: show a toast with an action that restores the removed entries.
+  const offerUndo = (removed: RecentlyViewedEntry[], message: string) => {
+    if (removed.length === 0) return;
+    toast(message, {
+      duration: 6000,
+      action: { label: "Undo", onClick: () => void restore(removed) },
+    });
+  };
+
+  const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
+
+  const handleClearAll = async () => {
+    setConfirmClear(false);
+    const removed = await clear();
+    offerUndo(removed, `Cleared ${removed.length} ${removed.length === 1 ? "product" : "products"}`);
+  };
+  const handleClearToday = async () => {
+    const removed = await clearSince(startOfToday());
+    offerUndo(removed, `Cleared ${removed.length} viewed today`);
+  };
+  const handleClearWeek = async () => {
+    const removed = await clearSince(Date.now() - 7 * DAY);
+    offerUndo(removed, `Cleared ${removed.length} from the last 7 days`);
+  };
+  const handleRemoveOne = async (slug: string) => {
+    const removed = await remove(slug);
+    offerUndo(removed, "Removed from Continue Shopping");
+  };
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("recent");
@@ -293,6 +366,21 @@ function ContinueShoppingPage() {
     return [...best.values()];
   }, [products, market, checkoutAt, cartItems, wishSlugs, recentSlugs, recentEntries, eventAt, cartAt, viewedAt, viewCounts, purchasedSlugs, compareSet, priceOf]);
 
+  // Automatic background cleanup (runs once, after the catalog has loaded).
+  // Permanently prunes view history whose product is deleted / hidden / inactive
+  // / out of region, or whose last view is older than 90 days. This keeps broken
+  // or unavailable products from ever lingering in Continue Shopping.
+  const cleaned = useRef(false);
+  useEffect(() => {
+    if (cleaned.current || productsLoading || recentEntries.length === 0) return;
+    cleaned.current = true;
+    const visible = buildVisibleMap(products, market);
+    const cutoff = Date.now() - 90 * DAY;
+    const stale = recentEntries.filter((e) => !visible.has(e.slug) || e.at < cutoff);
+    for (const e of stale) void remove(e.slug);
+  }, [productsLoading, recentEntries, products, market, remove]);
+
+
   // Intelligent "Continue Shopping" score combining multiple signals so the
   // most relevant products always surface first. Purchased items are heavily
   // demoted (sink to the bottom) but not removed.
@@ -400,11 +488,61 @@ function ContinueShoppingPage() {
           <p className="text-sm text-muted-foreground mt-1">Pick up where you left off.</p>
         </div>
         {ordered.length > 0 && (
-          <span className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold tabular-nums text-muted-foreground">
-            {ordered.length} {ordered.length === 1 ? "Product" : "Products"}
-          </span>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold tabular-nums text-muted-foreground">
+              {ordered.length} {ordered.length === 1 ? "Product" : "Products"}
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Manage Continue Shopping history"
+                  className="grid size-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-accent/40 hover:text-accent"
+                >
+                  <MoreHorizontal className="size-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>Manage history</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => void handleClearToday()}>
+                  <Clock className="size-4" /> Clear viewed today
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void handleClearWeek()}>
+                  <CalendarDays className="size-4" /> Clear last 7 days
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setConfirmClear(true)}
+                  className="text-rose-400 focus:text-rose-400"
+                >
+                  <Trash2 className="size-4" /> Clear all history
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
       </div>
+
+      {/* Confirmation before clearing everything */}
+      <AlertDialog open={confirmClear} onOpenChange={setConfirmClear}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all history?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes every product from your Continue Shopping list. You can undo this for a
+              few seconds afterwards.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => void handleClearAll()}
+              className="bg-rose-500 text-white hover:bg-rose-600"
+            >
+              Clear all
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Empty state */}
       {ordered.length === 0 ? (
@@ -481,15 +619,23 @@ function ContinueShoppingPage() {
                     <div
                       key={e.product.id ?? e.product.slug}
                       data-product-card-frame
-                      className="flex flex-col"
+                      className="group/frame relative flex flex-col"
                       onClickCapture={() => { void recordEvent({ type: "view", productSlug: e.product.slug }); }}
                     >
-                      <ProductCard product={e.product} />
-                      <div
-                        className={`mt-1.5 inline-flex max-w-full items-center gap-1.5 self-start rounded-full px-2.5 py-1 ring-1 ${status.pill} ${status.fg}`}
+                      {/* Remove this product from Continue Shopping history. */}
+                      <button
+                        aria-label={`Remove ${e.product.name} from Continue Shopping`}
+                        onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); void handleRemoveOne(e.product.slug); }}
+                        className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-white/10 bg-black/55 text-white/80 opacity-0 backdrop-blur-sm transition-all hover:text-accent focus:opacity-100 group-hover/frame:opacity-100"
                       >
-                        <StatusIcon className="size-3 shrink-0" />
-                        <span className="truncate text-[10px] font-semibold uppercase tracking-wider">{status.text}</span>
+                        <X className="size-3.5" />
+                      </button>
+                      {/* Marketing badges hidden here — this is a personal surface. */}
+                      <ProductCard product={e.product} hideBadges />
+                      {/* One minimal activity line — information, not a badge. */}
+                      <div className={`mt-2 flex max-w-full items-center gap-1.5 self-start ${status.fg}`}>
+                        <StatusIcon className="size-3.5 shrink-0" />
+                        <span className="truncate text-[12px] sm:text-[13px] font-medium">{status.text}</span>
                       </div>
                     </div>
                   );
