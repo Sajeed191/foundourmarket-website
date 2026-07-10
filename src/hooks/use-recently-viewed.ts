@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const KEY = "fom_recently_viewed";
 const KEY_TS = "fom_recently_viewed_ts";
-const MAX = 30;
+const MAX = 100;
 
 export type RecentlyViewedEntry = { slug: string; at: number };
 
