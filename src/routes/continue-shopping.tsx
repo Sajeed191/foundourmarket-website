@@ -449,10 +449,10 @@ function ContinueShoppingPage() {
     if (age <= 60 * 60 * 1000) s += 1000;            // viewed within the last hour
     else if (age <= DAY) s += 400;                    // viewed today
     else if (age <= 7 * DAY) s += 150;                // viewed this week
-    if (e.kind === "cart" && age <= 7 * DAY) s += 600; // recently added to cart
+    if (e.inCart && age <= 7 * DAY) s += 600;           // currently in cart
     else if (e.kind === "checkout") s += 500;
     s += Math.min(e.views, 10) * 40;                  // repeat visits
-    if (e.kind === "wishlist") s += 200;              // saved for later
+    if (e.inWishlist) s += 200;                        // saved for later
     if (e.priceChange === "drop") s += 350;           // real price drop vs viewed price
     if (e.product.inStock) s += 120;                  // back / in stock
     // gentle recency tiebreaker (newer = slightly higher)
@@ -527,7 +527,7 @@ function ContinueShoppingPage() {
     }
   }, [paged.length]);
 
-  const loading = authLoading || productsLoading;
+  const loading = authLoading || productsLoading || recentLoading;
 
   if (loading) {
     return (
