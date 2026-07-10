@@ -98,7 +98,13 @@ function ContinueShoppingPage() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("recent");
-  const [limit, setLimit] = useState(PAGE_SIZE);
+  // Restore paging depth from the previous visit so returning from a product
+  // does not rebuild the list from the first page.
+  const [limit, setLimit] = useState(() => {
+    if (typeof window === "undefined") return PAGE_SIZE;
+    const saved = Number(sessionStorage.getItem("fom_cs_limit"));
+    return Number.isFinite(saved) && saved >= PAGE_SIZE ? saved : PAGE_SIZE;
+  });
 
   const [eventAt, setEventAt] = useState<Map<string, number>>(new Map());
   const [checkoutAt, setCheckoutAt] = useState<Map<string, number>>(new Map());
