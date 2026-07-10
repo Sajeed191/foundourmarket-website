@@ -694,8 +694,8 @@ function ContinueShoppingPage() {
             <>
               <div data-product-grid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
                 {paged.map((e) => {
-                  const status = statusOf(e, market);
-                  const StatusIcon = status.Icon;
+                  const { primary, secondary } = describeActivity(e, market);
+                  const StatusIcon = primary.Icon;
                   return (
                     <div
                       key={e.product.id ?? e.product.slug}
@@ -713,14 +713,21 @@ function ContinueShoppingPage() {
                       </button>
                       {/* Marketing badges hidden here — this is a personal surface. */}
                       <ProductCard product={e.product} hideBadges />
-                      {/* One minimal activity line — information, not a badge. */}
-                      <div className={`mt-2 flex max-w-full items-center gap-1.5 self-start ${status.fg}`}>
-                        <StatusIcon className="size-3.5 shrink-0" />
-                        <span className="truncate text-[12px] sm:text-[13px] font-medium">{status.text}</span>
+                      {/* ONE primary activity label — same location on every card. */}
+                      <div className="mt-2 flex flex-col gap-0.5 self-start max-w-full">
+                        <span className={`flex items-center gap-1.5 ${primary.fg}`}>
+                          <StatusIcon className="size-3.5 shrink-0" />
+                          <span className="truncate text-[12px] sm:text-[13px] font-medium">{primary.text}</span>
+                        </span>
+                        {/* Secondary activity — muted detail, never a badge. */}
+                        {secondary && (
+                          <span className="truncate text-[11px] text-muted-foreground/80 pl-[1.25rem]">{secondary}</span>
+                        )}
                       </div>
                     </div>
                   );
                 })}
+
               </div>
 
               {/* Infinite scroll sentinel + skeleton */}
