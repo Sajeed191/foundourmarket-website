@@ -108,6 +108,13 @@ export type Product = {
   features: string[];
   specifications: Record<string, string>;
   attributes: Record<string, string>;
+  /**
+   * Internal marker: true when this product came from a lean LIST fetch that
+   * omits heavy detail-only columns (features, specifications, attributes,
+   * SEO fields, related/cross/upsell, video, customs). Detail views must
+   * refetch the full record before rendering those fields. Never rendered.
+   */
+  __lean?: boolean;
 };
 
 export type ProductStatus =
