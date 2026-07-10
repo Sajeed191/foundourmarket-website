@@ -19,12 +19,7 @@ import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { type Product, discountPercent } from "@/lib/products";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { FilterSortBar, useFilterSort } from "@/components/site/FilterSortBar";
 
 export const Route = createFileRoute("/wishlist")({
   head: () => ({
