@@ -87,6 +87,7 @@ type Entry = {
   purchased: boolean;
   compared: boolean;
   inCart: boolean;
+  inWishlist: boolean;
   // Real price-change signal derived from the price the user actually saw.
   priceChange: PriceChange;
   savings: number;
@@ -168,7 +169,7 @@ function statusOf(e: Entry, market: string): Status {
     return { key: "cart", text: d ? `Added to Cart ${d}` : "In Your Cart", Icon: ShoppingCart, fg: "text-accent" };
   }
   // 2. Saved to Wishlist.
-  if (e.kind === "wishlist") {
+  if (e.inWishlist) {
     const d = dayContext(e.at);
     return { key: "wishlist", text: d ? `Saved ${d}` : "Saved for Later", Icon: Heart, fg: "text-purple-400" };
   }
@@ -200,7 +201,7 @@ function ContinueShoppingPage() {
   const { items: cartItems } = useCart();
   const { slugs: wishSlugs } = useWishlist();
   const { slugs: compareSlugs } = useCompare();
-  const { slugs: recentSlugs, entries: recentEntries, remove, clear, clearSince, restore } = useRecentlyViewed();
+  const { entries: recentEntries, remove, clear, clearSince, restore, loading: recentLoading } = useRecentlyViewed();
 
   // Confirmation dialog for the destructive "Clear all history" action.
   const [confirmClear, setConfirmClear] = useState(false);
@@ -212,7 +213,7 @@ function ContinueShoppingPage() {
   // Per-product removals in flight — prevents duplicate delete requests.
   const removing = useRef<Set<string>>(new Set());
 
-  const ERROR_MSG = "Couldn't update your history. Please try again.";
+  const ERROR_MSG = "Couldn't update your Continue Shopping history.";
 
   // Success toast + optional Undo for a reversible removal.
   const notify = (removed: RecentlyViewedEntry[], message: string, undoable: boolean) => {
@@ -251,7 +252,11 @@ function ContinueShoppingPage() {
     setBusy("all");
     void track("history_clear_all", { value: historyCount });
     try {
-      const { ok } = await clear();
+      const previousLimit = limit;
+      const mutation = clear();
+      resetVisibleHistoryState();
+      const { ok } = await mutation;
+      if (!ok) setLimit(previousLimit);
       if (!ok) { toast.error(ERROR_MSG); return; }
       toast.success("Continue Shopping history cleared.");
     } finally {
@@ -263,7 +268,11 @@ function ContinueShoppingPage() {
     setBusy("today");
     void track("history_clear_today", { value: todayCount });
     try {
-      const { removed, ok } = await clearSince(startOfToday());
+      const previousLimit = limit;
+      const mutation = clearSince(startOfToday());
+      resetVisibleHistoryState();
+      const { removed, ok } = await mutation;
+      if (!ok) setLimit(previousLimit);
       if (!ok) { toast.error(ERROR_MSG); return; }
       notify(removed, "Viewed today cleared.", true);
     } finally {
@@ -276,7 +285,11 @@ function ContinueShoppingPage() {
     setBusy("week");
     void track("history_clear_last7", { value: weekCount });
     try {
-      const { removed, ok } = await clearSince(Date.now() - 7 * DAY);
+      const previousLimit = limit;
+      const mutation = clearSince(Date.now() - 7 * DAY);
+      resetVisibleHistoryState();
+      const { removed, ok } = await mutation;
+      if (!ok) setLimit(previousLimit);
       if (!ok) { toast.error(ERROR_MSG); return; }
       notify(removed, "Last 7 days history cleared.", true);
     } finally {
@@ -289,7 +302,11 @@ function ContinueShoppingPage() {
     removing.current.add(slug);
     void track("history_remove_product", { productSlug: slug });
     try {
-      const { removed, ok } = await remove(slug);
+      const previousLimit = limit;
+      const mutation = remove(slug);
+      resetVisibleHistoryState();
+      const { removed, ok } = await mutation;
+      if (!ok) setLimit(previousLimit);
       if (!ok) { toast.error(ERROR_MSG); return; }
       notify(removed, "Removed from Continue Shopping.", true);
     } finally {
@@ -307,6 +324,14 @@ function ContinueShoppingPage() {
     const saved = Number(sessionStorage.getItem("fom_cs_limit"));
     return Number.isFinite(saved) && saved >= PAGE_SIZE ? saved : PAGE_SIZE;
   });
+
+  function resetVisibleHistoryState() {
+    setLimit(PAGE_SIZE);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("fom_cs_limit", String(PAGE_SIZE));
+      sessionStorage.removeItem("fom_cs_scroll");
+    }
+  }
 
   const [eventAt, setEventAt] = useState<Map<string, number>>(new Map());
   const [checkoutAt, setCheckoutAt] = useState<Map<string, number>>(new Map());
