@@ -15,14 +15,18 @@ import {
   AlertTriangle,
   Clock,
   CalendarDays,
+  MoreHorizontal,
+  Trash2,
+  X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useProducts } from "@/lib/use-products";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useCompare } from "@/hooks/use-compare";
-import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
+import { useRecentlyViewed, type RecentlyViewedEntry } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
 import { recordEvent } from "@/lib/personalization";
 import { buildVisibleMap } from "@/lib/product-availability";
@@ -30,6 +34,24 @@ import { getViewedPrices, comparePrice, type PriceChange } from "@/lib/viewed-pr
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { type Product } from "@/lib/products";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/continue-shopping")({
   head: () => ({
