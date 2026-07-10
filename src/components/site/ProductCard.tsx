@@ -25,6 +25,12 @@ type ProductCardProps = {
   priority?: boolean;
   /** When set, occurrences of this term in the title are highlighted. */
   highlight?: string;
+  /**
+   * Suppress all top-left marketing badges (Trending, Premium, Flash Deal,
+   * Bestseller, New, …). Used on personal surfaces like Continue Shopping where
+   * the card communicates the user's own activity, not promotional context.
+   */
+  hideBadges?: boolean;
 };
 
 /** Highlight matched search terms within a piece of text. */
