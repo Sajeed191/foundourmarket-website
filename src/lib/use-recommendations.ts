@@ -76,7 +76,7 @@ type Signals = {
   purchased: Set<string>;
 };
 
-function buildRecommendations(products: Product[], signals: Signals, limit: number): Product[] {
+function buildRecommendations(products: Product[], signals: Signals, limit: number, market: MarketRegion | null): Product[] {
   const bySlug = new Map(products.map((p) => [p.slug, p]));
 
   // Category affinity weighted by signal strength (views < wishlist < cart).
