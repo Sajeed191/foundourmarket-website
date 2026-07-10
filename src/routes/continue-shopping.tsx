@@ -17,9 +17,11 @@ import {
   CalendarDays,
   MoreHorizontal,
   Trash2,
+  Loader2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useProducts } from "@/lib/use-products";
