@@ -277,7 +277,7 @@ function ContinueShoppingPage() {
     else if (e.kind === "checkout") s += 500;
     s += Math.min(e.views, 10) * 40;                  // repeat visits
     if (e.kind === "wishlist") s += 200;              // saved for later
-    if (e.priceDrop) s += 350;                        // recent price drop
+    if (e.priceChange === "drop") s += 350;           // real price drop vs viewed price
     if (e.product.inStock) s += 120;                  // back / in stock
     // gentle recency tiebreaker (newer = slightly higher)
     if (e.at != null) s += Math.max(0, 100 - age / DAY);
