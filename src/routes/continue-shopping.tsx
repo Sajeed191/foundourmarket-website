@@ -558,30 +558,33 @@ function ContinueShoppingPage() {
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="Manage Continue Shopping history"
-                  className="grid size-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-accent/40 hover:text-accent"
+                  disabled={busy !== null}
+                  className="grid size-11 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:opacity-60"
                 >
-                  <MoreHorizontal className="size-4" />
+                  {busy ? <Loader2 className="size-4 animate-spin" /> : <MoreHorizontal className="size-4" />}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>Manage history</DropdownMenuLabel>
                 <DropdownMenuItem
-                  disabled={todayCount === 0}
-                  onSelect={() => void handleClearToday()}
+                  disabled={busy !== null || todayCount === 0}
+                  onSelect={(e) => { e.preventDefault(); void handleClearToday(); }}
+                  className="min-h-11"
                 >
-                  <Clock className="size-4" /> Clear viewed today
+                  {busy === "today" ? <Loader2 className="size-4 animate-spin" /> : <Clock className="size-4" />} Clear viewed today
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  disabled={weekCount === 0}
-                  onSelect={() => void handleClearWeek()}
+                  disabled={busy !== null || weekCount === 0}
+                  onSelect={(e) => { e.preventDefault(); void handleClearWeek(); }}
+                  className="min-h-11"
                 >
-                  <CalendarDays className="size-4" /> Clear last 7 days
+                  {busy === "week" ? <Loader2 className="size-4 animate-spin" /> : <CalendarDays className="size-4" />} Clear last 7 days
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  disabled={historyCount === 0}
+                  disabled={busy !== null || historyCount === 0}
                   onSelect={() => setConfirmClear(true)}
-                  className="text-rose-400 focus:text-rose-400"
+                  className="min-h-11 text-rose-400 focus:text-rose-400"
                 >
                   <Trash2 className="size-4" /> Clear all history
                 </DropdownMenuItem>
