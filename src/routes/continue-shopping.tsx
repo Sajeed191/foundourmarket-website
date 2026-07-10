@@ -281,6 +281,7 @@ function ContinueShoppingPage() {
       notify(removed, "Last 7 days history cleared.", true);
     } finally {
       setBusy(null);
+      setMenuOpen(false); // close immediately after the action resolves
     }
   };
   const handleRemoveOne = async (slug: string) => {
