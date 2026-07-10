@@ -203,34 +203,52 @@ function ContinueShoppingPage() {
   // Confirmation dialog for the destructive "Clear all history" action.
   const [confirmClear, setConfirmClear] = useState(false);
 
-  // Undo helper: show a toast with an action that restores the removed entries.
-  const offerUndo = (removed: RecentlyViewedEntry[], message: string) => {
-    if (removed.length === 0) return;
-    toast(message, {
+  const ERROR_MSG = "Couldn't update your history. Please try again.";
+
+  // Success toast + optional Undo for a reversible removal.
+  const notify = (removed: RecentlyViewedEntry[], message: string, undoable: boolean) => {
+    toast.success(message, {
       duration: 6000,
-      action: { label: "Undo", onClick: () => void restore(removed) },
+      action: undoable && removed.length > 0 ? { label: "Undo", onClick: () => void restore(removed) } : undefined,
     });
   };
 
+  // Timezone-aware boundaries using the user's local clock.
   const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
+
+  // Live counts drive both the disabled state and the destructive operations.
+  const todayCount = useMemo(
+    () => recentEntries.filter((e) => e.at >= startOfToday()).length,
+    [recentEntries],
+  );
+  const weekCount = useMemo(
+    () => recentEntries.filter((e) => e.at >= Date.now() - 7 * DAY).length,
+    [recentEntries],
+  );
+  const historyCount = recentEntries.length;
 
   const handleClearAll = async () => {
     setConfirmClear(false);
-    const removed = await clear();
-    offerUndo(removed, `Cleared ${removed.length} ${removed.length === 1 ? "product" : "products"}`);
+    const { ok } = await clear();
+    if (!ok) { toast.error(ERROR_MSG); return; }
+    toast.success("Continue Shopping history cleared.");
   };
   const handleClearToday = async () => {
-    const removed = await clearSince(startOfToday());
-    offerUndo(removed, `Cleared ${removed.length} viewed today`);
+    const { removed, ok } = await clearSince(startOfToday());
+    if (!ok) { toast.error(ERROR_MSG); return; }
+    notify(removed, "Viewed today cleared.", true);
   };
   const handleClearWeek = async () => {
-    const removed = await clearSince(Date.now() - 7 * DAY);
-    offerUndo(removed, `Cleared ${removed.length} from the last 7 days`);
+    const { removed, ok } = await clearSince(Date.now() - 7 * DAY);
+    if (!ok) { toast.error(ERROR_MSG); return; }
+    notify(removed, "Last 7 days history cleared.", true);
   };
   const handleRemoveOne = async (slug: string) => {
-    const removed = await remove(slug);
-    offerUndo(removed, "Removed from Continue Shopping");
+    const { removed, ok } = await remove(slug);
+    if (!ok) { toast.error(ERROR_MSG); return; }
+    notify(removed, "Removed from Continue Shopping.", true);
   };
+
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("recent");
@@ -503,20 +521,28 @@ function ContinueShoppingPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>Manage history</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => void handleClearToday()}>
+                <DropdownMenuItem
+                  disabled={todayCount === 0}
+                  onSelect={() => void handleClearToday()}
+                >
                   <Clock className="size-4" /> Clear viewed today
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void handleClearWeek()}>
+                <DropdownMenuItem
+                  disabled={weekCount === 0}
+                  onSelect={() => void handleClearWeek()}
+                >
                   <CalendarDays className="size-4" /> Clear last 7 days
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => setConfirmClear(true)}
+                  disabled={historyCount === 0}
+                  onSelect={() => setConfirmClear(true)}
                   className="text-rose-400 focus:text-rose-400"
                 >
                   <Trash2 className="size-4" /> Clear all history
                 </DropdownMenuItem>
               </DropdownMenuContent>
+
             </DropdownMenu>
           </div>
         )}
@@ -526,10 +552,10 @@ function ContinueShoppingPage() {
       <AlertDialog open={confirmClear} onOpenChange={setConfirmClear}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Clear all history?</AlertDialogTitle>
+            <AlertDialogTitle>Clear Continue Shopping History?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes every product from your Continue Shopping list. You can undo this for a
-              few seconds afterwards.
+              This will permanently remove all your recently viewed products. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -538,7 +564,7 @@ function ContinueShoppingPage() {
               onClick={() => void handleClearAll()}
               className="bg-rose-500 text-white hover:bg-rose-600"
             >
-              Clear all
+              Clear History
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
