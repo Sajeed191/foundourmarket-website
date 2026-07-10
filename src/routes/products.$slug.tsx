@@ -248,6 +248,7 @@ function ProductPage() {
   useEffect(() => {
     if (product) {
       record(product.slug);
+      recordViewedPrice(product.slug, priceOf(product), market);
       recordEvent({ type: "view", productSlug: product.slug, category: product.category });
       import("@/lib/visitor").then((m) => m.trackEvent("product_view", {
         productSlug: product.slug,
