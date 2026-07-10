@@ -297,6 +297,7 @@ function ContinueShoppingPage() {
         savings: cmp.savings,
         pricePercent: cmp.percent,
         lowStock,
+        backInStock,
       });
     };
 
