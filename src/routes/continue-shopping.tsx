@@ -1,7 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ComponentType } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Search, Sparkles, TrendingUp } from "lucide-react";
+import {
+  ShoppingBag,
+  Search,
+  Sparkles,
+  TrendingUp,
+  ShoppingCart,
+  Heart,
+  ArrowDown,
+  ArrowUp,
+  PackageCheck,
+  AlertTriangle,
+  Clock,
+  CalendarDays,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useProducts } from "@/lib/use-products";
@@ -54,6 +68,7 @@ type Entry = {
   savings: number;
   pricePercent: number;
   lowStock: boolean;
+  backInStock: boolean;
 };
 
 type FilterKey = "recent" | "week" | "stock" | "drop";
@@ -66,22 +81,7 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 
 const PAGE_SIZE = 12;
 
-/** Human relative time: "2 hours ago", "Yesterday". */
-function relTime(ts: number | null): string {
-  if (!ts) return "recently";
-  const diff = Date.now() - ts;
-  if (diff < 0) return "just now";
-  const min = 60 * 1000, hour = 60 * min;
-  if (diff < min) return "just now";
-  if (diff < hour) { const m = Math.round(diff / min); return `${m} minute${m > 1 ? "s" : ""} ago`; }
-  if (diff < DAY) { const h = Math.round(diff / hour); return `${h} hour${h > 1 ? "s" : ""} ago`; }
-  const days = Math.round(diff / DAY);
-  if (days === 1) return "yesterday";
-  if (days < 7) return `${days} days ago`;
-  if (days < 14) return "last week";
-  const weeks = Math.round(days / 7);
-  return `${weeks} weeks ago`;
-}
+
 
 /** Currency symbol for the active market. */
 function money(n: number, market: string): string {
@@ -89,39 +89,65 @@ function money(n: number, market: string): string {
   return market === "india" ? `₹${rounded.toLocaleString("en-IN")}` : `$${rounded.toLocaleString("en-US")}`;
 }
 
-type LabelTone = "drop" | "increase" | "neutral";
+/**
+ * The single primary status shown on a card. Each status has its own icon and
+ * color so the meaning is recognizable at a glance — never more than one.
+ */
+type Status = {
+  key: string;
+  text: string;
+  Icon: ComponentType<{ className?: string }>;
+  /** Icon + text color class. */
+  fg: string;
+  /** Subtle pill background + ring color class. */
+  pill: string;
+};
 
 /**
- * Exactly ONE context label per product, chosen by strict priority:
- * 1. Price Dropped  2. Price Increased  3. Back in Stock  4. Low Stock
- * 5. In Cart  6. Recently Viewed / Viewed Today / Yesterday
+ * Exactly ONE primary status per product, chosen by strict priority:
+ *   1. In Your Cart   2. Saved for Later   3. Price Dropped / Increased
+ *   4. Back in Stock  5. Low Stock         6. Viewed Today
+ *   7. Viewed Yesterday   8. Viewed This Week
  *
  * A price label is only ever produced when a real, stored viewed price differs
  * from the current price — never globally.
  */
-function contextLabel(e: Entry, market: string): { text: string; tone: LabelTone } {
+function statusOf(e: Entry, market: string): Status {
+  // 1. In Your Cart — cart identity always wins.
+  if (e.inCart) {
+    return { key: "cart", text: "In Your Cart", Icon: ShoppingCart, fg: "text-accent", pill: "bg-accent/10 ring-accent/25" };
+  }
+  // 2. Saved for Later.
+  if (e.kind === "wishlist") {
+    return { key: "wishlist", text: "Saved for Later", Icon: Heart, fg: "text-purple-400", pill: "bg-purple-400/10 ring-purple-400/25" };
+  }
+  // 3. Real price change vs the price the user actually saw.
   if (e.priceChange === "drop") {
-    const extra = e.savings > 0 ? ` · Save ${money(e.savings, market)}` : e.pricePercent > 0 ? ` · ${e.pricePercent}% lower` : "";
-    return { text: `⬇ Price Dropped${extra}`, tone: "drop" };
+    const extra = e.savings > 0 ? ` · Save ${money(e.savings, market)}` : e.pricePercent > 0 ? ` · ${e.pricePercent}% off` : "";
+    return { key: "drop", text: `Price Dropped${extra}`, Icon: ArrowDown, fg: "text-emerald-400", pill: "bg-emerald-400/10 ring-emerald-400/25" };
   }
   if (e.priceChange === "increase") {
-    return { text: "⬆ Price Increased", tone: "increase" };
+    return { key: "increase", text: "Price Increased", Icon: ArrowUp, fg: "text-rose-400", pill: "bg-rose-400/10 ring-rose-400/25" };
   }
-  if (!e.product.inStock) {
-    return { text: "Currently Unavailable", tone: "neutral" };
+  // 4. Back in Stock — was out of stock when last viewed, in stock now.
+  if (e.backInStock) {
+    return { key: "back", text: "Back in Stock", Icon: PackageCheck, fg: "text-sky-400", pill: "bg-sky-400/10 ring-sky-400/25" };
   }
+  // 5. Low Stock.
   if (e.lowStock) {
-    return { text: "Low Stock", tone: "neutral" };
+    return { key: "low", text: "Low Stock", Icon: AlertTriangle, fg: "text-amber-400", pill: "bg-amber-400/10 ring-amber-400/25" };
   }
-  if (e.inCart) return { text: "In Your Cart", tone: "neutral" };
-  if (e.kind === "wishlist") return { text: "Saved for Later", tone: "neutral" };
-  // Recency-based fallback.
+  // 6-8. Recency-based, neutral.
   if (e.at != null) {
-    const diff = Date.now() - e.at;
-    if (diff < DAY && new Date(e.at).getDate() === new Date().getDate()) return { text: "Viewed Today", tone: "neutral" };
-    if (diff < 2 * DAY) return { text: "Viewed Yesterday", tone: "neutral" };
+    const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+    if (e.at >= startOfToday.getTime()) {
+      return { key: "today", text: "Viewed Today", Icon: Clock, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
+    }
+    if (e.at >= startOfToday.getTime() - DAY) {
+      return { key: "yesterday", text: "Viewed Yesterday", Icon: CalendarDays, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
+    }
   }
-  return { text: `Viewed ${relTime(e.at)}`, tone: "neutral" };
+  return { key: "week", text: "Viewed This Week", Icon: CalendarDays, fg: "text-muted-foreground", pill: "bg-white/[0.04] ring-white/10" };
 }
 
 function ContinueShoppingPage() {
@@ -242,6 +268,8 @@ function ContinueShoppingPage() {
       const cmp = comparePrice(viewedPrices[slug], priceOf(product), market);
       const lowStock =
         product.inStock && product.stockQuantity > 0 && product.stockQuantity <= (product.lowStockThreshold || 5);
+      // Back in stock: out of stock when the user last saw it, in stock now.
+      const backInStock = product.inStock && viewedPrices[slug]?.inStock === false;
       best.set(slug, {
         product,
         kind,
@@ -254,6 +282,7 @@ function ContinueShoppingPage() {
         savings: cmp.savings,
         pricePercent: cmp.percent,
         lowStock,
+        backInStock,
       });
     };
 
@@ -446,13 +475,8 @@ function ContinueShoppingPage() {
             <>
               <div data-product-grid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
                 {paged.map((e) => {
-                  const label = contextLabel(e, market);
-                  const toneClass =
-                    label.tone === "drop"
-                      ? "text-emerald-400"
-                      : label.tone === "increase"
-                        ? "text-accent"
-                        : "text-muted-foreground";
+                  const status = statusOf(e, market);
+                  const StatusIcon = status.Icon;
                   return (
                     <div
                       key={e.product.id ?? e.product.slug}
@@ -461,9 +485,12 @@ function ContinueShoppingPage() {
                       onClickCapture={() => { void recordEvent({ type: "view", productSlug: e.product.slug }); }}
                     >
                       <ProductCard product={e.product} />
-                      <p className={`mt-1.5 px-1 font-mono text-[10px] uppercase tracking-wider truncate ${toneClass}`}>
-                        {label.text}
-                      </p>
+                      <div
+                        className={`mt-1.5 inline-flex max-w-full items-center gap-1.5 self-start rounded-full px-2.5 py-1 ring-1 ${status.pill} ${status.fg}`}
+                      >
+                        <StatusIcon className="size-3 shrink-0" />
+                        <span className="truncate text-[10px] font-semibold uppercase tracking-wider">{status.text}</span>
+                      </div>
                     </div>
                   );
                 })}
