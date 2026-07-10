@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Home, Search, Heart, ShoppingBag, User } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
-import { useWishlist } from "@/lib/wishlist";
+import { useVisibleWishlistCount } from "@/lib/product-availability";
 import { useAdminMode } from "@/lib/admin-mode";
 import { useIsAdmin } from "@/lib/use-admin";
 
@@ -63,7 +63,7 @@ function resolveNavState(
 export function MobileBottomNav() {
   const { count } = useCart();
   const { user } = useAuth();
-  const { slugs } = useWishlist();
+  const wishCount = useVisibleWishlistCount();
   const { adminMode } = useAdminMode();
   const { isAdmin } = useIsAdmin();
   
@@ -290,7 +290,7 @@ export function MobileBottomNav() {
   const items: { to?: string; label: string; icon: typeof Home; match: (p: string) => boolean; badge?: number; onClick?: () => void }[] = [
     { to: "/", label: "Home", icon: Home, match: (p) => p === "/" },
     { to: "/search", label: "Browse", icon: Search, match: (p) => p === "/search" || p.startsWith("/category") },
-    { to: "/wishlist", label: "Saved", icon: Heart, match: (p) => p === "/wishlist", badge: slugs.size },
+    { to: "/wishlist", label: "Saved", icon: Heart, match: (p) => p === "/wishlist", badge: wishCount },
     { to: "/cart", label: "Cart", icon: ShoppingBag, match: (p) => p === "/cart", badge: count },
     { to: user ? "/account" : "/auth", label: "Account", icon: User, match: (p) => p === "/account" || p === "/auth", badge: user ? supportUnread : 0 },
   ];

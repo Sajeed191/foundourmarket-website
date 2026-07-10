@@ -11,6 +11,7 @@ import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
+import { buildVisibleMap } from "@/lib/product-availability";
 import { Price } from "@/components/site/Price";
 import type { Product } from "@/lib/products";
 
@@ -178,6 +179,7 @@ function ViewAllCard({ productCount }: { productCount: number }) {
 function ContinueShoppingPage() {
   const { user, loading: authLoading } = useAuth();
   const { products, loading: productsLoading } = useProducts();
+  const { market } = useRegion();
   const { items: cartItems } = useCart();
   const { slugs: wishSlugs } = useWishlist();
   const { slugs: recentSlugs } = useRecentlyViewed();
@@ -252,7 +254,9 @@ function ContinueShoppingPage() {
   // Build one entry per product, keeping ONLY the highest-priority, non-expired
   // activity. Delivered purchases are excluded entirely.
   const entries = useMemo<Entry[]>(() => {
-    const map = new Map(products.map((p) => [p.slug, p] as const));
+    // Only active/visible products — deleted or deactivated items never appear
+    // in Continue Shopping.
+    const map = buildVisibleMap(products, market);
     const best = new Map<string, Entry>();
     const tsFor = (slug: string, kind: ActivityKind): number | null => {
       if (kind === "checkout") return checkoutAt.get(slug) ?? eventAt.get(slug) ?? null;
@@ -276,7 +280,7 @@ function ContinueShoppingPage() {
     for (const slug of wishSlugs) consider(slug, "wishlist");
     for (const slug of recentSlugs) consider(slug, "viewed");
     return [...best.values()];
-  }, [products, checkoutAt, cartItems, wishSlugs, recentSlugs, eventAt, cartAt, viewedAt, purchasedSlugs]);
+  }, [products, market, checkoutAt, cartItems, wishSlugs, recentSlugs, eventAt, cartAt, viewedAt, purchasedSlugs]);
 
   const counts = useMemo(() => {
     const c: Record<FilterKey, number> = { all: entries.length, checkout: 0, cart: 0, wishlist: 0, viewed: 0 };

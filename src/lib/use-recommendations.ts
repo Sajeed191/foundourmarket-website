@@ -4,7 +4,10 @@ import { useProducts } from "@/lib/use-products";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useWishlist } from "@/lib/wishlist";
 import { useCart } from "@/lib/cart";
+import { useRegion } from "@/lib/region";
+import { isRegionVisible } from "@/lib/product-availability";
 import { type Product } from "@/lib/products";
+import type { MarketRegion } from "@/lib/region.functions";
 
 /**
  * Premium recommendation engine — deterministic, behaviour-driven, and stable.
@@ -76,7 +79,7 @@ type Signals = {
   purchased: Set<string>;
 };
 
-function buildRecommendations(products: Product[], signals: Signals, limit: number): Product[] {
+function buildRecommendations(products: Product[], signals: Signals, limit: number, market: MarketRegion | null): Product[] {
   const bySlug = new Map(products.map((p) => [p.slug, p]));
 
   // Category affinity weighted by signal strength (views < wishlist < cart).
@@ -104,6 +107,7 @@ function buildRecommendations(products: Product[], signals: Signals, limit: numb
         p.inStock &&
         !p.hideFromRecommendations &&
         (p.status === "published" || p.status === "preorder") &&
+        isRegionVisible(p, market) &&
         !exclude.has(p.slug),
     )
     .map((p) => {
@@ -157,6 +161,7 @@ export function useRecommendations(opts: { limit?: number; excludeSlug?: string 
   const { slugs: recent } = useRecentlyViewed();
   const { slugs: wishlistSet } = useWishlist();
   const { items } = useCart();
+  const { market } = useRegion();
   const purchased = usePurchasedSlugs();
 
   const wishlist = useMemo(() => [...wishlistSet], [wishlistSet]);
@@ -171,9 +176,10 @@ export function useRecommendations(opts: { limit?: number; excludeSlug?: string 
         [...cart].sort().join(","),
         [...purchased].sort().join(","),
         products.length,
+        market ?? "",
         excludeSlug ?? "",
       ].join("|"),
-    [recent, wishlist, cart, purchased, products.length, excludeSlug],
+    [recent, wishlist, cart, purchased, products.length, market, excludeSlug],
   );
 
   const cacheRef = useRef<{ sig: string; result: Product[] }>({ sig: "", result: [] });
@@ -185,12 +191,13 @@ export function useRecommendations(opts: { limit?: number; excludeSlug?: string 
       products,
       { recent, wishlist, cart, purchased },
       limit + (excludeSlug ? 1 : 0),
+      market,
     ).filter((p) => p.slug !== excludeSlug);
     const out = list.slice(0, limit);
     cacheRef.current = { sig: signature, result: out };
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signature, limit]);
+  }, [signature, limit, market]);
 
   return { products: result, loading: loading && result.length === 0 };
 }

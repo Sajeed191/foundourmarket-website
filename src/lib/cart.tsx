@@ -4,6 +4,7 @@ import { type Product } from "./products";
 import { useProducts } from "./use-products";
 import { useAuth } from "./auth";
 import { useRegion } from "./region";
+import { buildVisibleMap } from "./product-availability";
 
 type CartItem = { slug: string; qty: number; savedForLater?: boolean };
 type DetailedItem = CartItem & { product: Product };
@@ -353,10 +354,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Only currently-visible/active products contribute to the cart the user
+  // sees, the totals and the badge count. If an admin deletes or deactivates a
+  // product it drops out here automatically (via the products realtime/focus
+  // refresh) — no stale rows, totals or counts, and no reload required.
+  const visibleMap = useMemo(() => buildVisibleMap(products, market), [products, market]);
+
   const toDetailed = (list: CartItem[]): DetailedItem[] =>
     list
       .map((i) => {
-        const product = products.find((p) => p.slug === i.slug);
+        const product = visibleMap.get(i.slug);
         return product ? { ...i, product } : null;
       })
       .filter(Boolean) as DetailedItem[];
@@ -367,12 +374,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const savedDetailed = toDetailed(saved);
 
   const subtotalUSD = detailed.reduce((s, i) => s + priceOf(i.product) * i.qty, 0);
-  const count = active.reduce((s, i) => s + i.qty, 0);
+  // Badge/count reflects only purchasable items actually shown in the cart.
+  const count = detailed.reduce((s, i) => s + i.qty, 0);
   const hydrated = loadedFor === (user?.id ?? null);
 
   useEffect(() => {
-    publishCartQty(active);
-  }, [active]);
+    // Publish only visible items so on-card qty steppers never reflect a
+    // deleted/deactivated product.
+    publishCartQty(detailed);
+  }, [detailed]);
 
   useEffect(() => {
     cartActionsSnapshot = { add, setQty };

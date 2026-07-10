@@ -3,6 +3,7 @@ import { Sparkles, Heart, History } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
+import { isProductVisible } from "@/lib/product-availability";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductRail } from "@/components/site/ProductRail";
 import type { Product } from "@/lib/products";
@@ -51,9 +52,16 @@ function Rail({
  * Each rail hides itself when it has no products.
  */
 export function WishlistRecommendations({ wishlistSlugs }: { wishlistSlugs: string[] }) {
-  const { products } = useProducts();
-  const { priceOf } = useRegion();
+  const { products: allProducts } = useProducts();
+  const { priceOf, market } = useRegion();
   const { slugs: recentSlugs } = useRecentlyViewed();
+
+  // Only active/visible products feed any rail — deleted/deactivated items are
+  // never recommended or shown.
+  const products = useMemo(
+    () => allProducts.filter((p) => isProductVisible(p, market)),
+    [allProducts, market],
+  );
 
   const saved = useMemo(
     () => products.filter((p) => wishlistSlugs.includes(p.slug)),

@@ -20,6 +20,7 @@ import { type Product, discountPercent } from "@/lib/products";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 import { FilterSortBar, useFilterSort } from "@/components/site/FilterSortBar";
+import { isProductVisible, useProductAvailability } from "@/lib/product-availability";
 
 export const Route = createFileRoute("/wishlist")({
   head: () => ({
@@ -202,7 +203,7 @@ function WishlistPage() {
   const { user, loading } = useAuth();
   const { slugs, loading: wlLoading } = useWishlist();
   const { products, loading: pLoading } = useProducts();
-  const { format, priceOf, compareOf, shippingFeeOf, currency, currencyReady } = useRegion();
+  const { format, priceOf, compareOf, shippingFeeOf, currency, currencyReady, market } = useRegion();
   const nav = useNavigate();
 
   const { filter, sort, setFilter, setSort } = useFilterSort<FilterKey, SortKey>({
@@ -217,7 +218,12 @@ function WishlistPage() {
     if (!loading && !user) nav({ to: "/auth" });
   }, [loading, user, nav]);
 
-  const items = useMemo(() => products.filter((p) => slugs.has(p.slug)), [products, slugs]);
+  // Only active/visible saved products — deleted or admin-deactivated items
+  // drop out automatically, so ghost products, counts and stats stay accurate.
+  const items = useMemo(
+    () => products.filter((p) => slugs.has(p.slug) && isProductVisible(p, market)),
+    [products, slugs, market],
+  );
 
   // Price-drop detection against a per-currency snapshot.
   useEffect(() => {
@@ -425,16 +431,12 @@ function WishlistPage() {
 
 /** Recently Viewed — shared ProductCard, excludes wishlist items, max 15. */
 function RecentlyViewedSection({ excludeSlugs }: { excludeSlugs: Set<string> }) {
-  const { products } = useProducts();
+  const { resolveVisible } = useProductAvailability();
   const { slugs } = useRecentlyViewed();
-  const list = useMemo(() => {
-    const map = new Map(products.map((p) => [p.slug, p]));
-    return slugs
-      .filter((s) => !excludeSlugs.has(s))
-      .map((s) => map.get(s))
-      .filter(Boolean)
-      .slice(0, 15) as Product[];
-  }, [products, slugs, excludeSlugs]);
+  const list = useMemo(
+    () => resolveVisible(slugs.filter((s) => !excludeSlugs.has(s))).slice(0, 15),
+    [resolveVisible, slugs, excludeSlugs],
+  );
 
   return (
     <ProductSection
