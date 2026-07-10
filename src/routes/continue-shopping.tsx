@@ -268,6 +268,7 @@ function ContinueShoppingPage() {
       notify(removed, "Viewed today cleared.", true);
     } finally {
       setBusy(null);
+      setMenuOpen(false); // close immediately after the action resolves
     }
   };
   const handleClearWeek = async () => {
