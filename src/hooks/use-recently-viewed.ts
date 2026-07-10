@@ -117,6 +117,7 @@ async function mergeGuestHistory(userId: string) {
 export function useRecentlyViewed() {
   const [entries, setEntries] = useState<RecentlyViewedEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accountUserId, setAccountUserId] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
   // Always-fresh mirror of `entries` so destructive ops can return exactly what
   // was removed (for Undo) without depending on stale closures.
@@ -127,11 +128,15 @@ export function useRecentlyViewed() {
     const { data } = await supabase.auth.getUser();
     const user = data.user;
     userIdRef.current = user?.id ?? null;
+    setAccountUserId(user?.id ?? null);
+    let next: RecentlyViewedEntry[];
     if (user) {
-      setEntries(await fetchAccountViews(user.id));
+      next = await fetchAccountViews(user.id);
     } else {
-      setEntries(localEntries());
+      next = localEntries();
     }
+    entriesRef.current = next;
+    setEntries(next);
     setLoading(false);
   }, []);
 
@@ -147,6 +152,21 @@ export function useRecentlyViewed() {
     return () => subscription.unsubscribe();
   }, [load]);
 
+  // Keep signed-in history synchronized across open tabs/devices without
+  // refetching the product catalog. Only view-history records are refreshed.
+  useEffect(() => {
+    if (!accountUserId) return;
+    const channel = supabase
+      .channel(`recently-viewed-${accountUserId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "recommendation_events", filter: `user_id=eq.${accountUserId}` },
+        () => { void load(); },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [accountUserId, load]);
+
   /**
    * Record a view. For guests we persist to localStorage; for signed-in users
    * the DB row is written by `recordEvent({ type: 'view' })` on the product
@@ -155,7 +175,11 @@ export function useRecentlyViewed() {
   const record = useCallback((slug: string) => {
     if (!slug) return;
     const now = Date.now();
-    setEntries((prev) => [{ slug, at: now }, ...prev.filter((e) => e.slug !== slug)].slice(0, MAX));
+    setEntries((prev) => {
+      const next = [{ slug, at: now }, ...prev.filter((e) => e.slug !== slug)].slice(0, MAX);
+      entriesRef.current = next;
+      return next;
+    });
     if (!userIdRef.current) {
       writeLocal([slug, ...readLocal().filter((s) => s !== slug)].slice(0, MAX));
       writeLocalTs({ ...readLocalTs(), [slug]: now });
@@ -171,7 +195,9 @@ export function useRecentlyViewed() {
     const snapshot = entriesRef.current;
     const removed = snapshot.filter((e) => e.slug === slug);
     if (removed.length === 0) return { removed: [], ok: true };
-    setEntries((prev) => prev.filter((e) => e.slug !== slug));
+    const next = snapshot.filter((e) => e.slug !== slug);
+    entriesRef.current = next;
+    setEntries(next);
     const userId = userIdRef.current;
     if (userId) {
       try {
@@ -183,6 +209,7 @@ export function useRecentlyViewed() {
           .eq("product_slug", slug);
         if (error) throw error;
       } catch {
+        entriesRef.current = snapshot;
         setEntries(snapshot); // rollback
         return { removed: [], ok: false };
       }
@@ -199,6 +226,7 @@ export function useRecentlyViewed() {
     const snapshot = entriesRef.current;
     const removed = snapshot;
     if (removed.length === 0) return { removed: [], ok: true };
+    entriesRef.current = [];
     setEntries([]);
     const userId = userIdRef.current;
     if (userId) {
@@ -210,6 +238,7 @@ export function useRecentlyViewed() {
           .eq("event_type", "view");
         if (error) throw error;
       } catch {
+        entriesRef.current = snapshot;
         setEntries(snapshot); // rollback
         return { removed: [], ok: false };
       }
@@ -221,8 +250,9 @@ export function useRecentlyViewed() {
   }, []);
 
   /**
-   * Remove every view recorded at or after `cutoffTs`. Powers "Clear viewed
-   * today" (cutoff = start of today) and "Clear last 7 days" (cutoff = now − 7d).
+   * Remove products whose latest view is at or after `cutoffTs`. The page is
+   * product-based, so all view rows for those products are deleted; otherwise
+   * older rows would make the same card reappear after the next sync/reload.
    * Returns the removed entries so the caller can offer Undo, plus an `ok` flag.
    */
   const clearSince = useCallback(async (cutoffTs: number): Promise<RemovalResult> => {
@@ -230,7 +260,9 @@ export function useRecentlyViewed() {
     const removed = snapshot.filter((e) => e.at >= cutoffTs);
     if (removed.length === 0) return { removed: [], ok: true };
     const removedSlugs = new Set(removed.map((e) => e.slug));
-    setEntries((prev) => prev.filter((e) => e.at < cutoffTs));
+    const next = snapshot.filter((e) => e.at < cutoffTs);
+    entriesRef.current = next;
+    setEntries(next);
     const userId = userIdRef.current;
     if (userId) {
       try {
@@ -239,9 +271,10 @@ export function useRecentlyViewed() {
           .delete()
           .eq("user_id", userId)
           .eq("event_type", "view")
-          .gte("created_at", new Date(cutoffTs).toISOString());
+          .in("product_slug", [...removedSlugs]);
         if (error) throw error;
       } catch {
+        entriesRef.current = snapshot;
         setEntries(snapshot); // rollback
         return { removed: [], ok: false };
       }
@@ -261,7 +294,9 @@ export function useRecentlyViewed() {
       const seen = new Set(prev.map((e) => e.slug));
       const merged = [...prev, ...toRestore.filter((e) => !seen.has(e.slug))];
       merged.sort((a, b) => b.at - a.at);
-      return merged.slice(0, MAX);
+      const next = merged.slice(0, MAX);
+      entriesRef.current = next;
+      return next;
     });
     const userId = userIdRef.current;
     if (userId) {

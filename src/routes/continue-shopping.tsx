@@ -87,6 +87,7 @@ type Entry = {
   purchased: boolean;
   compared: boolean;
   inCart: boolean;
+  inWishlist: boolean;
   // Real price-change signal derived from the price the user actually saw.
   priceChange: PriceChange;
   savings: number;
@@ -168,7 +169,7 @@ function statusOf(e: Entry, market: string): Status {
     return { key: "cart", text: d ? `Added to Cart ${d}` : "In Your Cart", Icon: ShoppingCart, fg: "text-accent" };
   }
   // 2. Saved to Wishlist.
-  if (e.kind === "wishlist") {
+  if (e.inWishlist) {
     const d = dayContext(e.at);
     return { key: "wishlist", text: d ? `Saved ${d}` : "Saved for Later", Icon: Heart, fg: "text-purple-400" };
   }
@@ -200,7 +201,7 @@ function ContinueShoppingPage() {
   const { items: cartItems } = useCart();
   const { slugs: wishSlugs } = useWishlist();
   const { slugs: compareSlugs } = useCompare();
-  const { slugs: recentSlugs, entries: recentEntries, remove, clear, clearSince, restore } = useRecentlyViewed();
+  const { entries: recentEntries, remove, clear, clearSince, restore, loading: recentLoading } = useRecentlyViewed();
 
   // Confirmation dialog for the destructive "Clear all history" action.
   const [confirmClear, setConfirmClear] = useState(false);
@@ -212,7 +213,7 @@ function ContinueShoppingPage() {
   // Per-product removals in flight — prevents duplicate delete requests.
   const removing = useRef<Set<string>>(new Set());
 
-  const ERROR_MSG = "Couldn't update your history. Please try again.";
+  const ERROR_MSG = "Couldn't update your Continue Shopping history.";
 
   // Success toast + optional Undo for a reversible removal.
   const notify = (removed: RecentlyViewedEntry[], message: string, undoable: boolean) => {
@@ -251,7 +252,11 @@ function ContinueShoppingPage() {
     setBusy("all");
     void track("history_clear_all", { value: historyCount });
     try {
-      const { ok } = await clear();
+      const previousLimit = limit;
+      const mutation = clear();
+      resetVisibleHistoryState();
+      const { ok } = await mutation;
+      if (!ok) setLimit(previousLimit);
       if (!ok) { toast.error(ERROR_MSG); return; }
       toast.success("Continue Shopping history cleared.");
     } finally {
@@ -263,7 +268,11 @@ function ContinueShoppingPage() {
     setBusy("today");
     void track("history_clear_today", { value: todayCount });
     try {
-      const { removed, ok } = await clearSince(startOfToday());
+      const previousLimit = limit;
+      const mutation = clearSince(startOfToday());
+      resetVisibleHistoryState();
+      const { removed, ok } = await mutation;
+      if (!ok) setLimit(previousLimit);
       if (!ok) { toast.error(ERROR_MSG); return; }
       notify(removed, "Viewed today cleared.", true);
     } finally {
@@ -276,7 +285,11 @@ function ContinueShoppingPage() {
     setBusy("week");
     void track("history_clear_last7", { value: weekCount });
     try {
-      const { removed, ok } = await clearSince(Date.now() - 7 * DAY);
+      const previousLimit = limit;
+      const mutation = clearSince(Date.now() - 7 * DAY);
+      resetVisibleHistoryState();
+      const { removed, ok } = await mutation;
+      if (!ok) setLimit(previousLimit);
       if (!ok) { toast.error(ERROR_MSG); return; }
       notify(removed, "Last 7 days history cleared.", true);
     } finally {
@@ -289,7 +302,11 @@ function ContinueShoppingPage() {
     removing.current.add(slug);
     void track("history_remove_product", { productSlug: slug });
     try {
-      const { removed, ok } = await remove(slug);
+      const previousLimit = limit;
+      const mutation = remove(slug);
+      resetVisibleHistoryState();
+      const { removed, ok } = await mutation;
+      if (!ok) setLimit(previousLimit);
       if (!ok) { toast.error(ERROR_MSG); return; }
       notify(removed, "Removed from Continue Shopping.", true);
     } finally {
@@ -308,20 +325,20 @@ function ContinueShoppingPage() {
     return Number.isFinite(saved) && saved >= PAGE_SIZE ? saved : PAGE_SIZE;
   });
 
-  const [eventAt, setEventAt] = useState<Map<string, number>>(new Map());
-  const [checkoutAt, setCheckoutAt] = useState<Map<string, number>>(new Map());
-  const [cartAt, setCartAt] = useState<Map<string, number>>(new Map());
-  const [viewedAt, setViewedAt] = useState<Map<string, number>>(new Map());
+  function resetVisibleHistoryState() {
+    setLimit(PAGE_SIZE);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("fom_cs_limit", String(PAGE_SIZE));
+      sessionStorage.removeItem("fom_cs_scroll");
+    }
+  }
+
   const [viewCounts, setViewCounts] = useState<Map<string, number>>(new Map());
   const [purchasedSlugs, setPurchasedSlugs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
     if (!user) {
-      setEventAt(new Map());
-      setCheckoutAt(new Map());
-      setCartAt(new Map());
-      setViewedAt(new Map());
       setViewCounts(new Map());
       setPurchasedSlugs(new Set());
       return;
@@ -330,10 +347,10 @@ function ContinueShoppingPage() {
       const [events, delivered] = await Promise.all([
         supabase
           .from("recommendation_events")
-          .select("product_slug, event_type, created_at")
+          .select("product_slug")
           .eq("user_id", user.id)
+          .eq("event_type", "view")
           .not("product_slug", "is", null)
-          .order("created_at", { ascending: false })
           .limit(500),
         supabase
           .from("orders")
@@ -343,20 +360,9 @@ function ContinueShoppingPage() {
       ]);
       if (cancelled) return;
 
-      const at = new Map<string, number>();
-      const checkout = new Map<string, number>();
-      const cart = new Map<string, number>();
-      const viewed = new Map<string, number>();
       const counts = new Map<string, number>();
-      for (const r of (events.data ?? []) as { product_slug: string; event_type: string; created_at: string }[]) {
-        const t = new Date(r.created_at).getTime();
-        if (!at.has(r.product_slug)) at.set(r.product_slug, t);
-        if (r.event_type === "begin_checkout" && !checkout.has(r.product_slug)) checkout.set(r.product_slug, t);
-        if (r.event_type === "add_to_cart" && !cart.has(r.product_slug)) cart.set(r.product_slug, t);
-        if (r.event_type === "view") {
-          if (!viewed.has(r.product_slug)) viewed.set(r.product_slug, t);
-          counts.set(r.product_slug, (counts.get(r.product_slug) ?? 0) + 1);
-        }
+      for (const r of (events.data ?? []) as { product_slug: string }[]) {
+        counts.set(r.product_slug, (counts.get(r.product_slug) ?? 0) + 1);
       }
 
       const purchased = new Set<string>();
@@ -364,10 +370,6 @@ function ContinueShoppingPage() {
         for (const it of o.order_items ?? []) if (it.product_slug) purchased.add(it.product_slug);
       }
 
-      setEventAt(at);
-      setCheckoutAt(checkout);
-      setCartAt(cart);
-      setViewedAt(viewed);
       setViewCounts(counts);
       setPurchasedSlugs(purchased);
     })();
@@ -375,33 +377,26 @@ function ContinueShoppingPage() {
   }, [user]);
 
   const compareSet = useMemo(() => new Set(compareSlugs), [compareSlugs]);
+  const wishlistSet = useMemo(() => new Set(wishSlugs), [wishSlugs]);
 
   // Build one entry per product, keeping ONLY the highest-priority, non-expired
   // activity. Only active/visible products appear. Purchased items are kept but
   // gradually sink to the bottom.
   const entries = useMemo<Entry[]>(() => {
     const map = buildVisibleMap(products, market);
-    const localViews = new Map<string, number>();
-    for (const e of recentEntries) localViews.set(e.slug, e.at);
     const best = new Map<string, Entry>();
     const cartSet = new Set(cartItems.map((i) => i.slug));
     // Prices the user actually SAW — the only valid baseline for a price label.
     const viewedPrices = getViewedPrices();
 
-    const tsFor = (slug: string, kind: ActivityKind): number | null => {
-      if (kind === "checkout") return checkoutAt.get(slug) ?? eventAt.get(slug) ?? null;
-      if (kind === "cart") return cartAt.get(slug) ?? eventAt.get(slug) ?? null;
-      if (kind === "viewed") return viewedAt.get(slug) ?? localViews.get(slug) ?? eventAt.get(slug) ?? null;
-      return eventAt.get(slug) ?? null;
-    };
-
-    const consider = (slug: string, kind: ActivityKind) => {
+    const consider = (entry: RecentlyViewedEntry) => {
+      const slug = entry.slug;
       const product = map.get(slug);
       if (!product) return;
-      const at = tsFor(slug, kind);
-      if (at != null && Date.now() - at > EXPIRY_MS[kind]) return;
+      const at = entry.at;
+      if (Date.now() - at > EXPIRY_MS.viewed) return;
       const existing = best.get(slug);
-      if (existing && PRIORITY[existing.kind] <= PRIORITY[kind]) return;
+      if (existing && PRIORITY[existing.kind] <= PRIORITY.viewed) return;
       // Real price change: compare the CURRENT selling price against the price
       // the user actually saw for this exact product in this market.
       const cmp = comparePrice(viewedPrices[slug], priceOf(product), market);
@@ -411,12 +406,13 @@ function ContinueShoppingPage() {
       const backInStock = product.inStock && viewedPrices[slug]?.inStock === false;
       best.set(slug, {
         product,
-        kind,
+        kind: "viewed",
         at,
         views: viewCounts.get(slug) ?? 0,
         purchased: purchasedSlugs.has(slug),
         compared: compareSet.has(slug),
         inCart: cartSet.has(slug),
+        inWishlist: wishlistSet.has(slug),
         priceChange: cmp.change,
         savings: cmp.savings,
         pricePercent: cmp.percent,
@@ -425,12 +421,9 @@ function ContinueShoppingPage() {
       });
     };
 
-    for (const slug of checkoutAt.keys()) consider(slug, "checkout");
-    for (const i of cartItems) consider(i.slug, "cart");
-    for (const slug of wishSlugs) consider(slug, "wishlist");
-    for (const slug of recentSlugs) consider(slug, "viewed");
+    for (const entry of recentEntries) consider(entry);
     return [...best.values()];
-  }, [products, market, checkoutAt, cartItems, wishSlugs, recentSlugs, recentEntries, eventAt, cartAt, viewedAt, viewCounts, purchasedSlugs, compareSet, priceOf]);
+  }, [products, market, cartItems, recentEntries, viewCounts, purchasedSlugs, compareSet, wishlistSet, priceOf]);
 
   // Automatic background cleanup (runs once, after the catalog has loaded).
   // Permanently prunes view history whose product is deleted / hidden / inactive
@@ -456,10 +449,10 @@ function ContinueShoppingPage() {
     if (age <= 60 * 60 * 1000) s += 1000;            // viewed within the last hour
     else if (age <= DAY) s += 400;                    // viewed today
     else if (age <= 7 * DAY) s += 150;                // viewed this week
-    if (e.kind === "cart" && age <= 7 * DAY) s += 600; // recently added to cart
+    if (e.inCart && age <= 7 * DAY) s += 600;           // currently in cart
     else if (e.kind === "checkout") s += 500;
     s += Math.min(e.views, 10) * 40;                  // repeat visits
-    if (e.kind === "wishlist") s += 200;              // saved for later
+    if (e.inWishlist) s += 200;                        // saved for later
     if (e.priceChange === "drop") s += 350;           // real price drop vs viewed price
     if (e.product.inStock) s += 120;                  // back / in stock
     // gentle recency tiebreaker (newer = slightly higher)
@@ -534,7 +527,7 @@ function ContinueShoppingPage() {
     }
   }, [paged.length]);
 
-  const loading = authLoading || productsLoading;
+  const loading = authLoading || productsLoading || recentLoading;
 
   if (loading) {
     return (
