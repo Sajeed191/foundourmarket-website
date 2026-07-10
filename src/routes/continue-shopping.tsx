@@ -10,6 +10,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { useCompare } from "@/hooks/use-compare";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
+import { recordEvent } from "@/lib/personalization";
 import { buildVisibleMap } from "@/lib/product-availability";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
@@ -97,7 +98,13 @@ function ContinueShoppingPage() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("recent");
-  const [limit, setLimit] = useState(PAGE_SIZE);
+  // Restore paging depth from the previous visit so returning from a product
+  // does not rebuild the list from the first page.
+  const [limit, setLimit] = useState(() => {
+    if (typeof window === "undefined") return PAGE_SIZE;
+    const saved = Number(sessionStorage.getItem("fom_cs_limit"));
+    return Number.isFinite(saved) && saved >= PAGE_SIZE ? saved : PAGE_SIZE;
+  });
 
   const [eventAt, setEventAt] = useState<Map<string, number>>(new Map());
   const [checkoutAt, setCheckoutAt] = useState<Map<string, number>>(new Map());
@@ -250,22 +257,51 @@ function ContinueShoppingPage() {
     });
   }, [ordered, query, filter]);
 
-  // Reset paging when the visible set changes.
-  useEffect(() => { setLimit(PAGE_SIZE); }, [query, filter]);
+  // Reset paging (and any saved scroll) when the user changes search/filter —
+  // that is an intentional new query, not a return visit.
+  const firstRun = useRef(true);
+  useEffect(() => {
+    if (firstRun.current) { firstRun.current = false; return; }
+    setLimit(PAGE_SIZE);
+    if (typeof window !== "undefined") sessionStorage.removeItem("fom_cs_scroll");
+  }, [query, filter]);
 
   const paged = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
 
-  // Infinite scroll sentinel.
+  // Persist paging depth for return-visit restoration.
+  useEffect(() => {
+    if (typeof window !== "undefined") sessionStorage.setItem("fom_cs_limit", String(limit));
+  }, [limit]);
+
+  // Infinite scroll sentinel — prefetch well before the bottom for continuous scroll.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const io = new IntersectionObserver((ents) => {
       if (ents[0]?.isIntersecting) setLimit((l) => (l < filtered.length ? l + PAGE_SIZE : l));
-    }, { rootMargin: "600px 0px" });
+    }, { rootMargin: "1200px 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, [filtered.length]);
+
+  // Scroll restoration: save position continuously, restore once the saved
+  // page depth has rendered so returning from a product feels native.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onScroll = () => sessionStorage.setItem("fom_cs_scroll", String(window.scrollY));
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current || typeof window === "undefined" || paged.length === 0) return;
+    const y = Number(sessionStorage.getItem("fom_cs_scroll"));
+    if (Number.isFinite(y) && y > 0) {
+      restored.current = true;
+      requestAnimationFrame(() => window.scrollTo(0, y));
+    }
+  }, [paged.length]);
 
   const loading = authLoading || productsLoading;
 
@@ -362,7 +398,12 @@ function ContinueShoppingPage() {
             <>
               <div data-product-grid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
                 {paged.map((e) => (
-                  <div key={e.product.id ?? e.product.slug} data-product-card-frame className="flex flex-col">
+                  <div
+                    key={e.product.id ?? e.product.slug}
+                    data-product-card-frame
+                    className="flex flex-col"
+                    onClickCapture={() => { void recordEvent({ type: "view", productSlug: e.product.slug }); }}
+                  >
                     <ProductCard product={e.product} />
                     <p className="mt-1.5 px-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground truncate">
                       {contextLabel(e)}
