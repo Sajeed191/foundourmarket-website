@@ -178,6 +178,7 @@ function ViewAllCard({ productCount }: { productCount: number }) {
 function ContinueShoppingPage() {
   const { user, loading: authLoading } = useAuth();
   const { products, loading: productsLoading } = useProducts();
+  const { market } = useRegion();
   const { items: cartItems } = useCart();
   const { slugs: wishSlugs } = useWishlist();
   const { slugs: recentSlugs } = useRecentlyViewed();
