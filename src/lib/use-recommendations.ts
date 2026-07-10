@@ -104,6 +104,7 @@ function buildRecommendations(products: Product[], signals: Signals, limit: numb
         p.inStock &&
         !p.hideFromRecommendations &&
         (p.status === "published" || p.status === "preorder") &&
+        isRegionVisible(p, market) &&
         !exclude.has(p.slug),
     )
     .map((p) => {
