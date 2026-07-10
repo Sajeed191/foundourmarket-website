@@ -12,9 +12,10 @@ import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
 import { recordEvent } from "@/lib/personalization";
 import { buildVisibleMap } from "@/lib/product-availability";
+import { getViewedPrices, comparePrice, type PriceChange } from "@/lib/viewed-prices";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
-import { discountPercent, type Product } from "@/lib/products";
+import { type Product } from "@/lib/products";
 
 export const Route = createFileRoute("/continue-shopping")({
   head: () => ({
