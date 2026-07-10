@@ -6,9 +6,7 @@ import {
   Sparkles,
   Flame,
   Search,
-  SlidersHorizontal,
-  ArrowUpDown,
-  Check,
+  FilterX,
   History,
   ArrowRight,
 } from "lucide-react";
@@ -21,12 +19,7 @@ import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { type Product, discountPercent } from "@/lib/products";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { FilterSortBar, useFilterSort } from "@/components/site/FilterSortBar";
 
 export const Route = createFileRoute("/wishlist")({
   head: () => ({
@@ -212,8 +205,11 @@ function WishlistPage() {
   const { format, priceOf, compareOf, shippingFeeOf, currency, currencyReady } = useRegion();
   const nav = useNavigate();
 
-  const [filter, setFilter] = useState<FilterKey>("all");
-  const [sort, setSort] = useState<SortKey>("recently-added");
+  const { filter, sort, setFilter, setSort } = useFilterSort<FilterKey, SortKey>({
+    storageKey: "wishlist_filter_sort",
+    defaultFilter: "all",
+    defaultSort: "recently-added",
+  });
   const [query, setQuery] = useState("");
   const [drops, setDrops] = useState<Record<string, number>>({});
 
@@ -283,8 +279,11 @@ function WishlistPage() {
     return sorted;
   }, [items, query, filter, sort, drops, priceOf, compareOf, shippingFeeOf]);
 
-  const activeFilter = FILTERS.find((f) => f.key === filter)!;
-  const activeSort = SORTS.find((s) => s.key === sort)!;
+  const hasActiveFilter = filter !== "all" || query.trim().length > 0;
+  const clearFilters = () => {
+    setFilter("all");
+    setQuery("");
+  };
 
   if (loading || !user || wlLoading || pLoading || !currencyReady) {
     return (
@@ -367,39 +366,40 @@ function WishlistPage() {
                 className="w-full rounded-full border border-border bg-card py-2.5 pl-11 pr-4 text-sm outline-none transition-all placeholder:text-muted-foreground/70 focus:border-accent/50 focus:ring-2 focus:ring-accent/30"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-colors hover:border-accent/40 data-[state=open]:border-accent/50">
-                  <SlidersHorizontal className="size-3.5" /> {activeFilter.label}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-44">
-                  {FILTERS.map((f) => (
-                    <DropdownMenuItem key={f.key} onSelect={() => setFilter(f.key)} className="justify-between text-xs">
-                      {f.label} {filter === f.key && <Check className="size-3.5 text-accent" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-colors hover:border-accent/40 data-[state=open]:border-accent/50">
-                  <ArrowUpDown className="size-3.5" /> {activeSort.label}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-48">
-                  {SORTS.map((s) => (
-                    <DropdownMenuItem key={s.key} onSelect={() => setSort(s.key)} className="justify-between text-xs">
-                      {s.label} {sort === s.key && <Check className="size-3.5 text-accent" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <FilterSortBar
+              filterOptions={FILTERS}
+              sortOptions={SORTS}
+              filter={filter}
+              sort={sort}
+              onFilterChange={setFilter}
+              onSortChange={setSort}
+              isFilterActive={filter !== "all"}
+            />
           </div>
+
 
           {/* Saved products */}
           <div className="mt-6">
             {filtered.length === 0 ? (
-              <div className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
-                No items match your search or filter.
+              <div className="mx-auto max-w-md rounded-3xl border border-border bg-card p-10 text-center motion-safe:animate-[fade-up_0.4s_ease-out]">
+                <div className="mx-auto mb-4 grid size-14 place-items-center rounded-full border border-accent/30 bg-accent/10 text-accent">
+                  <FilterX className="size-5" />
+                </div>
+                <h3 className="mb-1.5 text-base font-display font-semibold">No matching items</h3>
+                <p className="mx-auto mb-5 max-w-xs text-sm text-muted-foreground">
+                  {query.trim()
+                    ? `No saved items match "${query.trim()}"${filter !== "all" ? ` with the "${FILTERS.find((f) => f.key === filter)?.label}" filter` : ""}.`
+                    : `None of your saved items match the "${FILTERS.find((f) => f.key === filter)?.label}" filter right now.`}
+                </p>
+                {hasActiveFilter && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-6 text-[11px] font-bold uppercase tracking-widest text-accent-foreground shadow-[var(--shadow-ember)] transition-all hover:brightness-110 active:scale-[0.97]"
+                  >
+                    <FilterX className="size-3.5" /> Clear filters
+                  </button>
+                )}
               </div>
             ) : (
               <div data-product-grid className={GRID}>
