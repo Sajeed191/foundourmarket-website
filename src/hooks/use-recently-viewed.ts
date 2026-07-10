@@ -159,21 +159,29 @@ export function useRecentlyViewed() {
     }
   }, []);
 
-  /** Remove a single product from view history. Returns the removed entries. */
-  const remove = useCallback(async (slug: string): Promise<RecentlyViewedEntry[]> => {
-    const removed = entriesRef.current.filter((e) => e.slug === slug);
+  /**
+   * Remove a single product from view history. Optimistically updates local
+   * state, then persists. On a server error the optimistic change is rolled
+   * back and `ok: false` is returned so the caller can surface an error.
+   */
+  const remove = useCallback(async (slug: string): Promise<RemovalResult> => {
+    const snapshot = entriesRef.current;
+    const removed = snapshot.filter((e) => e.slug === slug);
+    if (removed.length === 0) return { removed: [], ok: true };
     setEntries((prev) => prev.filter((e) => e.slug !== slug));
     const userId = userIdRef.current;
     if (userId) {
       try {
-        await supabase
+        const { error } = await supabase
           .from("recommendation_events")
           .delete()
           .eq("user_id", userId)
           .eq("event_type", "view")
           .eq("product_slug", slug);
+        if (error) throw error;
       } catch {
-        /* ignore */
+        setEntries(snapshot); // rollback
+        return { removed: [], ok: false };
       }
     } else {
       writeLocal(readLocal().filter((s) => s !== slug));
@@ -181,51 +189,58 @@ export function useRecentlyViewed() {
       delete ts[slug];
       writeLocalTs(ts);
     }
-    return removed;
+    return { removed, ok: true };
   }, []);
 
-  const clear = useCallback(async (): Promise<RecentlyViewedEntry[]> => {
-    const removed = entriesRef.current;
+  const clear = useCallback(async (): Promise<RemovalResult> => {
+    const snapshot = entriesRef.current;
+    const removed = snapshot;
+    if (removed.length === 0) return { removed: [], ok: true };
     setEntries([]);
     const userId = userIdRef.current;
     if (userId) {
       try {
-        await supabase
+        const { error } = await supabase
           .from("recommendation_events")
           .delete()
           .eq("user_id", userId)
           .eq("event_type", "view");
+        if (error) throw error;
       } catch {
-        /* ignore */
+        setEntries(snapshot); // rollback
+        return { removed: [], ok: false };
       }
     } else {
       writeLocal([]);
       writeLocalTs({});
     }
-    return removed;
+    return { removed, ok: true };
   }, []);
 
   /**
    * Remove every view recorded at or after `cutoffTs`. Powers "Clear viewed
    * today" (cutoff = start of today) and "Clear last 7 days" (cutoff = now − 7d).
-   * Returns the removed entries so the caller can offer Undo.
+   * Returns the removed entries so the caller can offer Undo, plus an `ok` flag.
    */
-  const clearSince = useCallback(async (cutoffTs: number): Promise<RecentlyViewedEntry[]> => {
-    const removed = entriesRef.current.filter((e) => e.at >= cutoffTs);
-    if (removed.length === 0) return [];
+  const clearSince = useCallback(async (cutoffTs: number): Promise<RemovalResult> => {
+    const snapshot = entriesRef.current;
+    const removed = snapshot.filter((e) => e.at >= cutoffTs);
+    if (removed.length === 0) return { removed: [], ok: true };
     const removedSlugs = new Set(removed.map((e) => e.slug));
     setEntries((prev) => prev.filter((e) => e.at < cutoffTs));
     const userId = userIdRef.current;
     if (userId) {
       try {
-        await supabase
+        const { error } = await supabase
           .from("recommendation_events")
           .delete()
           .eq("user_id", userId)
           .eq("event_type", "view")
           .gte("created_at", new Date(cutoffTs).toISOString());
+        if (error) throw error;
       } catch {
-        /* ignore */
+        setEntries(snapshot); // rollback
+        return { removed: [], ok: false };
       }
     } else {
       writeLocal(readLocal().filter((s) => !removedSlugs.has(s)));
@@ -233,7 +248,7 @@ export function useRecentlyViewed() {
       for (const s of removedSlugs) delete ts[s];
       writeLocalTs(ts);
     }
-    return removed;
+    return { removed, ok: true };
   }, []);
 
   /** Re-insert previously-removed entries, preserving their timestamps (Undo). */
