@@ -283,6 +283,8 @@ function ContinueShoppingPage() {
       const cmp = comparePrice(viewedPrices[slug], priceOf(product), market);
       const lowStock =
         product.inStock && product.stockQuantity > 0 && product.stockQuantity <= (product.lowStockThreshold || 5);
+      // Back in stock: out of stock when the user last saw it, in stock now.
+      const backInStock = product.inStock && viewedPrices[slug]?.inStock === false;
       best.set(slug, {
         product,
         kind,
