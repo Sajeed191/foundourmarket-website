@@ -176,9 +176,10 @@ export function useRecommendations(opts: { limit?: number; excludeSlug?: string 
         [...cart].sort().join(","),
         [...purchased].sort().join(","),
         products.length,
+        market ?? "",
         excludeSlug ?? "",
       ].join("|"),
-    [recent, wishlist, cart, purchased, products.length, excludeSlug],
+    [recent, wishlist, cart, purchased, products.length, market, excludeSlug],
   );
 
   const cacheRef = useRef<{ sig: string; result: Product[] }>({ sig: "", result: [] });
