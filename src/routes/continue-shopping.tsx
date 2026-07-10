@@ -521,20 +521,28 @@ function ContinueShoppingPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>Manage history</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => void handleClearToday()}>
+                <DropdownMenuItem
+                  disabled={todayCount === 0}
+                  onSelect={() => void handleClearToday()}
+                >
                   <Clock className="size-4" /> Clear viewed today
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void handleClearWeek()}>
+                <DropdownMenuItem
+                  disabled={weekCount === 0}
+                  onSelect={() => void handleClearWeek()}
+                >
                   <CalendarDays className="size-4" /> Clear last 7 days
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => setConfirmClear(true)}
+                  disabled={historyCount === 0}
+                  onSelect={() => setConfirmClear(true)}
                   className="text-rose-400 focus:text-rose-400"
                 >
                   <Trash2 className="size-4" /> Clear all history
                 </DropdownMenuItem>
               </DropdownMenuContent>
+
             </DropdownMenu>
           </div>
         )}
