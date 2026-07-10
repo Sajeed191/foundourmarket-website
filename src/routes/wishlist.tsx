@@ -202,7 +202,7 @@ function WishlistPage() {
   const { user, loading } = useAuth();
   const { slugs, loading: wlLoading } = useWishlist();
   const { products, loading: pLoading } = useProducts();
-  const { format, priceOf, compareOf, shippingFeeOf, currency, currencyReady } = useRegion();
+  const { format, priceOf, compareOf, shippingFeeOf, currency, currencyReady, market } = useRegion();
   const nav = useNavigate();
 
   const { filter, sort, setFilter, setSort } = useFilterSort<FilterKey, SortKey>({
