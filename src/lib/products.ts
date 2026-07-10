@@ -108,6 +108,13 @@ export type Product = {
   features: string[];
   specifications: Record<string, string>;
   attributes: Record<string, string>;
+  /**
+   * Internal marker: true when this product came from a lean LIST fetch that
+   * omits heavy detail-only columns (features, specifications, attributes,
+   * SEO fields, related/cross/upsell, video, customs). Detail views must
+   * refetch the full record before rendering those fields. Never rendered.
+   */
+  __lean?: boolean;
 };
 
 export type ProductStatus =
@@ -313,22 +320,34 @@ export function rowToProduct(r: Row): Product {
 // warehouse_location, admin_notes) are NOT exposed via the products_public view.
 export const SELECT_COLS = "id,slug,name,tagline,category,categories,price,rating,reviews,rating_source,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,sold_count,wishlist_count,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty,status,shipping_fee_inr,shipping_fee_usd,razorpay_enabled,stripe_enabled,paypal_enabled,cod_enabled,return_eligible,replacement_eligible,return_window_days,pickup_supported,international_shipping,fragile,customs_info,restock_eta,preorder,scheduled_publish_at,scheduled_expiry_at,trending,bestseller,new_arrival,hot_deal,flash_deal,staff_pick,recommended,homepage_hero,gift_idea,homepage_section,is_category_banner,hide_from_search,hide_from_recommendations,homepage_position,category_position,featured_until,related_products,cross_sell_products,upsell_products,premium,fast_selling,editors_choice,priority_score,collections,seo_title,seo_description,meta_keywords,brand,product_type,video_url,features,specifications,attributes";
 
+// LEAN list columns — used by every LIST/GRID/SEARCH surface (home, category,
+// search, wishlist, continue-shopping, flash deals). Drops the heavy
+// detail-only columns that no card/list/search/flash-deal code reads:
+//   features, specifications, attributes, meta_keywords, seo_title,
+//   seo_description, video_url, customs_info, related_products,
+//   cross_sell_products, upsell_products.
+// `description` (search/quick-view) and `collections` (flash deals) are kept.
+// This significantly cuts the JSON payload downloaded to every visitor and the
+// client-side parse/memory cost across the whole catalog. Full detail fields
+// are fetched on demand by fetchProduct() for the product detail page.
+export const LIST_SELECT_COLS = "id,slug,name,tagline,category,categories,price,rating,reviews,rating_source,image,description,in_stock,discount,featured,sku,stock_quantity,low_stock_threshold,views_count,created_at,sold_count,wishlist_count,price_inr,compare_price_inr,price_usd,compare_price_usd,india_visible,international_visible,warranty,status,shipping_fee_inr,shipping_fee_usd,razorpay_enabled,stripe_enabled,paypal_enabled,cod_enabled,return_eligible,replacement_eligible,return_window_days,pickup_supported,international_shipping,fragile,restock_eta,preorder,scheduled_publish_at,scheduled_expiry_at,trending,bestseller,new_arrival,hot_deal,flash_deal,staff_pick,recommended,homepage_hero,gift_idea,homepage_section,is_category_banner,hide_from_search,hide_from_recommendations,homepage_position,category_position,featured_until,premium,fast_selling,editors_choice,priority_score,collections,brand,product_type";
+
 
 export async function fetchProducts(limit?: number): Promise<Product[]> {
   let query = supabase
     .from("products_public")
-    .select(SELECT_COLS)
+    .select(LIST_SELECT_COLS)
     .order("sort_order", { ascending: true });
   if (typeof limit === "number" && limit > 0) query = query.limit(limit);
   const { data, error } = await query;
   if (error || !data) return [];
-  return (data as Row[]).map(rowToProduct);
+  return (data as Row[]).map((r) => ({ ...rowToProduct(r), __lean: true }));
 }
 
 export async function fetchProductsBySlugs(slugs: string[]): Promise<Product[]> {
   if (!slugs.length) return [];
-  const { data } = await supabase.from("products_public").select(SELECT_COLS).in("slug", slugs);
-  const map = new Map((data as Row[] ?? []).map((r) => [r.slug, rowToProduct(r)]));
+  const { data } = await supabase.from("products_public").select(LIST_SELECT_COLS).in("slug", slugs);
+  const map = new Map<string, Product>((data as Row[] ?? []).map((r) => [r.slug, { ...rowToProduct(r), __lean: true }]));
   return slugs.map((s) => map.get(s)).filter((p): p is Product => !!p);
 }
 
