@@ -554,22 +554,24 @@ function OverviewCard({
         style={{ background: t.tint }}
       />
 
-      {/* Icon badge (circular, top-left) */}
-      <span className={`relative flex size-10 items-center justify-center rounded-full transition-transform group-hover:scale-105 ${t.icon}`}>
+      {/* Icon badge (circular, top-left) — fixed size & position */}
+      <span className={`relative flex size-10 shrink-0 items-center justify-center rounded-full transition-transform group-hover:scale-105 ${t.icon}`}>
         <Icon className="size-5" strokeWidth={2} />
       </span>
-      {/* Metric + label (bottom) */}
+      {/* Metric + label (bottom) — fixed content structure so every card aligns */}
       <div className="relative mt-auto">
-        {loading ? (
-          <div className="h-8 w-14 rounded-md bg-foreground/5 animate-pulse" />
-        ) : (
-          <AnimatedNumber
-            value={value}
-            formatter={formatter}
-            className="block text-3xl font-display font-bold tracking-tight tabular-nums text-foreground"
-          />
-        )}
-        <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground mt-1.5 truncate">{label}</p>
+        <div className="flex h-9 items-end overflow-hidden">
+          {loading ? (
+            <div className="h-8 w-16 self-center rounded-md bg-foreground/5 animate-pulse" />
+          ) : (
+            <AnimatedNumber
+              value={value}
+              formatter={formatter}
+              className="block text-3xl leading-9 font-display font-bold tracking-tight tabular-nums text-foreground [font-variant-numeric:tabular-nums]"
+            />
+          )}
+        </div>
+        <p className="h-4 text-[10px] font-mono font-bold uppercase tracking-widest leading-4 text-muted-foreground mt-1.5 truncate">{label}</p>
       </div>
     </motion.div>
   );
