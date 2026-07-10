@@ -558,7 +558,7 @@ function ContinueShoppingPage() {
             <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold tabular-nums text-muted-foreground">
               {ordered.length} {ordered.length === 1 ? "Product" : "Products"}
             </span>
-            <DropdownMenu>
+            <DropdownMenu open={menuOpen} onOpenChange={(o) => { if (!busy) setMenuOpen(o); }}>
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="Manage Continue Shopping history"
