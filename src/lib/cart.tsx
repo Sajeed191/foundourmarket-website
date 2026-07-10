@@ -4,6 +4,7 @@ import { type Product } from "./products";
 import { useProducts } from "./use-products";
 import { useAuth } from "./auth";
 import { useRegion } from "./region";
+import { buildVisibleMap } from "./product-availability";
 
 type CartItem = { slug: string; qty: number; savedForLater?: boolean };
 type DetailedItem = CartItem & { product: Product };
