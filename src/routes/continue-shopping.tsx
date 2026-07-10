@@ -262,7 +262,7 @@ function ContinueShoppingPage() {
     for (const slug of wishSlugs) consider(slug, "wishlist");
     for (const slug of recentSlugs) consider(slug, "viewed");
     return [...best.values()];
-  }, [products, market, checkoutAt, cartItems, wishSlugs, recentSlugs, recentEntries, eventAt, cartAt, viewedAt, viewCounts, purchasedSlugs, compareSet, compareOf, priceOf]);
+  }, [products, market, checkoutAt, cartItems, wishSlugs, recentSlugs, recentEntries, eventAt, cartAt, viewedAt, viewCounts, purchasedSlugs, compareSet, priceOf]);
 
   // Intelligent "Continue Shopping" score combining multiple signals so the
   // most relevant products always surface first. Purchased items are heavily
