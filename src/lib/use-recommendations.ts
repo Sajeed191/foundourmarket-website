@@ -4,7 +4,10 @@ import { useProducts } from "@/lib/use-products";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useWishlist } from "@/lib/wishlist";
 import { useCart } from "@/lib/cart";
+import { useRegion } from "@/lib/region";
+import { isRegionVisible } from "@/lib/product-availability";
 import { type Product } from "@/lib/products";
+import type { MarketRegion } from "@/lib/region.functions";
 
 /**
  * Premium recommendation engine — deterministic, behaviour-driven, and stable.
