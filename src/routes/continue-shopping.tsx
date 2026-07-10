@@ -280,7 +280,7 @@ function ContinueShoppingPage() {
     for (const slug of wishSlugs) consider(slug, "wishlist");
     for (const slug of recentSlugs) consider(slug, "viewed");
     return [...best.values()];
-  }, [products, checkoutAt, cartItems, wishSlugs, recentSlugs, eventAt, cartAt, viewedAt, purchasedSlugs]);
+  }, [products, market, checkoutAt, cartItems, wishSlugs, recentSlugs, eventAt, cartAt, viewedAt, purchasedSlugs]);
 
   const counts = useMemo(() => {
     const c: Record<FilterKey, number> = { all: entries.length, checkout: 0, cart: 0, wishlist: 0, viewed: 0 };
