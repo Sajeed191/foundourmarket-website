@@ -127,7 +127,7 @@ function contextLabel(e: Entry, market: string): { text: string; tone: LabelTone
 function ContinueShoppingPage() {
   const { user, loading: authLoading } = useAuth();
   const { products, loading: productsLoading } = useProducts();
-  const { market, compareOf, priceOf } = useRegion();
+  const { market, priceOf } = useRegion();
   const { items: cartItems } = useCart();
   const { slugs: wishSlugs } = useWishlist();
   const { slugs: compareSlugs } = useCompare();
