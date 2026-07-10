@@ -17,9 +17,11 @@ import {
   CalendarDays,
   MoreHorizontal,
   Trash2,
+  Loader2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useProducts } from "@/lib/use-products";
@@ -202,6 +204,13 @@ function ContinueShoppingPage() {
 
   // Confirmation dialog for the destructive "Clear all history" action.
   const [confirmClear, setConfirmClear] = useState(false);
+  // Controlled menu so we can keep it open for the spinner, then close on done.
+  const [menuOpen, setMenuOpen] = useState(false);
+  // Which history action is currently persisting. Drives the inline spinner,
+  // disables the whole menu, and blocks duplicate/repeated taps.
+  const [busy, setBusy] = useState<null | "today" | "week" | "all">(null);
+  // Per-product removals in flight — prevents duplicate delete requests.
+  const removing = useRef<Set<string>>(new Set());
 
   const ERROR_MSG = "Couldn't update your history. Please try again.";
 
@@ -209,7 +218,16 @@ function ContinueShoppingPage() {
   const notify = (removed: RecentlyViewedEntry[], message: string, undoable: boolean) => {
     toast.success(message, {
       duration: 6000,
-      action: undoable && removed.length > 0 ? { label: "Undo", onClick: () => void restore(removed) } : undefined,
+      action:
+        undoable && removed.length > 0
+          ? {
+              label: "Undo",
+              onClick: () => {
+                void track("history_restore", { value: removed.length });
+                void restore(removed);
+              },
+            }
+          : undefined,
     });
   };
 
@@ -228,25 +246,55 @@ function ContinueShoppingPage() {
   const historyCount = recentEntries.length;
 
   const handleClearAll = async () => {
+    if (busy) return;
     setConfirmClear(false);
-    const { ok } = await clear();
-    if (!ok) { toast.error(ERROR_MSG); return; }
-    toast.success("Continue Shopping history cleared.");
+    setBusy("all");
+    void track("history_clear_all", { value: historyCount });
+    try {
+      const { ok } = await clear();
+      if (!ok) { toast.error(ERROR_MSG); return; }
+      toast.success("Continue Shopping history cleared.");
+    } finally {
+      setBusy(null);
+    }
   };
   const handleClearToday = async () => {
-    const { removed, ok } = await clearSince(startOfToday());
-    if (!ok) { toast.error(ERROR_MSG); return; }
-    notify(removed, "Viewed today cleared.", true);
+    if (busy) return;
+    setBusy("today");
+    void track("history_clear_today", { value: todayCount });
+    try {
+      const { removed, ok } = await clearSince(startOfToday());
+      if (!ok) { toast.error(ERROR_MSG); return; }
+      notify(removed, "Viewed today cleared.", true);
+    } finally {
+      setBusy(null);
+      setMenuOpen(false); // close immediately after the action resolves
+    }
   };
   const handleClearWeek = async () => {
-    const { removed, ok } = await clearSince(Date.now() - 7 * DAY);
-    if (!ok) { toast.error(ERROR_MSG); return; }
-    notify(removed, "Last 7 days history cleared.", true);
+    if (busy) return;
+    setBusy("week");
+    void track("history_clear_last7", { value: weekCount });
+    try {
+      const { removed, ok } = await clearSince(Date.now() - 7 * DAY);
+      if (!ok) { toast.error(ERROR_MSG); return; }
+      notify(removed, "Last 7 days history cleared.", true);
+    } finally {
+      setBusy(null);
+      setMenuOpen(false); // close immediately after the action resolves
+    }
   };
   const handleRemoveOne = async (slug: string) => {
-    const { removed, ok } = await remove(slug);
-    if (!ok) { toast.error(ERROR_MSG); return; }
-    notify(removed, "Removed from Continue Shopping.", true);
+    if (removing.current.has(slug)) return; // no duplicate requests
+    removing.current.add(slug);
+    void track("history_remove_product", { productSlug: slug });
+    try {
+      const { removed, ok } = await remove(slug);
+      if (!ok) { toast.error(ERROR_MSG); return; }
+      notify(removed, "Removed from Continue Shopping.", true);
+    } finally {
+      removing.current.delete(slug);
+    }
   };
 
 
@@ -510,34 +558,37 @@ function ContinueShoppingPage() {
             <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold tabular-nums text-muted-foreground">
               {ordered.length} {ordered.length === 1 ? "Product" : "Products"}
             </span>
-            <DropdownMenu>
+            <DropdownMenu open={menuOpen} onOpenChange={(o) => { if (!busy) setMenuOpen(o); }}>
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="Manage Continue Shopping history"
-                  className="grid size-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-accent/40 hover:text-accent"
+                  disabled={busy !== null}
+                  className="grid size-11 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:opacity-60"
                 >
-                  <MoreHorizontal className="size-4" />
+                  {busy ? <Loader2 className="size-4 animate-spin" /> : <MoreHorizontal className="size-4" />}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>Manage history</DropdownMenuLabel>
                 <DropdownMenuItem
-                  disabled={todayCount === 0}
-                  onSelect={() => void handleClearToday()}
+                  disabled={busy !== null || todayCount === 0}
+                  onSelect={(e) => { e.preventDefault(); void handleClearToday(); }}
+                  className="min-h-11"
                 >
-                  <Clock className="size-4" /> Clear viewed today
+                  {busy === "today" ? <Loader2 className="size-4 animate-spin" /> : <Clock className="size-4" />} Clear viewed today
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  disabled={weekCount === 0}
-                  onSelect={() => void handleClearWeek()}
+                  disabled={busy !== null || weekCount === 0}
+                  onSelect={(e) => { e.preventDefault(); void handleClearWeek(); }}
+                  className="min-h-11"
                 >
-                  <CalendarDays className="size-4" /> Clear last 7 days
+                  {busy === "week" ? <Loader2 className="size-4 animate-spin" /> : <CalendarDays className="size-4" />} Clear last 7 days
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  disabled={historyCount === 0}
+                  disabled={busy !== null || historyCount === 0}
                   onSelect={() => setConfirmClear(true)}
-                  className="text-rose-400 focus:text-rose-400"
+                  className="min-h-11 text-rose-400 focus:text-rose-400"
                 >
                   <Trash2 className="size-4" /> Clear all history
                 </DropdownMenuItem>
