@@ -470,6 +470,7 @@ export const ProductCard = memo(ProductCardImpl, (a, b) => {
     a.forceBadge === b.forceBadge &&
     a.compact === b.compact &&
     a.priority === b.priority &&
-    a.highlight === b.highlight
+    a.highlight === b.highlight &&
+    a.hideBadges === b.hideBadges
   );
 });
