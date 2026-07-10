@@ -431,16 +431,12 @@ function WishlistPage() {
 
 /** Recently Viewed — shared ProductCard, excludes wishlist items, max 15. */
 function RecentlyViewedSection({ excludeSlugs }: { excludeSlugs: Set<string> }) {
-  const { products } = useProducts();
+  const { resolveVisible } = useProductAvailability();
   const { slugs } = useRecentlyViewed();
-  const list = useMemo(() => {
-    const map = new Map(products.map((p) => [p.slug, p]));
-    return slugs
-      .filter((s) => !excludeSlugs.has(s))
-      .map((s) => map.get(s))
-      .filter(Boolean)
-      .slice(0, 15) as Product[];
-  }, [products, slugs, excludeSlugs]);
+  const list = useMemo(
+    () => resolveVisible(slugs.filter((s) => !excludeSlugs.has(s))).slice(0, 15),
+    [resolveVisible, slugs, excludeSlugs],
+  );
 
   return (
     <ProductSection
