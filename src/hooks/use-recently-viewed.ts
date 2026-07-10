@@ -350,7 +350,16 @@ export function useRecentlyViewed() {
     await restoreHistory(toRestore);
   }, []);
 
+  /**
+   * Force a silent revalidation against the shared source of truth. Safe to
+   * call when a page becomes visible again — outdated in-flight loads are
+   * discarded by the `loadingRun` guard, so newest state always wins.
+   */
+  const refresh = useCallback(() => {
+    void loadHistory({ silent: true });
+  }, []);
+
   const slugs = useMemo(() => entries.map((e) => e.slug), [entries]);
 
-  return { slugs, entries, record, remove, removeMany, clear, clearSince, restore, loading };
+  return { slugs, entries, record, remove, removeMany, clear, clearSince, restore, refresh, loading };
 }
