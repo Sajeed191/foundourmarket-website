@@ -490,13 +490,8 @@ function ContinueShoppingPage() {
             <>
               <div data-product-grid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
                 {paged.map((e) => {
-                  const label = contextLabel(e, market);
-                  const toneClass =
-                    label.tone === "drop"
-                      ? "text-emerald-400"
-                      : label.tone === "increase"
-                        ? "text-accent"
-                        : "text-muted-foreground";
+                  const status = statusOf(e, market);
+                  const StatusIcon = status.Icon;
                   return (
                     <div
                       key={e.product.id ?? e.product.slug}
@@ -505,9 +500,12 @@ function ContinueShoppingPage() {
                       onClickCapture={() => { void recordEvent({ type: "view", productSlug: e.product.slug }); }}
                     >
                       <ProductCard product={e.product} />
-                      <p className={`mt-1.5 px-1 font-mono text-[10px] uppercase tracking-wider truncate ${toneClass}`}>
-                        {label.text}
-                      </p>
+                      <div
+                        className={`mt-1.5 inline-flex max-w-full items-center gap-1.5 self-start rounded-full px-2.5 py-1 ring-1 ${status.pill} ${status.fg}`}
+                      >
+                        <StatusIcon className="size-3 shrink-0" />
+                        <span className="truncate text-[10px] font-semibold uppercase tracking-wider">{status.text}</span>
+                      </div>
                     </div>
                   );
                 })}
