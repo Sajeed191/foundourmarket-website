@@ -3,6 +3,7 @@ import { Sparkles, Heart, History } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { useRegion } from "@/lib/region";
+import { isProductVisible } from "@/lib/product-availability";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductRail } from "@/components/site/ProductRail";
 import type { Product } from "@/lib/products";
