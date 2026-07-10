@@ -68,6 +68,7 @@ type Entry = {
   savings: number;
   pricePercent: number;
   lowStock: boolean;
+  backInStock: boolean;
 };
 
 type FilterKey = "recent" | "week" | "stock" | "drop";
