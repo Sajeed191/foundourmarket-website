@@ -379,8 +379,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const hydrated = loadedFor === (user?.id ?? null);
 
   useEffect(() => {
-    publishCartQty(active);
-  }, [active]);
+    // Publish only visible items so on-card qty steppers never reflect a
+    // deleted/deactivated product.
+    publishCartQty(detailed);
+  }, [detailed]);
 
   useEffect(() => {
     cartActionsSnapshot = { add, setQty };
