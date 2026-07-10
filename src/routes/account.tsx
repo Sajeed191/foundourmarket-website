@@ -283,7 +283,19 @@ function AccountPage() {
 
 
   const cartCount = cart.items.reduce((s, i) => s + i.qty, 0);
-  const { slugs: recentSlugs } = useRecentlyViewed();
+  const { slugs: recentSlugs, refresh: refreshRecent } = useRecentlyViewed();
+
+  // Requirement: whenever the Account page becomes visible again, revalidate
+  // Continue Shopping against the shared history store so nothing renders stale.
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") refreshRecent(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", refreshRecent);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", refreshRecent);
+    };
+  }, [refreshRecent]);
 
   const { scrollY } = useScroll();
   const [scrollDirection, setScrollDirection] = useState<"up" | "down" | null>(null);
