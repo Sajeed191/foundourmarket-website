@@ -198,8 +198,9 @@ type FilterId = (typeof FILTERS)[number]["id"];
 
 function ItemImage({ item, size = "size-14" }: { item: Item; size?: string }) {
   const [err, setErr] = useState(false);
-  if (item.image && !err) {
-    return <img src={item.image} alt={item.name} loading="lazy" onError={() => setErr(true)} className={`${size} rounded-xl object-cover border border-border/60 bg-muted`} />;
+  const src = item.variant_image || item.image;
+  if (src && !err) {
+    return <img src={src} alt={item.name} loading="lazy" onError={() => setErr(true)} className={`${size} rounded-xl object-cover border border-border/60 bg-muted`} />;
   }
   return (
     <div className={`${size} rounded-xl border border-border/60 bg-muted grid place-items-center`}>
