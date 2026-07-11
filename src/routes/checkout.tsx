@@ -1100,7 +1100,7 @@ function CheckoutPage() {
                 open={summaryOpen}
                 onOpenChange={setSummaryOpen}
                 trigger={<span className="sr-only" aria-hidden />}
-                lines={detailed.map((i) => ({ slug: i.slug, name: i.product.name, image: i.product.image, qty: i.qty, lineTotal: priceOf(i.product) * i.qty }))}
+                lines={detailed.map((i) => ({ slug: i.slug, name: i.variant ? `${i.product.name}${[i.variant.color, i.variant.size].filter(Boolean).length ? ` (${[i.variant.color, i.variant.size].filter(Boolean).join(" · ")})` : ""}` : i.product.name, image: i.variant?.imageUrl || i.product.image, qty: i.qty, lineTotal: i.unitPrice * i.qty }))}
                 fmt={fmt}
                 subtotal={subtotalINR}
                 shipping={shippingINR}
