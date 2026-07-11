@@ -64,6 +64,7 @@ function rowToAdminVariant(r: any): AdminVariant {
     lowStockThreshold: r.low_stock_threshold ?? 5,
     active: r.active ?? true,
     sortOrder: r.sort_order ?? 0,
+    version: r.version ?? 1,
   };
 }
 
