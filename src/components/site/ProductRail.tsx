@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ProductCard } from "./ProductCard";
 import type { Product } from "@/lib/products";
 
