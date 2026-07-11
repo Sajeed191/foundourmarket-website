@@ -9,7 +9,7 @@ import type { Product } from "@/lib/products";
  * - Each card ~68% viewport width so the next card peeks (Amazon/Nike pattern)
  * - Hidden on sm+ where a grid layout is preferred
  */
-export function ProductRail({
+function ProductRailImpl({
   products,
   className = "",
   compact = false,
