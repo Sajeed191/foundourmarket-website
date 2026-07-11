@@ -878,30 +878,9 @@ function ProductPage() {
               
             </div>
 
-            {/* Variants */}
+            {/* Variants — fully dynamic, data-driven, adaptive selector */}
             {variants.length > 0 && (
-              <div className="mb-4">
-
-                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Variant</p>
-                <div className="flex flex-wrap gap-2">
-                  {variants.map((v) => {
-                    const sel = v.id === variantId;
-                    const oos = v.stockQuantity <= 0;
-                    return (
-                      <button
-                        key={v.id}
-                        onClick={() => !oos && setVariantId(v.id)}
-                        disabled={oos}
-                        aria-pressed={sel}
-                        className={`min-h-11 px-4 py-2.5 rounded-full text-xs border transition-all active:scale-95 ${sel ? "border-accent text-accent bg-accent/10 shadow-[var(--shadow-ember)]" : "border-border hover:border-accent/50"} disabled:opacity-40 disabled:cursor-not-allowed disabled:line-through`}
-                      >
-                        {v.name}
-                      </button>
-
-                    );
-                  })}
-                </div>
-              </div>
+              <VariantSelector variants={variants} selectedId={variantId} onSelect={setVariantId} />
             )}
 
             {/* Premium purchase panel — unique FoundOurMarket design.
