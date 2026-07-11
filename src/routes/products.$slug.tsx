@@ -448,7 +448,8 @@ function ProductPage() {
   // which fires reliably even for browser-cached images (unlike a JSX onLoad).
   const activeUrl = activeMedia?.id === "video" ? null : (activeMedia?.url || product.image);
   useEffect(() => {
-    setMediaAspect(null);
+    // Keep the previous aspect until the next image resolves so the container
+    // never briefly falls back to a mismatched box (which would letterbox).
     if (!activeUrl || typeof window === "undefined") return;
     let active = true;
     const probe = new Image();
@@ -462,8 +463,14 @@ function ProductPage() {
     if (probe.complete) apply();
     return () => { active = false; };
   }, [activeUrl]);
-  // Clamp to a sane range so extreme panoramas / very tall images stay usable.
-  const displayAspect = mediaAspect ? Math.min(1.5, Math.max(0.66, mediaAspect)) : null;
+  // The container's aspect ratio is set to the image's *exact* natural aspect so
+  // it collapses to the real rendered image height — no fixed box, no letterbox,
+  // no reserved blank space. Video uses a standard 16:9; a square is used only as
+  // a first-paint placeholder before the natural aspect is known. A very tall
+  // portrait is capped by max-h below (which centers horizontally, never leaving
+  // a bottom gap).
+  const displayAspect =
+    activeMedia?.id === "video" ? 16 / 9 : mediaAspect ?? 1;
 
   const hasVideoFirst = galleryMedia[0]?.id === "video";
   const lightboxIndex = hasVideoFirst ? Math.max(0, activeImg - 1) : activeImg;
@@ -593,8 +600,8 @@ function ProductPage() {
               <div aria-hidden className="absolute left-1/2 top-1/2 -z-10 size-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.5), transparent 70%)", filter: "blur(50px)" }} />
               <div
                 data-product-image
-                className="relative aspect-[4/3] sm:aspect-square max-h-[80svh] mx-auto w-full card-premium rounded-2xl sm:rounded-3xl overflow-hidden group border border-white/10 shadow-[0_30px_60px_-28px_oklch(0_0_0/0.7)]"
-                style={displayAspect ? { aspectRatio: String(displayAspect) } : undefined}
+                className="relative max-h-[80svh] mx-auto w-full card-premium rounded-2xl sm:rounded-3xl overflow-hidden group border border-white/10 shadow-[0_30px_60px_-28px_oklch(0_0_0/0.7)]"
+                style={{ aspectRatio: String(displayAspect) }}
               >
                 <AnimatePresence mode="wait">
                   {activeMedia?.id === "video" ? (
