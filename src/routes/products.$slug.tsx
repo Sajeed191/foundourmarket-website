@@ -536,8 +536,10 @@ function ProductPage() {
 
   const handleAdd = () => {
     if (addState !== "idle") return;
-    // Existing add-to-cart logic — unchanged (adds a single unit).
-    add(product.slug, 1);
+    if (missingVariant) { toast.error("Please select an option first"); return; }
+    // Adds a single unit of the selected variant (variantId is null for
+    // products without variants — identical to the previous behavior).
+    add(product.slug, 1, variantId);
     // Visual progression: Adding… → ✓ Added (held ~1s) → quantity selector.
     setAddState("loading");
     addTimers.current.push(
