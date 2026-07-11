@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { X, Share2 } from "lucide-react";
 import type { ProductImage } from "@/lib/products";
+import { resizedStorageImage } from "@/lib/storage-image";
 
 /**
  * Immersive full-screen product gallery.
@@ -346,12 +347,13 @@ export function ImageLightbox({
                     }
                   >
                     <img
-                      src={img.url}
+                      src={resizedStorageImage(img.url, 1600, 78)}
                       alt={img.alt || alt}
                       draggable={false}
                       decoding="async"
                       loading="eager"
                       fetchPriority={isActive ? "high" : "low"}
+                      onError={(e) => { if (e.currentTarget.src !== img.url) e.currentTarget.src = img.url; }}
                       className="max-h-full max-w-full object-contain"
                     />
                   </div>

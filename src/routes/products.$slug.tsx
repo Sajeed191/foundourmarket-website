@@ -4,7 +4,7 @@ import {
   ChevronDown, Share2, Sparkles, Package, Clock, CheckCircle2, Users, ShoppingBag as ShoppingBagIcon, Play, Layers, Info,
   ShoppingCart, Zap, Check, Loader2, Lock,
 } from "lucide-react";
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
@@ -40,6 +40,7 @@ const AdminImageManager = lazy(() =>
   import("@/components/admin/AdminImageManager").then((m) => ({ default: m.AdminImageManager })),
 );
 import { ImageLightbox } from "@/components/site/ImageLightbox";
+import { resizedStorageImage } from "@/lib/storage-image";
 import { VariantSelector } from "@/components/site/VariantSelector";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductDescription } from "@/components/site/ProductDescription";
@@ -438,6 +439,32 @@ function ProductPage() {
   const galleryImages = galleryMedia.filter((m) => m.id !== "video");
   const activeMedia = galleryMedia[activeImg] ?? galleryMedia[0];
 
+  // Serve device-appropriate, format-negotiated variants instead of the
+  // full-resolution originals. Storage URLs are rewritten to the on-the-fly
+  // transform endpoint (AVIF/WebP via Accept header, GPU-unsafe pinned to WebP);
+  // non-storage URLs pass through untouched. No change to ordering or design.
+  const galleryDisplaySrc = useCallback((url: string) => resizedStorageImage(url, 1280, 72), []);
+  const thumbDisplaySrc = useCallback((url: string) => resizedStorageImage(url, 160, 60), []);
+
+  // Prefetch only the immediately adjacent gallery images (next + previous), and
+  // never on constrained devices — limits concurrent decodes / memory pressure.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (document.documentElement.dataset.gpuUnsafe === "true") return;
+    const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory;
+    if (typeof mem === "number" && mem <= 4) return;
+    const neighbours = [galleryMedia[activeImg + 1], galleryMedia[activeImg - 1]];
+    const imgs = neighbours
+      .filter((m) => m && m.id !== "video" && m.url)
+      .map((m) => {
+        const im = new Image();
+        im.decoding = "async";
+        im.src = galleryDisplaySrc(m!.url);
+        return im;
+      });
+    return () => imgs.forEach((im) => (im.src = ""));
+  }, [activeImg, galleryMedia, galleryDisplaySrc]);
+
   // Keep the selected thumbnail fully visible within the scroll strip.
   useEffect(() => {
     const el = thumbStripRef.current?.querySelector<HTMLElement>(`[data-thumb-index="${activeImg}"]`);
@@ -460,7 +487,7 @@ function ProductPage() {
       }
     };
     probe.onload = apply;
-    probe.src = activeUrl;
+    probe.src = resizedStorageImage(activeUrl, 96, 40);
     if (probe.complete) apply();
     return () => { active = false; };
   }, [activeUrl]);
@@ -637,9 +664,20 @@ function ProductPage() {
                   ) : (
                     <motion.img
                       key={activeMedia?.id}
-                      src={activeMedia?.url || product.image}
+                      src={galleryDisplaySrc(activeMedia?.url || product.image)}
                       alt={activeMedia?.alt || product.name}
                       onClick={() => setLightboxOpen(true)}
+                      onError={(e) => {
+                        // Self-healing: fall back to the primary product image,
+                        // then to the raw original, never a broken icon.
+                        const el = e.currentTarget;
+                        const primary = galleryDisplaySrc(product.image);
+                        if (el.src !== primary && product.image) {
+                          el.src = primary;
+                        } else if (el.src !== product.image && product.image) {
+                          el.src = product.image;
+                        }
+                      }}
                       initial={{ opacity: 0, scale: 1.04 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
@@ -760,7 +798,7 @@ function ProductPage() {
                         <Play className="size-6 text-white/80" />
                       </div>
                     ) : (
-                      <img src={item.url} alt={item.alt || `${product.name} — view ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                      <img src={thumbDisplaySrc(item.url)} alt={item.alt || `${product.name} — view ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" onError={(e) => { if (e.currentTarget.src !== item.url) e.currentTarget.src = item.url; }} />
                     )}
                   </button>
                 ))}
@@ -1173,7 +1211,7 @@ function ProductPage() {
             <Heart className={`size-[18px] ${inWishlist(product.slug) ? "fill-accent" : ""}`} />
           </button>
           <img
-            src={activeMedia?.url || product.image}
+            src={thumbDisplaySrc(activeMedia?.url || product.image)}
             alt=""
             aria-hidden
             className="size-12 shrink-0 rounded-xl object-cover border border-white/10"
