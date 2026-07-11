@@ -22,7 +22,7 @@ const STATUSES = [
   { key: "delivered", label: "Delivered", icon: Package },
 ] as const;
 
-type OrderItem = { id: string; name: string; quantity: number; image: string | null; unit_price: number; line_total: number; product_slug: string };
+type OrderItem = { id: string; name: string; quantity: number; image: string | null; unit_price: number; line_total: number; product_slug: string; variant_name?: string | null; variant_size?: string | null; variant_color?: string | null; variant_sku?: string | null; variant_image?: string | null };
 type Order = {
   id: string;
   status: string;
