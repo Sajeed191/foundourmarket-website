@@ -70,7 +70,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       next.add(slug);
       setSlugs(next);
       await supabase.from("wishlist").insert({ user_id: user.id, product_slug: slug });
-      import("@/lib/personalization").then((m) => m.recordEvent({ type: "wishlist", productSlug: slug })).catch(() => {});
+      runWhenIdle(() => {
+        import("@/lib/personalization").then((m) => m.recordEvent({ type: "wishlist", productSlug: slug })).catch(() => {});
+      });
     }
   }, [slugs, user]);
 
