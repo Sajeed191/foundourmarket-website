@@ -1000,6 +1000,24 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         </CollapsibleModule>
         </>)}
 
+        {tab === "variants" && (<>
+        <CollapsibleModule eyebrow="Options" title="Product Variants" badge={<Layers className="size-3.5 text-accent" />}>
+          {row?.id && row?.slug ? (
+            <VariantBuilder slug={row.slug} />
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-6 text-center opacity-70">
+              <Layers className="mx-auto mb-2 size-5 text-muted-foreground" />
+              <p className="text-sm font-medium">Save the product first, then add variants.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Size / Colour combinations attach to a saved product. Fill in the basics and save — the full Variant Builder unlocks here automatically.
+              </p>
+            </div>
+          )}
+        </CollapsibleModule>
+        </>)}
+
+
+
         {tab === "merch" && (<>
         {/* Product Labels */}
         <CollapsibleModule eyebrow="Step 6e" title="Product Labels" badge={<Tag className="size-3.5 text-accent" />} defaultOpen={false}>
