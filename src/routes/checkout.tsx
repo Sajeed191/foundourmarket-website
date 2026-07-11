@@ -659,7 +659,7 @@ function CheckoutPage() {
     ? addressCompleteness(selectedAddress).score >= 85
     : false;
   const paymentMethodSelected = payMethod === "cod" ? codAllowed : true;
-  const stockAvailable = detailed.every((i) => i.product.inStock !== false);
+  const stockAvailable = detailed.every((i) => i.product.inStock !== false && !i.unavailable);
   const sessionValid = !!user && reserveLeft > 0;
 
   const checkoutState: CheckoutState = computeCheckoutState({
