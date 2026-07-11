@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./auth";
+import { runWhenIdle } from "./idle";
 
 type Ctx = {
   slugs: Set<string>;
