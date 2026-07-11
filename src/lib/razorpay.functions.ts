@@ -20,6 +20,7 @@ import { enqueueOrderEmail } from "./order-emails.server";
 const lineItemSchema = z.object({
   slug: z.string().min(1).max(200),
   qty: z.number().int().min(1).max(99),
+  variantId: z.string().uuid().optional().nullable(),
 });
 
 const attributionSchema = z
