@@ -77,3 +77,15 @@ Goal: make the catalog fast and scalable without touching the variant system, ch
 - 4A is pure frontend/query-shape: new `CARD_SELECT_COLS`, fetcher wiring, no schema change — fastest to ship and verify.
 - 4E is the only sub-phase that may add DB objects; all additive indexes, validated with `EXPLAIN ANALYZE`, run via the migration tool for approval.
 - Monitoring (4F) uses a `createServerFn`/public route ingestion endpoint; no third-party SDK required.
+
+---
+
+## Progress log
+
+### 4A — Catalog API optimization ✅ (done)
+- Added `CARD_SELECT_COLS` (51 cols) used only by browsing grids via `fetchProducts()`. Drops `description` (largest field), non-COD payment flags, and logistics/scheduling/positioning columns.
+- Kept `cod_enabled` + shipping fees in CARD because the cart reads products from the same `useProducts` cache and checkout needs them.
+- QuickView and Compare now lazy-fetch `description` on demand so those surfaces are unchanged.
+- Cart/checkout, PDP (full `SELECT_COLS`), recommendations, returns all keep the richer projections.
+- **Measured: 48-card list payload 126.7 KB → 66.5 KB (~48% smaller).** tsgo clean; grid, PDP, and detail verified in-browser with no runtime errors.
+- Behavior change (minor): client `SearchCommand` no longer substring-matches on product `description` (still matches name/brand/tagline/category).
