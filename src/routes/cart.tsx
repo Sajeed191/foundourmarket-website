@@ -346,24 +346,29 @@ function CartPage() {
                 Saved for later · {savedDetailed.length}
               </h2>
               <div className="space-y-3">
-                {savedDetailed.map((item) => (
-                  <div key={item.slug} className="flex gap-4 p-3 bg-card/60 border border-border rounded-2xl items-center">
+                {savedDetailed.map((item) => {
+                  const vid = item.variantId ?? null;
+                  const options = item.variant ? [item.variant.color, item.variant.size].filter(Boolean).join(" · ") || item.variant.name : "";
+                  return (
+                  <div key={`${item.slug}::${vid ?? ""}`} className="flex gap-4 p-3 bg-card/60 border border-border rounded-2xl items-center">
                     <Link to="/products/$slug" params={{ slug: item.slug }} className="size-16 shrink-0 rounded-lg overflow-hidden bg-black/40">
-                      <img src={item.product.image} alt={item.product.name} loading="lazy" className="w-full h-full object-cover" />
+                      <img src={item.variant?.imageUrl || item.product.image} alt={item.product.name} loading="lazy" className="w-full h-full object-cover" />
                     </Link>
                     <div className="flex-1 min-w-0">
                       <Link to="/products/$slug" params={{ slug: item.slug }} className="text-sm font-medium hover:text-accent transition-colors truncate block">
                         {item.product.name}
                       </Link>
-                      <p className="text-xs text-muted-foreground">{format(priceOf(item.product))} · qty {item.qty}</p>
+                      {options && <p className="text-[11px] text-accent/90 truncate">{options}</p>}
+                      <p className="text-xs text-muted-foreground">{format(item.unitPrice)} · qty {item.qty}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => moveToCart(item.slug)} className="text-[10px] uppercase tracking-widest font-bold bg-accent text-accent-foreground px-3 py-2 rounded-full inline-flex items-center gap-1.5 hover:brightness-110">
+                      <button onClick={() => moveToCart(item.slug, vid)} className="text-[10px] uppercase tracking-widest font-bold bg-accent text-accent-foreground px-3 py-2 rounded-full inline-flex items-center gap-1.5 hover:brightness-110">
                         <RotateCcw className="size-3" /> Move to cart
                       </button>
-                      <button onClick={() => removeSaved(item.slug)} aria-label="Remove" className="text-muted-foreground hover:text-destructive">
+                      <button onClick={() => removeSaved(item.slug, vid)} aria-label="Remove" className="text-muted-foreground hover:text-destructive">
                         <X className="size-4" />
                       </button>
+
                     </div>
                   </div>
                 ))}
