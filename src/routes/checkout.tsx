@@ -271,7 +271,7 @@ function CheckoutPage() {
       const createOnce = () =>
         createOrder({
           data: {
-            items: detailed.map((i) => ({ slug: i.slug, qty: i.qty })),
+            items: detailed.map((i) => ({ slug: i.slug, qty: i.qty, variantId: i.variantId ?? null })),
             addressId: selectedAddress.id,
             promoCode: coupon?.code ?? null,
             attribution: buildOrderAttribution(),
