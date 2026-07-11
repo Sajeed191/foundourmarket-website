@@ -448,7 +448,8 @@ function ProductPage() {
   // which fires reliably even for browser-cached images (unlike a JSX onLoad).
   const activeUrl = activeMedia?.id === "video" ? null : (activeMedia?.url || product.image);
   useEffect(() => {
-    setMediaAspect(null);
+    // Keep the previous aspect until the next image resolves so the container
+    // never briefly falls back to a mismatched box (which would letterbox).
     if (!activeUrl || typeof window === "undefined") return;
     let active = true;
     const probe = new Image();
