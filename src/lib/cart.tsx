@@ -111,8 +111,8 @@ function writeLS(items: CartItem[]) {
 }
 
 // Apply a variant filter to a supabase query builder (null => IS NULL).
-function withVariant<T>(q: any, variantId?: string | null): T {
-  return (variantId ? q.eq("variant_id", variantId) : q.is("variant_id", null)) as T;
+function withVariant(q: any, variantId?: string | null): any {
+  return variantId ? q.eq("variant_id", variantId) : q.is("variant_id", null);
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
