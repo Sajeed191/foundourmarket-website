@@ -285,7 +285,7 @@ function CartPage() {
                               <VariantSwitcher
                                 slug={item.slug}
                                 currentVariantId={vid}
-                                onSwitch={(to) => { switchVariant(item.slug, vid, to); toast.success("Option updated"); }}
+                                onSwitch={(to: string) => { switchVariant(item.slug, vid, to); toast.success("Option updated"); }}
                               />
                             </div>
                           )}
