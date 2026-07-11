@@ -205,6 +205,12 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
   const [tab, setTab] = useState<"basic" | "merch" | "seo" | "related" | "variants" | "analytics" | "preview">("basic");
 
+  // After a successful CREATE we keep the modal open and remember the new
+  // product's id/slug so the Variants tab unlocks immediately — no re-open.
+  const [savedProduct, setSavedProduct] = useState<{ id: string; slug: string } | null>(null);
+  const effectiveId = row?.id ?? savedProduct?.id ?? null;
+  const effectiveSlug = row?.slug ?? savedProduct?.slug ?? null;
+
 
 
   // ---- Main category / subcategory hierarchy ----
