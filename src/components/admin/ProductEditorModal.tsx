@@ -1214,7 +1214,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
         <div className="sticky bottom-0 -mx-4 sm:-mx-5 px-4 sm:px-5 py-3 bg-background/85 backdrop-blur flex gap-3">
           <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-white/10 text-sm hover:bg-white/5">Cancel</button>
           <button type="submit" disabled={saving} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-accent to-primary text-accent-foreground text-sm font-medium disabled:opacity-50 inline-flex items-center justify-center gap-2">
-            {saving ? <Loader2 className="size-4 animate-spin" /> : null} {row?.id ? "Save changes" : "Create product"}
+            {saving ? <Loader2 className="size-4 animate-spin" /> : null} {effectiveId ? "Save changes" : "Create product"}
           </button>
         </div>
       </motion.form>
