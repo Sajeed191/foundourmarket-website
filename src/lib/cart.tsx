@@ -5,6 +5,7 @@ import { useProducts } from "./use-products";
 import { useAuth } from "./auth";
 import { useRegion } from "./region";
 import { buildVisibleMap } from "./product-availability";
+import { runWhenIdle } from "./idle";
 
 // A cart line is identified by product slug AND variant id. `variantId` is null
 // for products without variants (every product today) — in that case all logic
