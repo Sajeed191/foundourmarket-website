@@ -536,18 +536,60 @@ export function VariantMediaPanel({
           >
             {selected.size === media.length ? "Clear all" : "Select all"}
           </button>
-          {selected.size > 0 && (
-            <button
-              type="button"
-              onClick={bulkDelete}
-              className="inline-flex items-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-2 py-1 text-destructive hover:bg-destructive/20"
-            >
-              <Trash2 className="size-3" /> Delete {selected.size}
-            </button>
-          )}
+          {selected.size > 0 ? (
+            <>
+              <span className="rounded-lg bg-accent/15 px-2 py-1 font-medium text-accent">{selected.size} selected</span>
+              <button
+                type="button"
+                onClick={coverFromSelection}
+                className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                <Star className="size-3" /> Set cover
+              </button>
+              <button
+                type="button"
+                onClick={() => moveSelected(false)}
+                className="rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                ↑ To start
+              </button>
+              <button
+                type="button"
+                onClick={() => moveSelected(true)}
+                className="rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                ↓ To end
+              </button>
+              <button
+                type="button"
+                onClick={() => bulkReplaceRef.current?.click()}
+                className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                <Replace className="size-3" /> Replace
+              </button>
+              <button
+                type="button"
+                onClick={bulkDownload}
+                className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-3">
+                  <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Download
+              </button>
+              <button
+                type="button"
+                onClick={bulkDelete}
+                className="inline-flex items-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-2 py-1 text-destructive hover:bg-destructive/20"
+              >
+                <Trash2 className="size-3" /> Delete
+              </button>
+            </>
+          ) : null}
           <span className="ml-auto text-muted-foreground">Drag tiles to reorder · first image = cover</span>
         </div>
       )}
+
 
       {media.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
