@@ -29,6 +29,9 @@ import {
   Replace,
   Eye,
   X,
+  RotateCw,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { toast } from "sonner";
 import { createPortal } from "react-dom";
@@ -268,6 +271,7 @@ export function VariantMediaPanel({
   const videoRef = useRef<HTMLInputElement>(null);
   const replaceRef = useRef<HTMLInputElement>(null);
   const replaceTarget = useRef<string | null>(null);
+  const bulkReplaceRef = useRef<HTMLInputElement>(null);
 
   const atMax = max != null && media.length >= max;
   const imageCount = useMemo(() => media.filter((m) => m.mediaType === "image").length, [media]);
@@ -340,6 +344,68 @@ export function VariantMediaPanel({
     onChange(media.filter((i) => !selected.has(i.id)));
     setSelected(new Set());
   }
+
+  function bulkDownload() {
+    const items = media.filter((m) => selected.has(m.id));
+    items.forEach((m, idx) => setTimeout(() => download(m), idx * 200));
+  }
+
+  function moveSelected(toEnd: boolean) {
+    if (selected.size === 0) return;
+    const sel = media.filter((m) => selected.has(m.id));
+    const rest = media.filter((m) => !selected.has(m.id));
+    onChange(toEnd ? [...rest, ...sel] : [...sel, ...rest]);
+  }
+
+  function coverFromSelection() {
+    const firstSel = media.find((m) => selected.has(m.id) && m.mediaType === "image");
+    if (!firstSel) {
+      toast.error("Select an image to set as cover");
+      return;
+    }
+    makeThumbnail(firstSel.id);
+  }
+
+  async function onBulkReplace(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const ids = media.filter((m) => selected.has(m.id)).map((m) => m.id);
+    const arr = Array.from(files);
+    try {
+      let next = [...media];
+      const { processAndUpload } = await import("@/lib/media-engine");
+      for (let k = 0; k < Math.min(ids.length, arr.length); k++) {
+        const file = arr[k];
+        const id = ids[k];
+        const ext = (file.name.split(".").pop() || "").toLowerCase();
+        if (VIDEO_EXT.includes(ext)) {
+          const url = await uploadVariantVideo(slug, file);
+          next = next.map((m) =>
+            m.id === id ? { ...m, url, thumbUrl: null, mediumUrl: null, mediaType: "video" as MediaType } : m,
+          );
+        } else {
+          const done = await processAndUpload(file, { entityType: "product", entityRef: slug });
+          next = next.map((m) =>
+            m.id === id
+              ? {
+                  ...m,
+                  url: done.variants.large_url || done.variants.url,
+                  thumbUrl: done.variants.thumb_url,
+                  mediumUrl: done.variants.medium_url,
+                  mediaType: "image" as MediaType,
+                }
+              : m,
+          );
+        }
+      }
+      onChange(next);
+      toast.success(`Replaced ${Math.min(ids.length, arr.length)} selected media`);
+    } catch (e: any) {
+      toast.error("Bulk replace failed", { description: e?.message });
+    } finally {
+      if (bulkReplaceRef.current) bulkReplaceRef.current.value = "";
+    }
+  }
+
 
   function toggleSelect(id: string) {
     setSelected((prev) => {
@@ -428,6 +494,7 @@ export function VariantMediaPanel({
         onChange={(e) => onVideoFiles(e.target.files)}
       />
       <input ref={replaceRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => onReplaceFile(e.target.files)} />
+      <input ref={bulkReplaceRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => onBulkReplace(e.target.files)} />
 
       <div className="flex flex-wrap items-center gap-2">
         {showHeaderSwatch && (
@@ -472,18 +539,60 @@ export function VariantMediaPanel({
           >
             {selected.size === media.length ? "Clear all" : "Select all"}
           </button>
-          {selected.size > 0 && (
-            <button
-              type="button"
-              onClick={bulkDelete}
-              className="inline-flex items-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-2 py-1 text-destructive hover:bg-destructive/20"
-            >
-              <Trash2 className="size-3" /> Delete {selected.size}
-            </button>
-          )}
+          {selected.size > 0 ? (
+            <>
+              <span className="rounded-lg bg-accent/15 px-2 py-1 font-medium text-accent">{selected.size} selected</span>
+              <button
+                type="button"
+                onClick={coverFromSelection}
+                className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                <Star className="size-3" /> Set cover
+              </button>
+              <button
+                type="button"
+                onClick={() => moveSelected(false)}
+                className="rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                ↑ To start
+              </button>
+              <button
+                type="button"
+                onClick={() => moveSelected(true)}
+                className="rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                ↓ To end
+              </button>
+              <button
+                type="button"
+                onClick={() => bulkReplaceRef.current?.click()}
+                className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                <Replace className="size-3" /> Replace
+              </button>
+              <button
+                type="button"
+                onClick={bulkDownload}
+                className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-3">
+                  <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Download
+              </button>
+              <button
+                type="button"
+                onClick={bulkDelete}
+                className="inline-flex items-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-2 py-1 text-destructive hover:bg-destructive/20"
+              >
+                <Trash2 className="size-3" /> Delete
+              </button>
+            </>
+          ) : null}
           <span className="ml-auto text-muted-foreground">Drag tiles to reorder · first image = cover</span>
         </div>
       )}
+
 
       {media.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -516,6 +625,8 @@ export function VariantMediaPanel({
                         <Play className="size-4 fill-current" />
                       </span>
                     </span>
+                    <VideoDuration url={m.url} />
+
                   </>
                 ) : (
                   <img src={m.thumbUrl ?? m.url} alt={`${color} ${i + 1}`} loading="lazy" className="size-full object-cover" />
@@ -638,26 +749,126 @@ export function VariantMediaPanel({
         />
       )}
 
-      {preview &&
-        createPortal(
-          <div className="fixed inset-0 z-[2147483646] grid place-items-center bg-black/90 p-4" onClick={() => setPreview(null)}>
-            <button
-              className="absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white/10 text-white"
-              onClick={() => setPreview(null)}
-              aria-label="Close preview"
-            >
-              <X className="size-5" />
-            </button>
-            <div className="max-h-[85vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
-              {preview.mediaType === "video" ? (
-                <video src={preview.url} controls autoPlay className="max-h-[85vh] max-w-[92vw] rounded-lg" />
-              ) : (
-                <img src={preview.url} alt="" className="max-h-[85vh] max-w-[92vw] rounded-lg object-contain" />
-              )}
-            </div>
-          </div>,
-          document.body,
-        )}
+      {preview && createPortal(<MediaPreview media={preview} onClose={() => setPreview(null)} />, document.body)}
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// VideoDuration — lazily reads a video's duration and shows it as a badge.
+// ---------------------------------------------------------------------------
+function fmtDuration(s: number): string {
+  if (!isFinite(s) || s <= 0) return "";
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, "0")}`;
+}
+
+function VideoDuration({ url }: { url: string }) {
+  const [dur, setDur] = useState<number | null>(null);
+  return (
+    <>
+      <video
+        src={url}
+        preload="metadata"
+        muted
+        className="hidden"
+        onLoadedMetadata={(e) => setDur((e.currentTarget as HTMLVideoElement).duration)}
+      />
+      {dur != null && dur > 0 && (
+        <span className="absolute bottom-1 left-1 rounded bg-black/65 px-1 py-0.5 text-[8px] font-mono text-white/90">
+          {fmtDuration(dur)}
+        </span>
+      )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MediaPreview — fullscreen preview with zoom / pan / rotate for images and
+// native play / pause / mute / fullscreen controls for videos.
+// ---------------------------------------------------------------------------
+function MediaPreview({ media, onClose }: { media: VariantImageDraft; onClose: () => void }) {
+  const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const dragging = useRef<{ x: number; y: number } | null>(null);
+  const isVideo = media.mediaType === "video";
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const reset = () => {
+    setScale(1);
+    setRotation(0);
+    setPan({ x: 0, y: 0 });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[2147483646] grid place-items-center bg-black/90 p-4" onClick={onClose}>
+      <button
+        className="absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20"
+        onClick={onClose}
+        aria-label="Close preview"
+      >
+        <X className="size-5" />
+      </button>
+
+      {!isVideo && (
+        <div
+          className="absolute left-1/2 top-4 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-white"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className="grid size-8 place-items-center rounded-full hover:bg-white/15" onClick={() => setScale((s) => Math.max(1, +(s - 0.25).toFixed(2)))} title="Zoom out">
+            <ZoomOut className="size-4" />
+          </button>
+          <span className="w-12 text-center text-xs font-mono">{Math.round(scale * 100)}%</span>
+          <button className="grid size-8 place-items-center rounded-full hover:bg-white/15" onClick={() => setScale((s) => Math.min(5, +(s + 0.25).toFixed(2)))} title="Zoom in">
+            <ZoomIn className="size-4" />
+          </button>
+          <button className="grid size-8 place-items-center rounded-full hover:bg-white/15" onClick={() => setRotation((r) => (r + 90) % 360)} title="Rotate">
+            <RotateCw className="size-4" />
+          </button>
+          <button className="rounded-full px-2 text-xs hover:bg-white/15" onClick={reset} title="Reset">
+            Reset
+          </button>
+        </div>
+      )}
+
+      <div className="max-h-[85vh] max-w-[92vw] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {isVideo ? (
+          <video src={media.url} controls autoPlay className="max-h-[85vh] max-w-[92vw] rounded-lg" />
+        ) : (
+          <img
+            src={media.url}
+            alt=""
+            draggable={false}
+            onWheel={(e) => setScale((s) => Math.min(5, Math.max(1, +(s - e.deltaY * 0.0015).toFixed(2))))}
+            onMouseDown={(e) => {
+              if (scale <= 1) return;
+              dragging.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+            }}
+            onMouseMove={(e) => {
+              if (!dragging.current) return;
+              setPan({ x: e.clientX - dragging.current.x, y: e.clientY - dragging.current.y });
+            }}
+            onMouseUp={() => (dragging.current = null)}
+            onMouseLeave={() => (dragging.current = null)}
+            style={{
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale}) rotate(${rotation}deg)`,
+              cursor: scale > 1 ? "grab" : "default",
+              transition: dragging.current ? "none" : "transform 0.15s ease",
+            }}
+            className="max-h-[85vh] max-w-[92vw] rounded-lg object-contain select-none"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
