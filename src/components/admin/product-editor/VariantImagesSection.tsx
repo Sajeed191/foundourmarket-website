@@ -1,22 +1,43 @@
 // ============================================================
-// VariantImagesSection — per-COLOUR image galleries inside the
-// Variant Builder. Each colour manages its own gallery: bulk
-// upload (responsive WebP variants), drag & drop reorder, delete,
-// replace, set-as-thumbnail, live counter, and a configurable
-// per-product maximum. Saving a colour syncs its first image into
-// every variant of that colour (cart/checkout/order thumbnail).
+// VariantImagesSection — per-COLOUR media galleries inside the
+// Variant Builder. Each colour manages its own gallery of images
+// AND videos: bulk image upload (responsive WebP variants), video
+// upload, add-by-URL (image or video), drag & drop reorder,
+// delete, replace, bulk delete, set-as-thumbnail, live media
+// counter, preview, and a configurable per-product maximum.
+// Saving a colour syncs its first IMAGE into every variant of that
+// colour (cart/checkout/order thumbnail).
 // ============================================================
 import { useEffect, useRef, useState } from "react";
-import { Images, Loader2, Trash2, Star, GripVertical, Save, Check } from "lucide-react";
+import {
+  Images,
+  Loader2,
+  Trash2,
+  Star,
+  GripVertical,
+  Save,
+  Check,
+  Play,
+  Video,
+  Link2,
+  Replace,
+  Eye,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
+import { createPortal } from "react-dom";
 import { MediaUploader } from "@/components/admin/MediaUploader";
 import {
   fetchAdminColorGalleries,
   fetchVariantImageMax,
   setVariantImageMax,
   saveColorGallery,
+  uploadVariantVideo,
+  detectMediaType,
   newImgId,
+  VIDEO_EXT,
   type VariantImageDraft,
+  type MediaType,
 } from "@/lib/variant-images";
 
 type ColorInfo = { color: string; hex: string | null };
@@ -56,7 +77,6 @@ export function VariantImagesSection({
     setMaxInput(next == null ? "" : String(next));
     try {
       await setVariantImageMax(slug, next);
-      toast.success(next == null ? "Image limit removed" : `Max ${next} images per colour`);
     } catch (e: any) {
       toast.error("Could not save limit", { description: e?.message });
     }
@@ -68,8 +88,8 @@ export function VariantImagesSection({
     <div className="card-premium rounded-2xl p-4 space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <Images className="size-4 text-accent" />
-        <h3 className="text-sm font-medium">Variant Images</h3>
-        <span className="text-[11px] text-muted-foreground">Each colour has its own gallery</span>
+        <h3 className="text-sm font-medium">Variant Media</h3>
+        <span className="text-[11px] text-muted-foreground">Each colour has its own image + video gallery</span>
         <div className="ml-auto flex items-center gap-2">
           <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
             Max / colour
@@ -121,31 +141,104 @@ function ColorGallery({
   max: number | null;
   initial: VariantImageDraft[];
 }) {
-  const [images, setImages] = useState<VariantImageDraft[]>(initial);
+  const [media, setMedia] = useState<VariantImageDraft[]>(initial);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [videoBusy, setVideoBusy] = useState(false);
+  const [preview, setPreview] = useState<VariantImageDraft | null>(null);
   const dragIndex = useRef<number | null>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
+  const replaceRef = useRef<HTMLInputElement>(null);
+  const replaceTarget = useRef<string | null>(null);
 
-  const atMax = max != null && images.length >= max;
+  const atMax = max != null && media.length >= max;
+  const imageCount = media.filter((m) => m.mediaType === "image").length;
+  const videoCount = media.length - imageCount;
 
-  function onUploaded(url: string, thumbUrl: string | null, mediumUrl: string | null) {
-    setImages((prev) => {
+  function addDraft(draft: VariantImageDraft): boolean {
+    let added = false;
+    setMedia((prev) => {
       if (max != null && prev.length >= max) {
-        toast.error(`Limit reached — max ${max} images for ${color}`);
+        toast.error(`Limit reached — max ${max} media for ${color}`);
         return prev;
       }
-      return [...prev, { id: newImgId(), url, thumbUrl, mediumUrl }];
+      added = true;
+      return [...prev, draft];
+    });
+    if (added) setDirty(true);
+    return added;
+  }
+
+  function onImageUploaded(url: string, thumbUrl: string | null, mediumUrl: string | null) {
+    addDraft({ id: newImgId(), url, thumbUrl, mediumUrl, mediaType: "image", posterUrl: null });
+  }
+
+  async function onVideoFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setVideoBusy(true);
+    try {
+      for (const file of Array.from(files)) {
+        const ext = (file.name.split(".").pop() || "").toLowerCase();
+        if (!VIDEO_EXT.includes(ext)) {
+          toast.error(`${file.name}: only ${VIDEO_EXT.join(", ")} videos are supported`);
+          continue;
+        }
+        if (max != null && media.length >= max) {
+          toast.error(`Limit reached — max ${max} media for ${color}`);
+          break;
+        }
+        const url = await uploadVariantVideo(slug, file);
+        addDraft({ id: newImgId(), url, thumbUrl: null, mediumUrl: null, mediaType: "video", posterUrl: null });
+      }
+      toast.success("Video added");
+    } catch (e: any) {
+      toast.error("Video upload failed", { description: e?.message });
+    } finally {
+      setVideoBusy(false);
+      if (videoRef.current) videoRef.current.value = "";
+    }
+  }
+
+  function addUrl(kind: MediaType) {
+    const url = window.prompt(`Paste the ${kind} URL for ${color}`)?.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) {
+      toast.error("Enter a full URL starting with http(s)://");
+      return;
+    }
+    const type = kind === "video" || detectMediaType(url) === "video" ? "video" : "image";
+    addDraft({ id: newImgId(), url, thumbUrl: null, mediumUrl: null, mediaType: type, posterUrl: null });
+  }
+
+  function remove(id: string) {
+    setMedia((prev) => prev.filter((i) => i.id !== id));
+    setSelected((prev) => {
+      const n = new Set(prev);
+      n.delete(id);
+      return n;
     });
     setDirty(true);
   }
 
-  function remove(id: string) {
-    setImages((prev) => prev.filter((i) => i.id !== id));
+  function bulkDelete() {
+    if (selected.size === 0) return;
+    if (!window.confirm(`Delete ${selected.size} selected media item(s) from ${color}?`)) return;
+    setMedia((prev) => prev.filter((i) => !selected.has(i.id)));
+    setSelected(new Set());
     setDirty(true);
   }
 
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  }
+
   function makeThumbnail(id: string) {
-    setImages((prev) => {
+    setMedia((prev) => {
       const idx = prev.findIndex((i) => i.id === id);
       if (idx <= 0) return prev;
       const next = [...prev];
@@ -158,7 +251,7 @@ function ColorGallery({
 
   function reorder(from: number, to: number) {
     if (from === to) return;
-    setImages((prev) => {
+    setMedia((prev) => {
       const next = [...prev];
       const [item] = next.splice(from, 1);
       next.splice(to, 0, item);
@@ -167,10 +260,56 @@ function ColorGallery({
     setDirty(true);
   }
 
+  function beginReplace(id: string) {
+    replaceTarget.current = id;
+    replaceRef.current?.click();
+  }
+
+  async function onReplaceFile(files: FileList | null) {
+    const id = replaceTarget.current;
+    if (!files || files.length === 0 || !id) return;
+    const file = files[0];
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    try {
+      if (VIDEO_EXT.includes(ext)) {
+        const url = await uploadVariantVideo(slug, file);
+        setMedia((prev) =>
+          prev.map((m) => (m.id === id ? { ...m, url, thumbUrl: null, mediumUrl: null, mediaType: "video" } : m)),
+        );
+        setDirty(true);
+      } else {
+        // reuse the image pipeline via MediaUploader is per-drop; here we do a
+        // direct process using the shared media-engine.
+        const { processAndUpload } = await import("@/lib/media-engine");
+        const done = await processAndUpload(file, { entityType: "product", entityRef: slug });
+        setMedia((prev) =>
+          prev.map((m) =>
+            m.id === id
+              ? {
+                  ...m,
+                  url: done.variants.large_url || done.variants.url,
+                  thumbUrl: done.variants.thumb_url,
+                  mediumUrl: done.variants.medium_url,
+                  mediaType: "image",
+                }
+              : m,
+          ),
+        );
+        setDirty(true);
+      }
+      toast.success("Media replaced");
+    } catch (e: any) {
+      toast.error("Replace failed", { description: e?.message });
+    } finally {
+      replaceTarget.current = null;
+      if (replaceRef.current) replaceRef.current.value = "";
+    }
+  }
+
   async function save() {
     setSaving(true);
     try {
-      await saveColorGallery(slug, color, images);
+      await saveColorGallery(slug, color, media);
       setDirty(false);
       toast.success(`${color} gallery saved`);
     } catch (e: any) {
@@ -182,13 +321,34 @@ function ColorGallery({
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3 space-y-3">
-      <div className="flex items-center gap-2">
+      <input
+        ref={videoRef}
+        type="file"
+        accept={VIDEO_EXT.map((e) => `.${e}`).join(",")}
+        multiple
+        className="hidden"
+        onChange={(e) => onVideoFiles(e.target.files)}
+      />
+      <input
+        ref={replaceRef}
+        type="file"
+        accept="image/*,video/*"
+        className="hidden"
+        onChange={(e) => onReplaceFile(e.target.files)}
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
         <span className="size-4 rounded-full border border-white/20 shrink-0" style={{ background: hex ?? "#111111" }} />
         <span className="text-sm font-medium">{color}</span>
         <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-muted-foreground">
-          {images.length}{max != null ? ` / ${max}` : ""} image{images.length === 1 ? "" : "s"}
+          Media ({media.length}){max != null ? ` / ${max}` : ""}
         </span>
-        {dirty && (
+        {videoCount > 0 && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-muted-foreground">
+            <Video className="size-3" /> {videoCount}
+          </span>
+        )}
+        {dirty ? (
           <button
             type="button"
             onClick={save}
@@ -197,72 +357,171 @@ function ColorGallery({
           >
             {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />} Save
           </button>
-        )}
-        {!dirty && images.length > 0 && (
+        ) : media.length > 0 ? (
           <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-emerald-400">
             <Check className="size-3.5" /> Saved
           </span>
-        )}
+        ) : null}
       </div>
 
-      {images.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {images.map((img, i) => (
-            <div
-              key={img.id}
-              draggable
-              onDragStart={() => (dragIndex.current = i)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                if (dragIndex.current != null) reorder(dragIndex.current, i);
-                dragIndex.current = null;
-              }}
-              className={`group relative aspect-square overflow-hidden rounded-lg border ${
-                i === 0 ? "border-accent/60 ring-1 ring-accent/40" : "border-white/10"
-              } bg-black/20`}
+      {/* Bulk toolbar */}
+      {media.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 text-[11px]">
+          <button
+            type="button"
+            onClick={() =>
+              setSelected((prev) => (prev.size === media.length ? new Set() : new Set(media.map((m) => m.id))))
+            }
+            className="rounded-lg border border-white/10 px-2 py-1 text-muted-foreground hover:text-foreground"
+          >
+            {selected.size === media.length ? "Clear all" : "Select all"}
+          </button>
+          {selected.size > 0 && (
+            <button
+              type="button"
+              onClick={bulkDelete}
+              className="inline-flex items-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-2 py-1 text-destructive hover:bg-destructive/20"
             >
-              <img
-                src={img.thumbUrl ?? img.url}
-                alt={`${color} ${i + 1}`}
-                loading="lazy"
-                className="size-full object-cover"
-              />
-              {i === 0 && (
-                <span className="absolute left-1 top-1 inline-flex items-center gap-0.5 rounded bg-accent px-1.5 py-0.5 text-[9px] font-semibold text-accent-foreground">
-                  <Star className="size-2.5 fill-current" /> Thumb
-                </span>
-              )}
-              <span className="absolute right-1 top-1 grid size-5 place-items-center rounded bg-black/50 text-white/70 opacity-0 group-hover:opacity-100 cursor-grab">
-                <GripVertical className="size-3" />
-              </span>
-              <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-gradient-to-t from-black/70 to-transparent p-1 opacity-0 transition-opacity group-hover:opacity-100">
-                {i !== 0 && (
-                  <button
-                    type="button"
-                    onClick={() => makeThumbnail(img.id)}
-                    title="Set as thumbnail"
-                    className="grid size-6 place-items-center rounded bg-white/15 text-white hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <Star className="size-3" />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => remove(img.id)}
-                  title="Delete image"
-                  className="ml-auto grid size-6 place-items-center rounded bg-white/15 text-white hover:bg-destructive"
-                >
-                  <Trash2 className="size-3" />
-                </button>
-              </div>
-            </div>
-          ))}
+              <Trash2 className="size-3" /> Delete {selected.size}
+            </button>
+          )}
+          <span className="ml-auto text-muted-foreground">Drag tiles to reorder · first image = thumbnail</span>
         </div>
       )}
 
+      {media.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          {media.map((m, i) => {
+            const isVideo = m.mediaType === "video";
+            const isSel = selected.has(m.id);
+            return (
+              <div
+                key={m.id}
+                draggable
+                onDragStart={() => (dragIndex.current = i)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => {
+                  if (dragIndex.current != null) reorder(dragIndex.current, i);
+                  dragIndex.current = null;
+                }}
+                className={`group relative aspect-square overflow-hidden rounded-lg border ${
+                  isSel ? "border-accent ring-2 ring-accent" : i === 0 ? "border-accent/60 ring-1 ring-accent/40" : "border-white/10"
+                } bg-black/20`}
+              >
+                {isVideo ? (
+                  <>
+                    {m.posterUrl ? (
+                      <img src={m.posterUrl} alt="" className="size-full object-cover" loading="lazy" />
+                    ) : (
+                      <video src={m.url} muted preload="metadata" className="size-full object-cover" />
+                    )}
+                    <span className="pointer-events-none absolute inset-0 grid place-items-center">
+                      <span className="grid size-8 place-items-center rounded-full bg-black/55 text-white">
+                        <Play className="size-4 fill-current" />
+                      </span>
+                    </span>
+                  </>
+                ) : (
+                  <img src={m.thumbUrl ?? m.url} alt={`${color} ${i + 1}`} loading="lazy" className="size-full object-cover" />
+                )}
+
+                {/* select checkbox */}
+                <button
+                  type="button"
+                  onClick={() => toggleSelect(m.id)}
+                  aria-label="Select media"
+                  className={`absolute left-1 top-1 grid size-5 place-items-center rounded border ${
+                    isSel ? "bg-accent border-accent text-accent-foreground" : "bg-black/50 border-white/30 text-transparent"
+                  }`}
+                >
+                  <Check className="size-3" />
+                </button>
+
+                {i === 0 && !isVideo && (
+                  <span className="absolute left-8 top-1 inline-flex items-center gap-0.5 rounded bg-accent px-1.5 py-0.5 text-[9px] font-semibold text-accent-foreground">
+                    <Star className="size-2.5 fill-current" /> Thumb
+                  </span>
+                )}
+                <span className="absolute right-1 top-1 rounded bg-black/55 px-1 py-0.5 text-[8px] font-mono uppercase text-white/80">
+                  {isVideo ? "video" : "img"}
+                </span>
+
+                <div className="absolute inset-x-0 bottom-0 flex items-center gap-1 bg-gradient-to-t from-black/75 to-transparent p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => setPreview(m)}
+                    title="Preview"
+                    className="grid size-6 place-items-center rounded bg-white/15 text-white hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Eye className="size-3" />
+                  </button>
+                  {i !== 0 && !isVideo && (
+                    <button
+                      type="button"
+                      onClick={() => makeThumbnail(m.id)}
+                      title="Set as thumbnail"
+                      className="grid size-6 place-items-center rounded bg-white/15 text-white hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <Star className="size-3" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => beginReplace(m.id)}
+                    title="Replace"
+                    className="grid size-6 place-items-center rounded bg-white/15 text-white hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Replace className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => remove(m.id)}
+                    title="Delete"
+                    className="ml-auto grid size-6 place-items-center rounded bg-white/15 text-white hover:bg-destructive"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </div>
+                <span className="absolute right-1 bottom-1 hidden text-white/60 group-hover:inline cursor-grab">
+                  <GripVertical className="size-3" />
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add controls */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => videoRef.current?.click()}
+          disabled={atMax || videoBusy}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs hover:border-accent/40 disabled:opacity-50"
+        >
+          {videoBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Video className="size-3.5" />} Upload videos
+        </button>
+        <button
+          type="button"
+          onClick={() => addUrl("image")}
+          disabled={atMax}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs hover:border-accent/40 disabled:opacity-50"
+        >
+          <Link2 className="size-3.5" /> Add image URL
+        </button>
+        <button
+          type="button"
+          onClick={() => addUrl("video")}
+          disabled={atMax}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs hover:border-accent/40 disabled:opacity-50"
+        >
+          <Link2 className="size-3.5" /> Add video URL
+        </button>
+      </div>
+
       {atMax ? (
         <p className="text-[11px] text-muted-foreground">
-          Maximum of {max} images reached for {color}. Delete one to add more.
+          Maximum of {max} media reached for {color}. Delete one to add more.
         </p>
       ) : (
         <MediaUploader
@@ -271,7 +530,7 @@ function ColorGallery({
           compact
           label={`Add ${color} images`}
           onComplete={(done) =>
-            onUploaded(
+            onImageUploaded(
               done.variants.large_url || done.variants.url,
               done.variants.thumb_url,
               done.variants.medium_url,
@@ -279,6 +538,30 @@ function ColorGallery({
           }
         />
       )}
+
+      {preview &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[2147483646] grid place-items-center bg-black/90 p-4"
+            onClick={() => setPreview(null)}
+          >
+            <button
+              className="absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white/10 text-white"
+              onClick={() => setPreview(null)}
+              aria-label="Close preview"
+            >
+              <X className="size-5" />
+            </button>
+            <div className="max-h-[85vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
+              {preview.mediaType === "video" ? (
+                <video src={preview.url} controls autoPlay className="max-h-[85vh] max-w-[92vw] rounded-lg" />
+              ) : (
+                <img src={preview.url} alt="" className="max-h-[85vh] max-w-[92vw] rounded-lg object-contain" />
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
