@@ -360,6 +360,37 @@ function VariantCard({ r, onChange, onRemove, onDuplicate, gallery }: {
       <div className="mt-3">
         <Toggle checked={r.active} onChange={(v) => onChange({ active: v })} label="Active" hint="Inactive variants are hidden from customers but kept for records." />
       </div>
+
+      {/* Variant Media — shared per COLOUR. Every size card of this colour edits ONE gallery. */}
+      {r.color ? (
+        gallery.loading ? (
+          <div className="mt-3 grid place-items-center rounded-xl border border-white/10 bg-white/[0.02] py-6">
+            <Loader2 className="size-4 animate-spin text-accent" />
+          </div>
+        ) : (
+          <div className="mt-3">
+            <p className="mb-1.5 text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
+              Variant Media · shared across all {r.color} sizes
+            </p>
+            <VariantMediaPanel
+              slug={/* injected below */ (gallery as any)._slug ?? ""}
+              color={r.color}
+              hex={r.colorHex}
+              max={gallery.max}
+              media={gallery.getMedia(r.color)}
+              onChange={(next) => gallery.setColorMedia(r.color!, next)}
+              dirty={gallery.isDirty(r.color)}
+              saving={gallery.savingColor === r.color}
+              onSave={() => gallery.saveColor(r.color!)}
+              showHeaderSwatch={false}
+            />
+          </div>
+        )
+      ) : (
+        <p className="mt-3 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-[11px] text-muted-foreground">
+          Add a colour to this variant to manage its shared media gallery.
+        </p>
+      )}
     </div>
   );
 }
