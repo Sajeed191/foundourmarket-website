@@ -356,8 +356,10 @@ function VariantCard({ r, onChange, onRemove, onDuplicate }: {
         <Field label="Compare price" type="number" value={r.comparePrice != null ? String(r.comparePrice) : ""} onChange={(v) => onChange({ comparePrice: v.trim() === "" ? null : Number(v) })} />
         <Field label="Barcode" value={r.barcode ?? ""} onChange={(v) => onChange({ barcode: v || null })} />
         <Field label="Weight" type="number" value={r.weight != null ? String(r.weight) : ""} onChange={(v) => onChange({ weight: v.trim() === "" ? null : Number(v) })} />
-        <Field label="Image URL (optional)" value={r.imageUrl ?? ""} onChange={(v) => onChange({ imageUrl: v || null })} className="col-span-2" />
       </div>
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        Media for this colour is managed in the <span className="text-foreground font-medium">Variant Media</span> gallery below (images + videos, cover, reorder). The cover image is used automatically across product cards, cart, checkout, orders and invoices.
+      </p>
 
       <div className="mt-3">
         <Toggle checked={r.active} onChange={(v) => onChange({ active: v })} label="Active" hint="Inactive variants are hidden from customers but kept for records." />
