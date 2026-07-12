@@ -373,7 +373,7 @@ function VariantCard({ r, onChange, onRemove, onDuplicate, gallery }: {
               Variant Media · shared across all {r.color} sizes
             </p>
             <VariantMediaPanel
-              slug={/* injected below */ (gallery as any)._slug ?? ""}
+              slug={gallery.slug}
               color={r.color}
               hex={r.colorHex}
               max={gallery.max}
