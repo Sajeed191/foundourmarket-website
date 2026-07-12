@@ -622,6 +622,8 @@ export function VariantMediaPanel({
                         <Play className="size-4 fill-current" />
                       </span>
                     </span>
+                    <VideoDuration url={m.url} />
+
                   </>
                 ) : (
                   <img src={m.thumbUrl ?? m.url} alt={`${color} ${i + 1}`} loading="lazy" className="size-full object-cover" />
