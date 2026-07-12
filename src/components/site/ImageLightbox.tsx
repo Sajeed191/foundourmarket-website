@@ -4,6 +4,9 @@ import { X, Share2 } from "lucide-react";
 import type { ProductImage } from "@/lib/products";
 import { resizedStorageImage } from "@/lib/storage-image";
 
+/** A lightbox slide may be an image (zoomable) or a video (native controls). */
+export type LightboxMedia = ProductImage & { kind?: "image" | "video"; poster?: string | null };
+
 /**
  * Immersive full-screen product gallery.
  *
@@ -34,7 +37,7 @@ export function ImageLightbox({
   alt,
   onShare,
 }: {
-  images: ProductImage[];
+  images: LightboxMedia[];
   index: number;
   open: boolean;
   onClose: () => void;
@@ -43,6 +46,8 @@ export function ImageLightbox({
   onShare?: () => void;
 }) {
   const count = images.length;
+  const activeIsVideo = images[index]?.kind === "video";
+
 
   // Live view transform for the CURRENT slide (zoom + pan).
   const [zoom, setZoom] = useState(1);
@@ -146,9 +151,9 @@ export function ImageLightbox({
     axis.current = null;
     swipeClosing.current = false;
 
-    // Double-tap to zoom.
+    // Double-tap to zoom (images only — never zoom video slides).
     const now = Date.now();
-    if (now - lastTap.current < 280) {
+    if (!activeIsVideo && now - lastTap.current < 280) {
       lastTap.current = 0;
       const stage = stageRef.current;
       if (zoomRef.current > 1) {
@@ -167,7 +172,8 @@ export function ImageLightbox({
     } else {
       lastTap.current = now;
     }
-  }, [clampPan, resetZoom, setTransforms]);
+  }, [clampPan, resetZoom, setTransforms, activeIsVideo]);
+
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!pointers.current.has(e.pointerId)) return;
@@ -346,17 +352,30 @@ export function ImageLightbox({
                         : undefined
                     }
                   >
-                    <img
-                      src={resizedStorageImage(img.url, 1600, 78)}
-                      alt={img.alt || alt}
-                      draggable={false}
-                      decoding="async"
-                      loading="eager"
-                      fetchPriority={isActive ? "high" : "low"}
-                      onError={(e) => { if (e.currentTarget.src !== img.url) e.currentTarget.src = img.url; }}
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    {img.kind === "video" ? (
+                      <video
+                        src={img.url}
+                        poster={img.poster ?? undefined}
+                        controls
+                        playsInline
+                        preload={isActive ? "auto" : "none"}
+                        className="max-h-full max-w-full object-contain"
+                        onPointerDown={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <img
+                        src={resizedStorageImage(img.url, 1600, 78)}
+                        alt={img.alt || alt}
+                        draggable={false}
+                        decoding="async"
+                        loading="eager"
+                        fetchPriority={isActive ? "high" : "low"}
+                        onError={(e) => { if (e.currentTarget.src !== img.url) e.currentTarget.src = img.url; }}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    )}
                   </div>
+
                 ) : null}
               </div>
             );

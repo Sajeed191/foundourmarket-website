@@ -40,7 +40,7 @@ const AdminProductPanel = lazy(() =>
 const AdminImageManager = lazy(() =>
   import("@/components/admin/AdminImageManager").then((m) => ({ default: m.AdminImageManager })),
 );
-import { ImageLightbox } from "@/components/site/ImageLightbox";
+import { ImageLightbox, type LightboxMedia } from "@/components/site/ImageLightbox";
 import { resizedStorageImage } from "@/lib/storage-image";
 import { VariantSelector } from "@/components/site/VariantSelector";
 import { LazyMount } from "@/components/site/LazyMount";
@@ -441,26 +441,36 @@ function ProductPage() {
   const activeColorGallery = selectedColorKey ? colorGalleries[selectedColorKey] ?? null : null;
 
   const galleryMedia = (() => {
-    const items: ProductImage[] = [];
+    const items: LightboxMedia[] = [];
     if (product.videoUrl) {
-      items.push({ id: "video", url: product.videoUrl, alt: `${product.name} — video`, sortOrder: -2 });
+      items.push({ id: "video", url: product.videoUrl, alt: `${product.name} — video`, sortOrder: -2, kind: "video" });
     }
-    // When the selected colour has its own gallery, show ONLY those images
-    // (no images from other colours). Otherwise fall back to the product's
-    // default gallery so the gallery is never broken/empty.
+    // When the selected colour has its own gallery, show ONLY that colour's
+    // media (images + videos, no media from other colours). Otherwise fall back
+    // to the product's default gallery so the gallery is never broken/empty.
     if (activeColorGallery && activeColorGallery.length > 0) {
       activeColorGallery.forEach((img, i) => {
-        items.push({ id: `variant-${img.id}`, url: img.url, alt: `${product.name} — ${selectedColorKey} ${i + 1}`, sortOrder: i });
+        items.push({
+          id: `variant-${img.id}`,
+          url: img.url,
+          alt: `${product.name} — ${selectedColorKey} ${i + 1}`,
+          sortOrder: i,
+          kind: img.mediaType,
+          poster: img.posterUrl,
+        });
       });
       return items;
     }
-    const main = { id: "main", url: product.image, alt: product.name, sortOrder: -1 };
-    const extras = images.filter((img) => img.url && img.url !== product.image);
+    const main: LightboxMedia = { id: "main", url: product.image, alt: product.name, sortOrder: -1, kind: "image" };
+    const extras: LightboxMedia[] = images
+      .filter((img) => img.url && img.url !== product.image)
+      .map((img) => ({ ...img, kind: "image" as const }));
     items.push(main, ...extras);
     return items;
   })();
-  const galleryImages = galleryMedia.filter((m) => m.id !== "video");
+  const galleryImages = galleryMedia.filter((m) => m.kind !== "video");
   const activeMedia = galleryMedia[activeImg] ?? galleryMedia[0];
+
 
   // Serve device-appropriate, format-negotiated variants instead of the
   // full-resolution originals. Storage URLs are rewritten to the on-the-fly
@@ -478,7 +488,7 @@ function ProductPage() {
     if (typeof mem === "number" && mem <= 4) return;
     const neighbours = [galleryMedia[activeImg + 1], galleryMedia[activeImg - 1]];
     const imgs = neighbours
-      .filter((m) => m && m.id !== "video" && m.url)
+      .filter((m) => m && m.kind !== "video" && m.url)
       .map((m) => {
         const im = new Image();
         im.decoding = "async";
@@ -497,7 +507,7 @@ function ProductPage() {
   // Measure the natural aspect of the visible image so the main media container
   // sizes to the image itself (no crop, no blank). Uses a decode/Image() probe
   // which fires reliably even for browser-cached images (unlike a JSX onLoad).
-  const activeUrl = activeMedia?.id === "video" ? null : (activeMedia?.url || product.image);
+  const activeUrl = activeMedia?.kind === "video" ? null : (activeMedia?.url || product.image);
   useEffect(() => {
     // Keep the previous aspect until the next image resolves so the container
     // never briefly falls back to a mismatched box (which would letterbox).
@@ -521,11 +531,12 @@ function ProductPage() {
   // portrait is capped by max-h below (which centers horizontally, never leaving
   // a bottom gap).
   const displayAspect =
-    activeMedia?.id === "video" ? 16 / 9 : mediaAspect ?? 1;
+    activeMedia?.kind === "video" ? 16 / 9 : mediaAspect ?? 1;
 
-  const hasVideoFirst = galleryMedia[0]?.id === "video";
-  const lightboxIndex = hasVideoFirst ? Math.max(0, activeImg - 1) : activeImg;
-  const handleLightboxIndexChange = (i: number) => setActiveImg(hasVideoFirst ? i + 1 : i);
+  // The lightbox now renders videos too, so it receives the full media list and
+  // shares the same active index as the inline gallery.
+  const lightboxIndex = activeImg;
+  const handleLightboxIndexChange = (i: number) => setActiveImg(i);
 
   const selectedVariant = variants.find((v) => v.id === variantId) ?? null;
   const basePrice = priceOf(product);
@@ -679,21 +690,24 @@ function ProductPage() {
                 style={{ aspectRatio: String(displayAspect) }}
               >
                 <AnimatePresence mode="wait">
-                  {activeMedia?.id === "video" ? (
+                  {activeMedia?.kind === "video" ? (
                     <motion.video
-                      key="video"
+                      key={activeMedia.id}
                       src={activeMedia.url}
+                      poster={activeMedia.poster ?? undefined}
                       controls
                       autoPlay
                       muted
                       playsInline
+                      preload="metadata"
                       onClick={(e) => e.stopPropagation()}
                       initial={{ opacity: 0, scale: 1.04 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 w-full h-full object-cover bg-black"
+                      className="absolute inset-0 w-full h-full object-contain bg-black"
                     />
+
                   ) : (
                     <motion.img
                       key={activeMedia?.id}
@@ -822,17 +836,27 @@ function ProductPage() {
                     key={item.id}
                     data-thumb-index={i}
                     onClick={() => setActiveImg(i)}
-                    aria-label={item.id === "video" ? "Play video" : `View image ${i + 1}`}
+                    aria-label={item.kind === "video" ? "Play video" : `View image ${i + 1}`}
                     aria-current={i === activeImg}
                     className={`relative size-16 sm:size-[72px] shrink-0 snap-start rounded-2xl overflow-hidden border-2 transition-[border-color,box-shadow,opacity] active:scale-95 bg-card ${i === activeImg ? "border-accent/80 shadow-[0_6px_20px_-6px_oklch(0.74_0.19_49/0.6)]" : "border-white/10 opacity-55 hover:opacity-100 hover:border-accent/40"}`}
                   >
-                    {item.id === "video" ? (
-                      <div className="w-full h-full bg-black grid place-items-center">
-                        <Play className="size-6 text-white/80" />
-                      </div>
+                    {item.kind === "video" ? (
+                      item.poster ? (
+                        <>
+                          <img src={item.poster} alt={item.alt || "video"} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                          <span className="absolute inset-0 grid place-items-center bg-black/25">
+                            <Play className="size-5 text-white fill-white/90" />
+                          </span>
+                        </>
+                      ) : (
+                        <div className="w-full h-full bg-black grid place-items-center">
+                          <Play className="size-6 text-white/80" />
+                        </div>
+                      )
                     ) : (
                       <img src={thumbDisplaySrc(item.url)} alt={item.alt || `${product.name} — view ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" onError={(e) => { if (e.currentTarget.src !== item.url) e.currentTarget.src = item.url; }} />
                     )}
+
                   </button>
                 ))}
               </div>
@@ -842,7 +866,7 @@ function ProductPage() {
 
 
             <ImageLightbox
-              images={galleryImages}
+              images={galleryMedia}
               index={lightboxIndex}
               open={lightboxOpen}
               onClose={() => setLightboxOpen(false)}

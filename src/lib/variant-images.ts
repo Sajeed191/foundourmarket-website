@@ -1,19 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import { resolveImage } from "@/lib/products";
+import { DEFAULT_BUCKET } from "@/lib/media-engine";
 
 /**
- * Variant Media Gallery — per-COLOUR image galleries.
+ * Variant Media Gallery — per-COLOUR media galleries (images + videos).
  *
  * A gallery is keyed by (product_slug, color). Every size variant of a colour
- * shares the same images, so picking "Blue" shows the Blue gallery regardless
- * of size. The FIRST image of each colour is the colour thumbnail and is synced
+ * shares the same media, so picking "Blue" shows the Blue gallery regardless of
+ * size. The FIRST IMAGE of each colour is the colour thumbnail and is synced
  * into `product_variants.image_url` for every variant of that colour, so the
  * existing cart / checkout / order-snapshot pipeline (which reads
- * `variant.image_url`) keeps working with zero changes.
+ * `variant.image_url`) keeps working with zero changes. Videos never become the
+ * variant thumbnail — cart/checkout always show a still image.
  *
  * Products without colour galleries fall back to the product's default gallery
  * on the storefront — this module never returns a broken/empty gallery.
  */
+
+export type MediaType = "image" | "video";
 
 export type VariantImage = {
   id: string;
@@ -21,27 +25,56 @@ export type VariantImage = {
   url: string;
   thumbUrl: string | null;
   mediumUrl: string | null;
+  mediaType: MediaType;
+  posterUrl: string | null;
   sortOrder: number;
 };
 
-/** New (unsaved) image draft — no persisted id yet. */
+/** New (unsaved) media draft — no persisted id yet. */
 export type VariantImageDraft = {
   id: string; // client id, "new-*" until saved
   url: string;
   thumbUrl: string | null;
   mediumUrl: string | null;
+  mediaType: MediaType;
+  posterUrl: string | null;
 };
 
 const isNewImg = (id: string) => id.startsWith("new-");
 export const newImgId = () => `new-${Math.random().toString(36).slice(2, 9)}`;
 
+export const IMAGE_EXT = ["jpg", "jpeg", "png", "webp", "avif"];
+export const VIDEO_EXT = ["mp4", "webm", "mov"];
+
+/** Best-effort media-type detection from a URL/extension. */
+export function detectMediaType(url: string): MediaType {
+  const clean = url.split("?")[0].split("#")[0].toLowerCase();
+  const ext = clean.slice(clean.lastIndexOf(".") + 1);
+  if (VIDEO_EXT.includes(ext)) return "video";
+  // Common video hosts / patterns without extensions.
+  if (/\.(m3u8|mpd)$/.test(clean) || /video/.test(clean)) return "video";
+  return "image";
+}
+
+/** First IMAGE url in an ordered gallery (skips videos, uses poster as fallback). */
+export function firstImageUrl(images: VariantImageDraft[] | VariantImage[]): string | null {
+  for (const m of images) {
+    if (m.mediaType === "image") return m.url;
+    if (m.posterUrl) return m.posterUrl;
+  }
+  return null;
+}
+
 function rowToVariantImage(r: any): VariantImage {
+  const mediaType: MediaType = r.media_type === "video" ? "video" : "image";
   return {
     id: r.id,
     color: r.color,
-    url: resolveImage(r.image_url),
+    url: mediaType === "video" ? r.image_url : resolveImage(r.image_url),
     thumbUrl: r.thumb_url ? resolveImage(r.thumb_url) : null,
     mediumUrl: r.medium_url ? resolveImage(r.medium_url) : null,
+    mediaType,
+    posterUrl: r.poster_url ? resolveImage(r.poster_url) : null,
     sortOrder: r.sort_order ?? 0,
   };
 }
@@ -56,7 +89,7 @@ export async function fetchAdminColorGalleries(
 ): Promise<Record<string, VariantImageDraft[]>> {
   const { data, error } = await supabase
     .from("product_variant_images")
-    .select("id,color,image_url,thumb_url,medium_url,sort_order")
+    .select("id,color,image_url,thumb_url,medium_url,media_type,poster_url,sort_order")
     .eq("product_slug", slug)
     .order("sort_order", { ascending: true });
   if (error) throw error;
@@ -68,12 +101,14 @@ export async function fetchAdminColorGalleries(
       url: img.url,
       thumbUrl: img.thumbUrl,
       mediumUrl: img.mediumUrl,
+      mediaType: img.mediaType,
+      posterUrl: img.posterUrl,
     });
   }
   return out;
 }
 
-/** Configurable per-product maximum image count (null = no limit). */
+/** Configurable per-product maximum media count (null = no limit). */
 export async function fetchVariantImageMax(slug: string): Promise<number | null> {
   const { data } = await supabase
     .from("products")
@@ -93,9 +128,33 @@ export async function setVariantImageMax(slug: string, max: number | null): Prom
 }
 
 /**
+ * Upload a raw video file to storage and return its public URL. Videos are not
+ * transcoded client-side (kept as-is); the browser plays mp4/webm natively and
+ * .mov (H.264) plays in most modern browsers.
+ */
+export async function uploadVariantVideo(
+  slug: string,
+  file: File,
+  onProgress?: (fraction: number) => void,
+): Promise<string> {
+  const ext = (file.name.split(".").pop() || "mp4").toLowerCase();
+  const id = crypto.randomUUID();
+  const path = `product-videos/${slug}/${id}.${ext}`;
+  // supabase-js upload doesn't expose progress; emit coarse start/end.
+  onProgress?.(0.05);
+  const { error } = await supabase.storage
+    .from(DEFAULT_BUCKET)
+    .upload(path, file, { cacheControl: "3600", upsert: true, contentType: file.type || `video/${ext}` });
+  if (error) throw error;
+  onProgress?.(1);
+  const { data } = supabase.storage.from(DEFAULT_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/**
  * Persist a single colour's gallery: insert new rows, delete removed rows,
  * and re-sequence sort_order to match the provided order. Then sync the first
- * image into `product_variants.image_url` for every variant of that colour so
+ * IMAGE into `product_variants.image_url` for every variant of that colour so
  * cart/checkout/orders show the chosen colour image.
  */
 export async function saveColorGallery(
@@ -118,13 +177,21 @@ export async function saveColorGallery(
     if (error) throw error;
   }
 
-  // Update sort_order for kept rows.
+  // Update kept rows (sort order + editable media fields).
   for (let i = 0; i < images.length; i++) {
     const img = images[i];
     if (isNewImg(img.id)) continue;
     const { error } = await supabase
       .from("product_variant_images")
-      .update({ sort_order: i, updated_at: new Date().toISOString() })
+      .update({
+        sort_order: i,
+        image_url: img.url,
+        thumb_url: img.thumbUrl,
+        medium_url: img.mediumUrl,
+        media_type: img.mediaType,
+        poster_url: img.posterUrl,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", img.id);
     if (error) throw error;
   }
@@ -139,6 +206,8 @@ export async function saveColorGallery(
       image_url: img.url,
       thumb_url: img.thumbUrl,
       medium_url: img.mediumUrl,
+      media_type: img.mediaType,
+      poster_url: img.posterUrl,
       sort_order: i,
     }));
   if (inserts.length) {
@@ -146,7 +215,7 @@ export async function saveColorGallery(
     if (error) throw error;
   }
 
-  await syncColorThumbnail(slug, color, images[0]?.url ?? null);
+  await syncColorThumbnail(slug, color, firstImageUrl(images));
 }
 
 /**
@@ -168,7 +237,7 @@ export async function syncColorThumbnail(
 
 /**
  * Delete an entire colour's gallery (used when a colour is removed in the
- * Variant Builder). Only that colour's images are removed; other colours are
+ * Variant Builder). Only that colour's media are removed; other colours are
  * untouched. The colour's variant rows are deleted separately by the builder's
  * own save.
  */
@@ -181,7 +250,7 @@ export async function deleteColorGallery(slug: string, color: string): Promise<v
   if (error) throw error;
 }
 
-/** Rename a colour's gallery (keeps images attached when admin renames a colour). */
+/** Rename a colour's gallery (keeps media attached when admin renames a colour). */
 export async function renameColorGallery(
   slug: string,
   oldColor: string,
@@ -203,7 +272,7 @@ export async function renameColorGallery(
 export async function resyncColorThumbnails(slug: string): Promise<void> {
   const galleries = await fetchAdminColorGalleries(slug);
   for (const [color, imgs] of Object.entries(galleries)) {
-    await syncColorThumbnail(slug, color, imgs[0]?.url ?? null);
+    await syncColorThumbnail(slug, color, firstImageUrl(imgs));
   }
 }
 
@@ -222,7 +291,7 @@ export async function fetchPublicColorGalleries(
 ): Promise<Record<string, VariantImage[]>> {
   const { data } = await supabase
     .from("product_variant_images_public")
-    .select("id,color,image_url,thumb_url,medium_url,sort_order")
+    .select("id,color,image_url,thumb_url,medium_url,media_type,poster_url,sort_order")
     .eq("product_slug", slug)
     .order("sort_order", { ascending: true });
   const out: Record<string, VariantImage[]> = {};
