@@ -147,14 +147,8 @@ function VariantsPage() {
     return false;
   }, [rows]);
 
-  // Distinct colours across all variant rows — each gets its own media gallery.
-  const colorsInUse = useMemo(() => {
-    const map = new Map<string, { color: string; hex: string | null }>();
-    for (const r of rows) {
-      if (r.color && !map.has(r.color)) map.set(r.color, { color: r.color, hex: r.colorHex });
-    }
-    return Array.from(map.values());
-  }, [rows]);
+  // Shared per-colour media manager — every size card of a colour edits ONE gallery.
+  const gallery = useColorGalleryManager(slug);
 
   async function save() {
     if (dupWarning) { toast.error("Remove duplicate Size + Colour combinations first"); return; }
