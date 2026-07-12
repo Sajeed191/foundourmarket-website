@@ -692,19 +692,22 @@ function ProductPage() {
                 <AnimatePresence mode="wait">
                   {activeMedia?.kind === "video" ? (
                     <motion.video
-                      key="video"
+                      key={activeMedia.id}
                       src={activeMedia.url}
+                      poster={activeMedia.poster ?? undefined}
                       controls
                       autoPlay
                       muted
                       playsInline
+                      preload="metadata"
                       onClick={(e) => e.stopPropagation()}
                       initial={{ opacity: 0, scale: 1.04 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 w-full h-full object-cover bg-black"
+                      className="absolute inset-0 w-full h-full object-contain bg-black"
                     />
+
                   ) : (
                     <motion.img
                       key={activeMedia?.id}
