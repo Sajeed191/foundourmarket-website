@@ -342,6 +342,68 @@ export function VariantMediaPanel({
     setSelected(new Set());
   }
 
+  function bulkDownload() {
+    const items = media.filter((m) => selected.has(m.id));
+    items.forEach((m, idx) => setTimeout(() => download(m), idx * 200));
+  }
+
+  function moveSelected(toEnd: boolean) {
+    if (selected.size === 0) return;
+    const sel = media.filter((m) => selected.has(m.id));
+    const rest = media.filter((m) => !selected.has(m.id));
+    onChange(toEnd ? [...rest, ...sel] : [...sel, ...rest]);
+  }
+
+  function coverFromSelection() {
+    const firstSel = media.find((m) => selected.has(m.id) && m.mediaType === "image");
+    if (!firstSel) {
+      toast.error("Select an image to set as cover");
+      return;
+    }
+    makeThumbnail(firstSel.id);
+  }
+
+  async function onBulkReplace(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const ids = media.filter((m) => selected.has(m.id)).map((m) => m.id);
+    const arr = Array.from(files);
+    try {
+      let next = [...media];
+      const { processAndUpload } = await import("@/lib/media-engine");
+      for (let k = 0; k < Math.min(ids.length, arr.length); k++) {
+        const file = arr[k];
+        const id = ids[k];
+        const ext = (file.name.split(".").pop() || "").toLowerCase();
+        if (VIDEO_EXT.includes(ext)) {
+          const url = await uploadVariantVideo(slug, file);
+          next = next.map((m) =>
+            m.id === id ? { ...m, url, thumbUrl: null, mediumUrl: null, mediaType: "video" as MediaType } : m,
+          );
+        } else {
+          const done = await processAndUpload(file, { entityType: "product", entityRef: slug });
+          next = next.map((m) =>
+            m.id === id
+              ? {
+                  ...m,
+                  url: done.variants.large_url || done.variants.url,
+                  thumbUrl: done.variants.thumb_url,
+                  mediumUrl: done.variants.medium_url,
+                  mediaType: "image" as MediaType,
+                }
+              : m,
+          );
+        }
+      }
+      onChange(next);
+      toast.success(`Replaced ${Math.min(ids.length, arr.length)} selected media`);
+    } catch (e: any) {
+      toast.error("Bulk replace failed", { description: e?.message });
+    } finally {
+      if (bulkReplaceRef.current) bulkReplaceRef.current.value = "";
+    }
+  }
+
+
   function toggleSelect(id: string) {
     setSelected((prev) => {
       const n = new Set(prev);
