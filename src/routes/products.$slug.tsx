@@ -690,7 +690,7 @@ function ProductPage() {
                 style={{ aspectRatio: String(displayAspect) }}
               >
                 <AnimatePresence mode="wait">
-                  {activeMedia?.id === "video" ? (
+                  {activeMedia?.kind === "video" ? (
                     <motion.video
                       key="video"
                       src={activeMedia.url}
