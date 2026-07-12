@@ -531,11 +531,12 @@ function ProductPage() {
   // portrait is capped by max-h below (which centers horizontally, never leaving
   // a bottom gap).
   const displayAspect =
-    activeMedia?.id === "video" ? 16 / 9 : mediaAspect ?? 1;
+    activeMedia?.kind === "video" ? 16 / 9 : mediaAspect ?? 1;
 
-  const hasVideoFirst = galleryMedia[0]?.id === "video";
-  const lightboxIndex = hasVideoFirst ? Math.max(0, activeImg - 1) : activeImg;
-  const handleLightboxIndexChange = (i: number) => setActiveImg(hasVideoFirst ? i + 1 : i);
+  // The lightbox now renders videos too, so it receives the full media list and
+  // shares the same active index as the inline gallery.
+  const lightboxIndex = activeImg;
+  const handleLightboxIndexChange = (i: number) => setActiveImg(i);
 
   const selectedVariant = variants.find((v) => v.id === variantId) ?? null;
   const basePrice = priceOf(product);
