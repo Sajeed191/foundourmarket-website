@@ -106,7 +106,7 @@ export function useColorGalleryManager(slug: string) {
     }
   }
 
-  return { loading, max, commitMax, getMedia, setColorMedia, isDirty, savingColor, saveColor };
+  return { slug, loading, max, commitMax, getMedia, setColorMedia, isDirty, savingColor, saveColor };
 }
 
 // ---------------------------------------------------------------------------
