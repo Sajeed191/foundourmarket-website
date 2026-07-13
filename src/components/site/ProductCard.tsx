@@ -15,6 +15,8 @@ import { Price } from "@/components/site/Price";
 import { DiscountBadge } from "@/components/site/DiscountBadge";
 import { AdaptiveProductMedia } from "@/components/site/AdaptiveProductMedia";
 import { QuickViewDialog } from "@/components/site/QuickViewDialog";
+import { VariantSwatchStrip, type SwatchPreview } from "@/components/site/VariantSwatchStrip";
+import { resizedStorageImage } from "@/lib/storage-image";
 import { formatSold } from "@/lib/format-sold";
 
 type ProductCardProps = {
