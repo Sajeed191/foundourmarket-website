@@ -307,8 +307,10 @@ function FilterPanel({
               return (
                 <button
                   key={b.name}
-                  onClick={() => set({ brand: toggleInCsv(value.brand, b.name) })}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-white/[0.04]"
+                  onClick={() => !b.disabled && set({ brand: toggleInCsv(value.brand, b.name) })}
+                  disabled={b.disabled}
+                  aria-disabled={b.disabled}
+                  className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors ${b.disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-white/[0.04]"}`}
                 >
                   <span className={`grid size-4 place-items-center rounded-md border ${active ? "border-accent bg-accent text-accent-foreground" : "border-white/25"}`}>
                     {active && <Check className="size-3" strokeWidth={3} />}
@@ -326,19 +328,36 @@ function FilterPanel({
       {colors.length > 0 && (
         <div>
           <SectionLabel>Colour</SectionLabel>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-5 gap-3">
             {colors.map((c) => {
               const active = csvSet(value.color).has(c.name);
               return (
                 <button
                   key={c.name}
-                  onClick={() => set({ color: toggleInCsv(value.color, c.name) })}
+                  onClick={() => !c.disabled && set({ color: toggleInCsv(value.color, c.name) })}
+                  disabled={c.disabled}
                   aria-pressed={active}
-                  className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium transition-all active:scale-95 ${active ? "bg-accent/15 text-accent ring-1 ring-accent/40" : "bg-white/[0.05] text-foreground ring-1 ring-white/10 hover:bg-white/[0.08]"}`}
+                  aria-disabled={c.disabled}
+                  aria-label={`${c.name}${c.disabled ? " (unavailable)" : ` (${c.count})`}`}
+                  className={`group flex flex-col items-center gap-1.5 transition-transform ${c.disabled ? "opacity-50 cursor-not-allowed" : "active:scale-95"}`}
                 >
-                  <span className="size-4 shrink-0 rounded-full ring-1 ring-white/25" style={{ backgroundColor: c.hex ?? "#888" }} aria-hidden />
-                  <span>{c.name}</span>
-                  <span className="tabular-nums text-[11px] text-muted-foreground">{c.count}</span>
+                  <span className={`relative grid size-10 place-items-center rounded-full ring-2 transition-all ${active ? "ring-accent" : c.disabled ? "ring-white/10" : "ring-white/20 group-hover:ring-white/40"}`}>
+                    <span className="size-7 rounded-full ring-1 ring-black/20" style={{ backgroundColor: c.hex ?? "#888" }} aria-hidden />
+                    {active && (
+                      <span className="absolute inset-0 grid place-items-center animate-scale-in">
+                        <span className="grid size-4.5 place-items-center rounded-full bg-accent text-accent-foreground shadow">
+                          <Check className="size-3" strokeWidth={3} />
+                        </span>
+                      </span>
+                    )}
+                    {c.disabled && (
+                      <span aria-hidden className="absolute inset-0 grid place-items-center">
+                        <span className="h-px w-8 rotate-45 bg-white/40" />
+                      </span>
+                    )}
+                  </span>
+                  <span className={`max-w-[4rem] truncate text-[11px] font-medium ${active ? "text-accent" : "text-foreground"}`}>{c.name}</span>
+                  <span className="-mt-1 tabular-nums text-[10px] text-muted-foreground">{c.count}</span>
                 </button>
               );
             })}
@@ -356,11 +375,19 @@ function FilterPanel({
               return (
                 <button
                   key={s.name}
-                  onClick={() => set({ size: toggleInCsv(value.size, s.name) })}
+                  onClick={() => !s.disabled && set({ size: toggleInCsv(value.size, s.name) })}
+                  disabled={s.disabled}
                   aria-pressed={active}
-                  className={`min-w-11 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all active:scale-95 ${active ? "bg-accent/15 text-accent ring-1 ring-accent/40" : "bg-white/[0.05] text-foreground ring-1 ring-white/10 hover:bg-white/[0.08]"}`}
+                  aria-disabled={s.disabled}
+                  className={`relative min-w-11 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${
+                    s.disabled
+                      ? "text-muted-foreground/60 bg-white/[0.02] ring-1 ring-white/5 cursor-not-allowed"
+                      : active
+                        ? "bg-accent/15 text-accent ring-1 ring-accent/40 active:scale-95"
+                        : "bg-white/[0.05] text-foreground ring-1 ring-white/10 hover:bg-white/[0.08] active:scale-95"
+                  }`}
                 >
-                  {s.name}
+                  <span className={s.disabled ? "line-through" : ""}>{s.name}</span>
                   <span className="ml-1 tabular-nums text-[10px] text-muted-foreground">{s.count}</span>
                 </button>
               );
