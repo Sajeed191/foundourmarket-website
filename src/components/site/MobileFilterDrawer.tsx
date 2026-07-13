@@ -339,17 +339,54 @@ export function MobileFilterDrawer({
     onCloseRef.current = onClose;
   }, [onClose]);
 
+  const historyTokenRef = useRef<string | null>(null);
+  const closedByPopRef = useRef(false);
+
   // Android/browser back button closes the drawer before leaving the page.
+  // Never call history.back() from this effect's cleanup: React StrictMode runs
+  // setup -> cleanup -> setup for effects, and a cleanup-triggered back() can
+  // race with the freshly-added popstate listener and close/reopen the sheet in
+  // a loop. History is pushed once per open session and popped only after the
+  // parent has actually closed the drawer.
   useEffect(() => {
     if (!open) return;
-    window.history.pushState({ filterDrawer: true }, "");
-    const onPop = () => onCloseRef.current();
+
+    if (!historyTokenRef.current) {
+      const token = `filter-drawer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      historyTokenRef.current = token;
+      closedByPopRef.current = false;
+      window.history.pushState({ ...(window.history.state ?? {}), filterDrawer: token }, "");
+    }
+
+    const onPop = () => {
+      const token = historyTokenRef.current;
+      if (!token) return;
+      if (window.history.state?.filterDrawer === token) return;
+      closedByPopRef.current = true;
+      historyTokenRef.current = null;
+      onCloseRef.current();
+    };
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      // If closed by other means (button/backdrop/apply), drop our pushed entry.
-      if (window.history.state?.filterDrawer) window.history.back();
     };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) return;
+    const token = historyTokenRef.current;
+    if (!token) {
+      closedByPopRef.current = false;
+      return;
+    }
+
+    historyTokenRef.current = null;
+    const closedByPop = closedByPopRef.current;
+    closedByPopRef.current = false;
+
+    if (!closedByPop && window.history.state?.filterDrawer === token) {
+      window.history.back();
+    }
   }, [open]);
 
 
