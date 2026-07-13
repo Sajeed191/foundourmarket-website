@@ -753,6 +753,8 @@ function Home() {
           {ffFlashDeals && <FlashDeals />}
         </LazyMount>
 
+        <SmartRecommendations />
+
 
 
 
