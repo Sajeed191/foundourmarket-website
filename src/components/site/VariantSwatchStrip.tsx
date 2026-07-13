@@ -31,6 +31,8 @@ type Props = {
   product: Product;
   /** Fired when a colour is previewed (hover/tap) or cleared (null). */
   onPreview: (preview: SwatchPreview | null) => void;
+  /** Fired with whether this product actually has previewable swatches. */
+  onAvailability?: (hasSwatches: boolean) => void;
   className?: string;
 };
 
@@ -77,7 +79,7 @@ function haptic() {
   }
 }
 
-function SwatchStripImpl({ product, onPreview, className }: Props) {
+function SwatchStripImpl({ product, onPreview, onAvailability, className }: Props) {
   const slug = product.slug;
   const [summary, setSummary] = useState<VariantSummary | null | undefined>(() =>
     getCachedVariantSummary(slug),
@@ -177,7 +179,13 @@ function SwatchStripImpl({ product, onPreview, className }: Props) {
     setRipple({ key: Date.now() });
   }, []);
 
-  if (!summary || options.length < 2) return null;
+  const hasSwatches = !!summary && options.length >= 2;
+
+  useEffect(() => {
+    onAvailability?.(hasSwatches);
+  }, [hasSwatches, onAvailability]);
+
+  if (!hasSwatches) return null;
 
   const extra = options.length - Math.min(options.length, 6);
 
