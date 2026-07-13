@@ -233,6 +233,7 @@ function ProductPage() {
   const [variantId, setVariantId] = useState<string | null>(null);
   const [fbtSlugs, setFbtSlugs] = useState<string[]>([]);
   const [alsoViewed, setAlsoViewed] = useState<string[]>([]);
+  const [fbtProducts, setFbtProducts] = useState<Product[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   // True once images + variants have resolved from the server.
   const [dataReady, setDataReady] = useState(false);
