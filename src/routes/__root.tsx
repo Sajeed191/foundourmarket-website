@@ -753,6 +753,7 @@ function AppRoot() {
                         <LayoutMetricsProvider>
                           <BadgeEngineProvider>
                           <SearchUIProvider>
+                          <RecommendationProvider>
                           <div data-app-shell className="min-h-dvh flex flex-col">
                             {!hideSiteChrome && <Nav />}
                             <main
@@ -781,6 +782,7 @@ function AppRoot() {
                             <GlobalSearchMount />
                             <ContinueShoppingHistoryCleanup />
                           </div>
+                          </RecommendationProvider>
                           </SearchUIProvider>
                           </BadgeEngineProvider>
                         </LayoutMetricsProvider>
