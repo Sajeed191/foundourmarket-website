@@ -60,7 +60,33 @@ type SignalsContextValue = {
   loading: boolean;
   /** True once the shopper has meaningful history (returning user). */
   personalized: boolean;
+  /** Admin business rules resolved against the current catalog. */
+  businessRules: ResolvedRules;
 };
+
+const EMPTY_RULES: ResolvedRules = { ruleAdjust: new Map(), excludedSlugs: [], activeCount: 0 };
+
+/** Load enabled admin merchandising rules once (cheap, non-sensitive). */
+function useBusinessRules(products: Product[]): ResolvedRules {
+  const [rules, setRules] = useState<BusinessRule[]>([]);
+  useEffect(() => {
+    let active = true;
+    listActiveRules()
+      .then((r) => {
+        if (active) setRules(r);
+      })
+      .catch(() => {
+        if (active) setRules([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return useMemo(
+    () => (rules.length && products.length ? resolveBusinessRules(products, rules) : EMPTY_RULES),
+    [rules, products],
+  );
+}
 
 const SignalsContext = createContext<SignalsContextValue | null>(null);
 
