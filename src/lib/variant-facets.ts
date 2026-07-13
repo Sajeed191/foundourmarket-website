@@ -20,6 +20,10 @@ export type VariantRow = {
   override: number | null;
   /** Additive adjustment applied on top of the base price. */
   adjustment: number;
+  /** Per-colour cover image (first image of that colour, synced admin-side). */
+  imageUrl: string | null;
+  /** Low-stock threshold for this variant. */
+  lowStockThreshold: number;
 };
 
 export type VariantSummary = {
