@@ -1215,29 +1215,13 @@ function ProductPage() {
         </div>
       </div>
 
-      {/* Recommendations — deferred until they near the viewport so the core
-          product info paints first and below-the-fold work is progressive. */}
+      {/* Intelligent PDP recommendations — every rail flows through the
+          centralized engine (scored, reason-tagged, diversity-passed) and is
+          deferred until near the viewport so core product info paints first. */}
       <ProductLayoutDiagnostics phase="final" />
-      {(fbtSlugs.length > 0 || alsoViewed.length > 0) && (
-        <LazyMount minHeight={0} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div data-product-recommendations>
-            {fbtSlugs.length > 0 && (
-              <RecommendationStrip
-                title="Frequently bought together"
-                subtitle="Customers commonly purchase these in the same order"
-                icon={<ShoppingBagIcon className="size-3" />}
-                slugs={fbtSlugs}
-              />
-            )}
-            {alsoViewed.length > 0 && (
-              <RecommendationStrip
-                title="Customers also viewed"
-                icon={<Users className="size-3" />}
-                slugs={alsoViewed}
-              />
-            )}
-          </div>
-        </LazyMount>
+
+      {fbtProducts.length > 0 && (
+        <FrequentlyBoughtTogether seed={product} companions={fbtProducts} />
       )}
 
       <LazyMount minHeight={120} className="scroll-mt-24" id="reviews">
@@ -1250,11 +1234,12 @@ function ProductPage() {
           <ProductQA productSlug={product.slug} />
         </div>
       </LazyMount>
-      <LazyMount minHeight={160}>
-        <div data-product-related>
-          <RelatedProducts product={product} />
-        </div>
-      </LazyMount>
+
+      <PDPRecommendations
+        product={product}
+        alsoBoughtSlugs={alsoViewed}
+      />
+
       <LazyMount minHeight={160}>
         <RecommendedForYou excludeSlug={product.slug} />
       </LazyMount>
