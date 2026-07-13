@@ -92,14 +92,13 @@ function SwatchStripImpl({ product, onPreview, className }: Props) {
   useEffect(() => {
     if (summary !== undefined) return;
     let alive = true;
-    const cancel = runWhenIdle(() => {
+    runWhenIdle(() => {
       void loadVariantSummaries([slug]).then(() => {
         if (alive) setSummary(getCachedVariantSummary(slug) ?? null);
       });
     });
     return () => {
       alive = false;
-      cancel?.();
     };
   }, [slug, summary]);
 
