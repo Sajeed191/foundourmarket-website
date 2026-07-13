@@ -89,13 +89,7 @@ export function FrequentlyBoughtTogether({
 
   return (
     <LazyMount minHeight={200} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <section
-        className="py-6 sm:py-9"
-        data-rec-source="frequently_bought_together"
-        ref={(el) => {
-          if (el) recordImpression("frequently_bought_together");
-        }}
-      >
+      <section className="py-6 sm:py-9" data-rec-source="frequently_bought_together">
         <div className="mb-4 sm:mb-6">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-1.5">
             Bundle &amp; Save
