@@ -452,21 +452,6 @@ function AccountPage() {
         </motion.header>
         </div>
 
-        {/* 1.5 — ACTIVE JOURNEY TRACKING (single card, auto-hides when complete) */}
-        <AnimatePresence>
-          {activeJourney && (
-            <TrackingWidget key={activeJourney.type} journey={activeJourney} format={format} />
-          )}
-        </AnimatePresence>
-
-
-
-
-
-
-
-
-
         {/* 2 — OVERVIEW */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }}>
           <SectionHeader title="Overview" eyebrow="Your account at a glance" />
@@ -477,6 +462,13 @@ function AccountPage() {
             <OverviewCard icon={Wallet} label="Total Saved" value={stats.saved} loading={!orders} formatter={format} tone="emerald" />
           </div>
         </motion.section>
+
+        {/* 2.5 — ACTIVE JOURNEY TRACKING (single card, auto-hides when complete) */}
+        <AnimatePresence>
+          {activeJourney && (
+            <TrackingWidget key={activeJourney.type} journey={activeJourney} format={format} />
+          )}
+        </AnimatePresence>
 
         {/* 3 — QUICK ACTIONS */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }}>
