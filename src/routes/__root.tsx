@@ -28,7 +28,7 @@ import { CommandCenterProvider } from "@/lib/command-center";
 import { MobileBottomNav } from "@/components/site/MobileBottomNav";
 import { SearchUIProvider, useSearchUI } from "@/lib/search-ui";
 import { registerServiceWorker } from "@/lib/pwa";
-import { logBuildVersion } from "@/lib/build-version";
+import { logBuildVersion, BUILD_ID } from "@/lib/build-version";
 import { preloadCrisp } from "@/lib/crisp";
 import { trackPageView } from "@/lib/analytics";
 import { loadProducts, useProducts } from "@/lib/use-products";
