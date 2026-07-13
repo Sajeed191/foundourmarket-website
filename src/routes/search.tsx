@@ -808,6 +808,9 @@ function SearchPage() {
     setDraftSort("relevance");
   }
 
+  const openFilterDrawer = useCallback(() => setDrawerOpen(true), []);
+  const closeFilterDrawer = useCallback(() => setDrawerOpen(false), []);
+
   const activeFilterCount = countActive(currentFilters);
 
   const getProductKey = useCallback((p: Product) => p.id ?? p.slug, []);
@@ -896,7 +899,7 @@ function SearchPage() {
         >
           <div className="flex items-center gap-2 min-w-0">
             <button
-              onClick={() => setDrawerOpen(true)}
+              onClick={openFilterDrawer}
               className="lg:hidden shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/[0.05] ring-1 ring-white/10 text-xs font-medium hover:bg-white/[0.08] transition-all"
             >
               <SlidersHorizontal className="size-4" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
@@ -905,7 +908,7 @@ function SearchPage() {
             {/* Premium full-screen filter drawer (mobile) */}
             <MobileFilterDrawer
               open={drawerOpen}
-              onClose={() => setDrawerOpen(false)}
+              onClose={closeFilterDrawer}
               draft={draft}
               setDraft={setDraft}
               sort={draftSort}

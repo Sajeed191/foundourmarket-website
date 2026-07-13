@@ -33,6 +33,7 @@ type Props = {
 
 const RATINGS = [4, 3, 2, 1];
 const DISCOUNTS = [10, 20, 30, 40, 50, 70];
+const DRAWER_HISTORY_KEY = "__fomMobileFilterDrawer";
 
 const OFFERS: { key: keyof Filters; label: string }[] = [
   { key: "free", label: "Free Shipping" },
@@ -355,13 +356,13 @@ export function MobileFilterDrawer({
       const token = `filter-drawer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       historyTokenRef.current = token;
       closedByPopRef.current = false;
-      window.history.pushState({ ...(window.history.state ?? {}), filterDrawer: token }, "");
+      window.history.pushState({ [DRAWER_HISTORY_KEY]: token }, "", window.location.href);
     }
 
     const onPop = () => {
       const token = historyTokenRef.current;
       if (!token) return;
-      if (window.history.state?.filterDrawer === token) return;
+      if (window.history.state?.[DRAWER_HISTORY_KEY] === token) return;
       closedByPopRef.current = true;
       historyTokenRef.current = null;
       onCloseRef.current();
@@ -384,7 +385,7 @@ export function MobileFilterDrawer({
     const closedByPop = closedByPopRef.current;
     closedByPopRef.current = false;
 
-    if (!closedByPop && window.history.state?.filterDrawer === token) {
+    if (!closedByPop && window.history.state?.[DRAWER_HISTORY_KEY] === token) {
       window.history.back();
     }
   }, [open]);
