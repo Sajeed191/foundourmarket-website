@@ -316,6 +316,7 @@ const BuyNowButton = memo(BuyNowButtonImpl, (a, b) => a.product.slug === b.produ
 function ProductCardImpl({ product, context = "default", forceBadge, priority = false, highlight, hideBadges = false }: ProductCardProps) {
   const { priceOf, compareOf, shippingFeeOf } = useRegion();
   const [quickOpen, setQuickOpen] = useState(false);
+  const [preview, setPreview] = useState<SwatchPreview | null>(null);
   const price = priceOf(product);
   const originalPrice = compareOf(product) ?? (product.discount ? price * (1 + product.discount / 100) : null);
   const discount = discountPercent(price, originalPrice);
