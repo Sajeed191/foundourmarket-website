@@ -642,7 +642,7 @@ function SearchPage() {
     let cancelled = false;
     const slugs = rawRows.map((p) => p.slug);
     fetchVariantFacets(slugs)
-      .then((map) => { if (!cancelled) setVariantFacets(map); })
+      .then((map) => { if (!cancelled) { setVariantFacets(map); primeVariantSummaries(map); } })
       .catch(() => { if (!cancelled) setVariantFacets(new Map()); });
     return () => { cancelled = true; };
   }, [rawRows]);
