@@ -54,6 +54,7 @@ function VariantsPage() {
   const [enabled, setEnabled] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [saving, setSaving] = useState(false);
+  const [defaultColor, setDefaultColor] = useState<string | null>(null);
 
   // Combination generator inputs
   const [selSizes, setSelSizes] = useState<string[]>([]);
