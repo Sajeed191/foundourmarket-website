@@ -321,6 +321,7 @@ export function rowToProduct(r: Row): Product {
     brand: r.brand ?? null,
     productType: r.product_type ?? null,
     videoUrl: r.video_url ?? null,
+    defaultVariantColor: r.default_variant_color ?? null,
     features: r.features ?? [],
     specifications: r.specifications ?? {},
     attributes: r.attributes ?? {},
