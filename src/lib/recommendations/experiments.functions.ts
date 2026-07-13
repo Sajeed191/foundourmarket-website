@@ -61,6 +61,29 @@ export const listAllExperiments = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+/** Admin: assignment counts per variant (sample size) for each experiment. */
+export const experimentStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<Record<string, Record<string, number>>> => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Forbidden");
+    const { data, error } = await context.supabase
+      .from("experiment_assignments")
+      .select("experiment_key, variant")
+      .limit(50000);
+    if (error) throw error;
+    const out: Record<string, Record<string, number>> = {};
+    for (const row of data ?? []) {
+      const key = row.experiment_key as string;
+      const variant = row.variant as string;
+      out[key] ??= {};
+      out[key][variant] = (out[key][variant] ?? 0) + 1;
+    }
+    return out;
+  });
+
+
+
 const upsertSchema = z.object({
   id: z.string().uuid().optional(),
   key: z.string().min(1).max(80).regex(/^[a-z0-9_-]+$/i),
