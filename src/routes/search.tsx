@@ -49,6 +49,7 @@ type SearchParams = {
 };
 
 const PRICE_MAX = 1000;
+const FILTER_SNAP_POINTS = [0, 50, 200, 500, PRICE_MAX];
 const PAGE_SIZE = 60;
 
 const str = (v: unknown) => (typeof v === "string" && v !== "" ? v : undefined);
