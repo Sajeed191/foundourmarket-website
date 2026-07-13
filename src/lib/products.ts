@@ -104,6 +104,8 @@ export type Product = {
   revenue: number;
   // Media
   videoUrl: string | null;
+  /** Admin-selected default variant colour (drives storefront gallery/card). */
+  defaultVariantColor: string | null;
   // Rich content shown to customers
   features: string[];
   specifications: Record<string, string>;
