@@ -375,6 +375,25 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
 
   const openQuickView = useCallback(() => setQuickOpen(true), []);
 
+  const previewSrc = useMemo(() => {
+    const cover = preview?.option.cover;
+    if (!cover) return null;
+    return resizedStorageImage(cover, 640) || cover;
+  }, [preview]);
+
+  // Starting price for the previewed colour (additive adjustment only; absolute
+  // overrides are skipped to avoid cross-region currency mismatches).
+  const previewPrice = useMemo(() => {
+    if (!preview) return null;
+    const adj = preview.option.adjustment;
+    if (!adj) return null;
+    const p = price + adj;
+    return p !== price ? p : null;
+  }, [preview, price]);
+
+  const previewStock = preview?.option.stock ?? null;
+
+
   return (
     <article
       key={identity}
