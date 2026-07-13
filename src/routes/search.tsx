@@ -98,16 +98,19 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
-const SORTS: { value: string; label: string; desc: string; icon: LucideIcon }[] = [
-  { value: "relevance", label: "Relevance", desc: "Best match for your search", icon: Sparkles },
-  { value: "trending", label: "Trending", desc: "Rising in views & sales", icon: TrendingUp },
-  { value: "best_selling", label: "Best Selling", desc: "Most orders overall", icon: Flame },
-  { value: "rating", label: "Highest Rated", desc: "Top review scores first", icon: Star },
-  { value: "newest", label: "Newest", desc: "Latest arrivals", icon: Clock },
-  { value: "price_asc", label: "Price: Low → High", desc: "Cheapest first", icon: ArrowDownWideNarrow },
-  { value: "price_desc", label: "Price: High → Low", desc: "Premium first", icon: ArrowUpWideNarrow },
-  { value: "discount", label: "Biggest Discount", desc: "Best deals first", icon: Tag },
+const SORTS: { value: string; label: string; desc: string; icon: LucideIcon; group: string }[] = [
+  { value: "relevance", label: "Relevance", desc: "Best match for your search", icon: Sparkles, group: "Recommended" },
+  { value: "trending", label: "Trending", desc: "Rising in views & sales", icon: TrendingUp, group: "Recommended" },
+  { value: "best_selling", label: "Best Selling", desc: "Most orders overall", icon: Flame, group: "Recommended" },
+  { value: "price_asc", label: "Price: Low → High", desc: "Cheapest first", icon: ArrowDownWideNarrow, group: "Price" },
+  { value: "price_desc", label: "Price: High → Low", desc: "Premium first", icon: ArrowUpWideNarrow, group: "Price" },
+  { value: "discount", label: "Biggest Discount", desc: "Best deals first", icon: Tag, group: "Price" },
+  { value: "rating", label: "Highest Rated", desc: "Top review scores first", icon: Star, group: "Customer" },
+  { value: "newest", label: "Newest", desc: "Latest arrivals", icon: Clock, group: "Newest" },
 ];
+
+// Sort options grouped for a premium, scannable sort sheet.
+const SORT_GROUPS: string[] = ["Recommended", "Price", "Customer", "Newest"];
 
 // Rotation reshuffle cadence for the default browse feed (every 2 hours).
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
