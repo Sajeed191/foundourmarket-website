@@ -23,6 +23,12 @@ export type RecommendationSource =
   | "wishlist_inspired"
   | "continue_shopping"
   | "popular_near_you"
+  | "complete_the_look"
+  | "compatible_accessories"
+  | "trending_in_category"
+  | "recently_viewed_alternatives"
+  | "upgrade"
+  | "budget_alternative"
   | "cold_start";
 
 /** A recommendation strategy = a preset weighting of the scoring factors. */
