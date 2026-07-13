@@ -451,8 +451,10 @@ export function MobileFilterDrawer({
                 return (
                   <button
                     key={b.name}
-                    onClick={() => toggleBrand(b.name)}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-white/[0.04]"
+                    onClick={() => !b.disabled && toggleBrand(b.name)}
+                    disabled={b.disabled}
+                    aria-disabled={b.disabled}
+                    className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors ${b.disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-white/[0.04]"}`}
                   >
                     <span className={`grid size-4.5 place-items-center rounded-md border ${active ? "border-accent bg-accent text-accent-foreground" : "border-white/25"}`}>
                       {active && <Check className="size-3" strokeWidth={3} />}
