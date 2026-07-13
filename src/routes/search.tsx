@@ -886,29 +886,40 @@ function SearchPage() {
                   <ArrowUpDown className="size-4 text-accent" />
                   <h2 className="text-base font-semibold text-foreground">Sort by</h2>
                 </div>
-                <div className="space-y-2">
-                  {SORTS.map((s) => {
-                    const active = (search.sort ?? "relevance") === s.value;
-                    const Icon = s.icon;
+                <div className="space-y-5">
+                  {SORT_GROUPS.map((group) => {
+                    const items = SORTS.filter((s) => s.group === group);
+                    if (items.length === 0) return null;
                     return (
-                      <button
-                        key={s.value}
-                        onClick={() => { update({ sort: s.value }); setSortOpen(false); }}
-                        className={`group flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3 text-left transition-all duration-200 active:scale-[0.98] ${active ? "bg-accent/[0.12] ring-1 ring-accent/40 shadow-[0_8px_28px_-12px_var(--accent)]" : "ring-1 ring-white/[0.06] hover:bg-white/[0.05]"}`}
-                      >
-                        <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors ${active ? "bg-accent/20 text-accent" : "bg-white/[0.05] text-muted-foreground group-hover:text-foreground"}`}>
-                          <Icon className="size-[18px]" strokeWidth={2} />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className={`block text-sm font-semibold ${active ? "text-accent" : "text-foreground"}`}>{s.label}</span>
-                          <span className="block truncate text-[11px] text-muted-foreground">{s.desc}</span>
-                        </span>
-                        {active && (
-                          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground animate-scale-in">
-                            <Check className="size-3.5" strokeWidth={3} />
-                          </span>
-                        )}
-                      </button>
+                      <div key={group}>
+                        <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">{group}</p>
+                        <div className="space-y-2">
+                          {items.map((s) => {
+                            const active = (search.sort ?? "relevance") === s.value;
+                            const Icon = s.icon;
+                            return (
+                              <button
+                                key={s.value}
+                                onClick={() => { update({ sort: s.value }); setSortOpen(false); }}
+                                className={`group flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3 text-left transition-all duration-200 active:scale-[0.98] ${active ? "bg-accent/[0.12] ring-1 ring-accent/40 shadow-[0_8px_28px_-12px_var(--accent)]" : "ring-1 ring-white/[0.06] hover:bg-white/[0.05]"}`}
+                              >
+                                <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors ${active ? "bg-accent/20 text-accent" : "bg-white/[0.05] text-muted-foreground group-hover:text-foreground"}`}>
+                                  <Icon className="size-[18px]" strokeWidth={2} />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className={`block text-sm font-semibold ${active ? "text-accent" : "text-foreground"}`}>{s.label}</span>
+                                  <span className="block truncate text-[11px] text-muted-foreground">{s.desc}</span>
+                                </span>
+                                {active && (
+                                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground animate-scale-in">
+                                    <Check className="size-3.5" strokeWidth={3} />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
