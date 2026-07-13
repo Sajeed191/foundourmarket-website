@@ -227,6 +227,9 @@ export function useRecommendationRail(options: RailOptions): {
         [...signals.cart].sort().join(","),
         [...signals.purchased].sort().join(","),
         signals.market ?? "",
+        businessRules.activeCount,
+        businessRules.ruleAdjust.size,
+        businessRules.excludedSlugs.join(","),
       ].join("|"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
