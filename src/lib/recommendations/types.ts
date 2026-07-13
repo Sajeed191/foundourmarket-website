@@ -23,6 +23,12 @@ export type RecommendationSource =
   | "wishlist_inspired"
   | "continue_shopping"
   | "popular_near_you"
+  | "complete_the_look"
+  | "compatible_accessories"
+  | "trending_in_category"
+  | "recently_viewed_alternatives"
+  | "upgrade"
+  | "budget_alternative"
   | "cold_start";
 
 /** A recommendation strategy = a preset weighting of the scoring factors. */
@@ -84,6 +90,14 @@ export type EngineConfig = {
   seedScores?: Map<string, number>;
   /** Restrict candidate set to these slugs (e.g. FBT / also-bought results). */
   restrictTo?: string[];
+  /** Only candidates whose region price is >= this value. */
+  priceMin?: number;
+  /** Only candidates whose region price is <= this value. */
+  priceMax?: number;
+  /** Restrict candidates to the seed's category (trending-in-category, etc.). */
+  sameCategoryAsSeed?: boolean;
+  /** Restrict candidates to a DIFFERENT category than the seed (complementary). */
+  differentCategoryFromSeed?: boolean;
   /** Allow out-of-stock products (restock surfaces). Default false. */
   includeOutOfStock?: boolean;
   /** Apply the diversity pass (brand / price / colour spread). Default true. */

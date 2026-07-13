@@ -31,6 +31,9 @@ import { recordViewedPrice } from "@/lib/viewed-prices";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { RecommendedForYou } from "@/components/site/RecommendedForYou";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
+import { FrequentlyBoughtTogether } from "@/components/site/FrequentlyBoughtTogether";
+import { PDPRecommendations } from "@/components/site/PDPRecommendations";
+import { fetchProductsBySlugs, type Product } from "@/lib/products";
 import { useIsProductAdmin } from "@/lib/use-admin";
 // Admin-only editors: lazy so customers never download the heavy admin graph
 // (framer-motion menus, server-fn clients) on a product page. Gated by isAdmin.
@@ -230,6 +233,7 @@ function ProductPage() {
   const [variantId, setVariantId] = useState<string | null>(null);
   const [fbtSlugs, setFbtSlugs] = useState<string[]>([]);
   const [alsoViewed, setAlsoViewed] = useState<string[]>([]);
+  const [fbtProducts, setFbtProducts] = useState<Product[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   // True once images + variants have resolved from the server.
   const [dataReady, setDataReady] = useState(false);
@@ -272,8 +276,12 @@ function ProductPage() {
         item_category: product.category ?? undefined,
         item_brand: product.brand ?? undefined,
       }, market === "india" ? "INR" : "USD")).catch(() => {});
-      fetchFBT(product.slug, 4).then(setFbtSlugs);
-      fetchAlsoViewed(product.slug, 6).then(setAlsoViewed);
+      fetchFBT(product.slug, 4).then((slugs) => {
+        setFbtSlugs(slugs);
+        if (slugs.length) fetchProductsBySlugs(slugs).then(setFbtProducts).catch(() => {});
+        else setFbtProducts([]);
+      });
+      fetchAlsoViewed(product.slug, 8).then(setAlsoViewed);
     }
   }, [product?.slug, record]);
 
@@ -1207,29 +1215,13 @@ function ProductPage() {
         </div>
       </div>
 
-      {/* Recommendations — deferred until they near the viewport so the core
-          product info paints first and below-the-fold work is progressive. */}
+      {/* Intelligent PDP recommendations — every rail flows through the
+          centralized engine (scored, reason-tagged, diversity-passed) and is
+          deferred until near the viewport so core product info paints first. */}
       <ProductLayoutDiagnostics phase="final" />
-      {(fbtSlugs.length > 0 || alsoViewed.length > 0) && (
-        <LazyMount minHeight={0} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div data-product-recommendations>
-            {fbtSlugs.length > 0 && (
-              <RecommendationStrip
-                title="Frequently bought together"
-                subtitle="Customers commonly purchase these in the same order"
-                icon={<ShoppingBagIcon className="size-3" />}
-                slugs={fbtSlugs}
-              />
-            )}
-            {alsoViewed.length > 0 && (
-              <RecommendationStrip
-                title="Customers also viewed"
-                icon={<Users className="size-3" />}
-                slugs={alsoViewed}
-              />
-            )}
-          </div>
-        </LazyMount>
+
+      {fbtProducts.length > 0 && (
+        <FrequentlyBoughtTogether seed={product} companions={fbtProducts} />
       )}
 
       <LazyMount minHeight={120} className="scroll-mt-24" id="reviews">
@@ -1242,11 +1234,12 @@ function ProductPage() {
           <ProductQA productSlug={product.slug} />
         </div>
       </LazyMount>
-      <LazyMount minHeight={160}>
-        <div data-product-related>
-          <RelatedProducts product={product} />
-        </div>
-      </LazyMount>
+
+      <PDPRecommendations
+        product={product}
+        alsoBoughtSlugs={alsoViewed}
+      />
+
       <LazyMount minHeight={160}>
         <RecommendedForYou excludeSlug={product.slug} />
       </LazyMount>
