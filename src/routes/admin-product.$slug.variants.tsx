@@ -180,6 +180,10 @@ function VariantsPage() {
       const cleaned = await cleanupOrphanColorGalleries(slug, keepColors);
       // 4. Re-sync colour thumbnails into cart/checkout for surviving colours.
       await resyncColorThumbnails(slug);
+      // 5. Persist the default variant colour + re-point the storefront card
+      //    image to the default variant cover (or restore original if none).
+      await setDefaultVariantColor(slug, defaultColor);
+      await syncProductCardImage(slug);
 
       const fresh = await fetchAdminVariants(slug);
       setRows(fresh.map(({ productSlug: _p, ...r }) => r));
