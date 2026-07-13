@@ -98,6 +98,8 @@ export async function fetchVariantFacets(slugs: string[]): Promise<VariantFacetM
         stock,
         override: r.price_override != null ? Number(r.price_override) : null,
         adjustment: r.price_adjustment != null ? Number(r.price_adjustment) : 0,
+        imageUrl: r.image_url ?? null,
+        lowStockThreshold: Number(r.low_stock_threshold ?? 5),
       });
       if (color && !s.colors.includes(color)) {
         s.colors.push(color);
