@@ -23,7 +23,13 @@ import {
   COMMON_COLORS,
   type AdminVariant,
 } from "@/lib/product-variants";
-import { cleanupOrphanColorGalleries, resyncColorThumbnails } from "@/lib/variant-images";
+import {
+  cleanupOrphanColorGalleries,
+  resyncColorThumbnails,
+  syncProductCardImage,
+  setDefaultVariantColor,
+  fetchDefaultVariantColor,
+} from "@/lib/variant-images";
 
 export const Route = createFileRoute("/admin-product/$slug/variants")({ component: VariantsPage });
 
