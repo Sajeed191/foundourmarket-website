@@ -59,7 +59,7 @@ function reportChunkFailure(reason: unknown): void {
  */
 export function lazyWithRetry<T extends ComponentType<unknown>>(
   factory: () => Promise<{ default: T }>,
-  { retries = 2, baseDelay = 350 }: { retries?: number; baseDelay?: number } = {},
+  { retries = 4, baseDelay = 350 }: { retries?: number; baseDelay?: number } = {},
 ) {
   return lazy(async () => {
     let lastErr: unknown;
@@ -70,15 +70,18 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
         lastErr = err;
         if (!isChunkLoadError(err)) throw err;
         if (attempt < retries) {
-          await new Promise((r) => setTimeout(r, baseDelay * (attempt + 1)));
+          // Exponential backoff with a small jitter so a flaky network / a
+          // deploy mid-flight gets several spaced-out chances to succeed.
+          const delay = baseDelay * 2 ** attempt + Math.random() * 150;
+          await new Promise((r) => setTimeout(r, delay));
         }
       }
     }
-    // Persistent chunk failure — most likely a stale deploy or blocked module.
-    // Do not reload: keep the app stable and render this non-critical lazy slot
-    // as empty after reporting diagnostics.
-    console.error("[chunk-recovery] dynamic import failed permanently", lastErr);
-    reportChunkFailure(lastErr);
+    // Persistent failure of a NON-critical lazy slot (admin toolbar, live chat,
+    // compare tray, install prompt, …). These are deferred, post-hydration
+    // widgets — a permanent failure here must never take down the whole app or
+    // trigger a recovery reload. Log for telemetry and render nothing.
+    console.error("[chunk-recovery] non-critical dynamic import failed permanently", lastErr);
     return { default: (() => null) as unknown as T };
   });
 }
