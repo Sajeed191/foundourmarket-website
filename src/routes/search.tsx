@@ -98,16 +98,19 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
-const SORTS: { value: string; label: string; desc: string; icon: LucideIcon }[] = [
-  { value: "relevance", label: "Relevance", desc: "Best match for your search", icon: Sparkles },
-  { value: "trending", label: "Trending", desc: "Rising in views & sales", icon: TrendingUp },
-  { value: "best_selling", label: "Best Selling", desc: "Most orders overall", icon: Flame },
-  { value: "rating", label: "Highest Rated", desc: "Top review scores first", icon: Star },
-  { value: "newest", label: "Newest", desc: "Latest arrivals", icon: Clock },
-  { value: "price_asc", label: "Price: Low → High", desc: "Cheapest first", icon: ArrowDownWideNarrow },
-  { value: "price_desc", label: "Price: High → Low", desc: "Premium first", icon: ArrowUpWideNarrow },
-  { value: "discount", label: "Biggest Discount", desc: "Best deals first", icon: Tag },
+const SORTS: { value: string; label: string; desc: string; icon: LucideIcon; group: string }[] = [
+  { value: "relevance", label: "Relevance", desc: "Best match for your search", icon: Sparkles, group: "Recommended" },
+  { value: "trending", label: "Trending", desc: "Rising in views & sales", icon: TrendingUp, group: "Recommended" },
+  { value: "best_selling", label: "Best Selling", desc: "Most orders overall", icon: Flame, group: "Recommended" },
+  { value: "price_asc", label: "Price: Low → High", desc: "Cheapest first", icon: ArrowDownWideNarrow, group: "Price" },
+  { value: "price_desc", label: "Price: High → Low", desc: "Premium first", icon: ArrowUpWideNarrow, group: "Price" },
+  { value: "discount", label: "Biggest Discount", desc: "Best deals first", icon: Tag, group: "Price" },
+  { value: "rating", label: "Highest Rated", desc: "Top review scores first", icon: Star, group: "Customer" },
+  { value: "newest", label: "Newest", desc: "Latest arrivals", icon: Clock, group: "Newest" },
 ];
+
+// Sort options grouped for a premium, scannable sort sheet.
+const SORT_GROUPS: string[] = ["Recommended", "Price", "Customer", "Newest"];
 
 // Rotation reshuffle cadence for the default browse feed (every 2 hours).
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
@@ -734,6 +737,36 @@ function SearchPage() {
     [rawRows],
   );
 
+  // Smart empty-state suggestions — inspect the active filters and propose the
+  // single-tap relaxations most likely to bring products back ("Remove Blue",
+  // "Increase max price", "Try another size"). Ordered by how restrictive each
+  // dimension typically is; capped so the UI stays calm.
+  const smartSuggestions = useMemo(() => {
+    const out: { label: string; patch: Partial<SearchParams> }[] = [];
+    for (const c of csvSet(currentFilters.color))
+      out.push({ label: `Remove ${c}`, patch: { color: toggleInCsv(currentFilters.color, c) } });
+    for (const s of csvSet(currentFilters.size))
+      out.push({ label: `Try another size (remove ${s})`, patch: { size: toggleInCsv(currentFilters.size, s) } });
+    for (const b of csvSet(currentFilters.brand))
+      out.push({ label: `Remove ${b}`, patch: { brand: toggleInCsv(currentFilters.brand, b) } });
+    if (currentFilters.max != null)
+      out.push({ label: "Increase max price", patch: { max: undefined } });
+    if (currentFilters.min != null)
+      out.push({ label: "Lower minimum price", patch: { min: undefined } });
+    if (currentFilters.rating != null)
+      out.push({
+        label: currentFilters.rating > 1 ? `Lower rating to ${currentFilters.rating - 1}★` : "Remove rating filter",
+        patch: { rating: currentFilters.rating > 1 ? currentFilters.rating - 1 : undefined },
+      });
+    if (currentFilters.dmin != null)
+      out.push({ label: "Lower discount requirement", patch: { dmin: undefined } });
+    if (currentFilters.stock)
+      out.push({ label: "Show any availability", patch: { stock: undefined } });
+    return out.slice(0, 5);
+  }, [currentFilters]);
+
+
+
 
   function update(patch: Partial<SearchParams>) {
     nav({ search: (prev: SearchParams) => ({ ...prev, ...patch }), replace: true });
@@ -883,29 +916,40 @@ function SearchPage() {
                   <ArrowUpDown className="size-4 text-accent" />
                   <h2 className="text-base font-semibold text-foreground">Sort by</h2>
                 </div>
-                <div className="space-y-2">
-                  {SORTS.map((s) => {
-                    const active = (search.sort ?? "relevance") === s.value;
-                    const Icon = s.icon;
+                <div className="space-y-5">
+                  {SORT_GROUPS.map((group) => {
+                    const items = SORTS.filter((s) => s.group === group);
+                    if (items.length === 0) return null;
                     return (
-                      <button
-                        key={s.value}
-                        onClick={() => { update({ sort: s.value }); setSortOpen(false); }}
-                        className={`group flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3 text-left transition-all duration-200 active:scale-[0.98] ${active ? "bg-accent/[0.12] ring-1 ring-accent/40 shadow-[0_8px_28px_-12px_var(--accent)]" : "ring-1 ring-white/[0.06] hover:bg-white/[0.05]"}`}
-                      >
-                        <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors ${active ? "bg-accent/20 text-accent" : "bg-white/[0.05] text-muted-foreground group-hover:text-foreground"}`}>
-                          <Icon className="size-[18px]" strokeWidth={2} />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className={`block text-sm font-semibold ${active ? "text-accent" : "text-foreground"}`}>{s.label}</span>
-                          <span className="block truncate text-[11px] text-muted-foreground">{s.desc}</span>
-                        </span>
-                        {active && (
-                          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground animate-scale-in">
-                            <Check className="size-3.5" strokeWidth={3} />
-                          </span>
-                        )}
-                      </button>
+                      <div key={group}>
+                        <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">{group}</p>
+                        <div className="space-y-2">
+                          {items.map((s) => {
+                            const active = (search.sort ?? "relevance") === s.value;
+                            const Icon = s.icon;
+                            return (
+                              <button
+                                key={s.value}
+                                onClick={() => { update({ sort: s.value }); setSortOpen(false); }}
+                                className={`group flex w-full items-center gap-3.5 rounded-2xl px-3.5 py-3 text-left transition-all duration-200 active:scale-[0.98] ${active ? "bg-accent/[0.12] ring-1 ring-accent/40 shadow-[0_8px_28px_-12px_var(--accent)]" : "ring-1 ring-white/[0.06] hover:bg-white/[0.05]"}`}
+                              >
+                                <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors ${active ? "bg-accent/20 text-accent" : "bg-white/[0.05] text-muted-foreground group-hover:text-foreground"}`}>
+                                  <Icon className="size-[18px]" strokeWidth={2} />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className={`block text-sm font-semibold ${active ? "text-accent" : "text-foreground"}`}>{s.label}</span>
+                                  <span className="block truncate text-[11px] text-muted-foreground">{s.desc}</span>
+                                </span>
+                                {active && (
+                                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground animate-scale-in">
+                                    <Check className="size-3.5" strokeWidth={3} />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -1015,6 +1059,25 @@ function SearchPage() {
                   Browse Categories
                 </Link>
               </div>
+
+              {/* Smart suggestions — one-tap relaxations of the tightest filters */}
+              {!isTrending && smartSuggestions.length > 0 && (
+                <div className="mt-7">
+                  <p className="mb-3 text-xs font-mono uppercase tracking-widest text-muted-foreground">Try adjusting</p>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {smartSuggestions.map((s) => (
+                      <button
+                        key={s.label}
+                        onClick={() => update(s.patch)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-accent/12 text-accent ring-1 ring-accent/30 px-3.5 py-2 text-xs font-medium hover:bg-accent/20 active:scale-95 transition-all"
+                      >
+                        <Sparkles className="size-3.5" />
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Recommend similar products from the unfiltered result set */}
               {!isTrending && recommended.length > 0 && (
