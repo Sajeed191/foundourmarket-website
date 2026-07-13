@@ -205,11 +205,19 @@ export function applyFilters(
   return rows.filter((p) => matchesFilters(p, f, ctx, undefined, variants));
 }
 
-export type Facet = { name: string; count: number; hex?: string };
+export type Facet = { name: string; count: number; hex?: string; disabled?: boolean };
+
+function splitCsvLower(v?: string): Set<string> {
+  return new Set(splitCsv(v).map((x) => x.toLowerCase()));
+}
 
 /**
- * Brand facets available given the current filters (excluding the brand
- * dimension itself), with product counts. Sorted by count desc, then name.
+ * Brand facets. Intelligent-dynamic behaviour: the FULL universe of brands
+ * (every brand present in the result set) is always returned. Counts reflect
+ * the current filters (excluding the brand dimension itself); a brand that
+ * would yield 0 products is marked `disabled` rather than dropped, so shoppers
+ * keep a stable, confidence-building list. Currently-selected values are never
+ * disabled (so they stay removable).
  */
 export function brandFacets(
   rows: Product[],
@@ -217,19 +225,25 @@ export function brandFacets(
   ctx: PriceCtx,
   variants?: VariantFacetMap,
 ): Facet[] {
+  const universe = new Set<string>();
   const counts = new Map<string, number>();
+  const selected = splitCsvLower(f.brand);
   for (const p of rows) {
-    if (!matchesFilters(p, f, ctx, "brand", variants)) continue;
     const b = brandOf(p);
     if (!b) continue;
+    universe.add(b);
+    if (!matchesFilters(p, f, ctx, "brand", variants)) continue;
     counts.set(b, (counts.get(b) ?? 0) + 1);
   }
-  return [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  return [...universe]
+    .map((name) => {
+      const count = counts.get(name) ?? 0;
+      return { name, count, disabled: count === 0 && !selected.has(name.toLowerCase()) };
+    })
+    .sort((a, b) => Number(a.disabled) - Number(b.disabled) || b.count - a.count || a.name.localeCompare(b.name));
 }
 
-/** Colour facets (variant-aware), with hex swatches and live counts. */
+/** Colour facets (variant-aware), full universe with disabled zero-count values. */
 export function colorFacets(
   rows: Product[],
   f: Filters,
@@ -237,20 +251,26 @@ export function colorFacets(
   variants?: VariantFacetMap,
 ): Facet[] {
   if (!variants) return [];
+  const universe = new Set<string>();
   const counts = new Map<string, number>();
   const hex = new Map<string, string>();
+  const selected = splitCsvLower(f.color);
   for (const p of rows) {
     const s = variants.get(p.slug);
     if (!s || !s.colors.length) continue;
-    if (!matchesFilters(p, f, ctx, "color", variants)) continue;
     for (const c of s.colors) {
-      counts.set(c, (counts.get(c) ?? 0) + 1);
+      universe.add(c);
       if (!hex.has(c) && s.colorHex[c]) hex.set(c, s.colorHex[c]);
     }
+    if (!matchesFilters(p, f, ctx, "color", variants)) continue;
+    for (const c of s.colors) counts.set(c, (counts.get(c) ?? 0) + 1);
   }
-  return [...counts.entries()]
-    .map(([name, count]) => ({ name, count, hex: hex.get(name) }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  return [...universe]
+    .map((name) => {
+      const count = counts.get(name) ?? 0;
+      return { name, count, hex: hex.get(name), disabled: count === 0 && !selected.has(name.toLowerCase()) };
+    })
+    .sort((a, b) => Number(a.disabled) - Number(b.disabled) || b.count - a.count || a.name.localeCompare(b.name));
 }
 
 // Common apparel size order; anything else falls back to alphabetical.
@@ -260,7 +280,7 @@ function sizeRank(s: string): number {
   return i === -1 ? 999 : i;
 }
 
-/** Size facets (variant-aware), ordered by natural apparel size. */
+/** Size facets (variant-aware), full universe ordered by natural apparel size. */
 export function sizeFacets(
   rows: Product[],
   f: Filters,
@@ -268,15 +288,21 @@ export function sizeFacets(
   variants?: VariantFacetMap,
 ): Facet[] {
   if (!variants) return [];
+  const universe = new Set<string>();
   const counts = new Map<string, number>();
+  const selected = splitCsvLower(f.size);
   for (const p of rows) {
     const s = variants.get(p.slug);
     if (!s || !s.sizes.length) continue;
+    for (const sz of s.sizes) universe.add(sz);
     if (!matchesFilters(p, f, ctx, "size", variants)) continue;
     for (const sz of s.sizes) counts.set(sz, (counts.get(sz) ?? 0) + 1);
   }
-  return [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
+  return [...universe]
+    .map((name) => {
+      const count = counts.get(name) ?? 0;
+      return { name, count, disabled: count === 0 && !selected.has(name.toLowerCase()) };
+    })
     .sort((a, b) => sizeRank(a.name) - sizeRank(b.name) || a.name.localeCompare(b.name));
 }
 
