@@ -737,6 +737,36 @@ function SearchPage() {
     [rawRows],
   );
 
+  // Smart empty-state suggestions — inspect the active filters and propose the
+  // single-tap relaxations most likely to bring products back ("Remove Blue",
+  // "Increase max price", "Try another size"). Ordered by how restrictive each
+  // dimension typically is; capped so the UI stays calm.
+  const smartSuggestions = useMemo(() => {
+    const out: { label: string; patch: Partial<SearchParams> }[] = [];
+    for (const c of csvSet(currentFilters.color))
+      out.push({ label: `Remove ${c}`, patch: { color: toggleInCsv(currentFilters.color, c) } });
+    for (const s of csvSet(currentFilters.size))
+      out.push({ label: `Try another size (remove ${s})`, patch: { size: toggleInCsv(currentFilters.size, s) } });
+    for (const b of csvSet(currentFilters.brand))
+      out.push({ label: `Remove ${b}`, patch: { brand: toggleInCsv(currentFilters.brand, b) } });
+    if (currentFilters.max != null)
+      out.push({ label: "Increase max price", patch: { max: undefined } });
+    if (currentFilters.min != null)
+      out.push({ label: "Lower minimum price", patch: { min: undefined } });
+    if (currentFilters.rating != null)
+      out.push({
+        label: currentFilters.rating > 1 ? `Lower rating to ${currentFilters.rating - 1}★` : "Remove rating filter",
+        patch: { rating: currentFilters.rating > 1 ? currentFilters.rating - 1 : undefined },
+      });
+    if (currentFilters.dmin != null)
+      out.push({ label: "Lower discount requirement", patch: { dmin: undefined } });
+    if (currentFilters.stock)
+      out.push({ label: "Show any availability", patch: { stock: undefined } });
+    return out.slice(0, 5);
+  }, [currentFilters]);
+
+
+
 
   function update(patch: Partial<SearchParams>) {
     nav({ search: (prev: SearchParams) => ({ ...prev, ...patch }), replace: true });
