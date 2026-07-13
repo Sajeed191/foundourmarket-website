@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Brain, Loader2, TrendingUp, TrendingDown, MousePointerClick, ShoppingCart, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Brain, Loader2, TrendingUp, TrendingDown, MousePointerClick, ShoppingCart, Sparkles, FlaskConical, Trophy } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { KpiCard } from "@/components/admin/KpiCard";
 import { getPerformanceReport, type SourcePerformance } from "@/lib/recommendations";
 import { activeSeasons } from "@/lib/recommendations";
 import { fetchSectionAnalytics, type SectionStat } from "@/lib/section-analytics";
+import { listAllExperiments, experimentStats, promoteWinner } from "@/lib/recommendations/experiments.functions";
 
 export const Route = createFileRoute("/admin-recommendation-health")({
   head: () => ({ meta: [{ title: "Recommendation Health — Admin" }] }),
