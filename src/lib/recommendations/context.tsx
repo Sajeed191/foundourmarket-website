@@ -12,6 +12,8 @@ import type {
   RecommendationSignals,
 } from "./types";
 import { runEngine } from "./engine";
+import { resolveBusinessRules, type ResolvedRules, type BusinessRule } from "./rules";
+import { listActiveRules } from "./rules.functions";
 
 /**
  * RecommendationProvider + hooks. Gathers every behaviour/context signal ONCE
@@ -58,7 +60,33 @@ type SignalsContextValue = {
   loading: boolean;
   /** True once the shopper has meaningful history (returning user). */
   personalized: boolean;
+  /** Admin business rules resolved against the current catalog. */
+  businessRules: ResolvedRules;
 };
+
+const EMPTY_RULES: ResolvedRules = { ruleAdjust: new Map(), excludedSlugs: [], activeCount: 0 };
+
+/** Load enabled admin merchandising rules once (cheap, non-sensitive). */
+function useBusinessRules(products: Product[]): ResolvedRules {
+  const [rules, setRules] = useState<BusinessRule[]>([]);
+  useEffect(() => {
+    let active = true;
+    listActiveRules()
+      .then((r) => {
+        if (active) setRules(r);
+      })
+      .catch(() => {
+        if (active) setRules([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return useMemo(
+    () => (rules.length && products.length ? resolveBusinessRules(products, rules) : EMPTY_RULES),
+    [rules, products],
+  );
+}
 
 const SignalsContext = createContext<SignalsContextValue | null>(null);
 
@@ -92,10 +120,11 @@ export function RecommendationProvider({ children }: { children: ReactNode }) {
   );
 
   const personalized = recent.length + wishlist.length + cart.length + purchased.size > 0;
+  const businessRules = useBusinessRules(products);
 
   const value = useMemo<SignalsContextValue>(
-    () => ({ signals, rotationSeed: dayBucket(), loading, personalized }),
-    [signals, loading, personalized],
+    () => ({ signals, rotationSeed: dayBucket(), loading, personalized, businessRules }),
+    [signals, loading, personalized, businessRules],
   );
 
   return <SignalsContext.Provider value={value}>{children}</SignalsContext.Provider>;
@@ -126,7 +155,7 @@ export function useRecommendationSignals(): SignalsContextValue {
       priceOf: fallbackRegion.priceOf,
     };
     const personalized = fallbackRecent.slugs.length + wishlist.length + cart.length + purchased.size > 0;
-    return { signals, rotationSeed: dayBucket(), loading: fallbackProducts.loading, personalized };
+    return { signals, rotationSeed: dayBucket(), loading: fallbackProducts.loading, personalized, businessRules: EMPTY_RULES };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     fallbackProducts.products,
@@ -158,9 +187,21 @@ export function useRecommendationRail(options: RailOptions): {
   loading: boolean;
   personalized: boolean;
 } {
-  const { signals, rotationSeed, loading, personalized } = useRecommendationSignals();
+  const { signals, rotationSeed, loading, personalized, businessRules } = useRecommendationSignals();
 
-  const config: EngineConfig = { rotationSeed, ...options };
+  // Merge admin business rules into the engine config (additive deltas + hard
+  // excludes) without callers needing to know rules exist.
+  const config: EngineConfig = {
+    rotationSeed,
+    ...options,
+    ruleAdjust: businessRules.ruleAdjust.size ? businessRules.ruleAdjust : options.ruleAdjust,
+    boosts: businessRules.excludedSlugs.length
+      ? {
+          ...options.boosts,
+          excludedSlugs: [...(options.boosts?.excludedSlugs ?? []), ...businessRules.excludedSlugs],
+        }
+      : options.boosts,
+  };
 
   const signature = useMemo(
     () =>
@@ -186,6 +227,9 @@ export function useRecommendationRail(options: RailOptions): {
         [...signals.cart].sort().join(","),
         [...signals.purchased].sort().join(","),
         signals.market ?? "",
+        businessRules.activeCount,
+        businessRules.ruleAdjust.size,
+        businessRules.excludedSlugs.join(","),
       ].join("|"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -204,6 +248,7 @@ export function useRecommendationRail(options: RailOptions): {
       config.seedScores,
       config.boosts,
       signals,
+      businessRules,
     ],
   );
 

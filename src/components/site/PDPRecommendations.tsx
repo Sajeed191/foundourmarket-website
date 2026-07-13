@@ -1,7 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { useRegion } from "@/lib/region";
 import { useRecommendationRail } from "@/lib/recommendations/context";
 import { priorityMultiplier } from "@/lib/recommendations/performance";
+import { getGraphEdgeSets } from "@/lib/recommendations/graph.functions";
 import { RecommendationRailSection } from "./RecommendationRailSection";
 import type { RecommendationItem, RecommendationSource } from "@/lib/recommendations/types";
 import type { Product } from "@/lib/products";
@@ -41,13 +43,42 @@ export function PDPRecommendations({
   const { priceOf } = useRegion();
   const seedPrice = priceOf(product);
 
+  // Global Commerce Graph — precomputed co-purchase / accessory relationships.
+  // Blended into the rails as restrictTo + seedScores when available; falls
+  // back to live scoring when the graph has no edges for this product yet.
+  const fetchGraph = useServerFn(getGraphEdgeSets);
+  const [graph, setGraph] = useState<{ boughtWith: Map<string, number>; accessories: Map<string, number> }>(
+    { boughtWith: new Map(), accessories: new Map() },
+  );
+  useEffect(() => {
+    let active = true;
+    fetchGraph({ data: { fromSlug: product.slug, edgeTypes: ["bought_with", "accessory_of"], limit: 20 } })
+      .then((sets) => {
+        if (!active) return;
+        setGraph({
+          boughtWith: new Map((sets.bought_with ?? []).map((e) => [e.to_slug, e.weight])),
+          accessories: new Map((sets.accessory_of ?? []).map((e) => [e.to_slug, e.weight])),
+        });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [product.slug, fetchGraph]);
+
+  // Prefer real co-purchase slugs (graph) over the ones passed by the parent.
+  const graphBoughtSlugs = useMemo(() => [...graph.boughtWith.keys()], [graph.boughtWith]);
+  const boughtScores = graph.boughtWith.size ? graph.boughtWith : alsoBoughtScores;
+  const boughtRestrict =
+    graphBoughtSlugs.length ? graphBoughtSlugs : alsoBoughtSlugs.length ? alsoBoughtSlugs : undefined;
+
   // Each rail is a fixed hook call (stable order). The engine memoizes, so idle
   // rails cost almost nothing.
   const alsoBought = useRecommendationRail({
     strategy: "customers_also_bought",
     seed: product,
-    restrictTo: alsoBoughtSlugs.length ? alsoBoughtSlugs : undefined,
-    seedScores: alsoBoughtScores,
+    restrictTo: boughtRestrict,
+    seedScores: boughtScores,
     limit: 10,
   });
 
@@ -61,6 +92,8 @@ export function PDPRecommendations({
     strategy: "complete_the_look",
     seed: product,
     differentCategoryFromSeed: true,
+    restrictTo: graph.accessories.size ? [...graph.accessories.keys()] : undefined,
+    seedScores: graph.accessories.size ? graph.accessories : undefined,
     limit: 10,
   });
 

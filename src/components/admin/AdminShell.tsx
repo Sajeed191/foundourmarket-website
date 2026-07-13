@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, Users, BarChart3, Megaphone, Zap, Target, Flame,
   FileText, Truck, RotateCcw, Pencil, Activity, Wallet, Globe, Search,
   Boxes, Loader2, ShieldAlert, Menu, X, Sparkles, TrendingUp, ShoppingCart,
-  Cpu, ChevronRight, Mail, ShieldBan, Inbox, PackageCheck, MailCheck, LifeBuoy, Database, Images, Bell, Gem, Crown, Store, UserCog, AlertTriangle, Trophy, ShieldCheck, Gauge, Filter, Brain,
+  Cpu, ChevronRight, Mail, ShieldBan, Inbox, PackageCheck, MailCheck, LifeBuoy, Database, Images, Bell, Gem, Crown, Store, UserCog, AlertTriangle, Trophy, ShieldCheck, Gauge, Filter, Brain, SlidersHorizontal,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -78,6 +78,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
       { to: "/admin-merchandising", label: "Merchandising Center", icon: Images, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-performance", label: "Performance", icon: Trophy, roles: ["admin", "super_admin", "manager"] },
       { to: "/admin-recommendation-health", label: "Recommendation Health", icon: Brain, roles: ["admin", "super_admin", "manager"] },
+      { to: "/admin-recommendation-rules", label: "Recommendation Rules", icon: SlidersHorizontal, roles: ["admin", "super_admin"] },
       { to: "/admin-quality", label: "Quality Scanner", icon: ShieldCheck, roles: ["admin", "super_admin", "manager", "editor"] },
       { to: "/admin-marketplace-quality", label: "Marketplace Quality", icon: Gauge, roles: ["admin", "super_admin", "manager", "editor"] },
       { to: "/admin-badges", label: "Badge Manager", icon: Gem, roles: ["admin", "super_admin", "manager"] },

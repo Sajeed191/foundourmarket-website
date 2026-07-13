@@ -62,6 +62,7 @@ import { Route as AdminSearchRouteImport } from './routes/admin-search'
 import { Route as AdminReturnsRouteImport } from './routes/admin-returns'
 import { Route as AdminReportsRouteImport } from './routes/admin-reports'
 import { Route as AdminRegionRouteImport } from './routes/admin-region'
+import { Route as AdminRecommendationRulesRouteImport } from './routes/admin-recommendation-rules'
 import { Route as AdminRecommendationHealthRouteImport } from './routes/admin-recommendation-health'
 import { Route as AdminQualityRouteImport } from './routes/admin-quality'
 import { Route as AdminProductsRouteImport } from './routes/admin-products'
@@ -161,6 +162,7 @@ import { Route as ApiPublicWebhooksCourierRouteImport } from './routes/api/publi
 import { Route as ApiPublicTrackOpenRouteImport } from './routes/api/public/track.open'
 import { Route as ApiPublicTrackClickRouteImport } from './routes/api/public/track.click'
 import { Route as ApiPublicSupportInboundEmailRouteImport } from './routes/api/public/support/inbound-email'
+import { Route as ApiPublicHooksRecsRecomputeRouteImport } from './routes/api/public/hooks/recs-recompute'
 import { Route as AccountSupportTicketTicketIdRouteImport } from './routes/account_.support_.ticket.$ticketId'
 
 const WishlistRoute = WishlistRouteImport.update({
@@ -428,6 +430,12 @@ const AdminRegionRoute = AdminRegionRouteImport.update({
   path: '/admin-region',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRecommendationRulesRoute =
+  AdminRecommendationRulesRouteImport.update({
+    id: '/admin-recommendation-rules',
+    path: '/admin-recommendation-rules',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminRecommendationHealthRoute =
   AdminRecommendationHealthRouteImport.update({
     id: '/admin-recommendation-health',
@@ -941,6 +949,12 @@ const ApiPublicSupportInboundEmailRoute =
     path: '/api/public/support/inbound-email',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksRecsRecomputeRoute =
+  ApiPublicHooksRecsRecomputeRouteImport.update({
+    id: '/api/public/hooks/recs-recompute',
+    path: '/api/public/hooks/recs-recompute',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AccountSupportTicketTicketIdRoute =
   AccountSupportTicketTicketIdRouteImport.update({
     id: '/account_/support_/ticket/$ticketId',
@@ -998,6 +1012,7 @@ export interface FileRoutesByFullPath {
   '/admin-products': typeof AdminProductsRoute
   '/admin-quality': typeof AdminQualityRoute
   '/admin-recommendation-health': typeof AdminRecommendationHealthRoute
+  '/admin-recommendation-rules': typeof AdminRecommendationRulesRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
@@ -1093,6 +1108,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin-product/$slug/': typeof AdminProductSlugIndexRoute
   '/account/support/ticket/$ticketId': typeof AccountSupportTicketTicketIdRoute
+  '/api/public/hooks/recs-recompute': typeof ApiPublicHooksRecsRecomputeRoute
   '/api/public/support/inbound-email': typeof ApiPublicSupportInboundEmailRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
@@ -1153,6 +1169,7 @@ export interface FileRoutesByTo {
   '/admin-products': typeof AdminProductsRoute
   '/admin-quality': typeof AdminQualityRoute
   '/admin-recommendation-health': typeof AdminRecommendationHealthRoute
+  '/admin-recommendation-rules': typeof AdminRecommendationRulesRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
@@ -1247,6 +1264,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin-product/$slug': typeof AdminProductSlugIndexRoute
   '/account/support/ticket/$ticketId': typeof AccountSupportTicketTicketIdRoute
+  '/api/public/hooks/recs-recompute': typeof ApiPublicHooksRecsRecomputeRoute
   '/api/public/support/inbound-email': typeof ApiPublicSupportInboundEmailRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
@@ -1308,6 +1326,7 @@ export interface FileRoutesById {
   '/admin-products': typeof AdminProductsRoute
   '/admin-quality': typeof AdminQualityRoute
   '/admin-recommendation-health': typeof AdminRecommendationHealthRoute
+  '/admin-recommendation-rules': typeof AdminRecommendationRulesRoute
   '/admin-region': typeof AdminRegionRoute
   '/admin-reports': typeof AdminReportsRoute
   '/admin-returns': typeof AdminReturnsRoute
@@ -1403,6 +1422,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin-product/$slug/': typeof AdminProductSlugIndexRoute
   '/account_/support_/ticket/$ticketId': typeof AccountSupportTicketTicketIdRoute
+  '/api/public/hooks/recs-recompute': typeof ApiPublicHooksRecsRecomputeRoute
   '/api/public/support/inbound-email': typeof ApiPublicSupportInboundEmailRoute
   '/api/public/track/click': typeof ApiPublicTrackClickRoute
   '/api/public/track/open': typeof ApiPublicTrackOpenRoute
@@ -1465,6 +1485,7 @@ export interface FileRouteTypes {
     | '/admin-products'
     | '/admin-quality'
     | '/admin-recommendation-health'
+    | '/admin-recommendation-rules'
     | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
@@ -1560,6 +1581,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/admin-product/$slug/'
     | '/account/support/ticket/$ticketId'
+    | '/api/public/hooks/recs-recompute'
     | '/api/public/support/inbound-email'
     | '/api/public/track/click'
     | '/api/public/track/open'
@@ -1620,6 +1642,7 @@ export interface FileRouteTypes {
     | '/admin-products'
     | '/admin-quality'
     | '/admin-recommendation-health'
+    | '/admin-recommendation-rules'
     | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
@@ -1714,6 +1737,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/admin-product/$slug'
     | '/account/support/ticket/$ticketId'
+    | '/api/public/hooks/recs-recompute'
     | '/api/public/support/inbound-email'
     | '/api/public/track/click'
     | '/api/public/track/open'
@@ -1774,6 +1798,7 @@ export interface FileRouteTypes {
     | '/admin-products'
     | '/admin-quality'
     | '/admin-recommendation-health'
+    | '/admin-recommendation-rules'
     | '/admin-region'
     | '/admin-reports'
     | '/admin-returns'
@@ -1869,6 +1894,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/admin-product/$slug/'
     | '/account_/support_/ticket/$ticketId'
+    | '/api/public/hooks/recs-recompute'
     | '/api/public/support/inbound-email'
     | '/api/public/track/click'
     | '/api/public/track/open'
@@ -1930,6 +1956,7 @@ export interface RootRouteChildren {
   AdminProductsRoute: typeof AdminProductsRoute
   AdminQualityRoute: typeof AdminQualityRoute
   AdminRecommendationHealthRoute: typeof AdminRecommendationHealthRoute
+  AdminRecommendationRulesRoute: typeof AdminRecommendationRulesRoute
   AdminRegionRoute: typeof AdminRegionRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminReturnsRoute: typeof AdminReturnsRoute
@@ -2010,6 +2037,7 @@ export interface RootRouteChildren {
   CategoryMainSubRoute: typeof CategoryMainSubRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   AccountSupportTicketTicketIdRoute: typeof AccountSupportTicketTicketIdRoute
+  ApiPublicHooksRecsRecomputeRoute: typeof ApiPublicHooksRecsRecomputeRoute
   ApiPublicSupportInboundEmailRoute: typeof ApiPublicSupportInboundEmailRoute
   ApiPublicTrackClickRoute: typeof ApiPublicTrackClickRoute
   ApiPublicTrackOpenRoute: typeof ApiPublicTrackOpenRoute
@@ -2392,6 +2420,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-region'
       fullPath: '/admin-region'
       preLoaderRoute: typeof AdminRegionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-recommendation-rules': {
+      id: '/admin-recommendation-rules'
+      path: '/admin-recommendation-rules'
+      fullPath: '/admin-recommendation-rules'
+      preLoaderRoute: typeof AdminRecommendationRulesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-recommendation-health': {
@@ -3087,6 +3122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSupportInboundEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/recs-recompute': {
+      id: '/api/public/hooks/recs-recompute'
+      path: '/api/public/hooks/recs-recompute'
+      fullPath: '/api/public/hooks/recs-recompute'
+      preLoaderRoute: typeof ApiPublicHooksRecsRecomputeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account_/support_/ticket/$ticketId': {
       id: '/account_/support_/ticket/$ticketId'
       path: '/account/support/ticket/$ticketId'
@@ -3220,6 +3262,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminProductsRoute: AdminProductsRoute,
   AdminQualityRoute: AdminQualityRoute,
   AdminRecommendationHealthRoute: AdminRecommendationHealthRoute,
+  AdminRecommendationRulesRoute: AdminRecommendationRulesRoute,
   AdminRegionRoute: AdminRegionRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminReturnsRoute: AdminReturnsRoute,
@@ -3300,6 +3343,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoryMainSubRoute: CategoryMainSubRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   AccountSupportTicketTicketIdRoute: AccountSupportTicketTicketIdRoute,
+  ApiPublicHooksRecsRecomputeRoute: ApiPublicHooksRecsRecomputeRoute,
   ApiPublicSupportInboundEmailRoute: ApiPublicSupportInboundEmailRoute,
   ApiPublicTrackClickRoute: ApiPublicTrackClickRoute,
   ApiPublicTrackOpenRoute: ApiPublicTrackOpenRoute,
@@ -3313,3 +3357,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
