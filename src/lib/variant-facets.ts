@@ -59,7 +59,7 @@ export function variantPriceRange(base: number, s: VariantSummary): [number, num
 }
 
 const CHUNK = 300;
-const SELECT = "product_slug,color,color_hex,size,stock_quantity,price_override,price_adjustment";
+const SELECT = "product_slug,color,color_hex,size,stock_quantity,low_stock_threshold,image_url,price_override,price_adjustment";
 
 /**
  * Fetch variant facet summaries for a set of product slugs. The payload stays
