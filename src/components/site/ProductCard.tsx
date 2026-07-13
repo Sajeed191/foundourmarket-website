@@ -397,7 +397,18 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
         >
           <ProductBadges badges={hideBadges ? [] : badges} />
           <WishlistButton slug={product.slug} name={product.name} />
+          {/* Variant colour preview — fades a colour's cover image over the
+              base image. Overlaid (never swaps the base src) so palette,
+              layout and aspect ratio never shift. */}
+          <img
+            aria-hidden
+            src={previewSrc ?? undefined}
+            alt=""
+            decoding="async"
+            className={`pointer-events-none absolute inset-0 z-[1] size-full object-contain p-[8%] transition-opacity duration-200 ${previewSrc ? "opacity-100" : "opacity-0"}`}
+          />
         </AdaptiveProductMedia>
+
       </Link>
 
       {/* Details — flex column, 16px padding, 8px gap. */}
