@@ -1060,6 +1060,25 @@ function SearchPage() {
                 </Link>
               </div>
 
+              {/* Smart suggestions — one-tap relaxations of the tightest filters */}
+              {!isTrending && smartSuggestions.length > 0 && (
+                <div className="mt-7">
+                  <p className="mb-3 text-xs font-mono uppercase tracking-widest text-muted-foreground">Try adjusting</p>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {smartSuggestions.map((s) => (
+                      <button
+                        key={s.label}
+                        onClick={() => update(s.patch)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-accent/12 text-accent ring-1 ring-accent/30 px-3.5 py-2 text-xs font-medium hover:bg-accent/20 active:scale-95 transition-all"
+                      >
+                        <Sparkles className="size-3.5" />
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Recommend similar products from the unfiltered result set */}
               {!isTrending && recommended.length > 0 && (
                 <div className="mt-10 text-left">
