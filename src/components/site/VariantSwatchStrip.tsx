@@ -31,6 +31,8 @@ type Props = {
   product: Product;
   /** Fired when a colour is previewed (hover/tap) or cleared (null). */
   onPreview: (preview: SwatchPreview | null) => void;
+  /** Fired with whether this product actually has previewable swatches. */
+  onAvailability?: (hasSwatches: boolean) => void;
   className?: string;
 };
 
