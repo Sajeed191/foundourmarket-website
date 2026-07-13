@@ -276,8 +276,12 @@ function ProductPage() {
         item_category: product.category ?? undefined,
         item_brand: product.brand ?? undefined,
       }, market === "india" ? "INR" : "USD")).catch(() => {});
-      fetchFBT(product.slug, 4).then(setFbtSlugs);
-      fetchAlsoViewed(product.slug, 6).then(setAlsoViewed);
+      fetchFBT(product.slug, 4).then((slugs) => {
+        setFbtSlugs(slugs);
+        if (slugs.length) fetchProductsBySlugs(slugs).then(setFbtProducts).catch(() => {});
+        else setFbtProducts([]);
+      });
+      fetchAlsoViewed(product.slug, 8).then(setAlsoViewed);
     }
   }, [product?.slug, record]);
 
