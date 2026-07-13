@@ -52,6 +52,7 @@ import { DebugPanel } from "@/components/site/DebugPanel";
 import { useRegion } from "@/lib/region";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { buildVisibleMap } from "@/lib/product-availability";
+import { RecommendationProvider } from "@/lib/recommendations";
 
 import { WindowMetricsPanel } from "@/components/site/WindowMetricsPanel";
 
