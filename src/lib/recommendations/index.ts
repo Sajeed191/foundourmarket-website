@@ -18,6 +18,17 @@ export { activeSeasons, seasonalRelevance } from "./seasonal";
 export type { Season } from "./seasonal";
 export { journeyRails, primaryStrategy } from "./strategies";
 export type { JourneyStage, JourneyRail } from "./strategies";
+export { resolveBusinessRules } from "./rules";
+export type { BusinessRule, RuleKind, RuleTargetType, ResolvedRules } from "./rules";
+export { getGraphEdges, getGraphEdgeSets } from "./graph.functions";
+export type { GraphEdge, GraphEdgeType } from "./graph.functions";
+export {
+  getVisitorId,
+  assignVariant,
+  resolveExperiment,
+  currentVariant,
+} from "./experiments";
+export type { Experiment } from "./experiments";
 export {
   recordImpression,
   recordClick,
