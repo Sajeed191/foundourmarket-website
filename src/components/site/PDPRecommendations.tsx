@@ -92,6 +92,8 @@ export function PDPRecommendations({
     strategy: "complete_the_look",
     seed: product,
     differentCategoryFromSeed: true,
+    restrictTo: graph.accessories.size ? [...graph.accessories.keys()] : undefined,
+    seedScores: graph.accessories.size ? graph.accessories : undefined,
     limit: 10,
   });
 
