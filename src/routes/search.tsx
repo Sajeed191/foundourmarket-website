@@ -1085,7 +1085,7 @@ function SearchPage() {
           </aside>
         )}
 
-        <div key={isTrending ? "trending" : "feed"} className="animate-fade-up">
+        <div key={isTrending ? "trending" : "feed"} className={`${drawerOpen ? "hidden lg:block" : ""} animate-fade-up`}>
 
           {!isTrending && (
             <>
