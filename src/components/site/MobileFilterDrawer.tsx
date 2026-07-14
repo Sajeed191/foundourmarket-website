@@ -335,13 +335,34 @@ export const MobileFilterDrawer = memo(function MobileFilterDrawer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentReady, draft, allCategories, selectedBrands, selectedColors, selectedSizes, priceLo, priceHi]);
 
-  // Lock background scrolling while the sheet is mounted (prevents layout shift).
+  // Lock background scrolling while the sheet is mounted (prevents layout shift,
+  // rubber-band, scroll chaining and background momentum scroll on mobile).
   useEffect(() => {
     if (!mounted) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const body = document.body;
+    const html = document.documentElement;
+    const scrollBarGap = window.innerWidth - html.clientWidth;
+    const prev = {
+      bodyOverflow: body.style.overflow,
+      bodyTouch: body.style.touchAction,
+      bodyOverscroll: body.style.overscrollBehavior,
+      bodyPadRight: body.style.paddingRight,
+      htmlOverflow: html.style.overflow,
+      htmlOverscroll: html.style.overscrollBehavior,
+    };
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+    body.style.overscrollBehavior = "none";
+    if (scrollBarGap > 0) body.style.paddingRight = `${scrollBarGap}px`;
+    html.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
     return () => {
-      document.body.style.overflow = prev;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.touchAction = prev.bodyTouch;
+      body.style.overscrollBehavior = prev.bodyOverscroll;
+      body.style.paddingRight = prev.bodyPadRight;
+      html.style.overflow = prev.htmlOverflow;
+      html.style.overscrollBehavior = prev.htmlOverscroll;
     };
   }, [mounted]);
 
