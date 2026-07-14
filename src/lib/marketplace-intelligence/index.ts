@@ -31,3 +31,9 @@ export type {
   CategoryRollup,
   EvidenceRollup,
 } from "./marketplace-optimization";
+export { analyzeRelationshipIntelligence } from "./relationship-intelligence";
+export type {
+  RelationshipIntelligence,
+  RelatedProduct,
+  RelationshipBuckets,
+} from "./relationship-intelligence";
