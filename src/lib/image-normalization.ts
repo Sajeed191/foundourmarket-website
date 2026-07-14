@@ -288,11 +288,70 @@ export async function analyzeImage(source: Blob | HTMLImageElement): Promise<Ima
     normalized: false,
     healthScore: 0,
   };
-  analysis.healthScore = computeHealthScore(analysis).score;
-  // Emit product-pixel signal for callers that want it (e.g. debugging), but
-  // avoid widening the public shape — read via `.occupancy`.
+  const health = computeHealthScore(analysis);
+  analysis.healthScore = health.score;
+  hydrateV2Namespaces(analysis, health);
   void productPixels;
   return analysis;
+}
+
+function baseAnalysis(
+  width: number, height: number, aspectRatio: number,
+  orientation: Orientation, megapixels: number,
+): ImageAnalysis {
+  const a: ImageAnalysis = {
+    version: IMAGE_ANALYSIS_VERSION,
+    width, height, aspectRatio, orientation,
+    megapixels: Math.round(megapixels * 100) / 100,
+    occupancy: 0, emptyMarginPct: 0, hasTransparentBorder: false,
+    backgroundType: "photo", backgroundColorHex: null,
+    sharpness: 0, brightness: 0, normalized: false, healthScore: 0,
+  };
+  hydrateV2Namespaces(a, computeHealthScore(a));
+  return a;
+}
+
+/**
+ * Populate v2 namespaces from the flat v1 fields. Additive only — never
+ * mutates the flat fields, so v1 readers stay intact.
+ */
+function hydrateV2Namespaces(a: ImageAnalysis, health: HealthScore): void {
+  a.image = {
+    width: a.width,
+    height: a.height,
+    aspectRatio: a.aspectRatio,
+    orientation: a.orientation,
+    megapixels: a.megapixels,
+    sharpness: a.sharpness,
+    brightness: a.brightness,
+  };
+  a.product = {
+    analyzed: false,
+    occupancy: a.occupancy,
+    emptyMarginPct: a.emptyMarginPct,
+    objects: [],
+    confidence: null,
+  };
+  a.background = {
+    type: a.backgroundType,
+    colorHex: a.backgroundColorHex,
+    hasTransparentBorder: a.hasTransparentBorder,
+    confidence: null,
+  };
+  a.ai = {
+    provider: null,
+    model: null,
+    version: null,
+    analyzedAt: null,
+    cacheVersion: 1,
+  };
+  a.quality = {
+    healthScore: health.score,
+    band: health.band,
+    galleryContribution: null,
+    readinessScore: null,
+    suggestions: health.suggestions,
+  };
 }
 
 function baseAnalysis(
