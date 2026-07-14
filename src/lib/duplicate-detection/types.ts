@@ -163,6 +163,7 @@ export const DEFAULT_WEIGHTS: DupWeights = {
   sku: 10,
   variant: 15,
   image: 25,
+  imageIntel: 20,
   description: 10,
   specifications: 20,
   price: 5,
