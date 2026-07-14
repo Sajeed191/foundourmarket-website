@@ -700,7 +700,6 @@ export const MobileFilterDrawer = memo(function MobileFilterDrawer({
                     }`}
                   >
                     <span className={s.disabled ? "line-through" : ""}>{s.name}</span>
-                    <span className="ml-1 tabular-nums text-[10px] text-muted-foreground">{s.count}</span>
                   </button>
                 );
               })}
