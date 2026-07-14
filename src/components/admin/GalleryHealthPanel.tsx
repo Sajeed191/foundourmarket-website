@@ -97,6 +97,55 @@ export function GalleryHealthPanel({
         ))}
       </div>
 
+      {hero.shouldRecommend && (
+        <div className="mt-4 rounded-xl border border-accent/30 bg-accent/[0.06] p-3">
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-accent/15 text-accent">
+              <Crown className="size-3.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent">
+                  Better hero available
+                </span>
+                <span className="font-mono text-[11px] font-semibold text-emerald-300">
+                  +{hero.delta}
+                </span>
+              </p>
+              <p className="mt-0.5 text-[11px] text-white/85">
+                Image {hero.recommendedIndex + 1} scores{" "}
+                <span className="font-mono font-semibold text-white">{hero.recommendedScore}</span>{" "}
+                vs the current hero at{" "}
+                <span className="font-mono text-white/70">{hero.currentScore}</span>.
+              </p>
+              {hero.reasons.length > 0 && (
+                <ul className="mt-1.5 flex flex-wrap gap-1">
+                  {hero.reasons.map((r) => (
+                    <li
+                      key={r}
+                      className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/75"
+                    >
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {onSetPrimary && (
+              <button
+                type="button"
+                onClick={() => onSetPrimary(hero.recommendedIndex)}
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-[11px] font-semibold text-accent-foreground transition hover:brightness-110"
+              >
+                Set as Primary
+                <ArrowUpRight className="size-3" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+
       {health.recommendations.length > 0 && (
         <div className="mt-4 rounded-xl border border-white/5 bg-black/20 p-3">
           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
