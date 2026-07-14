@@ -375,7 +375,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
       priceUsd: form.price_usd ? Number(form.price_usd) : null,
       variantKeys: [
         ...Object.values(attrsObj as Record<string, string>),
-        ...specsRows.filter((r) => /colou?r|size/i.test(r.key)).map((r) => r.value),
+        ...specsRows.filter((r) => /colou?r|size/i.test(r.k)).map((r) => r.v),
       ].filter(Boolean),
     }),
     [form.slug, form.name, form.brand, form.category, extraCategories, form.sku, form.barcode, form.image, draftPhash, form.description, specsObj, attrsObj, form.price_inr, form.price_usd, specsRows],
