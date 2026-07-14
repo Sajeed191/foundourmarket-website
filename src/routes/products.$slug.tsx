@@ -539,14 +539,12 @@ function ProductPage() {
     if (probe.complete) apply();
     return () => { active = false; };
   }, [activeUrl]);
-  // The container's aspect ratio is set to the image's *exact* natural aspect so
-  // it collapses to the real rendered image height — no fixed box, no letterbox,
-  // no reserved blank space. Video uses a standard 16:9; a square is used only as
-  // a first-paint placeholder before the natural aspect is known. A very tall
-  // portrait is capped by max-h below (which centers horizontally, never leaving
-  // a bottom gap).
-  const displayAspect =
-    activeMedia?.kind === "video" ? 16 / 9 : mediaAspect ?? 1;
+  // Phase A: gallery uses a FIXED premium viewport (mobile 340 / tablet 380 /
+  // desktop 480). Source aspect ratio no longer drives the container, so
+  // switching images cannot shift price/CTA/reviews. Images render with
+  // object-contain inside the reserved box — never stretched, never cropped.
+  // `mediaAspect` is preserved as telemetry only.
+  void mediaAspect;
 
   // The lightbox now renders videos too, so it receives the full media list and
   // shares the same active index as the inline gallery.
@@ -701,8 +699,7 @@ function ProductPage() {
               <div aria-hidden className="absolute left-1/2 top-1/2 -z-10 size-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40" style={{ background: "radial-gradient(circle, oklch(0.74 0.19 49 / 0.5), transparent 70%)", filter: "blur(50px)" }} />
               <div
                 data-product-image
-                className="relative max-h-[80svh] mx-auto w-full card-premium rounded-2xl sm:rounded-3xl overflow-hidden group border border-white/10 shadow-[0_30px_60px_-28px_oklch(0_0_0/0.7)]"
-                style={{ aspectRatio: String(displayAspect) }}
+                className="relative mx-auto w-full h-[340px] sm:h-[380px] lg:h-[480px] card-premium rounded-2xl sm:rounded-3xl overflow-hidden group border border-white/10 shadow-[0_30px_60px_-28px_oklch(0_0_0/0.7)]"
               >
                 <AnimatePresence mode="wait">
                   {activeMedia?.kind === "video" ? (
@@ -720,7 +717,7 @@ function ProductPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 w-full h-full object-contain bg-black"
+                      className="absolute inset-0 w-full h-full object-contain bg-black p-3 sm:p-5 lg:p-7"
                     />
 
                   ) : (
@@ -744,7 +741,7 @@ function ProductPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 w-full h-full object-contain cursor-zoom-in transition-transform duration-[900ms] group-hover:scale-110"
+                      className="absolute inset-0 w-full h-full object-contain cursor-zoom-in p-3 sm:p-5 lg:p-7 transition-transform duration-[900ms] group-hover:scale-105"
                     />
                   )}
                 </AnimatePresence>
