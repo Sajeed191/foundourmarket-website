@@ -90,13 +90,43 @@ function scoreDescription(input: CompletenessInput): Dimension {
   return { key: "description", label: "Description", weight: 15, score: clamp(s), evidence: ev, action: "Expand description", actionSubpath: "details" };
 }
 
-function scoreAttributes(input: CompletenessInput): Dimension {
-  const ev: Evidence[] = [];
-  let s = 100;
-  if (input.attributeCount === 0) { s = 20; ev.push({ key: "attrs_none", message: "No attributes set (brand, colour, material, …).", severity: "warning", impact: 12 }); }
-  else if (input.attributeCount < 3) { s = 60; ev.push({ key: "attrs_few", message: "Add more attributes to improve filtering & search.", severity: "info", impact: 6 }); }
-  return { key: "attributes", label: "Attributes", weight: 15, score: clamp(s), evidence: ev, action: "Add attributes", actionSubpath: "details" };
+/**
+ * Attribute dimension — delegates to the Attribute Intelligence module.
+ * Product Completeness is now an orchestrator over specialised subsystems.
+ */
+function scoreAttributes(input: CompletenessInput): { dim: Dimension; attr: AttributeIntelligence } {
+  const attr = analyzeAttributes({
+    slug: input.slug,
+    category: input.category,
+    attributes: input.attributes ?? null,
+    specifications: input.specifications ?? null,
+  });
+  const ev: Evidence[] = attr.evidence.filter((e) => e.severity !== "info");
+  // Fallback when caller passed no attributes bag but did pass a legacy count.
+  const hasBag = !!(input.attributes || input.specifications);
+  const score = hasBag
+    ? attr.score
+    : input.attributeCount == null
+    ? 60
+    : input.attributeCount === 0
+    ? 20
+    : input.attributeCount < 3
+    ? 60
+    : 100;
+  return {
+    dim: {
+      key: "attributes",
+      label: "Attributes",
+      weight: 15,
+      score: clamp(score),
+      evidence: ev,
+      action: "Add attributes",
+      actionSubpath: "details",
+    },
+    attr,
+  };
 }
+
 
 function scoreSpecs(input: CompletenessInput): Dimension {
   const ev: Evidence[] = [];
