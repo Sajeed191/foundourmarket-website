@@ -459,6 +459,24 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
     [form.name, form.description, form.seo_title, form.seo_description, form.meta_keywords, galleryUrls.length, form.video_url, specsRows, attrsObj, form.price_inr, form.price_usd, form.compare_price_inr, form.stock_quantity],
   );
 
+  // SEO advisory input for the Marketplace AI Assistant (reuses SEO engine).
+  const assistantSeoDraft = useMemo(
+    () => ({
+      name: form.name,
+      seoTitle: form.seo_title || null,
+      seoDescription: form.seo_description || null,
+      description: form.description || null,
+      keywords: form.meta_keywords || null,
+      imageAlt: form.name || null,
+      category: effectiveCategory || null,
+      hasFaq: pendingFaqs.length > 0,
+      hasRelated: !!(form.related_products || form.cross_sell_products || form.upsell_products),
+      hasImage: !!form.image.trim(),
+    }),
+    [form.name, form.seo_title, form.seo_description, form.description, form.meta_keywords, effectiveCategory, pendingFaqs.length, form.related_products, form.cross_sell_products, form.upsell_products, form.image],
+  );
+
+
   async function uploadImage(file: File) {
     setUploading(true); setError(null);
     const ext = file.name.split(".").pop() ?? "jpg";
