@@ -353,7 +353,7 @@ export const listRecentIntelligenceJobs = createServerFn({ method: "GET" })
     await assertRole(supabase, userId, STAFF_ROLES);
     const { data: rows, error } = await supabase
       .from("image_intelligence_jobs")
-      .select("id, image_url, product_slug, category_slug, job_type, mode, status, health_score, duration_ms, recommendation, actions_json, rejection_reason, optimized_url, created_at")
+      .select("id, image_url, product_slug, category_slug, job_type, mode, status, health_score, duration_ms, recommendation, actions_json, rejection_reason, optimized_url, engine_version, photon_version, quality_gate_version, category_rules_version, created_at")
       .order("created_at", { ascending: false })
       .limit(data.limit);
     if (error) throw new Error(error.message);
