@@ -209,6 +209,7 @@ function MobileFilterLauncher({
   rate,
   symbol,
   onApplyFilters,
+  renderTrigger,
 }: {
   currentFilters: Filters;
   currentSort: string;
@@ -222,6 +223,8 @@ function MobileFilterLauncher({
   rate: number;
   symbol: string;
   onApplyFilters: (filters: Filters, sort: string) => void;
+  /** Optional custom trigger. Receives open-callback and current active count. */
+  renderTrigger?: (open: () => void, activeCount: number) => React.ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [draft, setDraft] = useState<Filters>(currentFilters);
@@ -270,12 +273,16 @@ function MobileFilterLauncher({
 
   return (
     <>
-      <button
-        onClick={() => setDrawerOpen(true)}
-        className="lg:hidden shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/[0.05] ring-1 ring-white/10 text-xs font-medium hover:bg-white/[0.08] transition-all"
-      >
-        <SlidersHorizontal className="size-4" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-      </button>
+      {renderTrigger ? (
+        renderTrigger(() => setDrawerOpen(true), activeFilterCount)
+      ) : (
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="lg:hidden shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/[0.05] ring-1 ring-white/10 text-xs font-medium hover:bg-white/[0.08] transition-all"
+        >
+          <SlidersHorizontal className="size-4" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+        </button>
+      )}
 
       <MobileFilterDrawer
         open={drawerOpen}
@@ -300,6 +307,7 @@ function MobileFilterLauncher({
     </>
   );
 }
+
 
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
