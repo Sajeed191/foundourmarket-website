@@ -602,7 +602,6 @@ export const MobileFilterDrawer = memo(function MobileFilterDrawer({
                       {active && <Check className="size-3" strokeWidth={3} />}
                     </span>
                     <span className={`flex-1 text-left ${active ? "text-accent font-medium" : "text-foreground"}`}>{b.name}</span>
-                    <span className="text-[11px] tabular-nums text-muted-foreground">{b.count}</span>
                   </button>
                 );
               })}
