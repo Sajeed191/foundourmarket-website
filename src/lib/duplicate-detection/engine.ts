@@ -217,16 +217,18 @@ export function scoreDuplicate(
   const isVariantOfSame = highProductMatch && (draft.variantKeys?.length ?? 0) > 0 && vOverlap < 0.5;
 
   const verdict = verdictFor(score);
+  const leadBadges: DupBadge[] =
+    score >= 97 ? ["EXACT"] : score >= 55 ? ["SIMILAR"] : [];
   return {
     product: candidate,
     score,
     verdict,
     signals: signals.sort((a, b) => b.similarity * b.weight - a.similarity * a.weight),
-    badges: badgesFor(signals, isVariantOfSame ? false : false).concat(
-      score >= 97 ? (["EXACT"] as DupBadge[]) : score >= 55 ? (["SIMILAR"] as DupBadge[]) : [],
-      isVariantOfSame ? (["VARIANT"] as DupBadge[]) : [],
-      badgesFor(signals, false),
-    ),
+    badges: uniqueBadges([
+      ...leadBadges,
+      ...(isVariantOfSame ? (["VARIANT"] as DupBadge[]) : []),
+      ...badgesFor(signals, isVariantOfSame),
+    ]),
     isVariantOfSame,
     ignored: false,
   };
