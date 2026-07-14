@@ -6,7 +6,7 @@ import { DuplicateIntelligencePanel } from "@/components/admin/duplicate/Duplica
 import { CatalogReadinessPanel } from "@/components/admin/duplicate/CatalogReadinessPanel";
 import { ProductGuardBanner, GUARD_THRESHOLD } from "@/components/admin/duplicate/ProductGuardBanner";
 import { useImageIntelligence } from "@/hooks/use-image-intelligence";
-import { classifyRelationship, isDuplicateRisk } from "@/lib/catalog-intelligence";
+import { classifyRelationship, isDuplicateRisk, RELATIONSHIP_LABEL } from "@/lib/catalog-intelligence";
 import { resolveImage } from "@/lib/products";
 import { motion } from "framer-motion";
 import {
