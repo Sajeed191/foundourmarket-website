@@ -717,7 +717,7 @@ function ProductPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 w-full h-full object-contain bg-black"
+                      className="absolute inset-0 w-full h-full object-contain bg-black p-3 sm:p-5 lg:p-7"
                     />
 
                   ) : (
@@ -741,7 +741,7 @@ function ProductPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 w-full h-full object-contain cursor-zoom-in transition-transform duration-[900ms] group-hover:scale-110"
+                      className="absolute inset-0 w-full h-full object-contain cursor-zoom-in p-3 sm:p-5 lg:p-7 transition-transform duration-[900ms] group-hover:scale-105"
                     />
                   )}
                 </AnimatePresence>
