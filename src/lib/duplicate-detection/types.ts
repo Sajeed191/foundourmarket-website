@@ -33,6 +33,13 @@ export type DetectionProduct = {
   stockQuantity: number;
   variantCount: number;
   createdAt: string;
+  /**
+   * Optional lightweight image-intelligence summary derived from the
+   * ImageAnalysis v2 contract (deterministic + AI). Background-independent
+   * on purpose — used to reduce false positives when two products share a
+   * background but have different subjects.
+   */
+  imageIntelligence?: ImageIntelSummary | null;
 };
 
 /** The in-progress product the admin is creating/editing. */
@@ -55,6 +62,25 @@ export type DraftProduct = {
   priceUsd?: number | null;
   /** Variant axis values the admin has added (e.g. colours/sizes). */
   variantKeys?: string[];
+  /** Optional image intelligence summary for the draft's primary image. */
+  imageIntelligence?: ImageIntelSummary | null;
+};
+
+/**
+ * Compact, background-independent summary of the primary image's intelligence.
+ * Populated from `ImageAnalysis` (v2) — deterministic fields plus optional AI
+ * fields with confidence. Consumed by the duplicate engine's `imageIntel`
+ * signal; never required.
+ */
+export type ImageIntelSummary = {
+  /** Number of detected products (AI when available, else 1 if any occupancy). */
+  objectCount: number | null;
+  /** Lowercased short product nouns for the detected objects (AI). */
+  labels: string[];
+  /** Product occupancy 0–100 (deterministic). */
+  occupancy: number | null;
+  /** AI detection confidence 0–1, when available. */
+  aiConfidence: number | null;
 };
 
 /** Which detection layer produced a signal. */
