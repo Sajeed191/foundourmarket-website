@@ -389,13 +389,6 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const duplicateResult = useDuplicateDetection(duplicateDraft);
   const [dupTick, setDupTick] = useState(0);
 
-  // ---- Catalog Intelligence: real duplicate risk (exact only) + image + health ----
-  const realDuplicateRisk = useMemo(() => {
-    const top = duplicateResult.matches.find((m) => !m.ignored);
-    if (!top) return 0;
-    const rel = classifyRelationship(duplicateDraft, top);
-    return isDuplicateRisk(rel.kind) ? top.score : Math.round(top.score * 0.4);
-  }, [duplicateResult.matches, duplicateDraft]);
 
   // ---- AI Product Guard: publish protection + smart action handlers ----
   // The top, non-ignored match that clears the warning threshold.
