@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import { X, DollarSign, LayoutGrid, Star, Store, Palette, CheckCircle2, Tag, Globe, Ruler, Truck } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
 import type { Category } from "@/lib/use-categories";
 import type { Filters } from "@/lib/search-filters";
 
@@ -18,16 +19,80 @@ const STOCK_LABELS: Record<string, string> = {
   pre: "Pre-order",
 };
 
-type Chip = { key: string; label: string; onClear: () => void };
+/**
+ * Chip accent tone. Each maps to a muted, premium color band in the styles below.
+ * Keep this set closed so the visual language stays consistent.
+ */
+type Tone = "orange" | "gold" | "amber" | "slate" | "green" | "red" | "sky";
+
+type Chip = {
+  key: string;
+  label: string;
+  tone: Tone;
+  Icon: ComponentType<SVGProps<SVGSVGElement>>;
+  swatch?: string; // for color chips: css color value for the dot
+  onClear: () => void;
+};
 
 function csv(v?: string): string[] {
   return (v ?? "").split(",").map((x) => x.trim()).filter(Boolean);
 }
 
+// Tailwind-friendly tone styles. Muted, premium — never neon.
+const TONE_STYLES: Record<Tone, { text: string; ring: string; bg: string; iconBg: string }> = {
+  orange: {
+    text: "text-accent",
+    ring: "ring-accent/25",
+    bg: "bg-gradient-to-b from-accent/10 to-accent/[0.03]",
+    iconBg: "bg-accent/15 text-accent",
+  },
+  gold: {
+    text: "text-amber-300",
+    ring: "ring-amber-400/25",
+    bg: "bg-gradient-to-b from-amber-400/10 to-amber-400/[0.03]",
+    iconBg: "bg-amber-400/15 text-amber-300",
+  },
+  amber: {
+    text: "text-amber-200",
+    ring: "ring-amber-300/20",
+    bg: "bg-gradient-to-b from-amber-300/8 to-amber-300/[0.02]",
+    iconBg: "bg-amber-300/10 text-amber-200",
+  },
+  slate: {
+    text: "text-slate-200",
+    ring: "ring-slate-400/20",
+    bg: "bg-gradient-to-b from-slate-400/10 to-slate-400/[0.03]",
+    iconBg: "bg-slate-400/15 text-slate-200",
+  },
+  green: {
+    text: "text-emerald-300",
+    ring: "ring-emerald-400/25",
+    bg: "bg-gradient-to-b from-emerald-400/10 to-emerald-400/[0.03]",
+    iconBg: "bg-emerald-400/15 text-emerald-300",
+  },
+  red: {
+    text: "text-rose-300",
+    ring: "ring-rose-400/25",
+    bg: "bg-gradient-to-b from-rose-400/10 to-rose-400/[0.03]",
+    iconBg: "bg-rose-400/15 text-rose-300",
+  },
+  sky: {
+    text: "text-sky-300",
+    ring: "ring-sky-400/25",
+    bg: "bg-gradient-to-b from-sky-400/10 to-sky-400/[0.03]",
+    iconBg: "bg-sky-400/15 text-sky-300",
+  },
+};
+
 /**
- * Sticky applied-filter bar. Always-visible row of removable chips so shoppers
- * never lose sight of what's active, plus a Clear All action. Each chip removes
- * only its own dimension.
+ * Premium Active Filter summary. Renders a single glass container with a soft
+ * ambient edge glow, a compact header ("Active Filters • N Filters Applied"),
+ * a horizontally-scrolling row of capsule chips carrying intelligent icons and
+ * tonal accents by dimension, and a ghost/pill Clear-All action.
+ *
+ * Pure presentation — filter state, URL sync, and query updates all remain in
+ * the parent (search route). Removing a chip calls the same `onChange` patches
+ * used elsewhere so behavior is identical to the previous chip bar.
  */
 export function ActiveFilterBar({
   filters,
@@ -50,16 +115,30 @@ export function ActiveFilterBar({
 
   if (filters.sub) {
     const c = allCategories.find((x) => x.slug === filters.sub);
-    chips.push({ key: "sub", label: c?.name ?? filters.sub, onClear: () => onChange({ sub: undefined }) });
+    chips.push({
+      key: "sub",
+      label: c?.name ?? filters.sub,
+      tone: "amber",
+      Icon: LayoutGrid,
+      onClear: () => onChange({ sub: undefined }),
+    });
   } else if (filters.cat) {
     const c = allCategories.find((x) => x.slug === filters.cat);
-    chips.push({ key: "cat", label: c?.name ?? filters.cat, onClear: () => onChange({ cat: undefined }) });
+    chips.push({
+      key: "cat",
+      label: c?.name ?? filters.cat,
+      tone: "amber",
+      Icon: LayoutGrid,
+      onClear: () => onChange({ cat: undefined }),
+    });
   }
 
   for (const b of csv(filters.brand)) {
     chips.push({
       key: `brand-${b}`,
       label: b,
+      tone: "slate",
+      Icon: Store,
       onClear: () => onChange({ brand: csv(filters.brand).filter((x) => x !== b).join(",") || undefined }),
     });
   }
@@ -67,6 +146,9 @@ export function ActiveFilterBar({
     chips.push({
       key: `color-${c}`,
       label: c,
+      tone: "slate",
+      Icon: Palette,
+      swatch: c.toLowerCase(),
       onClear: () => onChange({ color: csv(filters.color).filter((x) => x !== c).join(",") || undefined }),
     });
   }
@@ -74,6 +156,8 @@ export function ActiveFilterBar({
     chips.push({
       key: `size-${s}`,
       label: `Size ${s}`,
+      tone: "slate",
+      Icon: Ruler,
       onClear: () => onChange({ size: csv(filters.size).filter((x) => x !== s).join(",") || undefined }),
     });
   }
@@ -84,51 +168,137 @@ export function ActiveFilterBar({
     chips.push({
       key: "price",
       label: `${fmt(lo)} – ${fmt(hi)}${hi >= priceMax ? "+" : ""}`,
+      tone: "orange",
+      Icon: DollarSign,
       onClear: () => onChange({ min: undefined, max: undefined }),
     });
   }
   if (filters.rating != null) {
-    chips.push({ key: "rating", label: `${filters.rating}★ & Up`, onClear: () => onChange({ rating: undefined }) });
+    chips.push({
+      key: "rating",
+      label: `${filters.rating}★ & Up`,
+      tone: "gold",
+      Icon: Star,
+      onClear: () => onChange({ rating: undefined }),
+    });
   }
   if (filters.stock) {
-    chips.push({ key: "stock", label: STOCK_LABELS[filters.stock] ?? filters.stock, onClear: () => onChange({ stock: undefined }) });
+    chips.push({
+      key: "stock",
+      label: STOCK_LABELS[filters.stock] ?? filters.stock,
+      tone: "green",
+      Icon: CheckCircle2,
+      onClear: () => onChange({ stock: undefined }),
+    });
   }
   for (const k of ["free", "cod", "sale", "flash", "hot", "newx", "feat"] as const) {
     if (filters[k] === "1") {
-      chips.push({ key: k, label: OFFER_LABELS[k], onClear: () => onChange({ [k]: undefined } as Partial<Filters>) });
+      const isShipping = k === "free" || k === "cod";
+      chips.push({
+        key: k,
+        label: OFFER_LABELS[k],
+        tone: isShipping ? "green" : "red",
+        Icon: isShipping ? Truck : Tag,
+        onClear: () => onChange({ [k]: undefined } as Partial<Filters>),
+      });
     }
   }
   if (filters.dmin != null) {
-    chips.push({ key: "dmin", label: `${filters.dmin}%+ off`, onClear: () => onChange({ dmin: undefined }) });
+    chips.push({
+      key: "dmin",
+      label: `${filters.dmin}%+ off`,
+      tone: "red",
+      Icon: Tag,
+      onClear: () => onChange({ dmin: undefined }),
+    });
   }
 
   if (chips.length === 0) return null;
 
+  const count = chips.length;
+
   return (
     <div
-      className={`sticky top-0 z-30 -mx-4 border-b border-white/10 bg-background/85 px-4 py-2.5 backdrop-blur-xl sm:mx-0 sm:rounded-2xl sm:border sm:px-3 ${className ?? ""}`}
+      className={`sticky top-0 z-30 -mx-4 px-4 py-2 sm:mx-0 sm:px-0 ${className ?? ""}`}
       role="region"
       aria-label="Active filters"
     >
-      <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {chips.map((chip) => (
-          <button
-            key={chip.key}
-            onClick={chip.onClear}
-            aria-label={`Remove filter ${chip.label}`}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-accent/15 pl-3 pr-2 py-1.5 text-xs font-medium text-accent ring-1 ring-accent/30 transition-all active:scale-95"
-          >
-            {chip.label}
-            <X className="size-3.5" />
-          </button>
-        ))}
-        <button
-          onClick={onClear}
-          className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-accent"
+      {/* Ambient orange edge glow */}
+      <div className="relative">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-px rounded-[22px] bg-gradient-to-r from-accent/20 via-transparent to-accent/15 opacity-60 blur-[6px]"
+        />
+        <div
+          className="relative rounded-[22px] border border-white/[0.06] bg-[linear-gradient(180deg,rgba(20,20,24,0.85),rgba(10,10,12,0.9))] px-3.5 py-3 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-2xl sm:px-4"
         >
-          Clear All
-        </button>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-baseline gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-foreground/90">
+                Active Filters
+              </span>
+              <span aria-hidden className="text-muted-foreground/40">•</span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                {count} Filter{count === 1 ? "" : "s"} Applied
+              </span>
+            </div>
+            <button
+              onClick={onClear}
+              className="shrink-0 inline-flex h-8 items-center gap-1.5 rounded-full border border-accent/40 bg-transparent px-3 text-[11px] font-semibold uppercase tracking-wider text-accent transition-all duration-200 hover:bg-accent/10 hover:border-accent/60 active:scale-[0.96]"
+              aria-label="Clear all filters"
+            >
+              Clear All
+            </button>
+          </div>
+
+          <div
+            className="mt-2.5 flex items-center gap-2 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-0.5 px-0.5 py-0.5"
+          >
+            {chips.map((chip) => {
+              const t = TONE_STYLES[chip.tone];
+              const { Icon } = chip;
+              return (
+                <div
+                  key={chip.key}
+                  className={`group snap-start shrink-0 inline-flex h-10 items-center gap-2 rounded-full pl-2 pr-1 ring-1 ${t.ring} ${t.bg} shadow-[0_4px_14px_-8px_rgba(0,0,0,0.5)] transition-all duration-200 will-change-transform animate-[fmChipIn_240ms_cubic-bezier(0.2,0.8,0.2,1)_both]`}
+                >
+                  <span className={`grid size-6 place-items-center rounded-full ${t.iconBg}`}>
+                    {chip.swatch ? (
+                      <span
+                        aria-hidden
+                        className="size-3 rounded-full ring-1 ring-white/20"
+                        style={{ background: chip.swatch }}
+                      />
+                    ) : (
+                      <Icon className="size-3.5" strokeWidth={2.25} />
+                    )}
+                  </span>
+                  <span className={`text-[12px] font-semibold ${t.text} max-w-[10rem] truncate`}>
+                    {chip.label}
+                  </span>
+                  <button
+                    onClick={chip.onClear}
+                    aria-label={`Remove filter ${chip.label}`}
+                    className="grid size-7 place-items-center rounded-full bg-white/[0.04] text-foreground/70 transition-all duration-150 hover:bg-white/10 hover:text-foreground active:scale-90"
+                  >
+                    <X className="size-3.5" strokeWidth={2.5} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes fmChipIn {
+          0% { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.96); }
+          100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [class*="fmChipIn"] { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
