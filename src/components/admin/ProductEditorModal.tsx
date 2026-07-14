@@ -424,7 +424,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   ) => {
     const slug = match.product.slug;
     const field = relation === "successor" ? "upsell_products" : "related_products";
-    const current = (form[field] || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const current = (form[field] || "").split(",").map((s: string) => s.trim()).filter(Boolean);
     if (!current.includes(slug)) current.push(slug);
     set({ [field]: current.join(", ") } as Partial<typeof form>);
     setGuardConfirm(null);
