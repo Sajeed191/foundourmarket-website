@@ -270,6 +270,27 @@ function ImageIntelligencePage() {
           </div>
         </section>
 
+        {/* Engine version manifest — reproducibility rule */}
+        <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+          <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Engine version manifest</p>
+          <p className="mt-1 text-[11px] text-white/60">
+            Every generated asset is reproducible: given the original image plus this manifest, the pipeline produces the same output. Bump a version when its behaviour changes to enable selective reprocessing.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { k: "Engine", v: ENGINE_VERSION_MANIFEST.engine_version },
+              { k: "Photon", v: ENGINE_VERSION_MANIFEST.photon_version },
+              { k: "Quality Gate", v: ENGINE_VERSION_MANIFEST.quality_gate_version },
+              { k: "Category Rules", v: ENGINE_VERSION_MANIFEST.category_rules_version },
+            ].map((x) => (
+              <div key={x.k} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                <p className="text-[9px] font-mono uppercase tracking-[0.2em] text-white/50">{x.k}</p>
+                <p className="mt-0.5 font-mono text-sm text-white/90">{x.v}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Recent jobs */}
         <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
           <div className="flex items-center justify-between">
