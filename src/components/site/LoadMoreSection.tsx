@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, Loader2, Check, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { trackEvent } from "@/lib/visitor";
-import { SmartRecommendations } from "@/components/site/SmartRecommendations";
+
 
 /**
  * Premium "Load More" continuation experience.
@@ -314,10 +314,6 @@ function EndOfCatalog({ total }: { total: number }) {
         </div>
       </div>
 
-      {/* Recommendations tail — reuses the shared Marketplace Intelligence engine. */}
-      <div className="mt-10">
-        <SmartRecommendations />
-      </div>
     </div>
   );
 }
