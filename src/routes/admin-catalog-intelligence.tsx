@@ -3,15 +3,18 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Loader2, Sparkles, RefreshCw, Gauge, Search, ShieldCheck, Image as ImageIcon,
-  Boxes, Brain, Layers, Store, TrendingUp, ArrowRight, Package,
+  Boxes, Brain, Layers, Store, TrendingUp, ArrowRight, Package, CheckCircle2, Wand2,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildOptimizerReport,
+  scoreProductCompleteness,
   type OptimizerProduct,
   type OptimizerReport,
+  type ProductCompleteness,
 } from "@/lib/catalog-intelligence";
+
 
 export const Route = createFileRoute("/admin-catalog-intelligence")({
   head: () => ({
@@ -92,6 +95,31 @@ function CatalogIntelligencePage() {
         : [],
     [report],
   );
+
+  const completeness = useMemo(() => {
+    if (!products) return null;
+    const rows = products.map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      module: scoreProductCompleteness({
+        slug: p.slug,
+        name: p.name,
+        description: p.description,
+        seoTitle: p.seo_title,
+        seoDescription: p.seo_description,
+        metaKeywords: p.meta_keywords ?? null,
+        imageCount: p.image ? 1 : 0,
+        imageQuality: null,
+        attributeCount: Object.values(p.attributes ?? {}).filter(Boolean).length,
+        specCount: Object.keys(p.specifications ?? {}).length,
+        variantCount: Object.values(p.attributes ?? {}).filter(Boolean).length,
+      }),
+    }));
+    const avg = Math.round(rows.reduce((a, r) => a + r.module.score, 0) / (rows.length || 1));
+    const needs = [...rows].sort((a, b) => a.module.score - b.module.score).slice(0, 6);
+    return { rows, avg, needs };
+  }, [products]);
+
 
   return (
     <AdminShell title="Catalog Intelligence">
@@ -198,7 +226,42 @@ function CatalogIntelligencePage() {
                 </ul>
               </div>
             </div>
+
+            {/* Product Completeness Engine — Catalog Intelligence 2.0, Phase 1 */}
+            {completeness && (
+              <div className="rounded-3xl border border-border/60 bg-card/40 p-5">
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="grid size-9 place-items-center rounded-xl bg-accent/10 text-accent">
+                    <Wand2 className="size-4" />
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent">Catalog Intelligence 2.0 · Phase 1</p>
+                    <p className="text-sm font-semibold">Product Completeness Engine</p>
+                    <p className="text-xs text-muted-foreground">
+                      One recommendation per listing. Deterministic scoring across images, title, description, attributes, specifications, variants, SEO.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Avg</p>
+                    <p className={`font-display text-2xl font-semibold tabular-nums ${ring(completeness.avg)}`}>{completeness.avg}</p>
+                  </div>
+                </div>
+
+                <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Top listings to fix</p>
+                <ul className="space-y-2">
+                  {completeness.needs.map((r) => (
+                    <CompletenessRow key={r.slug} slug={r.slug} name={r.name} module={r.module} />
+                  ))}
+                  {completeness.needs.length === 0 && (
+                    <li className="flex items-center gap-2 text-xs text-emerald-400">
+                      <CheckCircle2 className="size-4" /> All listings look complete.
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
           </>
+
         )}
       </div>
     </AdminShell>
@@ -216,3 +279,46 @@ function StatCard({ label, value, icon: Icon, tone }: { label: string; value: st
     </div>
   );
 }
+
+const STATUS_DOT: Record<ProductCompleteness["status"], string> = {
+  green: "bg-emerald-400",
+  blue: "bg-sky-400",
+  amber: "bg-amber-400",
+  red: "bg-destructive",
+};
+
+function CompletenessRow({ slug, name, module: m }: { slug: string; name: string; module: ProductCompleteness }) {
+  return (
+    <li className="rounded-2xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center gap-3">
+        <span className={`size-2 shrink-0 rounded-full ${STATUS_DOT[m.status]}`} aria-hidden />
+        <div className="min-w-0 flex-1">
+          <Link
+            to="/admin-product/$slug"
+            params={{ slug }}
+            className="block truncate text-sm font-medium hover:text-accent"
+          >
+            {name}
+          </Link>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{m.recommendation}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className={`font-mono text-xs tabular-nums ${
+            m.score >= 85 ? "text-emerald-400" : m.score >= 60 ? "text-amber-400" : "text-destructive"
+          }`}>
+            {m.score}
+          </span>
+          {m.actionHref ? (
+            <a
+              href={m.actionHref}
+              className="inline-flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground transition hover:opacity-90"
+            >
+              {m.action} <ArrowRight className="size-3" />
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </li>
+  );
+}
+
