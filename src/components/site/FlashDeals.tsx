@@ -92,7 +92,6 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
           className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase leading-none tracking-[0.12em] text-black shadow-[0_4px_14px_-2px_rgba(255,122,0,0.55)]"
           style={{ background: "linear-gradient(135deg, #FFB347 0%, #FF6A00 100%)" }}
         >
-          <Zap className="size-3" strokeWidth={2.5} />
           Flash Deal
         </span>
 

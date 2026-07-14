@@ -148,7 +148,7 @@ function ProductBadgesImpl({ badges }: { badges: CardBadge[] }) {
           className={`${pillBase} ${b.className ?? ""}`}
           style={b.style ?? badgeStyle(b.label)}
         >
-          {b.emoji && <span aria-hidden className="shrink-0">{b.emoji}</span>}
+          
           <span className="truncate">{b.label}</span>
         </span>
       ))}
