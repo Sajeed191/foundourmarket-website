@@ -11,6 +11,7 @@ import { useWishlistActions, useWishlistSaved } from "@/lib/wishlist";
 import { useFlashDeals, type FlashItem } from "@/lib/use-flash-deals";
 import { useHomepageSections, toggleHomepageSection } from "@/lib/use-homepage-sections";
 import type { Product } from "@/lib/products";
+import { ProductImage } from "@/components/site/ProductImage";
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
@@ -76,12 +77,10 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
       {/* Image occupies ~70% of card height via tall aspect ratio */}
       <div data-product-media className="relative aspect-[4/5] overflow-hidden bg-gradient-to-b from-white/[0.03] to-black/40">
         {p.image && (
-          <img
+          <ProductImage
             data-product-image
             src={p.image}
             alt={p.name}
-            loading="lazy"
-            decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 motion-safe:lg:group-hover:scale-[1.03]"
           />
         )}
