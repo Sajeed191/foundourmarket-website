@@ -153,7 +153,7 @@ function CatalogIntelligencePage() {
       .map((p) => {
         const vs = variantsByProduct.get(p.slug) ?? [];
         if (vs.length === 0) return null;
-        const basePrice = typeof p.price === "number" ? p.price : null;
+        const basePrice = typeof p.price_inr === "number" ? p.price_inr : null;
         const module = analyzeVariantIntelligence({
           slug: p.slug,
           productName: p.name,
