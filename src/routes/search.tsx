@@ -1224,7 +1224,7 @@ function SearchPage() {
                 pageSize={PAGE_SIZE}
                 onLoadMore={loadMore}
                 loading={false}
-                columnsClassName="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6 mt-3 sm:mt-5 lg:mt-6"
+                
                 analyticsSource="search"
               />
 
