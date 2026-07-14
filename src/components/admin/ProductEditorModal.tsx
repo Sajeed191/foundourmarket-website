@@ -1377,7 +1377,75 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
             {saving ? <Loader2 className="size-4 animate-spin" /> : null} {effectiveId ? "Save changes" : "Create product"}
           </button>
         </div>
+
+        {/* Publish Protection — never blocks; the admin always decides. */}
+        {guardConfirm && (() => {
+          const gc = guardConfirm;
+          const rel = classifyRelationship(duplicateDraft, gc);
+          const proceed = () => {
+            setPublishAck(true);
+            setGuardConfirm(null);
+            // Re-submit now that the admin acknowledged the duplicate.
+            setTimeout(() => formRef.current?.requestSubmit(), 0);
+          };
+          return (
+            <div
+              className="fixed inset-0 z-[60] grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+              onClick={(e) => { if (e.target === e.currentTarget) setGuardConfirm(null); }}
+            >
+              <div className="w-full max-w-md glass-strong border border-red-500/30 rounded-3xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="size-5 text-red-400" />
+                  <h3 className="text-base font-display font-semibold">This product may already exist</h3>
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-background/40 p-3">
+                  {gc.product.image
+                    ? <img src={resolveImage(gc.product.image)} alt={gc.product.name} className="size-14 shrink-0 rounded-xl object-cover" />
+                    : <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-white/5"><Package className="size-5 text-muted-foreground" /></div>}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{gc.product.name}</p>
+                    <p className="text-xs text-muted-foreground">{RELATIONSHIP_LABEL[rel.kind]} · {gc.product.brand || "—"}</p>
+                    <p className="font-mono text-sm font-bold text-red-400">Confidence {gc.score}%</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">{rel.message} You decide what happens next.</p>
+                <ul className="space-y-0.5">
+                  {gc.signals.filter((s) => s.matched).slice(0, 4).map((s) => (
+                    <li key={s.key} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <span className="text-emerald-400">✓</span> {s.reason}
+                    </li>
+                  ))}
+                </ul>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button type="button" onClick={() => navigate({ to: "/admin-product/$slug", params: { slug: gc.product.slug } })}
+                    className="rounded-xl border border-white/15 px-3 py-2 text-xs font-medium hover:bg-white/5">Open Existing</button>
+                  <button type="button" onClick={async () => {
+                      await logDuplicateEvent({ draft: duplicateDraft, match: gc, action: "merged" });
+                      invalidateDetectionIndex();
+                      setGuardConfirm(null);
+                      navigate({ to: "/admin-product/$slug", params: { slug: gc.product.slug } });
+                    }}
+                    className="rounded-xl border border-white/15 px-3 py-2 text-xs font-medium hover:bg-white/5">Merge</button>
+                  <button type="button" onClick={onCreateVariant}
+                    className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20">Convert to Variant</button>
+                  <button type="button" onClick={async () => {
+                      await logDuplicateEvent({ draft: duplicateDraft, match: gc, action: "ignored" });
+                      gc.ignored = true;
+                      setDupTick((t) => t + 1);
+                      setGuardConfirm(null);
+                    }}
+                    className="rounded-xl border border-white/15 px-3 py-2 text-xs font-medium hover:bg-white/5">Ignore</button>
+                  <button type="button" onClick={proceed}
+                    className="col-span-2 rounded-xl bg-gradient-to-r from-accent to-primary px-3 py-2 text-xs font-semibold text-accent-foreground hover:brightness-110">
+                    Publish Anyway
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </motion.form>
+
     </div>
   );
 }
