@@ -347,7 +347,7 @@ export async function processAndUpload(
         entity_type: opts.entityType ?? "library",
         entity_ref: opts.entityRef ?? null,
         // Phase A.5 metadata — versioned; gallery reads via getDisplayImage().
-        analysis: analysis as unknown as Record<string, unknown>,
+        analysis: JSON.parse(JSON.stringify(analysis)),
         normalized_url: normalizedUrl,
       })
       .select()
