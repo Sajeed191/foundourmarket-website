@@ -204,10 +204,29 @@ export function scoreDuplicate(
     pushSignal(signals, "sku", "SKU", skuSim, w.sku, 0.9, skuSim >= 0.99 ? "Same SKU" : "Similar SKU");
   }
 
-  // --- Image ---
+  // --- Image (perceptual hash) ---
   const imgSim = imageSimilarity(draft.imagePhash, candidate.imagePhash);
+  // --- Image Intelligence (background-independent subject match, v2) ---
+  const intel = imageIntelSimilarity(draft.imageIntelligence, candidate.imageIntelligence);
   if (imgSim != null) {
-    pushSignal(signals, "image", "Image", imgSim, w.image, 0.85, imgSim >= 0.9 ? "Same main image" : imgSim >= 0.7 ? "Very similar image" : "Related image");
+    // Dampen the phash signal when both sides have confident AI labels that
+    // disagree — different products photographed on the same background
+    // shouldn't inflate the duplicate score.
+    let effective = imgSim;
+    let reason = imgSim >= 0.9 ? "Same main image" : imgSim >= 0.7 ? "Very similar image" : "Related image";
+    if (
+      intel &&
+      intel.labelsAgree === false &&
+      (draft.imageIntelligence?.aiConfidence ?? 0) >= 0.6 &&
+      (candidate.imageIntelligence?.aiConfidence ?? 0) >= 0.6
+    ) {
+      effective = imgSim * 0.4;
+      reason = "Similar image but different subject";
+    }
+    pushSignal(signals, "image", "Image", effective, w.image, 0.85, reason);
+  }
+  if (intel) {
+    pushSignal(signals, "imageIntel", "Image intelligence", intel.similarity, w.imageIntel, 0.7, intel.reason);
   }
 
   // --- Description (semantic-ish token overlap) ---
