@@ -126,6 +126,7 @@ export type DupBadge =
   | "EXACT"
   | "SIMILAR"
   | "IMAGE MATCH"
+  | "SUBJECT MATCH"
   | "TITLE MATCH"
   | "SPEC MATCH"
   | "BARCODE MATCH"
