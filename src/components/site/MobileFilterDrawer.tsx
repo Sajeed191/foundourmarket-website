@@ -431,6 +431,16 @@ export const MobileFilterDrawer = memo(function MobileFilterDrawer({
     if (open) closeRef.current?.focus();
   }, [open]);
 
+  // Escape closes the drawer.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   if (!mounted) return null;
 
 
