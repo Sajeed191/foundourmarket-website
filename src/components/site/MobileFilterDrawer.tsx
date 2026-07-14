@@ -915,6 +915,7 @@ export const MobileFilterDrawer = memo(function MobileFilterDrawer({
         </div>
       </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 });
