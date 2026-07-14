@@ -93,11 +93,62 @@ function verdictFor(score: number): DupVerdict {
   return "safe";
 }
 
+/**
+ * Background-independent subject comparison from ImageAnalysis v2. Compares
+ * AI-detected labels, object counts and product occupancy — never background.
+ * Returns null when either side lacks intelligence so the signal is skipped.
+ */
+function imageIntelSimilarity(
+  a: ImageIntelSummary | null | undefined,
+  b: ImageIntelSummary | null | undefined,
+): { similarity: number; reason: string; labelsAgree: boolean | null } | null {
+  if (!a || !b) return null;
+  const la = new Set((a.labels ?? []).map((l) => l.toLowerCase().trim()).filter(Boolean));
+  const lb = new Set((b.labels ?? []).map((l) => l.toLowerCase().trim()).filter(Boolean));
+  const haveLabels = la.size > 0 && lb.size > 0;
+
+  // Label Jaccard — the dominant signal when both sides have AI labels.
+  let labelSim = 0;
+  let labelsAgree: boolean | null = null;
+  if (haveLabels) {
+    let inter = 0;
+    for (const t of la) if (lb.has(t)) inter++;
+    const union = new Set([...la, ...lb]).size;
+    labelSim = union ? inter / union : 0;
+    labelsAgree = inter > 0;
+  }
+
+  // Object-count agreement (single-product vs multi-product).
+  const countSim =
+    a.objectCount != null && b.objectCount != null
+      ? 1 - Math.min(1, Math.abs(a.objectCount - b.objectCount) / Math.max(1, Math.max(a.objectCount, b.objectCount)))
+      : 0.5;
+
+  // Occupancy proximity (framing agreement, background-independent).
+  const occSim =
+    a.occupancy != null && b.occupancy != null
+      ? 1 - Math.min(1, Math.abs(a.occupancy - b.occupancy) / 100)
+      : 0.5;
+
+  const similarity = haveLabels
+    ? labelSim * 0.7 + countSim * 0.15 + occSim * 0.15
+    : countSim * 0.5 + occSim * 0.5;
+
+  const reason = haveLabels
+    ? labelsAgree
+      ? `Same subject (${Array.from(la).filter((l) => lb.has(l)).slice(0, 2).join(", ")})`
+      : "Different subject despite similar image"
+    : "Similar framing / product count";
+
+  return { similarity, reason, labelsAgree };
+}
+
 function badgesFor(signals: DupSignal[], isVariant: boolean): DupBadge[] {
   const b = new Set<DupBadge>();
   const by = new Map(signals.map((s) => [s.key, s]));
   if (by.get("barcode")?.matched) b.add("BARCODE MATCH");
   if ((by.get("image")?.similarity ?? 0) >= 0.85) b.add("IMAGE MATCH");
+  if ((by.get("imageIntel")?.similarity ?? 0) >= 0.8) b.add("SUBJECT MATCH");
   if ((by.get("title")?.similarity ?? 0) >= 0.85) b.add("TITLE MATCH");
   if ((by.get("specifications")?.similarity ?? 0) >= 0.8) b.add("SPEC MATCH");
   if (isVariant) b.add("VARIANT");
