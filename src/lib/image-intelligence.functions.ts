@@ -180,6 +180,7 @@ export const normalizeProductImage = createServerFn({ method: "POST" })
         analysis: analysis.intelligence ?? {},
         error_message: analysis.errorMessage ?? "Analysis prerequisite failed.",
         duration_ms: Date.now() - started, requested_by: userId,
+        ...ENGINE_VERSION_MANIFEST,
       });
       return { status: "failed" as const, reason: analysis.errorMessage ?? "Analysis failed." };
     }
