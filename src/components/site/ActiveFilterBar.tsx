@@ -280,6 +280,8 @@ export function ActiveFilterBar({
             </button>
           </div>
         </div>
+      </div>
+
 
 
 
