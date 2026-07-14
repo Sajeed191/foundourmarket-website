@@ -12,12 +12,16 @@ import {
   scoreProductCompleteness,
   analyzeVariantIntelligence,
   analyzeSeoIntelligence,
+  analyzePricingIntelligence,
+  brokerRecommendations,
   type OptimizerProduct,
   type OptimizerReport,
   type ProductCompleteness,
   type VariantIntelligence,
   type VariantRecord,
   type SeoIntelligenceModule,
+  type PricingIntelligence,
+  type Recommendation,
 } from "@/lib/catalog-intelligence";
 
 
