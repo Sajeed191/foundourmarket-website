@@ -1,79 +1,67 @@
-# Enterprise AI Duplicate Detection & Prevention
+# Enterprise AI Catalog Intelligence Platform
 
-A new **intelligence module** inside the existing Marketplace Intelligence platform (`src/lib/recommendations/*`, admin analytics, `use-products` cache). No new/parallel AI engine — it reuses the deterministic explainable-scoring philosophy, the cached product catalog, and the admin analytics shell.
+Build one unified, explainable AI intelligence layer on top of the engines that already exist — **without** duplicating them or touching checkout, payments, orders, inventory, auth, search, recommendations, storefront, URLs, or SEO generation.
+
+## Reuse map (what already exists → what we extend)
+
+```text
+src/lib/duplicate-detection/*   → add relationship classification + fingerprint
+src/lib/recommendations/*       → reuse scorer/graph signals (read-only)
+src/lib/seo-intelligence.*      → extend audit into "SEO Intelligence 2.0" advisories
+src/lib/marketplace-quality.ts  → base for Catalog Health scoring
+src/lib/product-images.ts       → base for Image Intelligence
+src/lib/product-variants.ts     → base for Variant Intelligence
+admin-*-intelligence routes     → link into one dashboard hub
+```
+
+Nothing above is replaced; new logic imports from them.
 
 ## Architecture
 
+New pure, deterministic modules (no schema changes — all derive from existing `products`, `product_variants`, `product_images`, `duplicate_detection_events`, `product_reviews`):
+
 ```text
-src/lib/duplicate-detection/
-  index.ts          public surface
-  types.ts          DupSignal, DupVerdict, DupMatch, DupScore
-  normalize.ts      title/brand/spec normalization + stopwords + transliteration
-  text-similarity.ts fuzzy (token-set + Levenshtein) matchers
-  image-hash.ts     aHash/dHash/avgHash from canvas + Hamming distance
-  engine.ts         multi-signal weighted confidence engine (pure, explainable)
-  candidates.ts     indexed prefilter over cached catalog (barcode/brand/token buckets)
-  events.functions.ts  ignore / merge / feedback (learning) via createServerFn
-src/hooks/use-duplicate-detection.ts   debounced live hook
-src/components/admin/duplicate/
-  DuplicateIntelligencePanel.tsx   right-side panel (score, reasons, match cards)
-  DuplicateMatchCard.tsx           thumbnail, badges, actions
-  DuplicateCompareDialog.tsx       side-by-side diff (same/different/missing/new)
-  ImageCompareDialog.tsx           current vs existing + overlay + similarity %
-src/routes/admin-duplicate-intelligence.tsx   dashboard
+src/lib/catalog-intelligence/
+  fingerprint.ts     product fingerprint (embeddings optional, hashes/codes deterministic)
+  relationships.ts   classify: exact dup / colour / size / storage / accessory / successor / cross-sell
+  image-quality.ts   blur/resolution/aspect/white-bg/watermark heuristics + score
+  catalog-health.ts  weighted health score across SEO/images/variants/specs/dup/price/inventory/reviews
+  spec-suggest.ts    spec recommendations grounded in title + similar catalog products (marked "suggested")
+  variant-health.ts  missing/broken/duplicate variant detection
+  vendor-quality.ts  vendor quality score from existing vendor/product signals
+  index.ts           public surface + shared types
 ```
 
-## Confidence engine (0–100, explainable)
+Heavy work (embeddings, image decode) runs **async with caching**: fingerprints/embeddings computed lazily and cached; a nightly optimizer server function batches reports. Everything else is pure and synchronous for instant UI.
 
-Pure function `scoreDuplicate(draft, candidate) -> { score, verdict, signals[] }`. Each signal returns `{ key, weight, similarity, matched, label }`; final score is a weighted, capped blend. **Barcode/UPC/EAN exact match short-circuits to 100 (Exact Duplicate).** Signals: title (normalized fuzzy), brand, category, sku, variant, image (phash Hamming), description, specifications (key-by-key semantic-ish), price, attributes, keyword overlap, admin-history. Weights live in one config object (configurable). Verdict bands: Safe / Similar / Possible / High Confidence / Exact. Every match carries the reason list shown in the UI. Mirrors `recommendations/scorer.ts` — deterministic, no randomness.
+## Confidence & explainability
 
-## Title & spec normalization
+Every module follows the existing `duplicate-detection` pattern: each signal returns `{ key, weight, similarity, matched, reason }`; scores are weighted blends 0–100 with a human-readable reason list. No randomness, no placeholder logic — all inputs are real catalog rows.
 
-Lowercase, strip punctuation/extra space, remove marketing/pack/unit/stop words, collapse model tokens, basic transliteration map. `"Apple iPhone 15 Pro Max"`, `"iPhone15ProMax"`, `"APPLE IPHONE 15 PRO MAX"` → near-identical token sets. Fuzzy = token-set ratio + Levenshtein fallback (typo tolerance).
+## Phases (delivered in order, each self-contained & buildable)
 
-## Image AI (in-browser, no native deps)
+**Phase 1 — Fingerprint + Relationship Engine.** Extend `duplicate-detection` with `fingerprint.ts` (title/desc/image embeddings via existing Lovable AI gateway server fn, cached; perceptual hash + barcode/SKU/MPN/GTIN/model already partly present) and `relationships.ts` that reclassifies matches into variant/accessory/successor/cross-sell instead of only "duplicate". Update `DuplicateIntelligencePanel` copy to relationship-aware messages.
 
-On image add, draw to an offscreen canvas → compute **average hash + difference hash** (64-bit each) + a coarse 16-bin color histogram. Compare via Hamming distance → similarity %. Grayscale + resize before hashing gives resistance to resize/compression/brightness; dHash gives crop/edit tolerance. Stored per product in a new `image_phash` column so comparison is O(candidates), not image re-fetch. (Deep-embedding/rotation/watermark tolerance beyond hashes is noted as a phase-2 hook; the engine already accepts an optional embedding-similarity signal.)
+**Phase 2 — Catalog Health + Image Intelligence.** `catalog-health.ts` and `image-quality.ts` (canvas-based blur/resolution/brightness/aspect/white-bg heuristics, in-browser, cached by URL). Surface both as clickable score cards in `ProductEditorModal`.
 
-## Variant intelligence
+**Phase 3 — SEO 2.0 + Spec + Variant Intelligence.** Extend `seo-intelligence` advisories (schema gaps, keyword stuffing, thin content, internal-linking suggestions — advisory only, never auto-rewrites). Add `spec-suggest.ts` and `variant-health.ts` with clearly-marked suggestions.
 
-Red/Blue/Black are **not** duplicate products. When a high-confidence product match exists but the draft's variant axis differs, downgrade to a variant notice: *"You already have this Red variant"* vs *"Duplicate product"*. Variant comparison reads `product_variants`.
+**Phase 4 — Vendor Intelligence + Merge Assistant.** `vendor-quality.ts` score; merge recommendation UI in the duplicate panel (admin-approve only, never auto-merge).
 
-## Live detection
-
-`use-duplicate-detection(draft)` — debounced (~350ms), runs candidate prefilter + engine against the already-cached catalog (`use-products`), never blocks typing. Recomputes on title/brand/category/barcode/sku/image/variant change.
-
-## Duplicate panel + actions
-
-Right-side panel in `ProductEditorModal`: risk %, verdict, reason checklist, "Found N similar products". Each match card: thumbnail (hover zoom), title, brand, price, status, stock, published date, category, variant count, rating, sales/popularity, quick badges (EXACT/SIMILAR/IMAGE/TITLE/SPEC/BARCODE MATCH), buttons: Preview, Compare, Open, Merge, Ignore, Create Anyway. **Never blocks** — publish is always allowed.
-
-## Compare + merge
-
-`DuplicateCompareDialog` side-by-side across images/gallery/variants/specs/description/attributes/price/stock/SEO/categories/tags/shipping/warranty with Same/Different/Missing/New highlighting. `ImageCompareDialog` shows both images + difference overlay + similarity %. Merge mode previews a merged record (media/variants/inventory/tags/SEO/collections/specs) before applying.
-
-## Ignore + learning
-
-New table `duplicate_detection_events` (draft signature, candidate slug, action: ignored|merged|created_anyway|confirmed, score, signals jsonb). Ignored pairs stop warning. Learning: aggregate feedback lightly adjusts confidence (repeat ignores on a pair → suppress; merges → reinforce) — additive adjustment layer, never rewrites the base scorer (same pattern as `recommendation_rules` ruleAdjust).
-
-## Dashboard
-
-`/admin-duplicate-intelligence` in `AdminShell`: duplicate rate, merge rate, ignored warnings, top duplicate categories/brands, recent attempts, false-positive rate, image-duplicate trend — from `duplicate_detection_events`.
-
-## Database (one migration)
-
-- `products.barcode text`, `products.image_phash text` (+ index on barcode).
-- `duplicate_detection_events` table with full GRANTs + RLS (staff read/write via `has_role`).
-- Add a `Barcode / UPC / EAN` field to the editor basic tab.
+**Phase 5 — Unified Dashboard + Learning + Nightly Optimizer.** `/admin-catalog-intelligence` hub linking all intelligence surfaces with live KPIs. Learning reuses existing `duplicate_detection_events` feedback to adjust confidence only (never edits content). Nightly optimizer = a `createServerFn` batch report triggered by pg_cron writing a daily summary (uses existing tables/caching).
 
 ## Guardrails
 
-Zero changes to checkout, orders, payments, SEO, auth, inventory writes, storefront perf, or the recommendation engine's public surface. All detection is admin-only and read-mostly; candidate prefilter keeps it O(candidates) for 100k+ catalogs. Mobile-responsive panel (collapses to a bottom sheet on small screens), accessible dialogs.
+- No DB schema changes unless a phase proves one is unavoidable (I'll ask first).
+- All AI calls go through the existing Lovable AI gateway server-side; embeddings cached, never blocking.
+- Every score is explainable and deterministic; nothing auto-modifies content — admin approves all changes.
+- Zero changes to checkout, payments, orders, inventory, auth, analytics, recommendation public surface, storefront, URLs, search, or existing SEO generation.
+- Mobile-responsive panels; candidate prefilter keeps scoring O(candidates) for large catalogs.
 
-## Phasing (delivered in order)
+## Technical notes
 
-1. Migration + editor barcode field + normalization/text/image-hash/engine/candidates libs.
-2. `use-duplicate-detection` + panel + match cards wired into `ProductEditorModal`.
-3. Compare + image-compare dialogs.
-4. Ignore + learning (events table wired) .
-5. Merge preview.
-6. Dashboard route.
+- Embeddings: `google/gemini-embedding-001` via a server fn, results cached (in-memory + optional column reuse of existing `products` text fields; no new columns in phase 1).
+- Image analysis stays in-browser (canvas) to avoid Worker native-dep limits, matching the existing `image-hash.ts` approach.
+- Nightly optimizer follows the documented pg_cron + `/api/public/hooks/*` pattern.
+
+I'll start with **Phase 1** on approval and check in after each phase so scope stays controlled.
