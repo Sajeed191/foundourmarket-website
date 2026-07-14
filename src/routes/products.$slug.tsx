@@ -721,7 +721,7 @@ function ProductPage() {
                     playsInline
                     preload="metadata"
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute inset-0 w-full h-full object-contain bg-black p-3 sm:p-5 lg:p-7"
+                    className="absolute inset-0 w-full h-full object-contain bg-black"
                   />
                 ) : (
                   (() => {
@@ -747,7 +747,7 @@ function ProductPage() {
                             el.src = product.image;
                           }
                         }}
-                        className="absolute inset-0 w-full h-full object-contain cursor-zoom-in p-3 sm:p-5 lg:p-7 transition-transform duration-[900ms] group-hover:scale-105"
+                        className="absolute inset-0 w-full h-full object-contain cursor-zoom-in transition-transform duration-[900ms] group-hover:scale-105"
                       />
                     );
                   })()
