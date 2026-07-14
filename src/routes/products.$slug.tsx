@@ -721,7 +721,7 @@ function ProductPage() {
                     playsInline
                     preload="metadata"
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute inset-0 w-full h-full object-contain bg-black p-3 sm:p-5 lg:p-7"
+                    className="absolute inset-0 w-full h-full object-contain bg-black"
                   />
                 ) : (
                   (() => {
