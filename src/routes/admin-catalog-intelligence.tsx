@@ -721,3 +721,90 @@ function SeoIntelRow({ slug, name, module: m }: { slug: string; name: string; mo
     </li>
   );
 }
+
+function PricingIntelRow({ slug, name, module: m }: { slug: string; name: string; module: PricingIntelligence }) {
+  return (
+    <li className="rounded-2xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center gap-3">
+        <span className={`size-2 shrink-0 rounded-full ${STATUS_DOT[m.status]}`} aria-hidden />
+        <div className="min-w-0 flex-1">
+          <Link
+            to="/admin-product/$slug/pricing"
+            params={{ slug }}
+            className="block truncate text-sm font-medium hover:text-accent"
+          >
+            {name}
+          </Link>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{m.recommendation}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            {m.potentialImpact && (
+              <span className={`rounded-full px-1.5 py-0.5 ${
+                m.potentialImpact === "High" ? "bg-destructive/15 text-destructive" :
+                m.potentialImpact === "Medium" ? "bg-amber-500/15 text-amber-400" :
+                "bg-emerald-500/15 text-emerald-400"
+              }`}>
+                Impact · {m.potentialImpact}
+              </span>
+            )}
+            {m.variant.outliers.length > 0 && <span>{m.variant.outliers.length} outlier{m.variant.outliers.length === 1 ? "" : "s"}</span>}
+            {m.variant.priceless > 0 && <span>{m.variant.priceless} priceless</span>}
+            {m.product.hasBrokenCompare && <span>broken compare</span>}
+            {m.product.negativeMargin && <span>negative margin</span>}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className={`font-mono text-xs tabular-nums ${
+            m.score >= 85 ? "text-emerald-400" : m.score >= 60 ? "text-amber-400" : "text-destructive"
+          }`}>
+            {m.score}
+          </span>
+          {m.actionHref ? (
+            <a
+              href={m.actionHref}
+              className="inline-flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground transition hover:opacity-90"
+            >
+              {m.action} <ArrowRight className="size-3" />
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function BrokerRow({ slug, name, rec }: { slug: string; name: string; rec: Recommendation }) {
+  return (
+    <li className="rounded-2xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center gap-3">
+        <span className={`size-2 shrink-0 rounded-full ${STATUS_DOT[rec.status]}`} aria-hidden />
+        <div className="min-w-0 flex-1">
+          <Link
+            to="/admin-product/$slug"
+            params={{ slug }}
+            className="block truncate text-sm font-medium hover:text-accent"
+          >
+            {name}
+          </Link>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{rec.recommendation}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            <span>{rec.module.replace(/_/g, " ")}</span>
+            <span className={`rounded-full px-1.5 py-0.5 ${
+              rec.impact === "High" ? "bg-destructive/15 text-destructive" :
+              rec.impact === "Medium" ? "bg-amber-500/15 text-amber-400" :
+              "bg-emerald-500/15 text-emerald-400"
+            }`}>Impact · {rec.impact}</span>
+            <span>priority {rec.priority}</span>
+          </div>
+        </div>
+        {rec.actionHref ? (
+          <a
+            href={rec.actionHref}
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground transition hover:opacity-90"
+          >
+            {rec.action} <ArrowRight className="size-3" />
+          </a>
+        ) : null}
+      </div>
+    </li>
+  );
+}
