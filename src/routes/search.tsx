@@ -1218,15 +1218,11 @@ function SearchPage() {
                 renderItem={renderProduct}
               />
 
-              <LoadMoreSection
-                visible={visibleResults.length}
-                total={results.length}
-                pageSize={PAGE_SIZE}
+              <InfiniteScrollSentinel
+                hasMore={visibleResults.length < results.length}
                 onLoadMore={loadMore}
-                loading={false}
-                
-                analyticsSource="search"
               />
+
 
             </>
           )}
