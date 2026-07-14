@@ -344,6 +344,45 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   // Stable slug used to group media (images/video) before the row is saved.
   const mediaSlug = form.slug.trim() || slugify(form.name);
 
+  // ---- Duplicate Detection (Marketplace Intelligence) ----
+  // Perceptual hash of the primary image, recomputed when the image changes.
+  const [draftPhash, setDraftPhash] = useState<string | null>(null);
+  useEffect(() => {
+    const src = form.image.trim();
+    if (!src) { setDraftPhash(null); return; }
+    let cancelled = false;
+    computeImagePhash(resolveImage(src)).then((fp) => { if (!cancelled) setDraftPhash(fp); });
+    return () => { cancelled = true; };
+  }, [form.image]);
+
+  const specsObj = useMemo(() => arrayToKv(specsRows), [specsRows]);
+  const attrsObj = useMemo(() => arrayToKv(attrsRows), [attrsRows]);
+  const duplicateDraft = useMemo(
+    () => ({
+      slug: form.slug.trim() || slugify(form.name),
+      name: form.name,
+      brand: form.brand || null,
+      category: form.category || null,
+      categories: extraCategories,
+      sku: form.sku || null,
+      barcode: form.barcode || null,
+      image: form.image || null,
+      imagePhash: draftPhash,
+      description: form.description || null,
+      specifications: specsObj as Record<string, string>,
+      attributes: attrsObj as Record<string, string>,
+      priceInr: form.price_inr ? Number(form.price_inr) : null,
+      priceUsd: form.price_usd ? Number(form.price_usd) : null,
+      variantKeys: [
+        ...Object.values(attrsObj as Record<string, string>),
+        ...specsRows.filter((r) => /colou?r|size/i.test(r.key)).map((r) => r.value),
+      ].filter(Boolean),
+    }),
+    [form.slug, form.name, form.brand, form.category, extraCategories, form.sku, form.barcode, form.image, draftPhash, form.description, specsObj, attrsObj, form.price_inr, form.price_usd, specsRows],
+  );
+  const duplicateResult = useDuplicateDetection(duplicateDraft);
+  const [dupTick, setDupTick] = useState(0);
+
   async function uploadImage(file: File) {
     setUploading(true); setError(null);
     const ext = file.name.split(".").pop() ?? "jpg";
