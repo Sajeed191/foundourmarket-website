@@ -7,6 +7,7 @@ import { Loader2, Sparkles, Play, Wand2, ShieldCheck, XCircle } from "lucide-rea
 import { AdminShell } from "@/components/admin/AdminShell";
 import { MarketplaceImageAssistant } from "@/components/admin/MarketplaceImageAssistant";
 import { CATEGORY_FRAMING } from "@/lib/image-intelligence-types";
+import { ENGINE_VERSION_MANIFEST } from "@/lib/image-intelligence-versions";
 import type { ImageIntelligence, ImageRecommendation, IntelligenceMode } from "@/lib/image-intelligence-types";
 import {
   analyzeProductImage,
@@ -269,6 +270,27 @@ function ImageIntelligencePage() {
           </div>
         </section>
 
+        {/* Engine version manifest — reproducibility rule */}
+        <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+          <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Engine version manifest</p>
+          <p className="mt-1 text-[11px] text-white/60">
+            Every generated asset is reproducible: given the original image plus this manifest, the pipeline produces the same output. Bump a version when its behaviour changes to enable selective reprocessing.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { k: "Engine", v: ENGINE_VERSION_MANIFEST.engine_version },
+              { k: "Photon", v: ENGINE_VERSION_MANIFEST.photon_version },
+              { k: "Quality Gate", v: ENGINE_VERSION_MANIFEST.quality_gate_version },
+              { k: "Category Rules", v: ENGINE_VERSION_MANIFEST.category_rules_version },
+            ].map((x) => (
+              <div key={x.k} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                <p className="text-[9px] font-mono uppercase tracking-[0.2em] text-white/50">{x.k}</p>
+                <p className="mt-0.5 font-mono text-sm text-white/90">{x.v}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Recent jobs */}
         <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
           <div className="flex items-center justify-between">
@@ -285,23 +307,40 @@ function ImageIntelligencePage() {
                   <th className="pb-2 pr-2 text-left font-mono uppercase tracking-widest">Product</th>
                   <th className="pb-2 pr-2 text-left font-mono uppercase tracking-widest">Category</th>
                   <th className="pb-2 pr-2 text-left font-mono uppercase tracking-widest">Recommendation</th>
+                  <th className="pb-2 pr-2 text-left font-mono uppercase tracking-widest">Engine</th>
                   <th className="pb-2 pr-2 text-left font-mono uppercase tracking-widest">Duration</th>
                   <th className="pb-2 pr-2 text-left font-mono uppercase tracking-widest">When</th>
                 </tr>
               </thead>
               <tbody>
-                {(jobs.data ?? []).map((j: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
-                  <tr key={j.id} className="border-b border-white/[0.03]">
-                    <td className="py-1.5 pr-2 font-mono tabular-nums text-white/85">{j.health_score ?? "—"}</td>
-                    <td className="py-1.5 pr-2 text-white/70">{j.product_slug ?? "—"}</td>
-                    <td className="py-1.5 pr-2 text-white/70">{j.category_slug ?? "—"}</td>
-                    <td className="py-1.5 pr-2 text-white/85">{j.recommendation?.headline ?? (j.status === "failed" ? "Analysis failed" : "—")}</td>
-                    <td className="py-1.5 pr-2 font-mono tabular-nums text-white/60">{j.duration_ms ?? 0}ms</td>
-                    <td className="py-1.5 pr-2 text-white/50">{new Date(j.created_at).toLocaleString()}</td>
-                  </tr>
-                ))}
+                {(jobs.data ?? []).map((j: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+                  const stale = j.engine_version && j.engine_version !== ENGINE_VERSION_MANIFEST.engine_version;
+                  return (
+                    <tr key={j.id} className="border-b border-white/[0.03]">
+                      <td className="py-1.5 pr-2 font-mono tabular-nums text-white/85">{j.health_score ?? "—"}</td>
+                      <td className="py-1.5 pr-2 text-white/70">{j.product_slug ?? "—"}</td>
+                      <td className="py-1.5 pr-2 text-white/70">{j.category_slug ?? "—"}</td>
+                      <td className="py-1.5 pr-2 text-white/85">{j.recommendation?.headline ?? (j.status === "failed" ? "Analysis failed" : "—")}</td>
+                      <td className="py-1.5 pr-2 font-mono text-[10px] text-white/60">
+                        {j.engine_version ? (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5",
+                              stale ? "border-amber-400/40 bg-amber-400/10 text-amber-200" : "border-white/10 text-white/60",
+                            )}
+                            title={`Engine ${j.engine_version} · Photon ${j.photon_version ?? "?"} · Gate ${j.quality_gate_version ?? "?"} · Rules ${j.category_rules_version ?? "?"}`}
+                          >
+                            v{j.engine_version}{stale ? " · stale" : ""}
+                          </span>
+                        ) : "—"}
+                      </td>
+                      <td className="py-1.5 pr-2 font-mono tabular-nums text-white/60">{j.duration_ms ?? 0}ms</td>
+                      <td className="py-1.5 pr-2 text-white/50">{new Date(j.created_at).toLocaleString()}</td>
+                    </tr>
+                  );
+                })}
                 {jobs.data?.length === 0 && (
-                  <tr><td colSpan={6} className="py-6 text-center text-white/50">No analyses yet. Use the tester above.</td></tr>
+                  <tr><td colSpan={7} className="py-6 text-center text-white/50">No analyses yet. Use the tester above.</td></tr>
                 )}
               </tbody>
             </table>

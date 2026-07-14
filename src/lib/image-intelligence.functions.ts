@@ -8,6 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { IntelligenceMode } from "@/lib/image-intelligence-types";
+import { ENGINE_VERSION_MANIFEST } from "@/lib/image-intelligence-versions";
 
 const STAFF_ROLES = ["admin", "super_admin", "manager"];
 const WRITER_ROLES = ["admin", "super_admin"];
@@ -113,6 +114,7 @@ export const analyzeProductImage = createServerFn({ method: "POST" })
       duration_ms: result.durationMs,
       error_message: result.errorMessage ?? null,
       requested_by: userId,
+      ...ENGINE_VERSION_MANIFEST,
     });
 
     if (data.persist && data.imageId && result.intelligence) {
@@ -178,6 +180,7 @@ export const normalizeProductImage = createServerFn({ method: "POST" })
         analysis: analysis.intelligence ?? {},
         error_message: analysis.errorMessage ?? "Analysis prerequisite failed.",
         duration_ms: Date.now() - started, requested_by: userId,
+        ...ENGINE_VERSION_MANIFEST,
       });
       return { status: "failed" as const, reason: analysis.errorMessage ?? "Analysis failed." };
     }
@@ -193,6 +196,7 @@ export const normalizeProductImage = createServerFn({ method: "POST" })
         analysis: analysis.intelligence, actions_json: norm.actions,
         error_message: `Normalization skipped: ${norm.skipReason ?? "unknown"}`,
         duration_ms: Date.now() - started, requested_by: userId,
+        ...ENGINE_VERSION_MANIFEST,
       });
       return { status: "failed" as const, reason: norm.skipReason ?? "Normalization failed." };
     }
@@ -217,6 +221,7 @@ export const normalizeProductImage = createServerFn({ method: "POST" })
           reversible: true, aiTouchesProduct: false,
         },
         duration_ms: Date.now() - started, requested_by: userId,
+        ...ENGINE_VERSION_MANIFEST,
       });
       return { status: "rejected" as const, reason: gate.reason ?? "Quality gate failed.", checks: gate.checks };
     }
@@ -235,6 +240,7 @@ export const normalizeProductImage = createServerFn({ method: "POST" })
         analysis: analysis.intelligence, actions_json: norm.actions,
         error_message: `Upload failed: ${uploadErr.message}`,
         duration_ms: Date.now() - started, requested_by: userId,
+        ...ENGINE_VERSION_MANIFEST,
       });
       return { status: "failed" as const, reason: uploadErr.message };
     }
@@ -249,6 +255,7 @@ export const normalizeProductImage = createServerFn({ method: "POST" })
       optimized_url: optimizedUrl,
       health_score: analysis.intelligence.qualityScore,
       duration_ms: Date.now() - started, requested_by: userId,
+      ...ENGINE_VERSION_MANIFEST,
     });
 
     // Auto-apply if setting is on
@@ -259,6 +266,7 @@ export const normalizeProductImage = createServerFn({ method: "POST" })
           optimized_url: optimizedUrl,
           optimization_actions: norm.actions,
           optimization_applied_at: new Date().toISOString(),
+          ...ENGINE_VERSION_MANIFEST,
         })
         .eq("id", data.imageId);
       if (!applyErr) applied = true;
@@ -295,6 +303,7 @@ export const applyOptimizedImage = createServerFn({ method: "POST" })
         optimized_url: data.optimizedUrl,
         optimization_actions: data.actions ?? [],
         optimization_applied_at: new Date().toISOString(),
+        ...ENGINE_VERSION_MANIFEST,
       })
       .eq("id", data.imageId);
     if (error) throw new Error(error.message);
@@ -308,10 +317,26 @@ export const revertToOriginal = createServerFn({ method: "POST" })
     const { supabase, userId } = context as { supabase: any; userId: string };
     await assertRole(supabase, userId, WRITER_ROLES);
     const { error } = await supabase.from("product_images")
-      .update({ optimized_url: null, optimization_actions: null, optimization_applied_at: null })
+      .update({
+        optimized_url: null,
+        optimization_actions: null,
+        optimization_applied_at: null,
+        engine_version: null,
+        photon_version: null,
+        quality_gate_version: null,
+        category_rules_version: null,
+      })
       .eq("id", data.imageId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+export const getEngineVersionManifest = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertRole(supabase, userId, STAFF_ROLES);
+    return ENGINE_VERSION_MANIFEST;
   });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -328,7 +353,7 @@ export const listRecentIntelligenceJobs = createServerFn({ method: "GET" })
     await assertRole(supabase, userId, STAFF_ROLES);
     const { data: rows, error } = await supabase
       .from("image_intelligence_jobs")
-      .select("id, image_url, product_slug, category_slug, job_type, mode, status, health_score, duration_ms, recommendation, actions_json, rejection_reason, optimized_url, created_at")
+      .select("id, image_url, product_slug, category_slug, job_type, mode, status, health_score, duration_ms, recommendation, actions_json, rejection_reason, optimized_url, engine_version, photon_version, quality_gate_version, category_rules_version, created_at")
       .order("created_at", { ascending: false })
       .limit(data.limit);
     if (error) throw new Error(error.message);
