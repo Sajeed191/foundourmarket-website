@@ -1,4 +1,8 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useDuplicateDetection } from "@/hooks/use-duplicate-detection";
+import { computeImagePhash } from "@/lib/duplicate-detection";
+import { DuplicateIntelligencePanel } from "@/components/admin/duplicate/DuplicateIntelligencePanel";
+import { resolveImage } from "@/lib/products";
 import { motion } from "framer-motion";
 import {
   X, Upload, Loader2, Package, IndianRupee, DollarSign, AlertTriangle,
