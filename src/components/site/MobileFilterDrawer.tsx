@@ -908,7 +908,7 @@ export const MobileFilterDrawer = memo(function MobileFilterDrawer({
             onClick={onApply}
             className="flex-1 rounded-full bg-accent text-accent-foreground py-3.5 text-sm font-semibold shadow-[0_8px_24px_-8px_var(--accent)] hover:brightness-110 active:scale-[0.98] transition-all"
           >
-            Show {resultCount.toLocaleString()} Product{resultCount === 1 ? "" : "s"}
+            Show Products
           </button>
         </div>
       </div>
