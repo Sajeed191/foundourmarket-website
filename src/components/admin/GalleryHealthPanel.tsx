@@ -1,11 +1,12 @@
-import { AlertTriangle, CheckCircle2, Info, Sparkles, ShieldAlert } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, CheckCircle2, Crown, Info, Sparkles, ShieldAlert } from "lucide-react";
 import type {
   GalleryHealth,
   GalleryDimension,
   HealthBand,
+  HeroRecommendation,
   ImageAnalysis,
 } from "@/lib/image-normalization";
-import { computeGalleryHealth } from "@/lib/image-normalization";
+import { computeGalleryHealth, recommendHeroImage } from "@/lib/image-normalization";
 import { cn } from "@/lib/utils";
 
 /**
