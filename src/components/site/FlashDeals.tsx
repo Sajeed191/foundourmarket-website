@@ -78,7 +78,6 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
       <div data-product-media className="relative aspect-[4/5] overflow-hidden bg-gradient-to-b from-white/[0.03] to-black/40">
         {p.image && (
           <ProductImage
-            data-product-image
             src={p.image}
             alt={p.name}
             className="h-full w-full object-cover transition-transform duration-500 motion-safe:lg:group-hover:scale-[1.03]"
