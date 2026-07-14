@@ -280,6 +280,42 @@ function CatalogIntelligencePage() {
     return flat;
   }, [products, completeness, variantIntel, seoIntel, pricingIntel]);
 
+  /** Marketplace Readiness — Phase 6 orchestrator over all module outputs. */
+  const readiness = useMemo(() => {
+    if (!products || !completeness || !variantIntel || !seoIntel || !pricingIntel) return null;
+    const rows = products.map((p) => {
+      const modules = [
+        completeness.rows.find((r) => r.slug === p.slug)?.module,
+        variantIntel.rows.find((r) => r.slug === p.slug)?.module,
+        seoIntel.rows.find((r) => r.slug === p.slug)?.module,
+        pricingIntel.rows.find((r) => r.slug === p.slug)?.module,
+      ].filter(Boolean) as Parameters<typeof assessMarketplaceReadiness>[0];
+      return { slug: p.slug, name: p.name, readiness: assessMarketplaceReadiness(modules) };
+    });
+    const avg = Math.round(rows.reduce((a, r) => a + r.readiness.score, 0) / (rows.length || 1));
+    const buckets: Record<ReadinessStatus, number> = {
+      ready: 0, almost_ready: 0, needs_attention: 0, not_ready: 0,
+    };
+    for (const r of rows) buckets[r.readiness.status]++;
+    const attention = [...rows]
+      .filter((r) => r.readiness.status !== "ready")
+      .sort((a, b) => a.readiness.score - b.readiness.score)
+      .slice(0, 6);
+    // Section-level roll-up: mean per module across all listings.
+    const moduleAvg: Record<string, number> = {};
+    const moduleCount: Record<string, number> = {};
+    for (const r of rows) {
+      for (const [k, v] of Object.entries(r.readiness.moduleScores)) {
+        moduleAvg[k] = (moduleAvg[k] ?? 0) + v;
+        moduleCount[k] = (moduleCount[k] ?? 0) + 1;
+      }
+    }
+    for (const k of Object.keys(moduleAvg)) moduleAvg[k] = Math.round(moduleAvg[k] / moduleCount[k]);
+    return { rows, avg, buckets, attention, moduleAvg };
+  }, [products, completeness, variantIntel, seoIntel, pricingIntel]);
+
+
+
 
 
 
