@@ -147,6 +147,47 @@ function CatalogIntelligencePage() {
     return { rows, avg, needs };
   }, [products]);
 
+  const variantIntel = useMemo(() => {
+    if (!products) return null;
+    const rows = products
+      .map((p) => {
+        const vs = variantsByProduct.get(p.slug) ?? [];
+        if (vs.length === 0) return null;
+        const basePrice = typeof p.price === "number" ? p.price : null;
+        const module = analyzeVariantIntelligence({
+          slug: p.slug,
+          productName: p.name,
+          productPrice: basePrice,
+          productImage: p.image ?? null,
+          variants: vs.map<VariantRecord>((v) => ({
+            title: v.name,
+            option1: v.color,
+            option2: v.size,
+            sku: v.sku,
+            price:
+              v.price_override != null
+                ? v.price_override
+                : basePrice != null
+                ? basePrice + (v.price_adjustment ?? 0)
+                : null,
+            compare_price: v.compare_price,
+            stock: v.stock_quantity,
+            is_active: v.active,
+            image_url: v.image_url,
+            swatch_color: v.color_hex,
+          })),
+        });
+        return { slug: p.slug, name: p.name, module };
+      })
+      .filter((r): r is { slug: string; name: string; module: VariantIntelligence } => r != null);
+    if (rows.length === 0) return { rows: [], avg: 100, needs: [] as typeof rows };
+    const avg = Math.round(rows.reduce((a, r) => a + r.module.score, 0) / rows.length);
+    const needs = [...rows].sort((a, b) => a.module.score - b.module.score).slice(0, 6);
+    return { rows, avg, needs };
+  }, [products, variantsByProduct]);
+
+
+
 
   return (
     <AdminShell title="Catalog Intelligence">
