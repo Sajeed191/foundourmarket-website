@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { formatBytes, type MediaEntityType } from "@/lib/media-engine";
 import { useMediaUpload, type UploadDone } from "@/hooks/use-media-upload";
 import { ImageHealthBadge } from "@/components/admin/ImageHealthBadge";
+import { GalleryHealthPanel } from "@/components/admin/GalleryHealthPanel";
 
 export function MediaUploader({
   entityType = "library",
@@ -238,6 +239,12 @@ export function MediaUploader({
               </motion.div>
             ))}
           </AnimatePresence>
+          <GalleryHealthPanel
+            analyses={queue
+              .filter((q) => q.status === "success")
+              .map((q) => q.analysis ?? null)}
+            minImages={2}
+          />
         </div>
       )}
       {busy && (
