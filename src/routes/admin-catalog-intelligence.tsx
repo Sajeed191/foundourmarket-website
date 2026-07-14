@@ -226,7 +226,42 @@ function CatalogIntelligencePage() {
                 </ul>
               </div>
             </div>
+
+            {/* Product Completeness Engine — Catalog Intelligence 2.0, Phase 1 */}
+            {completeness && (
+              <div className="rounded-3xl border border-border/60 bg-card/40 p-5">
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="grid size-9 place-items-center rounded-xl bg-accent/10 text-accent">
+                    <Wand2 className="size-4" />
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent">Catalog Intelligence 2.0 · Phase 1</p>
+                    <p className="text-sm font-semibold">Product Completeness Engine</p>
+                    <p className="text-xs text-muted-foreground">
+                      One recommendation per listing. Deterministic scoring across images, title, description, attributes, specifications, variants, SEO.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Avg</p>
+                    <p className={`font-display text-2xl font-semibold tabular-nums ${ring(completeness.avg)}`}>{completeness.avg}</p>
+                  </div>
+                </div>
+
+                <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Top listings to fix</p>
+                <ul className="space-y-2">
+                  {completeness.needs.map((r) => (
+                    <CompletenessRow key={r.slug} slug={r.slug} name={r.name} module={r.module} />
+                  ))}
+                  {completeness.needs.length === 0 && (
+                    <li className="flex items-center gap-2 text-xs text-emerald-400">
+                      <CheckCircle2 className="size-4" /> All listings look complete.
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
           </>
+
         )}
       </div>
     </AdminShell>
