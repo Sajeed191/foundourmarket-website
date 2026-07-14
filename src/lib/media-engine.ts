@@ -6,6 +6,12 @@
 // progress-aware uploads, media-library recording, and audit logging.
 // ============================================================
 import { supabase } from "@/integrations/supabase/client";
+import {
+  analyzeImage,
+  generateNormalizedDerivative,
+  shouldNormalize,
+  type ImageAnalysis,
+} from "@/lib/image-normalization";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -214,6 +220,8 @@ export type ProcessedUpload = {
   width: number;
   height: number;
   size: number;
+  analysis: ImageAnalysis;
+  normalizedUrl: string | null;
 };
 
 export type UploadOptions = {
