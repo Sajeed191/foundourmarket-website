@@ -26,3 +26,6 @@ export { analyzeSeo } from "./seo-advisor";
 export type { SeoAdvisory, SeoAdvisoryKey, SeoDraft, SeoIntelligence } from "./seo-advisor";
 export { scoreVendor } from "./vendor-quality";
 export type { VendorSignals, VendorQuality } from "./vendor-quality";
+export { buildOptimizerReport } from "./catalog-optimizer";
+export type { OptimizerProduct, OptimizerRow, OptimizerReport } from "./catalog-optimizer";
+
