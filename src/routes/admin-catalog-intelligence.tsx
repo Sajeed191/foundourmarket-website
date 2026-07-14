@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Loader2, Sparkles, RefreshCw, Gauge, Search, ShieldCheck, Image as ImageIcon,
-  Boxes, Brain, Layers, Store, TrendingUp, ArrowRight, Package, CheckCircle2, Wand2, GitBranch, DollarSign, Zap,
+  Boxes, Brain, Layers, Store, TrendingUp, ArrowRight, Package, CheckCircle2, Wand2, GitBranch, DollarSign, Zap, Rocket,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,10 @@ import {
   analyzeSeoIntelligence,
   analyzePricingIntelligence,
   brokerRecommendations,
+  assessMarketplaceReadiness,
+  READINESS_LABEL,
+  READINESS_DOT,
+  READINESS_EMOJI,
   type OptimizerProduct,
   type OptimizerReport,
   type ProductCompleteness,
@@ -22,6 +26,8 @@ import {
   type SeoIntelligenceModule,
   type PricingIntelligence,
   type Recommendation,
+  type MarketplaceReadiness,
+  type ReadinessStatus,
 } from "@/lib/catalog-intelligence";
 
 
@@ -273,6 +279,42 @@ function CatalogIntelligencePage() {
       .slice(0, 6);
     return flat;
   }, [products, completeness, variantIntel, seoIntel, pricingIntel]);
+
+  /** Marketplace Readiness — Phase 6 orchestrator over all module outputs. */
+  const readiness = useMemo(() => {
+    if (!products || !completeness || !variantIntel || !seoIntel || !pricingIntel) return null;
+    const rows = products.map((p) => {
+      const modules = [
+        completeness.rows.find((r) => r.slug === p.slug)?.module,
+        variantIntel.rows.find((r) => r.slug === p.slug)?.module,
+        seoIntel.rows.find((r) => r.slug === p.slug)?.module,
+        pricingIntel.rows.find((r) => r.slug === p.slug)?.module,
+      ].filter(Boolean) as Parameters<typeof assessMarketplaceReadiness>[0];
+      return { slug: p.slug, name: p.name, readiness: assessMarketplaceReadiness(modules) };
+    });
+    const avg = Math.round(rows.reduce((a, r) => a + r.readiness.score, 0) / (rows.length || 1));
+    const buckets: Record<ReadinessStatus, number> = {
+      ready: 0, almost_ready: 0, needs_attention: 0, not_ready: 0,
+    };
+    for (const r of rows) buckets[r.readiness.status]++;
+    const attention = [...rows]
+      .filter((r) => r.readiness.status !== "ready")
+      .sort((a, b) => a.readiness.score - b.readiness.score)
+      .slice(0, 6);
+    // Section-level roll-up: mean per module across all listings.
+    const moduleAvg: Record<string, number> = {};
+    const moduleCount: Record<string, number> = {};
+    for (const r of rows) {
+      for (const [k, v] of Object.entries(r.readiness.moduleScores)) {
+        moduleAvg[k] = (moduleAvg[k] ?? 0) + v;
+        moduleCount[k] = (moduleCount[k] ?? 0) + 1;
+      }
+    }
+    for (const k of Object.keys(moduleAvg)) moduleAvg[k] = Math.round(moduleAvg[k] / moduleCount[k]);
+    return { rows, avg, buckets, attention, moduleAvg };
+  }, [products, completeness, variantIntel, seoIntel, pricingIntel]);
+
+
 
 
 
@@ -542,7 +584,67 @@ function CatalogIntelligencePage() {
                 </ul>
               </div>
             )}
+
+            {/* Marketplace Readiness — Catalog Intelligence 2.0, Phase 6 (final orchestrator) */}
+            {readiness && (
+              <div className="rounded-3xl border border-accent/40 bg-gradient-to-br from-accent/10 to-transparent p-5">
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="grid size-9 place-items-center rounded-xl bg-accent/15 text-accent">
+                    <Rocket className="size-4" />
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent">Catalog Intelligence 2.0 · Phase 6</p>
+                    <p className="text-sm font-semibold">Marketplace Readiness</p>
+                    <p className="text-xs text-muted-foreground">
+                      Top-level orchestrator over every module. Answers only three questions per listing: ready to publish, what to fix, and how confident.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Overall</p>
+                    <p className={`font-display text-2xl font-semibold tabular-nums ${ring(readiness.avg)}`}>{readiness.avg}</p>
+                  </div>
+                </div>
+
+                {/* Publish-state buckets */}
+                <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <ReadinessBucket status="ready" count={readiness.buckets.ready} />
+                  <ReadinessBucket status="almost_ready" count={readiness.buckets.almost_ready} />
+                  <ReadinessBucket status="needs_attention" count={readiness.buckets.needs_attention} />
+                  <ReadinessBucket status="not_ready" count={readiness.buckets.not_ready} />
+                </div>
+
+                {/* Section-level roll-up */}
+                <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Module averages</p>
+                <div className="mb-4 grid grid-cols-2 gap-1.5 text-xs sm:grid-cols-3 lg:grid-cols-5">
+                  {Object.entries(readiness.moduleAvg).map(([mod, avg]) => (
+                    <div key={mod} className="flex items-center justify-between rounded-xl border border-border/60 bg-background/40 px-3 py-2">
+                      <span className="truncate text-muted-foreground capitalize">{mod.replace(/_/g, " ").replace(/intelligence/i, "").trim()}</span>
+                      <span className={`font-mono tabular-nums ${ring(avg)}`}>{avg}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Listings needing attention */}
+                {readiness.attention.length > 0 && (
+                  <>
+                    <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Listings to review before publish</p>
+                    <ul className="space-y-2">
+                      {readiness.attention.map((r) => (
+                        <ReadinessRow key={r.slug} slug={r.slug} name={r.name} readiness={r.readiness} />
+                      ))}
+                    </ul>
+                  </>
+                )}
+                {readiness.attention.length === 0 && (
+                  <p className="flex items-center gap-2 text-xs text-emerald-400">
+                    <CheckCircle2 className="size-4" /> Every listing is Marketplace Ready.
+                  </p>
+                )}
+              </div>
+            )}
           </>
+
+
 
         )}
       </div>
@@ -808,3 +910,65 @@ function BrokerRow({ slug, name, rec }: { slug: string; name: string; rec: Recom
     </li>
   );
 }
+
+function ReadinessBucket({ status, count }: { status: ReadinessStatus; count: number }) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center gap-2">
+        <span className={`size-2 rounded-full ${READINESS_DOT[status]}`} aria-hidden />
+        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+          {READINESS_LABEL[status]}
+        </span>
+      </div>
+      <p className="mt-1 font-display text-xl font-semibold tabular-nums">{count}</p>
+    </div>
+  );
+}
+
+function ReadinessRow({ slug, name, readiness: r }: { slug: string; name: string; readiness: MarketplaceReadiness }) {
+  return (
+    <li className="rounded-2xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center gap-3">
+        <span className={`size-2 shrink-0 rounded-full ${READINESS_DOT[r.status]}`} aria-hidden />
+        <div className="min-w-0 flex-1">
+          <Link
+            to="/admin-product/$slug"
+            params={{ slug }}
+            className="block truncate text-sm font-medium hover:text-accent"
+          >
+            {name}
+          </Link>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {r.topRecommendation?.recommendation ?? "Listing is Marketplace Ready."}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            <span>{READINESS_EMOJI[r.status]} {READINESS_LABEL[r.status]}</span>
+            <span>Confidence · {r.confidence}%</span>
+            {r.blockers.length > 0 && (
+              <span className="rounded-full bg-destructive/15 px-1.5 py-0.5 text-destructive">
+                {r.blockers.length} blocker{r.blockers.length === 1 ? "" : "s"}
+              </span>
+            )}
+            {r.strengths.length > 0 && (
+              <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-emerald-400">
+                Strong: {r.strengths.slice(0, 3).join(", ")}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className={`font-mono text-xs tabular-nums ${ring(r.score)}`}>{r.score}</span>
+          {r.topRecommendation?.actionHref ? (
+            <a
+              href={r.topRecommendation.actionHref}
+              className="inline-flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground transition hover:opacity-90"
+            >
+              {r.topRecommendation.action} <ArrowRight className="size-3" />
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </li>
+  );
+}
+
