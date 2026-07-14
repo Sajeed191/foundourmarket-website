@@ -18,6 +18,7 @@ import {
   type DupResult,
   type DupVerdict,
 } from "@/lib/duplicate-detection";
+import { classifyRelationship, RELATIONSHIP_LABEL, isDuplicateRisk } from "@/lib/catalog-intelligence";
 import { DuplicateMatchCard } from "./DuplicateMatchCard";
 import { DuplicateCompareDialog } from "./DuplicateCompareDialog";
 import { ImageCompareDialog } from "./ImageCompareDialog";
@@ -119,6 +120,8 @@ export function DuplicateIntelligencePanel({
   }
 
   const hasRisk = result.topScore >= 25 && visible.length > 0;
+  const topRel = visible[0] ? classifyRelationship(draft, visible[0]) : null;
+  const isRealDuplicate = topRel ? isDuplicateRisk(topRel.kind) : false;
 
   return (
     <aside
@@ -133,7 +136,7 @@ export function DuplicateIntelligencePanel({
         </span>
         <div>
           <p className="text-[9px] font-mono uppercase tracking-[0.25em] text-accent">Marketplace Intelligence</p>
-          <p className="text-sm font-semibold">Duplicate Risk</p>
+          <p className="text-sm font-semibold">{isRealDuplicate ? "Duplicate Risk" : "Relationship Intelligence"}</p>
         </div>
         {result.loading && <Loader2 className="ml-auto size-4 animate-spin text-muted-foreground" />}
       </div>
@@ -142,9 +145,12 @@ export function DuplicateIntelligencePanel({
         <div className="flex items-center gap-4 rounded-2xl border border-border/60 bg-background/40 p-3">
           <Gauge score={result.topScore} verdict={topVerdict} />
           <div className="min-w-0">
-            <p className={cn("text-sm font-semibold", RING_COLOR[topVerdict])}>{VERDICT_LABEL[topVerdict]}</p>
+            <p className={cn("text-sm font-semibold", RING_COLOR[topVerdict])}>
+              {topRel ? RELATIONSHIP_LABEL[topRel.kind] : VERDICT_LABEL[topVerdict]}
+            </p>
+            {topRel && <p className="text-xs text-foreground/90">{topRel.message}</p>}
             <p className="text-xs text-muted-foreground">
-              Found {visible.length} similar product{visible.length === 1 ? "" : "s"}
+              Found {visible.length} related product{visible.length === 1 ? "" : "s"}
             </p>
             <ul className="mt-1.5 space-y-0.5">
               {(visible[0]?.signals ?? [])

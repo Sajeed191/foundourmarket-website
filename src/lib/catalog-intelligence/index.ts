@@ -1,0 +1,31 @@
+/**
+ * Catalog Intelligence — public surface.
+ *
+ * The unified, explainable intelligence layer on top of the existing
+ * Marketplace Intelligence engines. Deterministic scoring, grounded in real
+ * catalog data, with human-readable reasons for every decision. Never blocks,
+ * never mutates content.
+ */
+export * from "./types";
+export { buildFingerprint, sharesStrongCode } from "./fingerprint";
+export {
+  classifyRelationship,
+  classifyMatches,
+  isDuplicateRisk,
+  RELATIONSHIP_LABEL,
+} from "./relationships";
+export { scoreCatalogHealth } from "./catalog-health";
+export type { HealthInput, CatalogHealth, HealthDimension, HealthSuggestion } from "./catalog-health";
+export { analyzeImage, analyzeGallery } from "./image-quality";
+export type { ImageQuality, ImageIssue, ImageIssueKey } from "./image-quality";
+export { suggestSpecs } from "./spec-suggest";
+export type { SpecSuggestion, SpecPeer } from "./spec-suggest";
+export { analyzeVariants } from "./variant-health";
+export type { VariantRow, VariantIssue, VariantIssueKey, VariantHealth } from "./variant-health";
+export { analyzeSeo } from "./seo-advisor";
+export type { SeoAdvisory, SeoAdvisoryKey, SeoDraft, SeoIntelligence } from "./seo-advisor";
+export { scoreVendor } from "./vendor-quality";
+export type { VendorSignals, VendorQuality } from "./vendor-quality";
+export { buildOptimizerReport } from "./catalog-optimizer";
+export type { OptimizerProduct, OptimizerRow, OptimizerReport } from "./catalog-optimizer";
+
