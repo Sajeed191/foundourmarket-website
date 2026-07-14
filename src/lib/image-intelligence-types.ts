@@ -70,12 +70,8 @@ export const CATEGORY_FRAMING: Record<CategoryFramingKey, CategoryFraming> = {
   default:     { key: "default",     label: "General",     occupancyMin: 0.70, occupancyMax: 0.85, minResolution: 800,  allowLifestyle: true,  note: "Balanced framing suitable for most product types." },
 };
 
-// Fix the accidentally-shaped furniture row (kept literal above for review clarity):
-CATEGORY_FRAMING.furniture = {
-  key: "furniture", label: "Furniture", occupancyMin: 0.55, occupancyMax: 0.78,
-  minResolution: 1200, allowLifestyle: true,
-  note: "Wide canvas — furniture reads best with room context.",
-};
+
+
 
 export function resolveCategoryFraming(categorySlug?: string | null): CategoryFraming {
   if (!categorySlug) return CATEGORY_FRAMING.default;
