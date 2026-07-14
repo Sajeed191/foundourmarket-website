@@ -409,3 +409,87 @@ export const runPendingImageJobs = createServerFn({ method: "POST" })
     }
     return { processed };
   });
+
+// ─────────────────────────────────────────────────────────────────────────
+// Upgrade Manager — classify + bulk reprocess by group / filter
+// ─────────────────────────────────────────────────────────────────────────
+
+const classifySchema = z.object({
+  category: z.string().max(200).optional().nullable(),
+  engineVersion: z.string().max(40).optional().nullable(),
+});
+
+export const classifyCatalogImages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => classifySchema.parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertRole(supabase, userId, STAFF_ROLES);
+    const { classifyImages } = await import("@/lib/image-upgrade-manager.server");
+    return classifyImages(supabase, {
+      category: data.category ?? null,
+      engineVersion: data.engineVersion ?? null,
+    });
+  });
+
+const reprocessSchema = z.object({
+  group: z.enum(["upgradeable", "review", "attention", "current"]).default("upgradeable"),
+  category: z.string().max(200).optional().nullable(),
+  engineVersion: z.string().max(40).optional().nullable(),
+  limit: z.number().int().min(1).max(50).default(10),
+  dryRun: z.boolean().default(true),
+});
+
+export const reprocessCatalogImages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => reprocessSchema.parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertRole(supabase, userId, WRITER_ROLES);
+
+    const { data: settings } = await supabase
+      .from("image_intelligence_settings").select("mode, auto_apply_safe").eq("id", "global").maybeSingle();
+    const mode = (settings?.mode ?? "analyze_recommend") as IntelligenceMode;
+    const autoApply = Boolean(settings?.auto_apply_safe);
+
+    const { selectImagesForGroup, reprocessOneImage } = await import("@/lib/image-upgrade-manager.server");
+    const candidates = await selectImagesForGroup(
+      supabase,
+      data.group,
+      { category: data.category ?? null, engineVersion: data.engineVersion ?? null },
+      data.limit,
+    );
+
+    if (data.dryRun) {
+      return {
+        dryRun: true,
+        wouldReprocess: candidates.length,
+        sample: candidates.slice(0, 5).map((r) => ({
+          id: r.id, productSlug: r.product_slug, url: r.original_url ?? r.url,
+        })),
+      };
+    }
+
+    if (mode === "off") {
+      return { dryRun: false, processed: 0, results: [], skipped: "Engine is off." };
+    }
+
+    const results: Array<{ id: string; status: string; reason?: string }> = [];
+    for (const row of candidates) {
+      try {
+        const res = await reprocessOneImage({
+          supabase, userId, row,
+          categorySlug: null, autoApply, mode,
+        });
+        results.push({ id: row.id, status: res.status, reason: res.reason });
+      } catch (e) {
+        results.push({ id: row.id, status: "error", reason: (e as Error).message });
+      }
+    }
+
+    const summary = results.reduce<Record<string, number>>((acc, r) => {
+      acc[r.status] = (acc[r.status] ?? 0) + 1; return acc;
+    }, {});
+
+    return { dryRun: false, processed: results.length, results, summary };
+  });
