@@ -11,7 +11,7 @@ import type { DetectionProduct, DraftProduct } from "./types";
 import { normalizeCode, tokenize, normalizeText, normalizeSku } from "./normalize";
 
 const DETECTION_COLS =
-  "id,slug,name,brand,category,categories,sku,barcode,ean,image,image_phash,description,specifications,attributes,price_inr,price_usd,rating,reviews,sold_count,orders_count,status,stock_quantity,created_at";
+  "id,slug,name,brand,category,categories,sku,barcode,image,image_phash,description,specifications,attributes,price_inr,price_usd,rating,reviews,sold_count,orders_count,status,stock_quantity,created_at";
 
 type Row = Record<string, unknown>;
 
@@ -25,7 +25,7 @@ function rowToDetection(r: Row, variantCount: number): DetectionProduct {
     categories: (r.categories as string[]) ?? [],
     sku: (r.sku as string) ?? null,
     barcode: (r.barcode as string) ?? null,
-    ean: (r.ean as string) ?? null,
+    ean: null,
     image: (r.image as string) ?? null,
     imagePhash: (r.image_phash as string) ?? null,
     description: (r.description as string) ?? null,
