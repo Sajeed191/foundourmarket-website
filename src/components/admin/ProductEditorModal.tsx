@@ -386,6 +386,39 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const duplicateResult = useDuplicateDetection(duplicateDraft);
   const [dupTick, setDupTick] = useState(0);
 
+  // ---- Catalog Intelligence: real duplicate risk (exact only) + image + health ----
+  const realDuplicateRisk = useMemo(() => {
+    const top = duplicateResult.matches.find((m) => !m.ignored);
+    if (!top) return 0;
+    const rel = classifyRelationship(duplicateDraft, top);
+    return isDuplicateRisk(rel.kind) ? top.score : Math.round(top.score * 0.4);
+  }, [duplicateResult.matches, duplicateDraft]);
+
+  const galleryUrls = useMemo(
+    () => (form.image ? [resolveImage(form.image)] : []),
+    [form.image],
+  );
+  const imageQuality = useImageIntelligence(galleryUrls, tab === "basic");
+
+  const healthInput = useMemo(
+    () => ({
+      name: form.name,
+      description: form.description || null,
+      seoTitle: form.seo_title || null,
+      seoDescription: form.seo_description || null,
+      keywords: form.meta_keywords || null,
+      imageCount: galleryUrls.length,
+      hasVideo: !!form.video_url?.trim(),
+      specCount: specsRows.filter((r) => r.k && r.v).length,
+      variantCount: Object.values(attrsObj as Record<string, string>).filter(Boolean).length,
+      priceInr: form.price_inr ? Number(form.price_inr) : null,
+      priceUsd: form.price_usd ? Number(form.price_usd) : null,
+      comparePriceInr: form.compare_price_inr ? Number(form.compare_price_inr) : null,
+      stockQuantity: Number(form.stock_quantity) || 0,
+    }),
+    [form.name, form.description, form.seo_title, form.seo_description, form.meta_keywords, galleryUrls.length, form.video_url, specsRows, attrsObj, form.price_inr, form.price_usd, form.compare_price_inr, form.stock_quantity],
+  );
+
   async function uploadImage(file: File) {
     setUploading(true); setError(null);
     const ext = file.name.split(".").pop() ?? "jpg";
