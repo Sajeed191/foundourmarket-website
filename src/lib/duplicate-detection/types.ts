@@ -92,6 +92,7 @@ export type DupSignalKey =
   | "sku"
   | "variant"
   | "image"
+  | "imageIntel"
   | "description"
   | "specifications"
   | "price"
