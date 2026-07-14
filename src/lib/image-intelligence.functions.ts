@@ -8,6 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { IntelligenceMode } from "@/lib/image-intelligence-types";
+import { ENGINE_VERSION_MANIFEST } from "@/lib/image-intelligence-versions";
 
 const STAFF_ROLES = ["admin", "super_admin", "manager"];
 const WRITER_ROLES = ["admin", "super_admin"];
