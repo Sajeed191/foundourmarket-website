@@ -198,6 +198,7 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   onRefresh?: () => void;
 }) {
   const { settings } = useStoreSettings();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
