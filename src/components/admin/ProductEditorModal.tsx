@@ -680,7 +680,16 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
           </div>
         </div>
 
-        {/* Product Health (Phase 3) */}
+        {/* AI Product Guard — sticky, cross-tab real-time duplicate warning */}
+        <ProductGuardBanner
+          draft={duplicateDraft}
+          result={duplicateResult}
+          draftPhash={draftPhash}
+          onCreateVariant={onCreateVariant}
+          onLinkRelated={onLinkRelated}
+          onIgnored={() => setDupTick((t) => t + 1)}
+        />
+
         <div className={`rounded-2xl border p-3 flex items-center gap-4 ${health.tone}`}>
           <div className="flex flex-col items-center justify-center shrink-0 pr-3 border-r border-white/10">
             <span className="text-2xl font-display font-semibold tabular-nums leading-none">{health.score}%</span>
