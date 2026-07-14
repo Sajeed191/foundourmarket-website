@@ -892,7 +892,7 @@ function ProductPage() {
               onIndexChange={handleLightboxIndexChange}
               alt={product.name}
             />
-          </motion.div>
+          </div>
 
 
           {/* Info */}
