@@ -701,50 +701,57 @@ function ProductPage() {
                 data-product-image
                 className="relative mx-auto w-full h-[340px] sm:h-[380px] lg:h-[480px] card-premium rounded-2xl sm:rounded-3xl overflow-hidden group border border-white/10 shadow-[0_30px_60px_-28px_oklch(0_0_0/0.7)]"
               >
-                <AnimatePresence mode="wait">
-                  {activeMedia?.kind === "video" ? (
-                    <motion.video
-                      key={activeMedia.id}
-                      src={activeMedia.url}
-                      poster={activeMedia.poster ?? undefined}
-                      controls
-                      autoPlay
-                      muted
-                      playsInline
-                      preload="metadata"
-                      onClick={(e) => e.stopPropagation()}
-                      initial={{ opacity: 0, scale: 1.04 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 w-full h-full object-contain bg-black p-3 sm:p-5 lg:p-7"
-                    />
-
-                  ) : (
-                    <motion.img
-                      key={activeMedia?.id}
-                      src={galleryDisplaySrc(activeMedia?.url || product.image)}
-                      alt={activeMedia?.alt || product.name}
-                      onClick={() => setLightboxOpen(true)}
-                      onError={(e) => {
-                        // Self-healing: fall back to the primary product image,
-                        // then to the raw original, never a broken icon.
-                        const el = e.currentTarget;
-                        const primary = galleryDisplaySrc(product.image);
-                        if (el.src !== primary && product.image) {
-                          el.src = primary;
-                        } else if (el.src !== product.image && product.image) {
-                          el.src = product.image;
-                        }
-                      }}
-                      initial={{ opacity: 0, scale: 1.04 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute inset-0 w-full h-full object-contain cursor-zoom-in p-3 sm:p-5 lg:p-7 transition-transform duration-[900ms] group-hover:scale-105"
-                    />
-                  )}
-                </AnimatePresence>
+                {/* Main media — plain <img>/<video>, always opacity:1.
+                    Previously wrapped in AnimatePresence + motion.img with
+                    initial opacity:0. On Android GPU Safe Mode (which strips
+                    transitions/transforms globally) and under reduced-motion,
+                    the framer-motion tween could fail to advance, leaving the
+                    image stuck at opacity 0 — container visible, thumbnails
+                    working, main image invisible. Removing the animation
+                    guarantees the gallery never blanks; `key` still forces a
+                    clean remount when the user switches media. */}
+                {activeMedia?.kind === "video" ? (
+                  <video
+                    key={activeMedia.id}
+                    src={activeMedia.url}
+                    poster={activeMedia.poster ?? undefined}
+                    controls
+                    autoPlay
+                    muted
+                    playsInline
+                    preload="metadata"
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute inset-0 w-full h-full object-contain bg-black p-3 sm:p-5 lg:p-7"
+                  />
+                ) : (
+                  (() => {
+                    // Guaranteed-non-empty src: normalized → original → product.image.
+                    const rawUrl = activeMedia?.url || product.image || "";
+                    const displaySrc = rawUrl ? galleryDisplaySrc(rawUrl) : "";
+                    return (
+                      <img
+                        key={activeMedia?.id ?? "fallback"}
+                        src={displaySrc || rawUrl || product.image}
+                        alt={activeMedia?.alt || product.name}
+                        loading="eager"
+                        decoding="async"
+                        onClick={() => setLightboxOpen(true)}
+                        onError={(e) => {
+                          // Self-healing: fall back to the primary product image,
+                          // then to the raw original, never a broken icon.
+                          const el = e.currentTarget;
+                          const primary = product.image ? galleryDisplaySrc(product.image) : "";
+                          if (primary && el.src !== primary) {
+                            el.src = primary;
+                          } else if (product.image && el.src !== product.image) {
+                            el.src = product.image;
+                          }
+                        }}
+                        className="absolute inset-0 w-full h-full object-contain cursor-zoom-in p-3 sm:p-5 lg:p-7 transition-transform duration-[900ms] group-hover:scale-105"
+                      />
+                    );
+                  })()
+                )}
                 {/* Tap-to-expand hint */}
                 <span className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[9px] font-mono uppercase tracking-widest text-white/80 backdrop-blur-md opacity-0 transition-opacity group-hover:opacity-100">
                   Tap to view all
