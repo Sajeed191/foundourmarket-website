@@ -584,7 +584,67 @@ function CatalogIntelligencePage() {
                 </ul>
               </div>
             )}
+
+            {/* Marketplace Readiness — Catalog Intelligence 2.0, Phase 6 (final orchestrator) */}
+            {readiness && (
+              <div className="rounded-3xl border border-accent/40 bg-gradient-to-br from-accent/10 to-transparent p-5">
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="grid size-9 place-items-center rounded-xl bg-accent/15 text-accent">
+                    <Rocket className="size-4" />
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent">Catalog Intelligence 2.0 · Phase 6</p>
+                    <p className="text-sm font-semibold">Marketplace Readiness</p>
+                    <p className="text-xs text-muted-foreground">
+                      Top-level orchestrator over every module. Answers only three questions per listing: ready to publish, what to fix, and how confident.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Overall</p>
+                    <p className={`font-display text-2xl font-semibold tabular-nums ${ring(readiness.avg)}`}>{readiness.avg}</p>
+                  </div>
+                </div>
+
+                {/* Publish-state buckets */}
+                <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <ReadinessBucket status="ready" count={readiness.buckets.ready} />
+                  <ReadinessBucket status="almost_ready" count={readiness.buckets.almost_ready} />
+                  <ReadinessBucket status="needs_attention" count={readiness.buckets.needs_attention} />
+                  <ReadinessBucket status="not_ready" count={readiness.buckets.not_ready} />
+                </div>
+
+                {/* Section-level roll-up */}
+                <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Module averages</p>
+                <div className="mb-4 grid grid-cols-2 gap-1.5 text-xs sm:grid-cols-3 lg:grid-cols-5">
+                  {Object.entries(readiness.moduleAvg).map(([mod, avg]) => (
+                    <div key={mod} className="flex items-center justify-between rounded-xl border border-border/60 bg-background/40 px-3 py-2">
+                      <span className="truncate text-muted-foreground capitalize">{mod.replace(/_/g, " ").replace(/intelligence/i, "").trim()}</span>
+                      <span className={`font-mono tabular-nums ${ring(avg)}`}>{avg}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Listings needing attention */}
+                {readiness.attention.length > 0 && (
+                  <>
+                    <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Listings to review before publish</p>
+                    <ul className="space-y-2">
+                      {readiness.attention.map((r) => (
+                        <ReadinessRow key={r.slug} slug={r.slug} name={r.name} readiness={r.readiness} />
+                      ))}
+                    </ul>
+                  </>
+                )}
+                {readiness.attention.length === 0 && (
+                  <p className="flex items-center gap-2 text-xs text-emerald-400">
+                    <CheckCircle2 className="size-4" /> Every listing is Marketplace Ready.
+                  </p>
+                )}
+              </div>
+            )}
           </>
+
+
 
         )}
       </div>
