@@ -531,6 +531,15 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
     if (validation.length) { setError(validation[0]); return; }
     if (!mainCat) { setError("Select a main category."); return; }
     if (subs.length > 0 && !subCat) { setError("This category has subcategories — selecting a subcategory is required."); return; }
+    // AI Product Guard — never blocks, but confirms before creating an obvious
+    // duplicate. Only prompts for genuine duplicate risk, and only once.
+    if (!publishAck && topGuardMatch) {
+      const rel = classifyRelationship(duplicateDraft, topGuardMatch);
+      if (isDuplicateRisk(rel.kind) || topGuardMatch.score >= 90) {
+        setGuardConfirm(topGuardMatch);
+        return;
+      }
+    }
     setSaving(true); setError(null);
     const finalSlug = form.slug.trim() || slugify(form.name);
     // Auto SKU / SEO — generated automatically when left blank.
