@@ -46,7 +46,7 @@ export async function logDuplicateEvent(params: {
     action,
     score: match.score,
     verdict: match.verdict,
-    signals: match.signals as unknown as object,
+    signals: match.signals as unknown as never,
   });
   return { error: (error as Error) ?? null };
 }
