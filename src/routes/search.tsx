@@ -7,7 +7,7 @@ import { useCategories, useAllCategories, type Category } from "@/lib/use-catego
 import { MobileFilterDrawer } from "@/components/site/MobileFilterDrawer";
 import { ActiveFilterBar } from "@/components/site/ActiveFilterBar";
 import { ResultCounter } from "@/components/site/ResultCounter";
-import { LoadMoreSection } from "@/components/site/LoadMoreSection";
+import { InfiniteScrollSentinel } from "@/components/site/InfiniteScrollSentinel";
 import {
   type Filters as ClientFilters,
   type Facet,
@@ -1218,15 +1218,11 @@ function SearchPage() {
                 renderItem={renderProduct}
               />
 
-              <LoadMoreSection
-                visible={visibleResults.length}
-                total={results.length}
-                pageSize={PAGE_SIZE}
+              <InfiniteScrollSentinel
+                hasMore={visibleResults.length < results.length}
                 onLoadMore={loadMore}
-                loading={false}
-                
-                analyticsSource="search"
               />
+
 
             </>
           )}
