@@ -10,7 +10,8 @@
 import type { ImageAnalysis } from "@/lib/image-normalization";
 import type { ImageIntelSummary } from "./types";
 
-type AnalysisLike = Partial<ImageAnalysis> & {
+type AnalysisLike = {
+  occupancy?: number;
   product?: {
     objects?: Array<{ label?: string; confidence?: number }>;
     objectCount?: number;
