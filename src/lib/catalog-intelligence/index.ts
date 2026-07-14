@@ -40,6 +40,10 @@ export { analyzeVariantIntelligence } from "./variant-intelligence";
 export type { VariantInput, VariantRecord, VariantIntelligence } from "./variant-intelligence";
 export { analyzeSeoIntelligence } from "./seo-intelligence";
 export type { SeoIntelligenceInput, SeoIntelligenceModule } from "./seo-intelligence";
+export { analyzePricingIntelligence } from "./pricing-intelligence";
+export type { PricingInput, PricingIntelligence } from "./pricing-intelligence";
+export { brokerRecommendations, topRecommendation } from "./recommendation-broker";
+export type { Recommendation } from "./recommendation-broker";
 export { CATEGORY_PROFILES, GENERIC_PROFILE, profileFor } from "./category-profiles";
 export type { AttributeProfile } from "./category-profiles";
 

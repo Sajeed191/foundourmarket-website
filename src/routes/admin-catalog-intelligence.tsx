@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Loader2, Sparkles, RefreshCw, Gauge, Search, ShieldCheck, Image as ImageIcon,
-  Boxes, Brain, Layers, Store, TrendingUp, ArrowRight, Package, CheckCircle2, Wand2, GitBranch,
+  Boxes, Brain, Layers, Store, TrendingUp, ArrowRight, Package, CheckCircle2, Wand2, GitBranch, DollarSign, Zap,
 } from "lucide-react";
 import { AdminShell, logActivity } from "@/components/admin/AdminShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,12 +12,16 @@ import {
   scoreProductCompleteness,
   analyzeVariantIntelligence,
   analyzeSeoIntelligence,
+  analyzePricingIntelligence,
+  brokerRecommendations,
   type OptimizerProduct,
   type OptimizerReport,
   type ProductCompleteness,
   type VariantIntelligence,
   type VariantRecord,
   type SeoIntelligenceModule,
+  type PricingIntelligence,
+  type Recommendation,
 } from "@/lib/catalog-intelligence";
 
 
@@ -211,6 +215,65 @@ function CatalogIntelligencePage() {
     const needs = [...rows].sort((a, b) => a.module.score - b.module.score).slice(0, 6);
     return { rows, avg, needs };
   }, [products]);
+
+  const pricingIntel = useMemo(() => {
+    if (!products) return null;
+    const rows = products.map((p) => {
+      const vs = variantsByProduct.get(p.slug) ?? [];
+      const basePrice = typeof p.price_inr === "number" ? p.price_inr : null;
+      const comparePrice = typeof p.compare_price_inr === "number" ? p.compare_price_inr : null;
+      const module = analyzePricingIntelligence({
+        slug: p.slug,
+        productName: p.name,
+        price: basePrice,
+        comparePrice,
+        cost: null,
+        variants: vs.map<VariantRecord>((v) => ({
+          title: v.name,
+          option1: v.color,
+          option2: v.size,
+          sku: v.sku,
+          price:
+            v.price_override != null
+              ? v.price_override
+              : basePrice != null
+              ? basePrice + (v.price_adjustment ?? 0)
+              : null,
+          compare_price: v.compare_price,
+          stock: v.stock_quantity,
+          is_active: v.active,
+          image_url: v.image_url,
+          swatch_color: v.color_hex,
+        })),
+      });
+      return { slug: p.slug, name: p.name, module };
+    });
+    const avg = Math.round(rows.reduce((a, r) => a + r.module.score, 0) / (rows.length || 1));
+    const needs = [...rows].sort((a, b) => a.module.score - b.module.score).slice(0, 6);
+    return { rows, avg, needs };
+  }, [products, variantsByProduct]);
+
+  /** Recommendation Broker preview — one prioritised recommendation across all modules. */
+  const brokerFeed = useMemo(() => {
+    if (!products || !completeness || !variantIntel || !seoIntel || !pricingIntel) return null;
+    const bySlug = new Map<string, { name: string; recs: Recommendation[] }>();
+    for (const p of products) {
+      const modules = [
+        completeness.rows.find((r) => r.slug === p.slug)?.module,
+        variantIntel.rows.find((r) => r.slug === p.slug)?.module,
+        seoIntel.rows.find((r) => r.slug === p.slug)?.module,
+        pricingIntel.rows.find((r) => r.slug === p.slug)?.module,
+      ].filter(Boolean) as Parameters<typeof brokerRecommendations>[0];
+      const recs = brokerRecommendations(modules);
+      if (recs.length > 0) bySlug.set(p.slug, { name: p.name, recs });
+    }
+    const flat = [...bySlug.entries()]
+      .map(([slug, { name, recs }]) => ({ slug, name, top: recs[0] }))
+      .sort((a, b) => b.top.priority - a.top.priority)
+      .slice(0, 6);
+    return flat;
+  }, [products, completeness, variantIntel, seoIntel, pricingIntel]);
+
 
 
 
@@ -422,6 +485,63 @@ function CatalogIntelligencePage() {
                 </ul>
               </div>
             )}
+
+            {/* Pricing Intelligence — Catalog Intelligence 2.0, Phase 5 */}
+            {pricingIntel && (
+              <div className="rounded-3xl border border-border/60 bg-card/40 p-5">
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="grid size-9 place-items-center rounded-xl bg-accent/10 text-accent">
+                    <DollarSign className="size-4" />
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent">Catalog Intelligence 2.0 · Phase 5</p>
+                    <p className="text-sm font-semibold">Pricing Intelligence</p>
+                    <p className="text-xs text-muted-foreground">
+                      Variant outliers, broken compare-at prices, missing base prices, margin anomalies. Advisory only — never mutates prices.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Avg</p>
+                    <p className={`font-display text-2xl font-semibold tabular-nums ${ring(pricingIntel.avg)}`}>{pricingIntel.avg}</p>
+                  </div>
+                </div>
+
+                <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">Top pricing issues</p>
+                <ul className="space-y-2">
+                  {pricingIntel.needs.map((r) => (
+                    <PricingIntelRow key={r.slug} slug={r.slug} name={r.name} module={r.module} />
+                  ))}
+                  {pricingIntel.needs.length === 0 && (
+                    <li className="flex items-center gap-2 text-xs text-emerald-400">
+                      <CheckCircle2 className="size-4" /> Pricing looks consistent across the catalog.
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+
+            {/* Recommendation Broker — cross-module prioritised feed */}
+            {brokerFeed && brokerFeed.length > 0 && (
+              <div className="rounded-3xl border border-accent/40 bg-accent/5 p-5">
+                <div className="mb-4 flex items-start gap-3">
+                  <span className="grid size-9 place-items-center rounded-xl bg-accent/15 text-accent">
+                    <Zap className="size-4" />
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent">Marketplace AI Assistant · preview</p>
+                    <p className="text-sm font-semibold">Top recommendations across all modules</p>
+                    <p className="text-xs text-muted-foreground">
+                      Broker merges Completeness, Attributes, Variants, SEO, and Pricing. One prioritised recommendation per listing — highest impact wins.
+                    </p>
+                  </div>
+                </div>
+                <ul className="space-y-2">
+                  {brokerFeed.map((r) => (
+                    <BrokerRow key={r.slug} slug={r.slug} name={r.name} rec={r.top} />
+                  ))}
+                </ul>
+              </div>
+            )}
           </>
 
         )}
@@ -597,6 +717,93 @@ function SeoIntelRow({ slug, name, module: m }: { slug: string; name: string; mo
             </a>
           ) : null}
         </div>
+      </div>
+    </li>
+  );
+}
+
+function PricingIntelRow({ slug, name, module: m }: { slug: string; name: string; module: PricingIntelligence }) {
+  return (
+    <li className="rounded-2xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center gap-3">
+        <span className={`size-2 shrink-0 rounded-full ${STATUS_DOT[m.status]}`} aria-hidden />
+        <div className="min-w-0 flex-1">
+          <Link
+            to="/admin-product/$slug/pricing"
+            params={{ slug }}
+            className="block truncate text-sm font-medium hover:text-accent"
+          >
+            {name}
+          </Link>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{m.recommendation}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            {m.potentialImpact && (
+              <span className={`rounded-full px-1.5 py-0.5 ${
+                m.potentialImpact === "High" ? "bg-destructive/15 text-destructive" :
+                m.potentialImpact === "Medium" ? "bg-amber-500/15 text-amber-400" :
+                "bg-emerald-500/15 text-emerald-400"
+              }`}>
+                Impact · {m.potentialImpact}
+              </span>
+            )}
+            {m.variant.outliers.length > 0 && <span>{m.variant.outliers.length} outlier{m.variant.outliers.length === 1 ? "" : "s"}</span>}
+            {m.variant.priceless > 0 && <span>{m.variant.priceless} priceless</span>}
+            {m.product.hasBrokenCompare && <span>broken compare</span>}
+            {m.product.negativeMargin && <span>negative margin</span>}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className={`font-mono text-xs tabular-nums ${
+            m.score >= 85 ? "text-emerald-400" : m.score >= 60 ? "text-amber-400" : "text-destructive"
+          }`}>
+            {m.score}
+          </span>
+          {m.actionHref ? (
+            <a
+              href={m.actionHref}
+              className="inline-flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground transition hover:opacity-90"
+            >
+              {m.action} <ArrowRight className="size-3" />
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function BrokerRow({ slug, name, rec }: { slug: string; name: string; rec: Recommendation }) {
+  return (
+    <li className="rounded-2xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center gap-3">
+        <span className={`size-2 shrink-0 rounded-full ${STATUS_DOT[rec.status]}`} aria-hidden />
+        <div className="min-w-0 flex-1">
+          <Link
+            to="/admin-product/$slug"
+            params={{ slug }}
+            className="block truncate text-sm font-medium hover:text-accent"
+          >
+            {name}
+          </Link>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{rec.recommendation}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            <span>{rec.module.replace(/_/g, " ")}</span>
+            <span className={`rounded-full px-1.5 py-0.5 ${
+              rec.impact === "High" ? "bg-destructive/15 text-destructive" :
+              rec.impact === "Medium" ? "bg-amber-500/15 text-amber-400" :
+              "bg-emerald-500/15 text-emerald-400"
+            }`}>Impact · {rec.impact}</span>
+            <span>priority {rec.priority}</span>
+          </div>
+        </div>
+        {rec.actionHref ? (
+          <a
+            href={rec.actionHref}
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground transition hover:opacity-90"
+          >
+            {rec.action} <ArrowRight className="size-3" />
+          </a>
+        ) : null}
       </div>
     </li>
   );
