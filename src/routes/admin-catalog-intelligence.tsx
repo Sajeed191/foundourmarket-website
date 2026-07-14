@@ -188,6 +188,30 @@ function CatalogIntelligencePage() {
     return { rows, avg, needs };
   }, [products, variantsByProduct]);
 
+  const seoIntel = useMemo(() => {
+    if (!products) return null;
+    const rows = products.map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      module: analyzeSeoIntelligence({
+        slug: p.slug,
+        name: p.name,
+        seoTitle: p.seo_title,
+        seoDescription: p.seo_description,
+        description: p.description,
+        keywords: p.meta_keywords ?? null,
+        imageAlt: null,
+        category: p.category ?? null,
+        hasFaq: false,
+        hasRelated: Array.isArray(p.related_products) && p.related_products.length > 0,
+        hasImage: !!p.image,
+      }),
+    }));
+    const avg = Math.round(rows.reduce((a, r) => a + r.module.score, 0) / (rows.length || 1));
+    const needs = [...rows].sort((a, b) => a.module.score - b.module.score).slice(0, 6);
+    return { rows, avg, needs };
+  }, [products]);
+
 
 
 
