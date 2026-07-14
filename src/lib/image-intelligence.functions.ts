@@ -303,6 +303,7 @@ export const applyOptimizedImage = createServerFn({ method: "POST" })
         optimized_url: data.optimizedUrl,
         optimization_actions: data.actions ?? [],
         optimization_applied_at: new Date().toISOString(),
+        ...ENGINE_VERSION_MANIFEST,
       })
       .eq("id", data.imageId);
     if (error) throw new Error(error.message);
@@ -316,10 +317,26 @@ export const revertToOriginal = createServerFn({ method: "POST" })
     const { supabase, userId } = context as { supabase: any; userId: string };
     await assertRole(supabase, userId, WRITER_ROLES);
     const { error } = await supabase.from("product_images")
-      .update({ optimized_url: null, optimization_actions: null, optimization_applied_at: null })
+      .update({
+        optimized_url: null,
+        optimization_actions: null,
+        optimization_applied_at: null,
+        engine_version: null,
+        photon_version: null,
+        quality_gate_version: null,
+        category_rules_version: null,
+      })
       .eq("id", data.imageId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+export const getEngineVersionManifest = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertRole(supabase, userId, STAFF_ROLES);
+    return ENGINE_VERSION_MANIFEST;
   });
 
 // ─────────────────────────────────────────────────────────────────────────
