@@ -54,6 +54,7 @@ function ProductImageImpl({
     rootDataset?.ffImageDecoding === "off" || activePropTest === "product-image-decoding-async";
   const disableImageDecode =
     rootDataset?.ffImageDecoding === "off" || activePropTest === "product-image-image-decode";
+  const [forceEager, setForceEager] = useState(priority || disableLazyLoading);
   // Bundled demo assets ship a build-time srcset; real (storage-hosted) product
   // images get an on-the-fly resized srcset so we never download the original.
   // Mali GPU compatibility (centralized via isGpuUnsafe()): on flagged devices,
@@ -90,7 +91,54 @@ function ProductImageImpl({
   useEffect(() => {
     setAttempt(0);
     setFailed(false);
-  }, [resolvedSrc]);
+    setForceEager(priority || disableLazyLoading);
+  }, [resolvedSrc, priority, disableLazyLoading]);
+
+  // Native lazy-loading can occasionally stall inside transformed/embedded
+  // mobile previews: the <img> has a valid src, but the browser never assigns a
+  // currentSrc, so the card stays blank. Keep lazy loading for far-offscreen
+  // products, but promote images to eager as soon as their reserved box is in or
+  // near the viewport. This fixes the root blank-state without downloading the
+  // whole catalogue at page load.
+  useEffect(() => {
+    if (priority || disableLazyLoading || forceEager || typeof window === "undefined") return;
+    const img = imgRef.current;
+    if (!img) return;
+
+    const promoteIfNearViewport = () => {
+      const rect = img.getBoundingClientRect();
+      const margin = 700;
+      if (rect.bottom >= -margin && rect.top <= window.innerHeight + margin) {
+        setForceEager(true);
+        return true;
+      }
+      return false;
+    };
+
+    if (promoteIfNearViewport()) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      const onScroll = () => { promoteIfNearViewport(); };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+      };
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setForceEager(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "700px 0px" },
+    );
+    io.observe(img);
+    return () => io.disconnect();
+  }, [displaySrc, disableLazyLoading, forceEager, priority]);
 
   const withCacheBust = useCallback((url: string, n: number) => {
     if (n <= 0) return url;
@@ -130,6 +178,7 @@ function ProductImageImpl({
 
   useEffect(() => {
     if (failed) return;
+    if (!resolvedSrc) return;
     // Arm the stall timer for the current attempt. An already-complete cached
     // image (img.complete) needs no timer.
     if (typeof window === "undefined") return;
@@ -138,6 +187,7 @@ function ProductImageImpl({
     stallRef.current = setTimeout(() => {
       const el = imgRef.current;
       if (el && el.complete && el.naturalWidth > 0) return;
+      setForceEager(true);
       scheduleRetry();
     }, STALL_TIMEOUT);
     return clearStall;
@@ -211,7 +261,7 @@ function ProductImageImpl({
 
   useEffect(() => clearStall, [clearStall]);
 
-  if (failed) {
+  if (failed || !resolvedSrc) {
     // Graceful fallback tile — never a bare white/gray rectangle. Keeps the
     // reserved box dimensions so layout stays stable.
     return (
