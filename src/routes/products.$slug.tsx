@@ -32,7 +32,6 @@ import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { RecommendedForYou } from "@/components/site/RecommendedForYou";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { PDPRecommendations } from "@/components/site/PDPRecommendations";
-import { lazy, Suspense } from "react";
 const PDPFrequentlyBoughtTogether = lazy(() =>
   import("@/components/site/PDPFrequentlyBoughtTogether").then((m) => ({
     default: m.PDPFrequentlyBoughtTogether,
