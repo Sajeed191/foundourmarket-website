@@ -124,6 +124,18 @@ function VendorDashboard() {
               <option key={v.vendorId} value={v.vendorId}>{v.vendorName}</option>
             ))}
           </select>
+          <Link
+            to="/vendor-work-queue"
+            className="rounded-md border bg-background px-2 py-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            Queue
+          </Link>
+          <Link
+            to="/vendor-analytics"
+            className="rounded-md border bg-background px-2 py-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            Analytics
+          </Link>
         </div>
 
         {bundle.loading && (
