@@ -4,6 +4,7 @@ import { computeImagePhash, logDuplicateEvent, invalidateDetectionIndex } from "
 import { useNavigate } from "@tanstack/react-router";
 import { ProductGuardBanner, GUARD_THRESHOLD } from "@/components/admin/duplicate/ProductGuardBanner";
 import { MarketplaceAssistantPanel } from "@/components/admin/duplicate/MarketplaceAssistantPanel";
+import { ProductInlineRecommendation } from "@/components/admin/ProductInlineRecommendation";
 import { useImageIntelligence } from "@/hooks/use-image-intelligence";
 import { classifyRelationship, isDuplicateRisk, RELATIONSHIP_LABEL } from "@/lib/catalog-intelligence";
 import { resolveImage } from "@/lib/products";
