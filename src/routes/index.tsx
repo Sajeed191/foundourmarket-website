@@ -36,10 +36,15 @@ import { SearchOverlay } from "@/components/site/SearchOverlay";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 
-import { FlashDeals } from "@/components/site/FlashDeals";
+// Below-the-fold: lazy so the code stays out of the initial homepage chunk.
+const FlashDeals = lazy(() =>
+  import("@/components/site/FlashDeals").then((m) => ({ default: m.FlashDeals })),
+);
+const TestimonialsCarousel = lazy(() =>
+  import("@/components/site/TestimonialsCarousel").then((m) => ({ default: m.TestimonialsCarousel })),
+);
 
 import { TrustBadgesStrip } from "@/components/site/TrustBadgesStrip";
-import { TestimonialsCarousel } from "@/components/site/TestimonialsCarousel";
 import { useTestimonials } from "@/lib/use-testimonials";
 import { SectionTracker } from "@/components/site/SectionTracker";
 import { useRenderDiagnostics } from "@/lib/startup-diagnostics";
