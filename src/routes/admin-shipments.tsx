@@ -631,12 +631,13 @@ function AdminShipmentsPage() {
     return pairs.map(({ order, ship }) => buildExportRow(order, ship));
   };
 
-  function runExport(format: "csv" | "excel" | "pdf", scope: ExportScope) {
+  async function runExport(format: "csv" | "excel" | "pdf", scope: ExportScope) {
     const rows = exportRowsFor(scope);
     if (!rows.length) { toast.error("Nothing to export"); return; }
-    if (format === "csv") exportShipmentsCsv(rows);
-    else if (format === "excel") exportShipmentsExcel(rows);
-    else exportShipmentsPdf(rows);
+    const m = await loadPacking();
+    if (format === "csv") m.exportShipmentsCsv(rows);
+    else if (format === "excel") m.exportShipmentsExcel(rows);
+    else m.exportShipmentsPdf(rows);
     toast.success(`Exported ${rows.length} shipment(s)`);
   }
 
@@ -644,9 +645,11 @@ function AdminShipmentsPage() {
     const rows = exportRowsFor(scope);
     if (!rows.length) { toast.error("Nothing to export"); return; }
     toast.message(`Generating ${rows.length} packing slip(s)…`);
+    const { downloadPackingSlip } = await loadPacking();
     for (const r of rows) await downloadPackingSlip(r.orderId);
     toast.success("Packing slips downloaded");
   }
+
 
 
   const SECTIONS: { key: Section; label: string; icon: React.ReactNode }[] = [
