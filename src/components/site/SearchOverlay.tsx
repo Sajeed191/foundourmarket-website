@@ -6,6 +6,7 @@ import { useProducts } from "@/lib/use-products";
 import { useCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import type { Product } from "@/lib/products";
+import { parseAiQuery, toSearchParams } from "@/lib/ai-search";
 
 type Props = {
   open: boolean;
