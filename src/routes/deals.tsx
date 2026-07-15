@@ -16,9 +16,10 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { useFlashDeals } from "@/lib/use-flash-deals";
-import { ProductCard } from "@/components/site/ProductCard";
+import { BrowseCard } from "@/components/site/BrowseCard";
 import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid";
 import type { Product } from "@/lib/products";
+import { buildBrowsePresentation, sortProductsForBrowse } from "@/lib/browse";
 
 export const Route = createFileRoute("/deals")({
   head: () => ({
@@ -89,15 +90,28 @@ function DealsPage() {
     return [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
   }, [dealProducts]);
 
-  const visibleProducts = useMemo(
+  const filteredProducts = useMemo(
     () => (activeCat === "all" ? dealProducts : dealProducts.filter((p) => p.category === activeCat)),
     [dealProducts, activeCat]
   );
 
+  // Browse Presentation Adapter — same adapter as /category, surface: "deals".
+  // Emphasises discount depth + availability; no separate "deal score".
+  const presentation = useMemo(
+    () => buildBrowsePresentation({ products: filteredProducts, surface: "deals" }),
+    [filteredProducts],
+  );
+  const visibleProducts = useMemo(
+    () => sortProductsForBrowse(filteredProducts, presentation, "recommended"),
+    [filteredProducts, presentation],
+  );
+
   const getProductKey = useCallback((p: Product) => p.id ?? p.slug, []);
   const renderProduct = useCallback(
-    (p: Product, i: number) => <ProductCard product={p} forceBadge={p.flashDeal ? "flash_deal" : "hot_deal"} priority={i < 4} />,
-    [],
+    (p: Product, i: number) => (
+      <BrowseCard product={p} presentation={presentation.get(p.id ?? p.slug)} priority={i < 4} />
+    ),
+    [presentation],
   );
 
   if (loading) {
