@@ -6,6 +6,7 @@ import { useProducts } from "@/lib/use-products";
 import { useCategories } from "@/lib/use-categories";
 import { useRegion } from "@/lib/region";
 import type { Product } from "@/lib/products";
+import { parseAiQuery, toSearchParams } from "@/lib/ai-search";
 
 type Props = {
   open: boolean;
@@ -144,12 +145,36 @@ export function SearchOverlay({ open, onClose, query, onQueryChange }: Props) {
     { label: "In Stock", search: { stock: "in" } as Record<string, unknown> },
   ];
 
+  // AI Marketplace Search — Track B Phase 1. Parses the current query into
+  // the frozen `/search` filter contract; presentation-only, no scoring.
+  const aiContext = useMemo(() => {
+    const brands = Array.from(
+      new Set(products.map((p) => p.brand).filter((b): b is string => !!b)),
+    );
+    const cats = categories
+      .filter((c) => !c.parent_id)
+      .map((c) => ({ slug: c.slug, name: c.name }));
+    return { brands, categories: cats };
+  }, [products, categories]);
+
+  const aiIntent = useMemo(() => parseAiQuery(debounced, aiContext), [debounced, aiContext]);
+
   if (!render) return null;
 
   const submit = (q: string) => {
     const term = q.trim();
     onClose();
-    nav({ to: "/search", search: term ? { q: term } : { q: "" } });
+    if (!term) {
+      nav({ to: "/search", search: { q: "" } });
+      return;
+    }
+    // Re-parse on the raw submit value so a fast "Enter" before debounce still routes correctly.
+    const parsed = parseAiQuery(term, aiContext);
+    if (parsed.hasIntent) {
+      nav({ to: "/search", search: toSearchParams(parsed.query || term, parsed.filters) });
+    } else {
+      nav({ to: "/search", search: { q: term } });
+    }
   };
 
   const showEmpty = debounced === "" && !pending;
@@ -223,6 +248,24 @@ export function SearchOverlay({ open, onClose, query, onQueryChange }: Props) {
               <X className="size-5" />
             </button>
           </div>
+
+          {/* AI understood chips — Track B Phase 1. Shows the user what
+              natural-language intent the search parsed out of their query. */}
+          {aiIntent.hasIntent && (
+            <div className="mx-auto mt-2 flex max-w-2xl flex-wrap items-center gap-1.5 px-1">
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-[0.14em] text-accent/85">
+                <Sparkles className="size-3" /> AI understood
+              </span>
+              {aiIntent.understood.map((chip) => (
+                <span
+                  key={chip}
+                  className="rounded-full border border-accent/25 bg-accent/[0.08] px-2.5 py-1 text-[12px] font-medium text-accent"
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Scrollable body */}
