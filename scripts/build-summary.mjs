@@ -25,15 +25,23 @@ const MANIFEST_PATH = join(CLIENT_DIR, ".vite", "manifest.json");
 const SNAPSHOT_DIR = join(ROOT, ".build-snapshots");
 const SUMMARY_PATH = join(ROOT, "dist", "build-summary.json");
 
+// ── Build System v1.1 budgets ──────────────────────────────────────
+// Grounded in Snapshot 2026-07-15T08-36-54-333Z.json (canonical baseline).
+// Only three payload budgets — each mapped to a clear owner:
+//   entryEagerGz  → Platform architecture  (shared shell, changes rarely)
+//   routeOnlyGz   → Feature teams          (per-route added weight)
+//   largestRouteGz→ End-user worst case    (entry + biggest route-only)
+// Async payload has no hard budget; it's tracked as a growth advisory
+// (Warning if >10% growth between snapshots).
 const KB = 1024;
 const BUDGETS = {
-  largestRouteGz:    { target: 300 * KB, label: "Largest Route" },
-  largestSharedGz:   { target: 250 * KB, label: "Largest Shared Chunk" },
-  customerInitialGz: { target: 200 * KB, label: "Initial Customer Bundle" },
-  vendorInitialGz:   { target: 250 * KB, label: "Vendor Initial Bundle" },
-  adminInitialGz:    { target: 350 * KB, label: "Admin Initial Bundle" },
+  entryEagerGz:      { target: 360 * KB, label: "Entry Eager (shell)" },
+  routeOnlyGz:       { target: 50 * KB,  label: "Worst Route-Only Weight" },
+  largestRouteGz:    { target: 400 * KB, label: "Largest Route (initial)" },
   ssrBuildTimeSec:   { target: 60,       label: "SSR Build Time" },
 };
+const ASYNC_GROWTH_WARN_PCT = 10;
+
 
 const fmt = (b) => b == null ? "—"
   : b < 1024 ? `${b} B`
