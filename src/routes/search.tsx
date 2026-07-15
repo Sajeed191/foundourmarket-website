@@ -929,10 +929,22 @@ function SearchPage() {
   const activeFilterCount = countActive(currentFilters);
 
   const getProductKey = useCallback((p: Product) => p.id ?? p.slug, []);
-  const renderProduct = useCallback(
-    (p: Product, i: number) => <ProductCard product={p} priority={i < 4} highlight={search.q} />,
-    [search.q],
+  const browsePresentation = useMemo(
+    () => buildBrowsePresentation({ products: results, surface: "search" }),
+    [results],
   );
+  const renderProduct = useCallback(
+    (p: Product, i: number) => (
+      <BrowseCard
+        product={p}
+        presentation={browsePresentation.get(p.id ?? p.slug)}
+        priority={i < 4}
+        highlight={search.q}
+      />
+    ),
+    [search.q, browsePresentation],
+  );
+
 
 
   return (
