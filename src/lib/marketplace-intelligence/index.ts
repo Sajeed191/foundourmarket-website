@@ -37,3 +37,10 @@ export type {
   RelatedProduct,
   RelationshipBuckets,
 } from "./relationship-intelligence";
+export { analyzeTrustIntelligence } from "./trust-intelligence";
+export type {
+  TrustIntelligence,
+  TrustStatus,
+  Risk,
+  RiskArea,
+} from "./trust-intelligence";
