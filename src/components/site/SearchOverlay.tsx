@@ -248,6 +248,24 @@ export function SearchOverlay({ open, onClose, query, onQueryChange }: Props) {
               <X className="size-5" />
             </button>
           </div>
+
+          {/* AI understood chips — Track B Phase 1. Shows the user what
+              natural-language intent the search parsed out of their query. */}
+          {aiIntent.hasIntent && (
+            <div className="mx-auto mt-2 flex max-w-2xl flex-wrap items-center gap-1.5 px-1">
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-[0.14em] text-accent/85">
+                <Sparkles className="size-3" /> AI understood
+              </span>
+              {aiIntent.understood.map((chip) => (
+                <span
+                  key={chip}
+                  className="rounded-full border border-accent/25 bg-accent/[0.08] px-2.5 py-1 text-[12px] font-medium text-accent"
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Scrollable body */}
