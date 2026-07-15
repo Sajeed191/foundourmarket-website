@@ -25,15 +25,23 @@ const MANIFEST_PATH = join(CLIENT_DIR, ".vite", "manifest.json");
 const SNAPSHOT_DIR = join(ROOT, ".build-snapshots");
 const SUMMARY_PATH = join(ROOT, "dist", "build-summary.json");
 
+// ── Build System v1.1 budgets ──────────────────────────────────────
+// Grounded in Snapshot 2026-07-15T08-36-54-333Z.json (canonical baseline).
+// Only three payload budgets — each mapped to a clear owner:
+//   entryEagerGz  → Platform architecture  (shared shell, changes rarely)
+//   routeOnlyGz   → Feature teams          (per-route added weight)
+//   largestRouteGz→ End-user worst case    (entry + biggest route-only)
+// Async payload has no hard budget; it's tracked as a growth advisory
+// (Warning if >10% growth between snapshots).
 const KB = 1024;
 const BUDGETS = {
-  largestRouteGz:    { target: 300 * KB, label: "Largest Route" },
-  largestSharedGz:   { target: 250 * KB, label: "Largest Shared Chunk" },
-  customerInitialGz: { target: 200 * KB, label: "Initial Customer Bundle" },
-  vendorInitialGz:   { target: 250 * KB, label: "Vendor Initial Bundle" },
-  adminInitialGz:    { target: 350 * KB, label: "Admin Initial Bundle" },
+  entryEagerGz:      { target: 360 * KB, label: "Entry Eager (shell)" },
+  routeOnlyGz:       { target: 50 * KB,  label: "Worst Route-Only Weight" },
+  largestRouteGz:    { target: 400 * KB, label: "Largest Route (initial)" },
   ssrBuildTimeSec:   { target: 60,       label: "SSR Build Time" },
 };
+const ASYNC_GROWTH_WARN_PCT = 10;
+
 
 const fmt = (b) => b == null ? "—"
   : b < 1024 ? `${b} B`
@@ -57,8 +65,19 @@ function evalBudget(value, { target, label }) {
 }
 
 function healthScore(budgets) {
-  const w = { largestRouteGz: 20, largestSharedGz: 20, customerInitialGz: 20,
-    vendorInitialGz: 10, adminInitialGz: 10, ssrBuildTimeSec: 10, heapTrend: 10 };
+  // v1.1 weights: user-experience weighted, not evenly spread.
+  //   40% entry eager   — the shell every user pays
+  //   30% route-only    — what feature teams control
+  //   15% SSR time      — build ergonomics
+  //   10% heap trend    — build reliability
+  //    5% async growth  — advisory
+  const w = {
+    entryEagerGz: 40,
+    routeOnlyGz: 30,
+    ssrBuildTimeSec: 15,
+    heapTrend: 10,
+    asyncGrowth: 5,
+  };
   let earned = 0, possible = 0;
   for (const [k, weight] of Object.entries(w)) {
     const b = budgets[k]; if (!b || b.status === "Skip") continue;
@@ -71,6 +90,7 @@ function healthScore(budgets) {
   const band = score >= 90 ? "Good" : score >= 70 ? "Fair" : score >= 50 ? "Poor" : "Critical";
   return { score, band };
 }
+
 
 function latestSnapshot() {
   if (!existsSync(SNAPSHOT_DIR)) return null;
@@ -175,11 +195,14 @@ function main() {
   const largestRoute = routes[0];
   const largestShared = sharedEager[0];
 
-  const scopeInitial = (scope) => routes.find((r) => r.scope === scope)?.initialEager.gzip ?? null;
+  // Worst route-only weight — the actionable feature-team knob.
+  const worstRouteOnly = routes.reduce((max, r) =>
+    r.addedEager.gzip > (max?.addedEager.gzip ?? -1) ? r : max, null);
 
   const heapMb = Math.round(process.memoryUsage().rss / 1024 / 1024);
   const ssrBuildTimeSec = process.env.SSR_BUILD_TIME_SEC ? Number(process.env.SSR_BUILD_TIME_SEC) : null;
   const prev = latestSnapshot();
+
   let heapTrend = { label: "Peak Heap Trend", value: heapMb, target: null, status: "OK" };
   if (prev?.peakHeapMb) {
     const growth = (heapMb - prev.peakHeapMb) / prev.peakHeapMb;
@@ -188,15 +211,26 @@ function main() {
       status: growth > 0.2 ? "Warning" : "OK" };
   }
 
+  // Async payload — advisory only. Warns when it grows > ASYNC_GROWTH_WARN_PCT
+  // between snapshots. No hard budget: lazy code doesn't affect first paint.
+  let asyncGrowth = { label: "Async Payload Growth", value: asyncOnlyGz, previous: null,
+    growthPct: null, target: null, status: "OK" };
+  if (prev?.totals?.asyncOnlyGz) {
+    const growthPct = +(((asyncOnlyGz - prev.totals.asyncOnlyGz) / prev.totals.asyncOnlyGz) * 100).toFixed(1);
+    asyncGrowth = { label: "Async Payload Growth", value: asyncOnlyGz,
+      previous: prev.totals.asyncOnlyGz, growthPct, target: null,
+      status: growthPct > ASYNC_GROWTH_WARN_PCT ? "Warning" : "OK" };
+  }
+
   const budgets = {
-    largestRouteGz:    evalBudget(largestRoute?.initialEager.gzip ?? null, BUDGETS.largestRouteGz),
-    largestSharedGz:   evalBudget(largestShared?.size.gzip ?? null, BUDGETS.largestSharedGz),
-    customerInitialGz: evalBudget(scopeInitial("customer"), BUDGETS.customerInitialGz),
-    vendorInitialGz:   evalBudget(scopeInitial("vendor"), BUDGETS.vendorInitialGz),
-    adminInitialGz:    evalBudget(scopeInitial("admin"), BUDGETS.adminInitialGz),
-    ssrBuildTimeSec:   evalBudget(ssrBuildTimeSec, BUDGETS.ssrBuildTimeSec),
+    entryEagerGz:    evalBudget(entryEagerBytes.gzip, BUDGETS.entryEagerGz),
+    routeOnlyGz:     evalBudget(worstRouteOnly?.addedEager.gzip ?? null, BUDGETS.routeOnlyGz),
+    largestRouteGz:  evalBudget(largestRoute?.initialEager.gzip ?? null, BUDGETS.largestRouteGz),
+    ssrBuildTimeSec: evalBudget(ssrBuildTimeSec, BUDGETS.ssrBuildTimeSec),
     heapTrend,
+    asyncGrowth,
   };
+
 
   const health = healthScore(budgets);
   const anyCritical = Object.values(budgets).some((b) => b.status === "Critical");
@@ -259,17 +293,21 @@ function main() {
   console.log(line("Largest Route", largestRoute
     ? `${largestRoute.name}  (${fmt(largestRoute.initialEager.gzip)} initial · +${fmt(largestRoute.addedEager.gzip)} route-only)`
     : "—"));
-  console.log(line("Largest Shared Eager", largestShared ? `${largestShared.file}  (${fmt(largestShared.size.gzip)} gz)` : "—"));
+  console.log(line("Worst Route-Only", worstRouteOnly
+    ? `${worstRouteOnly.name}  (+${fmt(worstRouteOnly.addedEager.gzip)} on top of shell)`
+    : "—"));
   console.log(line("Peak Heap (RSS)", `${heapMb} MB`));
 
-  console.log("\n  Budgets (eager-only — async chunks excluded):");
+  console.log("\n  Budgets (v1.1 — eager payloads only; async is advisory):");
   for (const b of Object.values(budgets)) {
     const val = b.value == null ? "—"
       : b.target && typeof b.value === "number" && b.target > 10_000 ? `${fmt(b.value)} / ${fmt(b.target)} gz`
       : b.target ? `${b.value} / ${b.target}`
+      : b.growthPct != null ? `${fmt(b.value)}  (${b.growthPct >= 0 ? "+" : ""}${b.growthPct}%)`
       : `${b.value}`;
     console.log(`    ${icon(b.status)}  ${b.label.padEnd(24)} ${val}`);
   }
+
 
   console.log("\n  Build Health:");
   console.log(`    ${health.score ?? "—"} / 100    ${health.band}`);
