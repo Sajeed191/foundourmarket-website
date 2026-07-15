@@ -213,6 +213,21 @@ export function classifyRelationship(draft: DraftProduct, match: DupMatch): Rela
     };
   }
 
+  // 1b. Explicit compatibility metadata — highest-confidence compatibility
+  //     signal, evaluated before variant/accessory heuristics so an admin-
+  //     maintained "compatible_with" list is honoured deterministically.
+  const explicitCompat = detectCompatibility(draft, candidate);
+  if (explicitCompat && explicitCompat.confidence >= 90) {
+    return {
+      kind: "compatible",
+      confidence: explicitCompat.confidence,
+      message: `Compatible with "${candidate.name}".`,
+      reasons: [...reasons, explicitCompat.reason],
+    };
+  }
+
+
+
   // 2. Variant of the same product (colour / size / storage / other).
   if (strongProduct) {
     const axis = detectAxis(draft, candidate);
