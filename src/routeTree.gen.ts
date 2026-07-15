@@ -126,6 +126,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VendorPublishSlugRouteImport } from './routes/vendor-publish.$slug'
 import { Route as VendorProductSlugRouteImport } from './routes/vendor-product.$slug'
 import { Route as ProductsTrendingRouteImport } from './routes/products.trending'
 import { Route as ProductsNewArrivalsRouteImport } from './routes/products.new-arrivals'
@@ -775,6 +776,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendorPublishSlugRoute = VendorPublishSlugRouteImport.update({
+  id: '/vendor-publish/$slug',
+  path: '/vendor-publish/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VendorProductSlugRoute = VendorProductSlugRouteImport.update({
   id: '/vendor-product/$slug',
   path: '/vendor-product/$slug',
@@ -1200,6 +1206,7 @@ export interface FileRoutesByFullPath {
   '/products/new-arrivals': typeof ProductsNewArrivalsRoute
   '/products/trending': typeof ProductsTrendingRoute
   '/vendor-product/$slug': typeof VendorProductSlugRoute
+  '/vendor-publish/$slug': typeof VendorPublishSlugRoute
   '/account/payment-methods/add': typeof AccountPaymentMethodsAddRoute
   '/account/support/new': typeof AccountSupportNewRoute
   '/admin-product/$slug/analytics': typeof AdminProductSlugAnalyticsRoute
@@ -1371,6 +1378,7 @@ export interface FileRoutesByTo {
   '/products/new-arrivals': typeof ProductsNewArrivalsRoute
   '/products/trending': typeof ProductsTrendingRoute
   '/vendor-product/$slug': typeof VendorProductSlugRoute
+  '/vendor-publish/$slug': typeof VendorPublishSlugRoute
   '/account/payment-methods/add': typeof AccountPaymentMethodsAddRoute
   '/account/support/new': typeof AccountSupportNewRoute
   '/admin-product/$slug/analytics': typeof AdminProductSlugAnalyticsRoute
@@ -1544,6 +1552,7 @@ export interface FileRoutesById {
   '/products/new-arrivals': typeof ProductsNewArrivalsRoute
   '/products/trending': typeof ProductsTrendingRoute
   '/vendor-product/$slug': typeof VendorProductSlugRoute
+  '/vendor-publish/$slug': typeof VendorPublishSlugRoute
   '/account_/payment-methods/add': typeof AccountPaymentMethodsAddRoute
   '/account_/support_/new': typeof AccountSupportNewRoute
   '/admin-product/$slug/analytics': typeof AdminProductSlugAnalyticsRoute
@@ -1718,6 +1727,7 @@ export interface FileRouteTypes {
     | '/products/new-arrivals'
     | '/products/trending'
     | '/vendor-product/$slug'
+    | '/vendor-publish/$slug'
     | '/account/payment-methods/add'
     | '/account/support/new'
     | '/admin-product/$slug/analytics'
@@ -1889,6 +1899,7 @@ export interface FileRouteTypes {
     | '/products/new-arrivals'
     | '/products/trending'
     | '/vendor-product/$slug'
+    | '/vendor-publish/$slug'
     | '/account/payment-methods/add'
     | '/account/support/new'
     | '/admin-product/$slug/analytics'
@@ -2061,6 +2072,7 @@ export interface FileRouteTypes {
     | '/products/new-arrivals'
     | '/products/trending'
     | '/vendor-product/$slug'
+    | '/vendor-publish/$slug'
     | '/account_/payment-methods/add'
     | '/account_/support_/new'
     | '/admin-product/$slug/analytics'
@@ -2230,6 +2242,7 @@ export interface RootRouteChildren {
   ProductsNewArrivalsRoute: typeof ProductsNewArrivalsRoute
   ProductsTrendingRoute: typeof ProductsTrendingRoute
   VendorProductSlugRoute: typeof VendorProductSlugRoute
+  VendorPublishSlugRoute: typeof VendorPublishSlugRoute
   AccountPaymentMethodsAddRoute: typeof AccountPaymentMethodsAddRoute
   AccountSupportNewRoute: typeof AccountSupportNewRoute
   ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
@@ -3069,6 +3082,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendor-publish/$slug': {
+      id: '/vendor-publish/$slug'
+      path: '/vendor-publish/$slug'
+      fullPath: '/vendor-publish/$slug'
+      preLoaderRoute: typeof VendorPublishSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vendor-product/$slug': {
       id: '/vendor-product/$slug'
       path: '/vendor-product/$slug'
@@ -3656,6 +3676,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsNewArrivalsRoute: ProductsNewArrivalsRoute,
   ProductsTrendingRoute: ProductsTrendingRoute,
   VendorProductSlugRoute: VendorProductSlugRoute,
+  VendorPublishSlugRoute: VendorPublishSlugRoute,
   AccountPaymentMethodsAddRoute: AccountPaymentMethodsAddRoute,
   AccountSupportNewRoute: AccountSupportNewRoute,
   ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
@@ -3676,13 +3697,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
