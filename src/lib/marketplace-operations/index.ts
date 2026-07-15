@@ -18,3 +18,16 @@ export type {
   QueueId,
   EstimatedEffort,
 } from "./smart-queues";
+export {
+  BULK_OPERATIONS,
+  BULK_OPERATION_ORDER,
+  STATUS_LABEL as BULK_STATUS_LABEL,
+} from "./bulk-operations";
+export type {
+  BulkOperation,
+  BulkOperationType,
+  BulkOperationSpec,
+  BulkStatus,
+  BulkStepResult,
+  BulkOpProductLike,
+} from "./bulk-operations";
