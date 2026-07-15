@@ -15,12 +15,12 @@ import {
   matchQueue, QUEUE_LABEL, SEVERITY_LABEL, HEALTH_LABEL,
   type ShipRow, type OrderRow, type EventRow, type DelayInfo, type QueueKey, type HealthTier,
 } from "@/lib/shipment-analytics";
-import {
-  downloadPackingSlip, downloadShippingLabel,
-  exportShipmentsCsv, exportShipmentsExcel, exportShipmentsPdf,
-  type ShipmentExportRow,
-} from "@/lib/packing-slip";
-import { downloadInvoice } from "@/lib/invoice";
+import type { ShipmentExportRow } from "@/lib/packing-slip";
+// PDF stack (jspdf + qrcode + invoice generator) is loaded on demand only —
+// keeps ~470KB of jspdf out of the admin route chunk until a document is
+// actually requested.
+const loadPacking = () => import("@/lib/packing-slip");
+const loadInvoice = () => import("@/lib/invoice");
 import { SUPPORTED_COURIERS, courierLabel } from "@/lib/courier";
 import { AnimatedCounter } from "@/components/site/Reveal";
 import { toast } from "sonner";
@@ -631,12 +631,13 @@ function AdminShipmentsPage() {
     return pairs.map(({ order, ship }) => buildExportRow(order, ship));
   };
 
-  function runExport(format: "csv" | "excel" | "pdf", scope: ExportScope) {
+  async function runExport(format: "csv" | "excel" | "pdf", scope: ExportScope) {
     const rows = exportRowsFor(scope);
     if (!rows.length) { toast.error("Nothing to export"); return; }
-    if (format === "csv") exportShipmentsCsv(rows);
-    else if (format === "excel") exportShipmentsExcel(rows);
-    else exportShipmentsPdf(rows);
+    const m = await loadPacking();
+    if (format === "csv") m.exportShipmentsCsv(rows);
+    else if (format === "excel") m.exportShipmentsExcel(rows);
+    else m.exportShipmentsPdf(rows);
     toast.success(`Exported ${rows.length} shipment(s)`);
   }
 
@@ -644,9 +645,11 @@ function AdminShipmentsPage() {
     const rows = exportRowsFor(scope);
     if (!rows.length) { toast.error("Nothing to export"); return; }
     toast.message(`Generating ${rows.length} packing slip(s)…`);
+    const { downloadPackingSlip } = await loadPacking();
     for (const r of rows) await downloadPackingSlip(r.orderId);
     toast.success("Packing slips downloaded");
   }
+
 
 
   const SECTIONS: { key: Section; label: string; icon: React.ReactNode }[] = [
@@ -1103,9 +1106,9 @@ function ShipmentCard({ order, ship, delay, selected, onToggleSelect, creating, 
                 <ActionBtn onClick={() => onStatus("cancelled")} disabled={busy} icon={<Ban className="size-3" />} tone="destructive">Cancel</ActionBtn>
               </div>
               <div className="flex flex-wrap gap-1.5 border-t border-border/40 pt-2">
-                <ActionBtn onClick={() => runDoc("slip", () => downloadPackingSlip(order.id))} disabled={docBusy === "slip"} icon={<FileText className="size-3" />}>Packing Slip</ActionBtn>
-                <ActionBtn onClick={() => runDoc("inv", () => downloadInvoice(order.id))} disabled={docBusy === "inv"} icon={<Receipt className="size-3" />}>Invoice</ActionBtn>
-                <ActionBtn onClick={() => runDoc("label", () => downloadShippingLabel(order.id))} disabled={docBusy === "label"} icon={<Printer className="size-3" />}>Print Label</ActionBtn>
+                <ActionBtn onClick={() => runDoc("slip", async () => (await loadPacking()).downloadPackingSlip(order.id))} disabled={docBusy === "slip"} icon={<FileText className="size-3" />}>Packing Slip</ActionBtn>
+                <ActionBtn onClick={() => runDoc("inv", async () => (await loadInvoice()).downloadInvoice(order.id))} disabled={docBusy === "inv"} icon={<Receipt className="size-3" />}>Invoice</ActionBtn>
+                <ActionBtn onClick={() => runDoc("label", async () => (await loadPacking()).downloadShippingLabel(order.id))} disabled={docBusy === "label"} icon={<Printer className="size-3" />}>Print Label</ActionBtn>
                 <ActionBtn onClick={copyTracking} icon={<Copy className="size-3" />}>Copy Tracking</ActionBtn>
               </div>
             </div>

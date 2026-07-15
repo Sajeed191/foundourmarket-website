@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchOrderDetail, type OrderDetail } from "@/lib/order-operations";
 import { getPaymentFraudFn, createPaymentTicketFn, type FraudIntel } from "@/lib/payment-center.functions";
 import { createRazorpayRefund } from "@/lib/razorpay.functions";
-import { downloadInvoice } from "@/lib/invoice";
 import { safeExternalUrl } from "@/lib/safe-redirect";
 import type { PaymentRow } from "@/lib/payment-center.functions";
 
@@ -117,7 +116,7 @@ export function PaymentIntelDrawer({ payment, onClose }: { payment: PaymentRow |
   async function doInvoice() {
     if (!orderId) return;
     setBusy("invoice");
-    try { const ok = await downloadInvoice(orderId); if (!ok) setMsg("Invoice unavailable for this order."); }
+    try { const ok = await (await import("@/lib/invoice")).downloadInvoice(orderId); if (!ok) setMsg("Invoice unavailable for this order."); }
     finally { setBusy(null); }
   }
 

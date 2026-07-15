@@ -36,10 +36,15 @@ import { SearchOverlay } from "@/components/site/SearchOverlay";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 
-import { FlashDeals } from "@/components/site/FlashDeals";
+// Below-the-fold: lazy so the code stays out of the initial homepage chunk.
+const FlashDeals = lazy(() =>
+  import("@/components/site/FlashDeals").then((m) => ({ default: m.FlashDeals })),
+);
+const TestimonialsCarousel = lazy(() =>
+  import("@/components/site/TestimonialsCarousel").then((m) => ({ default: m.TestimonialsCarousel })),
+);
 
 import { TrustBadgesStrip } from "@/components/site/TrustBadgesStrip";
-import { TestimonialsCarousel } from "@/components/site/TestimonialsCarousel";
 import { useTestimonials } from "@/lib/use-testimonials";
 import { SectionTracker } from "@/components/site/SectionTracker";
 import { useRenderDiagnostics } from "@/lib/startup-diagnostics";
@@ -751,7 +756,9 @@ function Home() {
       <CinematicDivider />
 
         <LazyMount minHeight={360}>
-          {ffFlashDeals && <FlashDeals />}
+          {ffFlashDeals && (
+            <Suspense fallback={null}><FlashDeals /></Suspense>
+          )}
         </LazyMount>
 
 
@@ -813,7 +820,9 @@ function Home() {
           <LazyMount minHeight={240}>
             <>
               {/* Mobile: compact swipeable carousel with dots + autorotate */}
-              {ffCarousels && <TestimonialsCarousel items={testimonials} />}
+              {ffCarousels && (
+                <Suspense fallback={null}><TestimonialsCarousel items={testimonials} /></Suspense>
+              )}
 
               {/* Desktop: compact grid */}
               <div className="hidden md:grid grid-cols-3 gap-5">
