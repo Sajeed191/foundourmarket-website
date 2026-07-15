@@ -14,7 +14,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Store, Sparkles, ArrowRight, Package, TrendingUp, TrendingDown, Minus, Loader2,
+  Store, Sparkles, ArrowRight, Package, Loader2,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { cn } from "@/lib/utils";
@@ -75,11 +75,6 @@ function scoreTint(score: number): string {
   return "text-rose-400";
 }
 
-function TrendIcon({ delta }: { delta: number }) {
-  if (delta > 1) return <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />;
-  if (delta < -1) return <TrendingDown className="h-3.5 w-3.5 text-rose-400" />;
-  return <Minus className="h-3.5 w-3.5 text-muted-foreground" />;
-}
 
 function VendorDashboard() {
   const bundle = useMarketplaceHealth();
