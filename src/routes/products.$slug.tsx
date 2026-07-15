@@ -1228,11 +1228,12 @@ function ProductPage() {
           deferred until near the viewport so core product info paints first. */}
       <ProductLayoutDiagnostics phase="final" />
 
-      {fbtProducts.length > 0 && fbtSlugs.length > 0 && (
+      {(fbtProducts.length > 0 && fbtSlugs.length > 0) && (
         <Suspense fallback={null}>
-          <PDPFrequentlyBoughtTogether
-            companionIds={fbtSlugs}
-            companions={fbtProducts}
+          <PDPRelationshipSections
+            hydratedProducts={fbtProducts}
+            frequentlyBoughtTogetherIds={fbtSlugs}
+            allowedSections={["frequently_bought_together", "compatible"]}
           />
         </Suspense>
       )}
