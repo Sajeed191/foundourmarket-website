@@ -259,6 +259,19 @@ export function classifyRelationship(draft: DraftProduct, match: DupMatch): Rela
     };
   }
 
+  // 4b. Structured compatibility — shared connector / mount / ecosystem / etc.
+  //     Runs after accessory (which is more specific) so a titled "case" stays
+  //     an accessory; a USB-C cable paired with a USB-C phone becomes compatible.
+  const compat = detectCompatibility(draft, candidate);
+  if (compat) {
+    return {
+      kind: "compatible",
+      confidence: compat.confidence,
+      message: `Compatible with "${candidate.name}".`,
+      reasons: [...reasons, compat.reason],
+    };
+  }
+
   // 5. Successor / replacement model (same series, higher model number).
   if (shareBrand && match.score >= 45) {
     const dm = modelNumber(draft.name);
