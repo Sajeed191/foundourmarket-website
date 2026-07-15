@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as VendorRouteImport } from './routes/vendor'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -179,6 +180,11 @@ import { Route as AccountSupportTicketTicketIdRouteImport } from './routes/accou
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorRoute = VendorRouteImport.update({
+  id: '/vendor',
+  path: '/vendor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
@@ -1146,6 +1152,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/vendor': typeof VendorRoute
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/history': typeof AccountHistoryRoute
@@ -1314,6 +1321,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/vendor': typeof VendorRoute
   '/wishlist': typeof WishlistRoute
   '/account/addresses': typeof AccountAddressesRoute
   '/account/history': typeof AccountHistoryRoute
@@ -1482,6 +1490,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/vendor': typeof VendorRoute
   '/wishlist': typeof WishlistRoute
   '/account_/addresses': typeof AccountAddressesRoute
   '/account_/history': typeof AccountHistoryRoute
@@ -1652,6 +1661,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track'
     | '/unsubscribe'
+    | '/vendor'
     | '/wishlist'
     | '/account/addresses'
     | '/account/history'
@@ -1820,6 +1830,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track'
     | '/unsubscribe'
+    | '/vendor'
     | '/wishlist'
     | '/account/addresses'
     | '/account/history'
@@ -1987,6 +1998,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track'
     | '/unsubscribe'
+    | '/vendor'
     | '/wishlist'
     | '/account_/addresses'
     | '/account_/history'
@@ -2156,6 +2168,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TrackRoute: typeof TrackRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  VendorRoute: typeof VendorRoute
   WishlistRoute: typeof WishlistRoute
   AccountAddressesRoute: typeof AccountAddressesRoute
   AccountHistoryRoute: typeof AccountHistoryRoute
@@ -2203,6 +2216,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor': {
+      id: '/vendor'
+      path: '/vendor'
+      fullPath: '/vendor'
+      preLoaderRoute: typeof VendorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/unsubscribe': {
@@ -3550,6 +3570,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TrackRoute: TrackRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  VendorRoute: VendorRoute,
   WishlistRoute: WishlistRoute,
   AccountAddressesRoute: AccountAddressesRoute,
   AccountHistoryRoute: AccountHistoryRoute,

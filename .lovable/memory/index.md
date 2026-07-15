@@ -23,3 +23,4 @@ Platform v1.0 FROZEN: Image v3, Catalog v2, Marketplace v3, Health v1, Operation
 - [Marketplace Operations 1.0 (FROZEN)](mem://features/marketplace-operations) — Smart Work Queue · Daily Digest · Bulk Operations. Pure aggregation over Intelligence contracts
 - [Intelligence vs Operations separation](mem://constraints/intelligence-vs-operations) — Permanent rule: Intelligence produces decisions, Operations execute decisions
 - [Platform v1.0 manifest](mem://constraints/platform-v1-manifest) — Frozen layers, allowed changes, future track boundaries, stabilization cycle
+- [Experience layers — presentation only](mem://constraints/experience-layers) — Admin / Vendor / Customer / Mobile share the same frozen contracts; never fork scoring or intelligence
