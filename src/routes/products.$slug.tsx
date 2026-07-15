@@ -32,9 +32,9 @@ import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { RecommendedForYou } from "@/components/site/RecommendedForYou";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
 import { PDPRecommendations } from "@/components/site/PDPRecommendations";
-const PDPFrequentlyBoughtTogether = lazy(() =>
-  import("@/components/site/PDPFrequentlyBoughtTogether").then((m) => ({
-    default: m.PDPFrequentlyBoughtTogether,
+const PDPRelationshipSections = lazy(() =>
+  import("@/components/site/PDPRelationshipSections").then((m) => ({
+    default: m.PDPRelationshipSections,
   })),
 );
 import { fetchProductsBySlugs, type Product } from "@/lib/products";
