@@ -9,6 +9,7 @@ Use semantic tokens in src/styles.css (oklch); never hardcode colors in componen
 AI UX rule: every AI feature shows ONE prioritized recommendation, plain language, traffic-light status (🟢🔵🟡🔴), one-click action, progressive disclosure. No raw scores/JSON/jargon by default. AI recommends, humans decide.
 Platform v1.0 FROZEN: Image v3, Catalog v2, Marketplace v3, Health v1, Operations v1. Only bug fixes / perf / UX polish / new bulk-op adapters over existing analyzers / new queue filters. No changes to public contracts. New work goes in Track A (Vendor), B (Customer), C (Growth), D (Platform).
 Composition-first: every new feature must first try to compose existing frozen contracts before any new contract is introduced.
+Customer Experience rule (permanent): every browse recommendation is optional and non-blocking. Users can always switch sort/filter away from Recommended. Browse Intelligence enhances discovery, never dictates it.
 
 ## Memories
 - [AI UX principles](mem://design/ai-ux-principles) — Permanent rules for every AI surface: one message, simple language, traffic lights, explain decisions, one-click fix, unified Marketplace AI Assistant
@@ -29,3 +30,4 @@ Composition-first: every new feature must first try to compose existing frozen c
 - [Publish is presentation over Marketplace Readiness](mem://constraints/publish-presentation-only) — Publish surfaces present readiness; they never add validation, scoring, or duplicate checks
 - [Vendor Portal v1 (FROZEN)](mem://constraints/vendor-portal-v1) — Dashboard, Product Editor, Work Queue, Analytics, Publish Assistant — no new intelligence, presentation only
 - [Track B — Customer Experience](mem://features/customer-experience) — Buyer-facing layer. Phase 1 AI Marketplace Search shipped; roadmap: Browse, PDP relationships, Personalization
+- [Browse Presentation Adapter v1 (FROZEN)](mem://features/browse-adapter) — Single composition layer for /category, /deals, search. Approved badges, one-sentence reasons, no per-surface forks
