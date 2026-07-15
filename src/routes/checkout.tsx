@@ -8,7 +8,6 @@ import {
   PackageCheck, BadgeCheck, ShieldHalf, Download, LifeBuoy,
 } from "lucide-react";
 import { toast } from "sonner";
-import { downloadInvoice } from "@/lib/invoice";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useAuth } from "@/lib/auth";
@@ -1313,7 +1312,7 @@ function SuccessScreen({ orderId, totalINR, market, method, eta, nav }: {
             <button
               onClick={async () => {
                 setDownloading(true);
-                const ok = await downloadInvoice(orderId);
+                const ok = await (await import("@/lib/invoice")).downloadInvoice(orderId);
                 if (!ok) toast.error("Couldn't generate invoice. Please try from your order page.");
                 setDownloading(false);
               }}

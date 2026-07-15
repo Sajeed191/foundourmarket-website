@@ -15,7 +15,6 @@ import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/use-admin";
 import { useRegion } from "@/lib/region";
 import { useCart } from "@/lib/cart";
-import { downloadInvoice } from "@/lib/invoice";
 import { safeExternalUrl } from "@/lib/safe-redirect";
 import { toast } from "sonner";
 
@@ -240,7 +239,7 @@ export function OrderDetailsDrawer({ orderId, onClose }: { orderId: string | nul
     if (!order) return;
     setDownloading(true);
     try {
-      const ok = await downloadInvoice(order.id);
+      const ok = await (await import("@/lib/invoice")).downloadInvoice(order.id);
       if (!ok) toast.error("Could not generate invoice");
     } finally { setDownloading(false); }
   }
