@@ -31,8 +31,13 @@ import { recordViewedPrice } from "@/lib/viewed-prices";
 import { RecommendationStrip } from "@/components/site/RecommendationStrip";
 import { RecommendedForYou } from "@/components/site/RecommendedForYou";
 import { RecentlyViewed } from "@/components/site/RecentlyViewed";
-import { FrequentlyBoughtTogether } from "@/components/site/FrequentlyBoughtTogether";
 import { PDPRecommendations } from "@/components/site/PDPRecommendations";
+import { lazy, Suspense } from "react";
+const PDPFrequentlyBoughtTogether = lazy(() =>
+  import("@/components/site/PDPFrequentlyBoughtTogether").then((m) => ({
+    default: m.PDPFrequentlyBoughtTogether,
+  })),
+);
 import { fetchProductsBySlugs, type Product } from "@/lib/products";
 import { useIsProductAdmin } from "@/lib/use-admin";
 // Admin-only editors: lazy so customers never download the heavy admin graph
@@ -1224,8 +1229,13 @@ function ProductPage() {
           deferred until near the viewport so core product info paints first. */}
       <ProductLayoutDiagnostics phase="final" />
 
-      {fbtProducts.length > 0 && (
-        <FrequentlyBoughtTogether seed={product} companions={fbtProducts} />
+      {fbtProducts.length > 0 && fbtSlugs.length > 0 && (
+        <Suspense fallback={null}>
+          <PDPFrequentlyBoughtTogether
+            companionIds={fbtSlugs}
+            companions={fbtProducts}
+          />
+        </Suspense>
       )}
 
       <LazyMount minHeight={120} className="scroll-mt-24" id="reviews">
