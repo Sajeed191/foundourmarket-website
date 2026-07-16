@@ -14,8 +14,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useBadgeCatalog, bulkAssign, bulkUnassign, badgeAnimationClass } from "@/lib/use-product-badges";
+import { ProductBadge } from "@/components/ui/ProductBadge";
 
-type SelRow = Record<string, unknown> & { id: string };
+type SelRow = Record<string, unknown> & { id: string; slug?: string };
+
 
 type Props = {
   ids: string[];
