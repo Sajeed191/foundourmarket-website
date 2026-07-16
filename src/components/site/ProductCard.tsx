@@ -452,13 +452,10 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
   const identity = productIdentity(product);
 
-  // Ready to Ship is an operational cue — never renders on the image, only
-  // appears as a small check-row above the shipping line when the browse
-  // presentation flags it.
-  const readyToShip = useMemo(
-    () => (browseBadges ?? []).some((b) => normalizeBadgeLabel(b) === READY_TO_SHIP_LABEL),
-    [browseBadges],
-  );
+  // Ready to Ship is intentionally NOT rendered on cards (v4). The
+  // READY_TO_SHIP_LABEL constant still gates it out of the badge pool below so
+  // the operational signal never leaks onto the image or copy area.
+
 
   // Collect ALL badge candidates from every source, then pick the single
   // highest-priority winner. Any label outside CARD_BADGE_PRIORITY (Premium,
