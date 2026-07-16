@@ -1061,6 +1061,18 @@ function SearchPage() {
     () => buildBrowsePresentation({ products: results, surface: "search" }),
     [results],
   );
+  const collectionBadge = useMemo<
+    ((p: Product) => import("@/lib/badges").BadgeKey | null) | null
+  >(() => {
+    if (sort === "trending") return () => "trending";
+    if (sort === "best_selling") return () => "bestseller";
+    if (sort === "newest") return () => "new";
+    if (sort === "flash_deals") {
+      return (p) => (flashBadgeBySlug.get(p.slug) ?? "flash_deal") as import("@/lib/badges").BadgeKey;
+    }
+    return null;
+  }, [sort, flashBadgeBySlug]);
+
   const renderProduct = useCallback(
     (p: Product, i: number) => (
       <BrowseCard
@@ -1068,9 +1080,10 @@ function SearchPage() {
         presentation={browsePresentation.get(p.id ?? p.slug)}
         priority={i < 4}
         highlight={search.q}
+        forceBadge={collectionBadge ? collectionBadge(p) : null}
       />
     ),
-    [search.q, browsePresentation],
+    [search.q, browsePresentation, collectionBadge],
   );
 
 
