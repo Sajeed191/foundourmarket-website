@@ -849,21 +849,12 @@ function SearchPage() {
     setLoading(true);
     setRawRows([]);
 
-    if (isTrending) {
-      (supabase as any)
-        .from("products_public")
-        .select(SELECT_COLS)
-        .eq("trending", true)
-        .then(({ data }: { data: any[] | null }) => {
-          if (cancelled) return;
-          const rows = (data ?? []).map((r: any) => rowToProduct(r));
-          const seen = new Set<string>();
-          const deduped = rows.filter((p: Product) => (seen.has(p.slug) ? false : (seen.add(p.slug), true)));
-          setRawRows(deduped);
-          setLoading(false);
-        });
-      return () => { cancelled = true; };
-    }
+    // Always fetch the full matching set from search_products. Exclusive
+    // collection sorts (Flash Deals, Best Selling, Trending, Newest) narrow
+    // the pool client-side via badge predicates so all badge sources are
+    // honored, not just the SQL boolean column.
+
+
 
     (supabase.rpc as any)("search_products", {
       q: search.q ?? null,
