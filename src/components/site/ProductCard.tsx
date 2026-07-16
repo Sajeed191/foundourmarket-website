@@ -227,7 +227,8 @@ function ProductBadgesImpl({ badge, reason }: { badge: CardBadge | null; reason?
   // v3 Premium pill: 28-32px tall, 14px horizontal padding, fully rounded,
   // glass background, no emoji, no per-label border color.
   const pillBase =
-    "inline-flex h-[28px] sm:h-[32px] max-w-[60%] items-center whitespace-nowrap rounded-full px-3.5 sm:px-4 text-[10.5px] sm:text-[11.5px] font-semibold uppercase leading-none tracking-[0.9px]";
+    "inline-flex h-[28px] sm:h-[30px] max-w-[60%] items-center whitespace-nowrap rounded-full px-3.5 sm:px-4 text-[10.5px] sm:text-[11.5px] font-semibold uppercase leading-none tracking-[0.5px] animate-in fade-in slide-in-from-top-1 zoom-in-95 duration-150";
+
 
   // Section-forced / no-reason surfaces: badge is presentation only.
   if (!reason) {
