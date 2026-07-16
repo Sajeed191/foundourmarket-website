@@ -452,13 +452,10 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
   const identity = productIdentity(product);
 
-  // Ready to Ship is an operational cue — never renders on the image, only
-  // appears as a small check-row above the shipping line when the browse
-  // presentation flags it.
-  const readyToShip = useMemo(
-    () => (browseBadges ?? []).some((b) => normalizeBadgeLabel(b) === READY_TO_SHIP_LABEL),
-    [browseBadges],
-  );
+  // Ready to Ship is intentionally NOT rendered on cards (v4). The
+  // READY_TO_SHIP_LABEL constant still gates it out of the badge pool below so
+  // the operational signal never leaks onto the image or copy area.
+
 
   // Collect ALL badge candidates from every source, then pick the single
   // highest-priority winner. Any label outside CARD_BADGE_PRIORITY (Premium,
@@ -592,18 +589,12 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
           ) : null}
         </div>
 
-        {/* Ready to Ship — operational cue, moved off the image per v2 badge
-            spec. Only appears when the browse presentation flags it. */}
-        {readyToShip && (
-          <span data-product-text className="product-typography inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-[13px] font-medium text-emerald-400">
-            <Check className="size-3 sm:size-4 shrink-0" strokeWidth={2.5} /> Ready to Ship
-          </span>
-        )}
+        {/* Ready to Ship intentionally not rendered on cards (v4 spec).
+            Backend eligibility & browse presentation flag preserved. */}
 
-
-
-        {/* Shipping row — one line, never wraps. */}
-        <div className="flex min-w-0 items-center justify-between gap-2 overflow-hidden">
+        {/* Shipping row — one line, never wraps. Extra top margin gives the
+            price block breathing room now that Ready to Ship is removed. */}
+        <div className="mt-0.5 sm:mt-1 flex min-w-0 items-center justify-between gap-2 overflow-hidden">
           {freeShipping ? (
             <span data-product-text className="product-typography inline-flex min-w-0 items-center gap-1 sm:gap-1.5 truncate text-[11px] sm:text-[14px] font-medium text-emerald-400">
               <Check className="size-3 sm:size-4 shrink-0" strokeWidth={2.5} /> <span className="truncate">Free Shipping</span>
@@ -663,7 +654,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
         )}
 
         {/* Button — sits directly below content, no filler gap. */}
-        <div className="pt-1.5 sm:pt-4">
+        <div className="pt-2.5 sm:pt-5">
           <BuyNowButton product={product} />
         </div>
       </div>
