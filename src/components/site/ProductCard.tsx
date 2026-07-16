@@ -592,17 +592,11 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
           ) : null}
         </div>
 
-        {/* Ready to Ship — operational cue, moved off the image per v2 badge
-            spec. Only appears when the browse presentation flags it. */}
-        {readyToShip && (
-          <span data-product-text className="product-typography inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-[13px] font-medium text-emerald-400">
-            <Check className="size-3 sm:size-4 shrink-0" strokeWidth={2.5} /> Ready to Ship
-          </span>
-        )}
+        {/* Ready to Ship intentionally not rendered on cards (v4 spec).
+            Backend eligibility & browse presentation flag preserved. */}
 
-
-
-        {/* Shipping row — one line, never wraps. */}
+        {/* Shipping row — one line, never wraps. Extra top margin gives the
+            price block breathing room now that Ready to Ship is removed. */}
         <div className="flex min-w-0 items-center justify-between gap-2 overflow-hidden">
           {freeShipping ? (
             <span data-product-text className="product-typography inline-flex min-w-0 items-center gap-1 sm:gap-1.5 truncate text-[11px] sm:text-[14px] font-medium text-emerald-400">
