@@ -41,7 +41,16 @@ type ProductCardProps = {
    * into the single-badge priority ladder — never rendered as extras.
    */
   browseBadges?: readonly string[];
+  /**
+   * Plain-language explanation of why this product surfaced ("Recommended
+   * because …"). When provided AND no `forceBadge`, the marketing badge
+   * becomes the interactive trigger that reveals this sentence in a popover.
+   * Section-forced surfaces (Flash Deals, Best Sellers, …) pass no reason,
+   * so the badge stays presentation-only.
+   */
+  badgeReason?: string;
 };
+
 
 /**
  * Unified card marketing-badge priority. The card renders exactly ONE badge —
