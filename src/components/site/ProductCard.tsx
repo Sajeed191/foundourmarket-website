@@ -115,29 +115,18 @@ const TITLE_CLASS =
   "product-typography product-title-text block h-[2.6em] overflow-hidden break-words text-[14px] font-bold leading-[1.3] text-white sm:text-[16px]";
 
 /**
- * Premium badge styles keyed by normalized label. Subtle gradients, soft
- * shadow and a slight glossy top sheen. White text, compact 24px pills.
+ * Badge v3 (Premium): a single, uniform glass pill for every label. No emoji,
+ * no per-label gradients competing for attention. Uppercase, semi-bold,
+ * tracked. The badge whispers; the product image stays the hero.
  */
-const BADGE_GRADIENTS: Record<string, { bg: string; fg: string }> = {
-  TRENDING: { bg: "linear-gradient(135deg,#FFA52E 0%,#FF7A00 100%)", fg: "#FFFFFF" },
-  "FLASH SALE": { bg: "linear-gradient(135deg,#FF5A52 0%,#E11D1D 100%)", fg: "#FFFFFF" },
-  "HOT DEAL": { bg: "linear-gradient(135deg,#FF7A3D 0%,#FF2D2D 100%)", fg: "#FFFFFF" },
-  "FAST SELLING": { bg: "linear-gradient(135deg,#C45CFF 0%,#7A1FE0 100%)", fg: "#FFFFFF" },
-  PREMIUM: { bg: "linear-gradient(135deg,#2B3A67 0%,#0E1530 100%)", fg: "#FFFFFF" },
-  NEW: { bg: "linear-gradient(135deg,#34E07A 0%,#10A64A 100%)", fg: "#FFFFFF" },
-  BESTSELLER: { bg: "linear-gradient(135deg,#FFD964 0%,#F4B400 100%)", fg: "#000000" },
-  "BEST SELLER": { bg: "linear-gradient(135deg,#FFD964 0%,#F4B400 100%)", fg: "#000000" },
-  "LIMITED STOCK": { bg: "linear-gradient(135deg,#FFC940 0%,#F49B00 100%)", fg: "#000000" },
-};
-
-function badgeStyle(label: string, fallback?: CSSProperties): CSSProperties {
-  const c = BADGE_GRADIENTS[label.trim().toUpperCase()];
-  const base: CSSProperties = {
-    boxShadow: "0 2px 6px rgba(0,0,0,0.28)",
-    border: "none",
+function badgeStyle(): CSSProperties {
+  return {
+    background: "rgba(20,20,20,0.72)",
+    color: "#FFFFFF",
+    backdropFilter: "blur(12px) saturate(140%)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
   };
-  if (c) return { ...base, background: c.bg, color: c.fg };
-  return { ...base, ...(fallback ?? {}) };
 }
 
 /** Detects whether an admin-assigned badge is a Flash Deal / Hot Deal promo. */
@@ -157,28 +146,23 @@ function toAssignedBadge(b: RenderBadge): CardBadge {
   return {
     id: b.assignmentId ?? b.id,
     label: b.label,
-    emoji: b.emoji,
-    // Product-listing badges are intentionally static: transform/keyframe badge
-    // animations caused cross-browser paint invalidation while scrolling large
-    // grids. Admin animation settings are preserved outside listing cards.
     className: "",
-    style: badgeStyle(b.label, {
-      background: b.backgroundColor || b.color,
-      color: b.textColor,
-    }),
+    style: badgeStyle(),
   };
 }
 
 function ProductBadgesImpl({ badge }: { badge: CardBadge | null }) {
   if (!badge) return null;
+  // v3 Premium pill: 28-32px tall, 14px horizontal padding, fully rounded,
+  // glass background, no emoji, no per-label border color.
   const pillBase =
-    "inline-flex h-[22px] sm:h-[26px] max-w-[42%] items-center gap-1 whitespace-nowrap rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-bold uppercase leading-none tracking-[0.4px] shadow-[0_2px_8px_rgba(0,0,0,0.35)]";
+    "inline-flex h-[28px] sm:h-[32px] max-w-[60%] items-center whitespace-nowrap rounded-full px-3.5 sm:px-4 text-[10.5px] sm:text-[11.5px] font-semibold uppercase leading-none tracking-[0.9px]";
   return (
-    <div className="absolute left-2.5 top-2.5 z-10">
+    <div className="absolute left-3 top-3 z-10">
       <span
         data-product-badge
         className={`${pillBase} ${badge.className ?? ""}`}
-        style={badge.style ?? badgeStyle(badge.label)}
+        style={badge.style ?? badgeStyle()}
       >
         <span className="truncate">{badge.label}</span>
       </span>
@@ -207,10 +191,10 @@ function WishlistButtonImpl({ slug, name }: { slug: string; name: string }) {
     <button
       onClick={onClick}
       aria-label={saved ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
-      style={{ backgroundColor: "rgba(70,70,70,0.92)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
-      className={`absolute right-3 top-3 z-10 grid h-[36px] w-[36px] sm:h-[46px] sm:w-[46px] place-items-center rounded-full text-white transition-colors ${saved ? "text-accent" : "hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
+      style={{ backgroundColor: "rgba(20,20,20,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.10)", boxShadow: "0 2px 10px rgba(0,0,0,0.30)" }}
+      className={`absolute right-3 top-3 z-10 grid h-[40px] w-[40px] place-items-center rounded-full text-white transition-colors ${saved ? "text-accent" : "hover:text-accent"} ${justSaved ? "animate-[save-pulse_0.6s_ease-out]" : ""}`}
     >
-      <Heart className={`size-4 sm:size-5 ${saved ? "fill-accent" : ""}`} />
+      <Heart className={`size-[18px] ${saved ? "fill-accent" : ""}`} />
     </button>
   );
 }
@@ -227,10 +211,10 @@ function QuickViewButtonImpl({ name, onOpen }: { name: string; onOpen: () => voi
     <button
       onClick={onClick}
       aria-label={`Quick view ${name}`}
-      style={{ backgroundColor: "rgba(120,120,120,0.75)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
-      className={`absolute right-3 top-[52px] sm:top-[64px] z-10 grid h-[36px] w-[36px] sm:h-[46px] sm:w-[46px] place-items-center rounded-full text-white ${"transition-colors hover:text-accent"}`}
+      style={{ backgroundColor: "rgba(20,20,20,0.55)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.10)", boxShadow: "0 2px 10px rgba(0,0,0,0.30)" }}
+      className="absolute right-3 top-[52px] z-10 grid h-[40px] w-[40px] place-items-center rounded-full text-white transition-colors hover:text-accent"
     >
-      <Eye className="size-4 sm:size-[18px]" />
+      <Eye className="size-[18px]" />
     </button>
   );
 }
@@ -430,8 +414,8 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
       data-product-card
       data-product-id={identity}
       data-render-token={identity}
-      style={{ backgroundColor: "#111111", border: "1px solid rgba(255,138,0,0.18)" }}
-      className={`product-card-shell group relative flex h-full flex-col overflow-hidden rounded-[22px] ${"shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:shadow-[0_10px_32px_-6px_rgba(255,138,0,0.4)]"}`}
+      style={{ backgroundColor: "#111111", border: "1px solid rgba(255,255,255,0.06)" }}
+      className="product-card-shell group relative flex h-full flex-col overflow-hidden rounded-[22px] shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:shadow-[0_14px_36px_-8px_rgba(0,0,0,0.55)]"
     >
       <ProductCardAdminControlsGate product={product} />
 
@@ -478,7 +462,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
             <span data-product-text className="product-typography product-rating-text text-[11px] sm:text-[14px] font-medium text-accent">New Product</span>
           )}
           {product.soldCount > 0 && (
-            <span data-product-text className="product-typography product-rating-text truncate text-[10px] sm:text-[12px] font-medium text-muted-foreground">🔥 {formatSold(product.soldCount)} sold</span>
+            <span data-product-text className="product-typography product-rating-text truncate text-[10px] sm:text-[12px] font-medium text-muted-foreground">{formatSold(product.soldCount)} sold</span>
           )}
         </div>
 
