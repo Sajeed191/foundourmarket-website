@@ -312,32 +312,9 @@ function FormPane({ kind, categories, rows, onRun, onExport, onDone }: {
   }
 
   if (kind === "badges") {
-    const badges: { key: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-      { key: "featured", label: "Featured", icon: Star },
-      { key: "trending", label: "Trending", icon: TrendingUp },
-      { key: "bestseller", label: "Bestseller", icon: Sparkles },
-      { key: "new_arrival", label: "New Arrival", icon: Sparkles },
-      { key: "premium", label: "Premium", icon: Sparkles },
-      { key: "flash_deal", label: "Flash Deal", icon: Flame },
-      { key: "staff_pick", label: "Staff Pick", icon: Star },
-      { key: "editors_choice", label: "Editor's Choice", icon: Sparkles },
-      { key: "recommended", label: "Recommended", icon: Sparkles },
-      { key: "fast_selling", label: "Fast Selling", icon: Flame },
-      { key: "hot_deal", label: "Hot Deal", icon: Flame },
-    ];
-    return (
-      <div className="space-y-2">
-        {badges.map((b) => (
-          <div key={b.key} className="flex items-center gap-2 rounded-xl border border-border/50 p-2">
-            <b.icon className="h-4 w-4" />
-            <span className="flex-1 text-sm font-medium">{b.label}</span>
-            <Button size="sm" variant="outline" onClick={() => onRun("set_badge", { badge: b.key, value: true })}>On</Button>
-            <Button size="sm" variant="ghost" onClick={() => onRun("set_badge", { badge: b.key, value: false })}>Off</Button>
-          </div>
-        ))}
-      </div>
-    );
+    return <BadgesPane rows={rows} onDone={onDone} />;
   }
+
 
   if (kind === "region") {
     return (
