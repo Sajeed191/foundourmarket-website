@@ -70,7 +70,9 @@ const CARD_BADGE_PRIORITY: string[] = [
   "NEW ARRIVAL",
   "RECOMMENDED",
   "BEST VALUE",
-  "POPULAR CHOICE",
+   "POPULAR",
+   "POPULAR CHOICE",
+
 ];
 const READY_TO_SHIP_LABEL = "READY TO SHIP";
 const normalizeBadgeLabel = (s: string) => s.trim().toUpperCase();
