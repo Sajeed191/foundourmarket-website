@@ -24,6 +24,7 @@ import { useRegion } from "@/lib/region";
 import { ProductCard } from "@/components/site/ProductCard";
 import { BrowseCard } from "@/components/site/BrowseCard";
 import { buildBrowsePresentation } from "@/lib/browse";
+import { useBadgeEngine } from "@/lib/badge-visibility";
 import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
 
