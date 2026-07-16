@@ -261,7 +261,7 @@ function ProductBadgesImpl({ badge, reason }: { badge: CardBadge | null; reason?
               e.stopPropagation();
             }}
             className={`${pillBase} ${badge.className ?? ""} cursor-pointer transition-transform duration-150 active:scale-95`}
-            style={badge.style ?? badgeStyle()}
+            style={badge.style ?? badgeStyle(badge.label)}
           >
             <span className="truncate">{badge.label}</span>
           </button>
