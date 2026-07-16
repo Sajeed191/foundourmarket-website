@@ -12,15 +12,17 @@ import { memo } from "react";
 import { ProductCard } from "@/components/site/ProductCard";
 import type { Product } from "@/lib/products";
 import type { BrowsePresentation } from "@/lib/browse";
+import type { BadgeKey } from "@/lib/badges";
 
 type BrowseCardProps = {
   product: Product;
   presentation?: BrowsePresentation;
   priority?: boolean;
   highlight?: string;
+  forceBadge?: BadgeKey | null;
 };
 
-function BrowseCardImpl({ product, presentation, priority, highlight }: BrowseCardProps) {
+function BrowseCardImpl({ product, presentation, priority, highlight, forceBadge }: BrowseCardProps) {
   return (
     <ProductCard
       product={product}
@@ -28,6 +30,7 @@ function BrowseCardImpl({ product, presentation, priority, highlight }: BrowseCa
       highlight={highlight}
       browseBadges={presentation?.badges}
       badgeReason={presentation?.reason}
+      forceBadge={forceBadge}
     />
   );
 }
