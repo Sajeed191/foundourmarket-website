@@ -70,7 +70,9 @@ const CARD_BADGE_PRIORITY: string[] = [
   "NEW ARRIVAL",
   "RECOMMENDED",
   "BEST VALUE",
-  "POPULAR CHOICE",
+   "POPULAR",
+   "POPULAR CHOICE",
+
 ];
 const READY_TO_SHIP_LABEL = "READY TO SHIP";
 const normalizeBadgeLabel = (s: string) => s.trim().toUpperCase();
@@ -132,72 +134,45 @@ const TITLE_CLASS =
  * no thick borders. The badge whispers; the product image stays the hero.
  */
 const BADGE_SHADOW = "0 4px 12px rgba(0,0,0,0.18)";
+const BADGE_BACKDROP = "blur(8px) saturate(140%)";
+
+type BadgePalette = { background: string; color: string; extraShadow?: string };
+
+const BADGE_PALETTE: Record<string, BadgePalette> = {
+  "FLASH DEAL": { background: "#FF6A00", color: "#111111", extraShadow: "0 0 18px rgba(255,106,0,0.35)" },
+  "FLASH SALE": { background: "#FF6A00", color: "#111111", extraShadow: "0 0 18px rgba(255,106,0,0.35)" },
+  "HOT DEAL": { background: "#C2410C", color: "#FFFFFF" },
+  "BEST SELLER": { background: "#C9A24A", color: "#1A1A1A" },
+  "BESTSELLER": { background: "#C9A24A", color: "#1A1A1A" },
+  "TRENDING": { background: "#1E3A8A", color: "#FFFFFF" },
+  "NEW": { background: "#059669", color: "#FFFFFF" },
+  "NEW ARRIVAL": { background: "#059669", color: "#FFFFFF" },
+  "RECOMMENDED": { background: "#4F46E5", color: "#FFFFFF" },
+  "BEST VALUE": { background: "#7C3AED", color: "#FFFFFF" },
+  "POPULAR": { background: "#0D9488", color: "#FFFFFF" },
+  "POPULAR CHOICE": { background: "#0D9488", color: "#FFFFFF" },
+};
 
 function badgeStyle(label: string): CSSProperties {
   const key = label.trim().toUpperCase();
-  switch (key) {
-    case "FLASH DEAL":
-    case "FLASH SALE":
-      return {
-        background: "#FF6A00",
-        color: "#111111",
-        boxShadow: `${BADGE_SHADOW}, 0 0 18px rgba(255,106,0,0.35)`,
-      };
-    case "HOT DEAL":
-      return {
-        background: "#C2410C",
-        color: "#FFFFFF",
-        border: "1px solid rgba(255,255,255,0.10)",
-        boxShadow: BADGE_SHADOW,
-      };
-    case "BEST SELLER":
-    case "BESTSELLER":
-      return {
-        background: "#C9A24A",
-        color: "#1A1A1A",
-        boxShadow: BADGE_SHADOW,
-      };
-    case "TRENDING":
-      return {
-        background: "#1E3A8A",
-        color: "#FFFFFF",
-        boxShadow: BADGE_SHADOW,
-      };
-    case "NEW":
-    case "NEW ARRIVAL":
-      return {
-        background: "#059669",
-        color: "#FFFFFF",
-        boxShadow: BADGE_SHADOW,
-      };
-    case "RECOMMENDED":
-      return {
-        background: "#4F46E5",
-        color: "#FFFFFF",
-        boxShadow: BADGE_SHADOW,
-      };
-    case "BEST VALUE":
-      return {
-        background: "#7C3AED",
-        color: "#FFFFFF",
-        boxShadow: BADGE_SHADOW,
-      };
-    case "POPULAR CHOICE":
-      return {
-        background: "#0D9488",
-        color: "#FFFFFF",
-        boxShadow: BADGE_SHADOW,
-      };
-    default:
-      return {
-        background: "rgba(20,20,20,0.72)",
-        color: "#FFFFFF",
-        backdropFilter: "blur(12px) saturate(140%)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: BADGE_SHADOW,
-      };
+  const p = BADGE_PALETTE[key];
+  if (!p) {
+    return {
+      background: "rgba(20,20,20,0.72)",
+      color: "#FFFFFF",
+      backdropFilter: BADGE_BACKDROP,
+      border: "1px solid rgba(255,255,255,0.08)",
+      boxShadow: BADGE_SHADOW,
+    };
   }
+  return {
+    background: p.background,
+    color: p.color,
+    backdropFilter: BADGE_BACKDROP,
+    boxShadow: p.extraShadow ? `${BADGE_SHADOW}, ${p.extraShadow}` : BADGE_SHADOW,
+  };
 }
+
 
 /** Detects whether an admin-assigned badge is a Flash Deal / Hot Deal promo. */
 function assignedFlashKey(b: RenderBadge): "flash_deal" | "hot_deal" | null {
@@ -227,7 +202,8 @@ function ProductBadgesImpl({ badge, reason }: { badge: CardBadge | null; reason?
   // v3 Premium pill: 28-32px tall, 14px horizontal padding, fully rounded,
   // glass background, no emoji, no per-label border color.
   const pillBase =
-    "inline-flex h-[28px] sm:h-[30px] max-w-[60%] items-center whitespace-nowrap rounded-full px-3.5 sm:px-4 text-[10.5px] sm:text-[11.5px] font-semibold uppercase leading-none tracking-[0.5px] animate-in fade-in slide-in-from-top-1 zoom-in-95 duration-150";
+    "inline-flex h-[28px] sm:h-[30px] min-w-[72px] max-w-[140px] items-center justify-center whitespace-nowrap rounded-full px-3.5 sm:px-4 text-[10.5px] sm:text-[11.5px] font-semibold uppercase leading-none tracking-[0.5px] animate-in fade-in slide-in-from-top-1 zoom-in-95 duration-150";
+
 
 
   // Section-forced / no-reason surfaces: badge is presentation only.
