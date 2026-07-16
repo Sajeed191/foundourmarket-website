@@ -237,7 +237,8 @@ function ProductBadgesImpl({ badge, reason }: { badge: CardBadge | null; reason?
         <span
           data-product-badge
           className={`${pillBase} ${badge.className ?? ""}`}
-          style={badge.style ?? badgeStyle()}
+          style={badge.style ?? badgeStyle(badge.label)}
+
         >
           <span className="truncate">{badge.label}</span>
         </span>
