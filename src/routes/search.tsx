@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, SlidersHorizontal, X, Star, ShieldCheck, RefreshCw, BadgeCheck, Globe, Check, ArrowUpDown, Sparkles, TrendingUp, Flame, Clock, ArrowDownWideNarrow, ArrowUpWideNarrow, Tag, Zap, type LucideIcon } from "lucide-react";
 import { useFlashDeals } from "@/lib/use-flash-deals";
 import { supabase } from "@/integrations/supabase/client";
-import { rowToProduct, discountPercent, SELECT_COLS, type Product } from "@/lib/products";
+import { rowToProduct, discountPercent, type Product } from "@/lib/products";
 import { useCategories, useAllCategories, type Category } from "@/lib/use-categories";
 import { MobileFilterDrawer } from "@/components/site/MobileFilterDrawer";
 import { ActiveFilterBar } from "@/components/site/ActiveFilterBar";
@@ -849,21 +849,12 @@ function SearchPage() {
     setLoading(true);
     setRawRows([]);
 
-    if (isTrending) {
-      (supabase as any)
-        .from("products_public")
-        .select(SELECT_COLS)
-        .eq("trending", true)
-        .then(({ data }: { data: any[] | null }) => {
-          if (cancelled) return;
-          const rows = (data ?? []).map((r: any) => rowToProduct(r));
-          const seen = new Set<string>();
-          const deduped = rows.filter((p: Product) => (seen.has(p.slug) ? false : (seen.add(p.slug), true)));
-          setRawRows(deduped);
-          setLoading(false);
-        });
-      return () => { cancelled = true; };
-    }
+    // Always fetch the full matching set from search_products. Exclusive
+    // collection sorts (Flash Deals, Best Selling, Trending, Newest) narrow
+    // the pool client-side via badge predicates so all badge sources are
+    // honored, not just the SQL boolean column.
+
+
 
     (supabase.rpc as any)("search_products", {
       q: search.q ?? null,
@@ -917,10 +908,38 @@ function SearchPage() {
     return () => { cancelled = true; };
   }, [search.q, loading, rawRows.length]);
 
+  // Exclusive-collection sorts: Flash Deals, Best Selling, Trending, Newest.
+  // These narrow the pool to products holding the matching badge, then sort
+  // deterministically. Other sorts continue to sort the full visible set.
+  const flashEligibleIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const it of flashItems) if (it.product.id) s.add(it.product.id);
+    return s;
+  }, [flashItems]);
+
+  const daysSinceIso = (iso?: string) => {
+    if (!iso) return Infinity;
+    const t = Date.parse(iso);
+    return Number.isNaN(t) ? Infinity : (Date.now() - t) / 86_400_000;
+  };
+  const isBestsellerBadge = (p: Product) => Boolean(p.bestseller) || (p.soldCount ?? 0) >= 50;
+  const isTrendingBadge = (p: Product) =>
+    Boolean(p.trending) || (p.viewsCount ?? 0) >= 200 || (p.wishlistCount ?? 0) >= 15;
+  const isNewBadge = (p: Product) => Boolean(p.newArrival) || daysSinceIso(p.createdAt) <= 14;
+
   // Full client-side filtered + sorted result set (drives the live count).
   const results = useMemo(() => {
-    if (isTrending) return rawRows;
-    const filtered = applyClientFilters(rawRows, currentFilters, priceCtx, variantFacets);
+    let pool = rawRows;
+    if (sort === "flash_deals") {
+      pool = rawRows.filter((p) => p.id && flashEligibleIds.has(p.id));
+    } else if (sort === "best_selling") {
+      pool = rawRows.filter(isBestsellerBadge);
+    } else if (sort === "trending") {
+      pool = rawRows.filter(isTrendingBadge);
+    } else if (sort === "newest") {
+      pool = rawRows.filter(isNewBadge);
+    }
+    const filtered = applyClientFilters(pool, currentFilters, priceCtx, variantFacets);
     const sorted = applyClientSort(
       filtered,
       sort,
@@ -928,10 +947,13 @@ function SearchPage() {
       priceOf,
       flashEndAt,
     );
+    if (sort === "flash_deals") return sorted.slice(0, 10);
+    if (sort === "newest") return sorted.slice(0, 30);
     const noActive = countActive(currentFilters) === 0;
     const isDefaultBrowse = (sort === "relevance" || !sort) && !(search.q ?? "").trim() && noActive;
     return isDefaultBrowse ? seededShuffle(sorted, rotBucket) : sorted;
-  }, [rawRows, isTrending, currentFilters, priceCtx, variantFacets, sort, search.q, rotBucket, priceOf, compareOf, flashEndAt]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawRows, currentFilters, priceCtx, variantFacets, sort, search.q, rotBucket, priceOf, compareOf, flashEndAt, flashEligibleIds]);
 
   // Client-side pagination with back-navigation state preservation. The
   // scroll position + visible window are persisted per search key so returning
@@ -1338,8 +1360,8 @@ function SearchPage() {
               <div className="size-16 mx-auto mb-5 grid place-items-center rounded-full border border-border bg-card/40">
                 <Search className="size-6 text-muted-foreground" />
               </div>
-              <p className="text-base font-medium">{isTrending ? "No trending products right now" : "No products match your filters."}</p>
-              <p className="text-sm text-muted-foreground mt-1.5">{isTrending ? "Check back soon — trending updates in real time as shoppers browse and buy." : "Try adjusting or clearing your filters to see more results."}</p>
+              <p className="text-base font-medium">{sort === "flash_deals" ? "No active Flash Deals right now." : sort === "newest" ? "No new arrivals available." : sort === "best_selling" ? "No best sellers yet." : isTrending ? "No trending products right now" : "No products match your filters."}</p>
+              <p className="text-sm text-muted-foreground mt-1.5">{sort === "flash_deals" ? "Check back soon — new flash deals drop throughout the day." : sort === "newest" ? "Check back soon — fresh arrivals land regularly." : sort === "best_selling" ? "Popularity builds fast — check back shortly." : isTrending ? "Check back soon — trending updates in real time as shoppers browse and buy." : "Try adjusting or clearing your filters to see more results."}</p>
               <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
                 {!isTrending && activeFilterCount > 0 && (
                   <button onClick={clearAll}
