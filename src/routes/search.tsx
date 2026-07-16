@@ -822,6 +822,19 @@ function SearchPage() {
   const sort = search.sort ?? "relevance";
   const isTrending = sort === "trending";
 
+  // Live flash-deal end-times, keyed by product id — powers the "ending soon"
+  // tiebreaker for the Flash Deals sort. Enabled only when that sort is active
+  // so other sorts stay free of the extra realtime subscription.
+  const { items: flashItems } = useFlashDeals();
+  const flashEndAt = useMemo(() => {
+    const m = new Map<string, string>();
+    if (sort !== "flash_deals") return m;
+    for (const it of flashItems) {
+      if (it.product.id && it.endAt) m.set(it.product.id, it.endAt);
+    }
+    return m;
+  }, [flashItems, sort]);
+
   // Fetch the full matching set for the current text query + parent category.
   // All remaining filters (brand, price, rating, availability, offers,
   // discount) and every sort are applied client-side so the live product
