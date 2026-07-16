@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Loader2, Eye, EyeOff, Archive, Trash2, Copy, FolderTree, Boxes,
   IndianRupee, Tag, Star, Globe, Truck, CalendarClock, Download, RotateCcw,
-  ChevronRight, ArrowLeft, DollarSign, Percent, Flame, TrendingUp, Sparkles, ShoppingBag,
+  ChevronRight, ArrowLeft, DollarSign, Percent, TrendingUp, ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -14,8 +14,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useBadgeCatalog, bulkAssign, bulkUnassign, badgeAnimationClass } from "@/lib/use-product-badges";
+import { ProductBadge } from "@/components/ui/ProductBadge";
 
-type SelRow = Record<string, unknown> & { id: string };
+type SelRow = Record<string, unknown> & { id: string; slug?: string };
+
 
 type Props = {
   ids: string[];
@@ -145,8 +148,9 @@ export function BulkActionBar({ ids, rows, categories, mode = "normal", onDone, 
                   </div>
                 )
               ) : (
-                <FormPane kind={form} categories={categories}
-                  onRun={run} onExport={doExport} />
+                <FormPane kind={form} categories={categories} rows={rows}
+                  onRun={run} onExport={doExport} onDone={onDone} />
+
               )}
             </motion.div>
           </motion.div>
@@ -185,12 +189,15 @@ function Pill({ active, onClick, children }: { active?: boolean; onClick: () => 
   );
 }
 
-function FormPane({ kind, categories, onRun, onExport }: {
+function FormPane({ kind, categories, rows, onRun, onExport, onDone }: {
   kind: Exclude<FormKind, null>;
   categories: { slug: string; name: string }[];
+  rows: SelRow[];
   onRun: (a: BulkAction, p?: Record<string, unknown>) => void;
   onExport: (fmt: "csv" | "json") => void;
+  onDone: () => void;
 }) {
+
   const [val, setVal] = useState("");
   const [val2, setVal2] = useState("");
   const [val3, setVal3] = useState("");
@@ -305,32 +312,9 @@ function FormPane({ kind, categories, onRun, onExport }: {
   }
 
   if (kind === "badges") {
-    const badges: { key: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-      { key: "featured", label: "Featured", icon: Star },
-      { key: "trending", label: "Trending", icon: TrendingUp },
-      { key: "bestseller", label: "Bestseller", icon: Sparkles },
-      { key: "new_arrival", label: "New Arrival", icon: Sparkles },
-      { key: "premium", label: "Premium", icon: Sparkles },
-      { key: "flash_deal", label: "Flash Deal", icon: Flame },
-      { key: "staff_pick", label: "Staff Pick", icon: Star },
-      { key: "editors_choice", label: "Editor's Choice", icon: Sparkles },
-      { key: "recommended", label: "Recommended", icon: Sparkles },
-      { key: "fast_selling", label: "Fast Selling", icon: Flame },
-      { key: "hot_deal", label: "Hot Deal", icon: Flame },
-    ];
-    return (
-      <div className="space-y-2">
-        {badges.map((b) => (
-          <div key={b.key} className="flex items-center gap-2 rounded-xl border border-border/50 p-2">
-            <b.icon className="h-4 w-4" />
-            <span className="flex-1 text-sm font-medium">{b.label}</span>
-            <Button size="sm" variant="outline" onClick={() => onRun("set_badge", { badge: b.key, value: true })}>On</Button>
-            <Button size="sm" variant="ghost" onClick={() => onRun("set_badge", { badge: b.key, value: false })}>Off</Button>
-          </div>
-        ))}
-      </div>
-    );
+    return <BadgesPane rows={rows} onDone={onDone} />;
   }
+
 
   if (kind === "region") {
     return (
@@ -389,3 +373,62 @@ function FormPane({ kind, categories, onRun, onExport }: {
 
   return null;
 }
+
+/** Realtime badge bulk assign/remove — reads catalog live from Badge Manager. */
+function BadgesPane({ rows, onDone }: { rows: SelRow[]; onDone: () => void }) {
+  const { types, map, loading } = useBadgeCatalog();
+  const [busy, setBusy] = useState<string | null>(null);
+  const slugs = rows.map((r) => r.slug).filter((s): s is string => Boolean(s));
+  const active = types.filter((t) => !t.archived).sort((a, b) => b.priority - a.priority);
+
+  async function toggle(id: string, on: boolean) {
+    if (slugs.length === 0) { toast.error("No products selected"); return; }
+    setBusy(`${id}:${on}`);
+    try {
+      if (on) {
+        const n = await bulkAssign(slugs, id);
+        toast.success(`Badge applied to ${n} product${n === 1 ? "" : "s"}`);
+      } else {
+        await bulkUnassign(slugs, id);
+        toast.success(`Badge removed from ${slugs.length} product${slugs.length === 1 ? "" : "s"}`);
+      }
+      onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  if (loading) return <div className="grid place-items-center py-6"><Loader2 className="size-4 animate-spin text-accent" /></div>;
+  if (active.length === 0) return <p className="text-sm text-muted-foreground">No badges available. Create one in Badge Manager.</p>;
+
+  return (
+    <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+      {active.map((b) => {
+        // Count how many selected products already carry this badge.
+        const assignedCount = slugs.reduce((n, s) => n + ((map.get(s) ?? []).some((x) => x.id === b.id) ? 1 : 0), 0);
+        const allAssigned = assignedCount === slugs.length && slugs.length > 0;
+        return (
+          <div key={b.id} className={cn("flex items-center gap-2 rounded-xl border p-2 transition-colors", b.enabled ? "border-border/50" : "border-dashed border-border/40 opacity-70")}>
+            <ProductBadge label={b.label} className={badgeAnimationClass(b.animation)} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
+                <span className="uppercase tracking-widest">P{b.priority}</span>
+                {!b.enabled && <span className="text-amber-400">inactive</span>}
+                {assignedCount > 0 && <span>· {assignedCount}/{slugs.length} have it</span>}
+              </div>
+            </div>
+            <Button size="sm" variant="outline" disabled={busy !== null || allAssigned || !b.enabled} onClick={() => toggle(b.id, true)}>
+              {busy === `${b.id}:true` ? <Loader2 className="size-3 animate-spin" /> : "Add"}
+            </Button>
+            <Button size="sm" variant="ghost" disabled={busy !== null || assignedCount === 0} onClick={() => toggle(b.id, false)}>
+              {busy === `${b.id}:false` ? <Loader2 className="size-3 animate-spin" /> : "Remove"}
+            </Button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
