@@ -33,3 +33,4 @@ PDP recommendations rule (permanent): additive, never interruptive. They never b
 - [Track B — Customer Experience](mem://features/customer-experience) — Buyer-facing layer. Phase 1 AI Marketplace Search shipped; roadmap: Browse, PDP relationships, Personalization
 - [Browse Presentation Adapter v1 (FROZEN)](mem://features/browse-adapter) — Single composition layer for /category, /deals, search. Approved badges, one-sentence reasons, no per-surface forks
 - [PDP Experience v2 Stage 1 (FROZEN)](mem://features/pdp-experience) — Relationship Presentation Adapter + FBT. Canonical PDP relationship path. Section order centralized in adapter; PDP imports only `@/lib/pdp`; BrowseCard everywhere
+- [Badge System v2 (FROZEN)](mem://features/badge-system-v2) — One badge per card, unified priority ladder, deterministic pickWinningBadge, Ready to Ship under price, no per-component badge logic
