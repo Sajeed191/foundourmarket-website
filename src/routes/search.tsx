@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, SlidersHorizontal, X, Star, ShieldCheck, RefreshCw, BadgeCheck, Globe, Check, ArrowUpDown, Sparkles, TrendingUp, Flame, Clock, ArrowDownWideNarrow, ArrowUpWideNarrow, Tag, type LucideIcon } from "lucide-react";
+import { Search, SlidersHorizontal, X, Star, ShieldCheck, RefreshCw, BadgeCheck, Globe, Check, ArrowUpDown, Sparkles, TrendingUp, Flame, Clock, ArrowDownWideNarrow, ArrowUpWideNarrow, Tag, Zap, type LucideIcon } from "lucide-react";
+import { useFlashDeals } from "@/lib/use-flash-deals";
 import { supabase } from "@/integrations/supabase/client";
 import { rowToProduct, discountPercent, SELECT_COLS, type Product } from "@/lib/products";
 import { useCategories, useAllCategories, type Category } from "@/lib/use-categories";
