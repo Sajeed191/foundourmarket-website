@@ -126,18 +126,77 @@ const TITLE_CLASS =
   "product-typography product-title-text block h-[2.6em] overflow-hidden break-words text-[14px] font-bold leading-[1.3] text-white sm:text-[16px]";
 
 /**
- * Badge v3 (Premium): a single, uniform glass pill for every label. No emoji,
- * no per-label gradients competing for attention. Uppercase, semi-bold,
- * tracked. The badge whispers; the product image stays the hero.
+ * Badge v3 (Premium Marketplace): each label has its own identity — a distinct
+ * color, keyed to its purpose — while sharing one capsule shape, weight, and
+ * typography so the set still reads as a single system. No emoji, no gradients,
+ * no thick borders. The badge whispers; the product image stays the hero.
  */
-function badgeStyle(): CSSProperties {
-  return {
-    background: "rgba(20,20,20,0.72)",
-    color: "#FFFFFF",
-    backdropFilter: "blur(12px) saturate(140%)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
-  };
+const BADGE_SHADOW = "0 4px 12px rgba(0,0,0,0.18)";
+
+function badgeStyle(label: string): CSSProperties {
+  const key = label.trim().toUpperCase();
+  switch (key) {
+    case "FLASH DEAL":
+    case "FLASH SALE":
+      return {
+        background: "#FF6A00",
+        color: "#111111",
+        boxShadow: `${BADGE_SHADOW}, 0 0 18px rgba(255,106,0,0.35)`,
+      };
+    case "HOT DEAL":
+      return {
+        background: "#C2410C",
+        color: "#FFFFFF",
+        border: "1px solid rgba(255,255,255,0.10)",
+        boxShadow: BADGE_SHADOW,
+      };
+    case "BEST SELLER":
+    case "BESTSELLER":
+      return {
+        background: "#C9A24A",
+        color: "#1A1A1A",
+        boxShadow: BADGE_SHADOW,
+      };
+    case "TRENDING":
+      return {
+        background: "#1E3A8A",
+        color: "#FFFFFF",
+        boxShadow: BADGE_SHADOW,
+      };
+    case "NEW":
+    case "NEW ARRIVAL":
+      return {
+        background: "#059669",
+        color: "#FFFFFF",
+        boxShadow: BADGE_SHADOW,
+      };
+    case "RECOMMENDED":
+      return {
+        background: "#4F46E5",
+        color: "#FFFFFF",
+        boxShadow: BADGE_SHADOW,
+      };
+    case "BEST VALUE":
+      return {
+        background: "#7C3AED",
+        color: "#FFFFFF",
+        boxShadow: BADGE_SHADOW,
+      };
+    case "POPULAR CHOICE":
+      return {
+        background: "#0D9488",
+        color: "#FFFFFF",
+        boxShadow: BADGE_SHADOW,
+      };
+    default:
+      return {
+        background: "rgba(20,20,20,0.72)",
+        color: "#FFFFFF",
+        backdropFilter: "blur(12px) saturate(140%)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: BADGE_SHADOW,
+      };
+  }
 }
 
 /** Detects whether an admin-assigned badge is a Flash Deal / Hot Deal promo. */
@@ -158,16 +217,18 @@ function toAssignedBadge(b: RenderBadge): CardBadge {
     id: b.assignmentId ?? b.id,
     label: b.label,
     className: "",
-    style: badgeStyle(),
+    style: badgeStyle(b.label),
   };
 }
+
 
 function ProductBadgesImpl({ badge, reason }: { badge: CardBadge | null; reason?: string }) {
   if (!badge) return null;
   // v3 Premium pill: 28-32px tall, 14px horizontal padding, fully rounded,
   // glass background, no emoji, no per-label border color.
   const pillBase =
-    "inline-flex h-[28px] sm:h-[32px] max-w-[60%] items-center whitespace-nowrap rounded-full px-3.5 sm:px-4 text-[10.5px] sm:text-[11.5px] font-semibold uppercase leading-none tracking-[0.9px]";
+    "inline-flex h-[28px] sm:h-[30px] max-w-[60%] items-center whitespace-nowrap rounded-full px-3.5 sm:px-4 text-[10.5px] sm:text-[11.5px] font-semibold uppercase leading-none tracking-[0.5px] animate-in fade-in slide-in-from-top-1 zoom-in-95 duration-150";
+
 
   // Section-forced / no-reason surfaces: badge is presentation only.
   if (!reason) {
@@ -176,7 +237,8 @@ function ProductBadgesImpl({ badge, reason }: { badge: CardBadge | null; reason?
         <span
           data-product-badge
           className={`${pillBase} ${badge.className ?? ""}`}
-          style={badge.style ?? badgeStyle()}
+          style={badge.style ?? badgeStyle(badge.label)}
+
         >
           <span className="truncate">{badge.label}</span>
         </span>
@@ -199,7 +261,7 @@ function ProductBadgesImpl({ badge, reason }: { badge: CardBadge | null; reason?
               e.stopPropagation();
             }}
             className={`${pillBase} ${badge.className ?? ""} cursor-pointer transition-transform duration-150 active:scale-95`}
-            style={badge.style ?? badgeStyle()}
+            style={badge.style ?? badgeStyle(badge.label)}
           >
             <span className="truncate">{badge.label}</span>
           </button>
