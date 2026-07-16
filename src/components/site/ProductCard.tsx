@@ -133,10 +133,27 @@ const TITLE_CLASS =
  * typography so the set still reads as a single system. No emoji, no gradients,
  * no thick borders. The badge whispers; the product image stays the hero.
  */
-const BADGE_SHADOW =
-  "0 6px 16px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.04)";
+const BADGE_SHADOW = "0 2px 8px rgba(0,0,0,0.18)";
 const BADGE_BACKDROP = "blur(10px) saturate(140%)";
 const BADGE_BORDER = "1px solid rgba(255,255,255,0.10)";
+
+/**
+ * v4 label shortener: keep labels tight so pills stay under ~35% of image width
+ * on mobile. Colors, priority, and selection logic are untouched — only the
+ * rendered text is shortened.
+ */
+const BADGE_LABEL_SHORT: Record<string, string> = {
+  "BEST SELLER": "BESTSELLER",
+  "FLASH DEAL": "FLASH",
+  "FLASH SALE": "FLASH",
+  "HOT DEAL": "HOT",
+  "BEST VALUE": "VALUE",
+  "NEW ARRIVAL": "NEW",
+  "POPULAR CHOICE": "POPULAR",
+};
+function shortBadgeLabel(label: string): string {
+  return BADGE_LABEL_SHORT[label.trim().toUpperCase()] ?? label;
+}
 
 type BadgePalette = { background: string; color: string; extraShadow?: string };
 type BadgeStyle = CSSProperties & { "--badge-color": string; "--badge-text": string };
