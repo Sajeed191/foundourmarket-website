@@ -855,8 +855,16 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
                         : <Package className="size-8 text-muted-foreground" />}
                       <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
                         {badges.map((b) => (
-                          <span key={b.key} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold ${b.className}`}>
-                            <span>{b.emoji}</span>{b.label}
+                          <span
+                            key={b.key}
+                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold"
+                            style={{
+                              backgroundColor: b.backgroundColor,
+                              color: b.textColor,
+                              border: b.borderColor ? `1px solid ${b.borderColor}` : undefined,
+                            }}
+                          >
+                            {b.emoji && <span>{b.emoji}</span>}{b.label}
                           </span>
                         ))}
                       </div>
