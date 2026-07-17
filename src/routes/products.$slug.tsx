@@ -973,12 +973,12 @@ function ProductPage() {
               })}
             </div>
 
-            {/* Description — premium heading with accent line */}
-            <section className="mt-12">
-              <PdpSectionHeading title="Description" eyebrow="About this product" />
+            {/* Product Overview — description component owns its own subsection titles */}
+            <section className="mt-14">
+              <PdpSectionHeading title="Product Overview" subtitle="Everything you need to know" />
               <ProductDescription description={product.description} />
               {product.features?.length > 0 && (
-                <ul className="mt-4 space-y-2">
+                <ul className="mt-6 space-y-2.5">
                   {product.features.map((feat: string, i: number) => (
                     <li key={i} className="flex items-start gap-2.5 text-[15px] text-muted-foreground leading-relaxed">
                       <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
@@ -989,13 +989,13 @@ function ProductPage() {
               )}
             </section>
 
-            {/* Specifications — clean divided table with premium heading */}
+            {/* Specifications — only when description didn't already render a specs section */}
             {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <section className="mt-12">
-                <PdpSectionHeading title="Specifications" eyebrow="Technical details" />
+              <section className="mt-14">
+                <PdpSectionHeading title="Specifications" subtitle="Technical details at a glance" />
                 <dl className="divide-y divide-border/50">
                   {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
-                    <div key={k} className="grid grid-cols-[40%_60%] gap-4 py-3 text-[14px]">
+                    <div key={k} className="grid grid-cols-[40%_60%] gap-4 py-3.5 text-[14px]">
                       <dt className="text-muted-foreground">{k}</dt>
                       <dd className="text-foreground">{v}</dd>
                     </div>
