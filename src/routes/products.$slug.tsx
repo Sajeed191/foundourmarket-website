@@ -1089,18 +1089,21 @@ function ProductPage() {
   );
 }
 
-function PdpSectionHeading({ title, eyebrow }: { title: string; eyebrow?: string }) {
+function PdpSectionHeading({ title, subtitle, eyebrow }: { title: string; subtitle?: string; eyebrow?: string }) {
   return (
-    <div className="mb-6 flex items-center gap-3">
-      <span aria-hidden className="h-6 w-[3px] rounded-full bg-accent" />
-      <div className="flex flex-col leading-tight">
+    <div className="mb-8 sm:mb-10">
+      <div className="flex items-center gap-2.5">
+        <span aria-hidden className="size-1.5 rounded-full bg-accent shadow-[0_0_10px_var(--accent)]" />
         {eyebrow && (
-          <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+          <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent/80">
             {eyebrow}
           </span>
         )}
-        <h2 className="text-[20px] sm:text-[22px] font-semibold tracking-tight">{title}</h2>
       </div>
+      <h2 className="mt-2 text-[22px] sm:text-[26px] font-semibold tracking-tight text-foreground">{title}</h2>
+      {subtitle && (
+        <p className="mt-1.5 text-[13px] sm:text-[14px] text-muted-foreground/90 leading-relaxed">{subtitle}</p>
+      )}
     </div>
   );
 }
