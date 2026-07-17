@@ -1089,6 +1089,22 @@ function ProductPage() {
   );
 }
 
+function PdpSectionHeading({ title, eyebrow }: { title: string; eyebrow?: string }) {
+  return (
+    <div className="mb-6 flex items-center gap-3">
+      <span aria-hidden className="h-6 w-[3px] rounded-full bg-accent" />
+      <div className="flex flex-col leading-tight">
+        {eyebrow && (
+          <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            {eyebrow}
+          </span>
+        )}
+        <h2 className="text-[20px] sm:text-[22px] font-semibold tracking-tight">{title}</h2>
+      </div>
+    </div>
+  );
+}
+
 
 function ProductLayoutDiagnostics({ phase }: { phase: "loading" | "final" }) {
   useEffect(() => {
