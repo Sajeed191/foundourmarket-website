@@ -24,7 +24,7 @@ import { useCompare } from "@/hooks/use-compare";
 import { useWishlist } from "@/lib/wishlist";
 import { fetchProductImages, fetchProductVariants, fetchProduct, discountPercent, type ProductImage, type ProductVariant } from "@/lib/products";
 import { fetchPublicColorGalleries, type VariantImage } from "@/lib/variant-images";
-import { computeBadges, DEFAULT_BADGE_SETTINGS } from "@/lib/badges";
+import { useProductBadges } from "@/lib/use-product-badges";
 import { ProductBadge, ProductBadgeAnchor } from "@/components/ui/ProductBadge";
 import { fetchActiveFaqs, type ProductFaq } from "@/lib/product-faqs";
 import { recordEvent, fetchFBT, fetchAlsoViewed } from "@/lib/personalization";
