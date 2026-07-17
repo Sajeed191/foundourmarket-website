@@ -359,7 +359,6 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
   const discount = discountPercent(price, originalPrice);
   const shippingFee = shippingFeeOf(product);
   const freeShipping = shippingFee <= 0;
-  const labels = useVisibleBadges(product, context, forceBadge);
   const assigned = useProductBadges(product.slug);
   const engine = useBadgeEngine();
   const lowStock = product.inStock && product.stockQuantity > 0 && product.stockQuantity <= product.lowStockThreshold;
@@ -370,45 +369,40 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
   // the operational signal never leaks onto the image or copy area.
 
 
-  // Collect ALL badge candidates from every source, then pick the single
-  // highest-priority winner. Any label outside CARD_BADGE_PRIORITY (Premium,
-  // Featured, Editor's Choice, Staff Pick, Gift Idea, Fast Selling, Limited
-  // Stock, …) is intentionally dropped from the card image.
+  // SINGLE SOURCE OF TRUTH: only assigned DB badges (already filtered to
+  // enabled + live schedule by useProductBadges). No computed fallbacks, no
+  // legacy flags, no browse-derived labels — if the product has no active
+  // assignment, no badge renders. Flash/Hot promo badges are additionally
+  // gated by the current Flash Deal rotation so only the selected slugs
+  // display them anywhere on the site.
   const winningBadge = useMemo<CardBadge | null>(() => {
     if (hideBadges) return null;
+    if (assigned.length === 0) return null;
 
-    const computed: CardBadge[] = labels.map((b) => ({
-      id: b.key,
-      label: b.label,
-      emoji: b.emoji,
-      className: b.className,
-    }));
-
-    if (forceBadge) {
-      return pickWinningBadge(computed) ?? computed[0] ?? null;
-    }
-
-    // Flash/Hot promotional badges are exclusive to the currently-selected
-    // Flash Deal rotation — hide them for non-selected products.
     const flashActive = engine.activeFlashSlugs.has(product.slug);
     const chosenFlash = engine.flashBadgeBySlug.get(product.slug) ?? null;
-    const gatedAssigned = assigned.filter((b) => {
+    const gated = assigned.filter((b) => {
+      if (normalizeBadgeLabel(b.label) === READY_TO_SHIP_LABEL) return false;
       if (!isAssignedFlashBadge(b)) return true;
       if (!flashActive || !chosenFlash) return false;
       return assignedFlashKey(b) === chosenFlash;
     });
+    if (gated.length === 0) return null;
 
-    const browsePool: CardBadge[] = (browseBadges ?? [])
-      .filter((label) => normalizeBadgeLabel(label) !== READY_TO_SHIP_LABEL)
-      .map((label) => ({ id: `browse:${label}`, label }));
+    // `forceBadge` narrows to the collection's badge — never manufactures one.
+    if (forceBadge) {
+      const key = forceBadge.toLowerCase();
+      const match = gated.find(
+        (b) =>
+          (b.badgeKey || "").toLowerCase() === key ||
+          normalizeBadgeLabel(b.label) === key.toUpperCase().replace(/_/g, " "),
+      );
+      return match ? toAssignedBadge(match) : null;
+    }
 
-    const candidates: CardBadge[] = [
-      ...gatedAssigned.map(toAssignedBadge),
-      ...computed,
-      ...browsePool,
-    ];
-    return pickWinningBadge(candidates);
-  }, [hideBadges, labels, forceBadge, engine, product.slug, assigned, browseBadges]);
+    const candidates = gated.map(toAssignedBadge);
+    return pickWinningBadge(candidates) ?? candidates[0] ?? null;
+  }, [hideBadges, forceBadge, engine, product.slug, assigned]);
 
 
 
