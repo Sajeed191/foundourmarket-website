@@ -23,7 +23,8 @@ import { ProductBadgeManager } from "@/components/admin/ProductBadgeManager";
 import { assignBadge, assignNewBadge } from "@/lib/use-product-badges";
 import { createFaq } from "@/lib/product-faqs";
 import { useStoreSettings } from "@/lib/use-store-settings";
-import { computeBadges, DEFAULT_BADGE_SETTINGS, MAX_CARD_BADGES } from "@/lib/badges";
+// Preview badges come from the live Badge Manager assignment set below —
+// no computed fallbacks. Badge Manager is the single source of truth.
 import { ProductMediaGallery, ProductVideoUploader } from "@/components/admin/product-editor/media-fields";
 import {
   FeaturesBuilder, KeyValueBuilder, RichTextEditor, kvToArray, arrayToKv,
