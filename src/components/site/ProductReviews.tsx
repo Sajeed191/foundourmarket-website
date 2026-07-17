@@ -459,34 +459,29 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
           {/* ── Rating summary ──────────────────────────────────────────── */}
           {hasReviews && (
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 8 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="mb-8 grid gap-8 lg:grid-cols-[280px_1fr] rounded-3xl border border-white/10 bg-card/50 backdrop-blur-xl p-6 sm:p-8 shadow-[0_24px_60px_-40px_oklch(0_0_0/0.9)] relative overflow-hidden"
+              transition={{ duration: 0.22 }}
+              className="mb-10 grid gap-8 lg:grid-cols-[240px_1fr] pb-8 border-b border-border/60"
             >
-              <div className="pointer-events-none absolute -top-24 -left-24 size-64 rounded-full opacity-60" style={{ background: "var(--gradient-ember-soft)" }} />
-              <div className="relative flex flex-col items-center justify-center text-center lg:border-r lg:border-border/50 lg:pr-8">
-                <p className="text-6xl font-display leading-none bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">{avg.toFixed(1)}</p>
-                <div className="mt-3"><StarRating rating={avg} starClassName="size-5" glow /></div>
-                <p className="mt-3 text-xs font-mono uppercase tracking-widest text-muted-foreground">
+              <div className="flex flex-col items-start">
+                <p className="text-[44px] leading-none font-display text-foreground">{avg.toFixed(1)}</p>
+                <div className="mt-2"><StarRating rating={avg} starClassName="size-4" /></div>
+                <p className="mt-2 text-[13px] text-muted-foreground">
                   Based on {published.length.toLocaleString()} {published.length === 1 ? "review" : "reviews"}
                 </p>
-                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/[0.08] px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
-                    <BadgeCheck className="size-3" /> {verifiedCount} verified
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                    <Camera className="size-3" /> {photoReviews.length} with photos
-                  </span>
+                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5"><BadgeCheck className="size-3.5 text-emerald-400" /> {verifiedCount} verified</span>
+                  <span className="inline-flex items-center gap-1.5"><Camera className="size-3.5 text-accent" /> {photoReviews.length} with photos</span>
                 </div>
                 {recommendPct > 0 && (
-                  <p className="mt-4 text-sm text-foreground/90">
-                    <span className="font-display text-accent">{recommendPct}%</span> of customers recommend this product
+                  <p className="mt-3 text-[13px] text-foreground/85">
+                    <span className="font-semibold text-accent">{recommendPct}%</span> of customers recommend this
                   </p>
                 )}
               </div>
-              <div className="relative space-y-2.5 self-center">
+              <div className="space-y-2 self-center">
                 {[5, 4, 3, 2, 1].map((star, idx) => {
                   const count = buckets[star - 1];
                   const pct = published.length ? (count / published.length) * 100 : 0;
@@ -496,19 +491,19 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                       onClick={() => setFilter(String(star) as ReviewFilter)}
                       className="flex w-full items-center gap-3 text-xs group"
                     >
-                      <span className="flex w-12 items-center gap-1 font-mono text-muted-foreground">
+                      <span className="flex w-8 items-center gap-1 font-mono text-muted-foreground">
                         {star}<Star className="size-3 fill-accent/70 text-accent/70" />
                       </span>
-                      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+                      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
                         <motion.span
                           className="block h-full rounded-full bg-accent/80 group-hover:bg-accent"
                           initial={{ width: 0 }}
                           whileInView={{ width: `${pct}%` }}
                           viewport={{ once: true }}
-                          transition={{ duration: 0.7, delay: idx * 0.08, ease: "easeOut" }}
+                          transition={{ duration: 0.5, delay: idx * 0.05, ease: "easeOut" }}
                         />
                       </span>
-                      <span className="w-14 text-right font-mono text-muted-foreground">{Math.round(pct)}%</span>
+                      <span className="w-10 text-right font-mono text-muted-foreground tabular-nums">{Math.round(pct)}%</span>
                     </button>
                   );
                 })}
