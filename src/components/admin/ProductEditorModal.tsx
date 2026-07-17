@@ -351,6 +351,8 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const [attrsRows, setAttrsRows] = useState<KV[]>(kvToArray(row?.attributes));
   // Stable slug used to group media (images/video) before the row is saved.
   const mediaSlug = form.slug.trim() || slugify(form.name);
+  // Live Badge Manager assignments for the preview card (empty for unsaved products).
+  const previewAssignedBadges = useProductBadges(mediaSlug);
 
   // ---- Duplicate Detection (Marketplace Intelligence) ----
   // Perceptual hash of the primary image, recomputed when the image changes.
