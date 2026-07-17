@@ -1091,19 +1091,19 @@ function ProductPage() {
 
 function PdpSectionHeading({ title, subtitle, eyebrow }: { title: string; subtitle?: string; eyebrow?: string }) {
   return (
-    <div className="mb-8 sm:mb-10">
-      <div className="flex items-center gap-2.5">
-        <span aria-hidden className="size-1.5 rounded-full bg-accent shadow-[0_0_10px_var(--accent)]" />
+    <div className="mb-8 sm:mb-10 flex items-start gap-3.5">
+      <span aria-hidden className="mt-1.5 h-6 w-[3px] rounded-full bg-accent shrink-0" />
+      <div className="min-w-0">
         {eyebrow && (
-          <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent/80">
+          <p className="mb-1 text-[10px] font-mono uppercase tracking-[0.22em] text-accent/80">
             {eyebrow}
-          </span>
+          </p>
+        )}
+        <h2 className="text-[18px] sm:text-[20px] font-semibold tracking-tight text-foreground leading-tight">{title}</h2>
+        {subtitle && (
+          <p className="mt-1 text-[13px] text-muted-foreground/80 leading-relaxed">{subtitle}</p>
         )}
       </div>
-      <h2 className="mt-2 text-[22px] sm:text-[26px] font-semibold tracking-tight text-foreground">{title}</h2>
-      {subtitle && (
-        <p className="mt-1.5 text-[13px] sm:text-[14px] text-muted-foreground/90 leading-relaxed">{subtitle}</p>
-      )}
     </div>
   );
 }
