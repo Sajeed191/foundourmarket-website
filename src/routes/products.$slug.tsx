@@ -1033,15 +1033,18 @@ function ProductPage() {
       )}
 
       <LazyMount minHeight={120} className="scroll-mt-24" id="reviews">
-        <div data-product-reviews>
+        <div data-product-reviews className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+          <PdpSectionHeading title="Customer Reviews" eyebrow="What buyers say" />
           <ProductReviews productSlug={product.slug} onAggregateChange={invalidateProducts} />
         </div>
       </LazyMount>
       <LazyMount minHeight={120} className="scroll-mt-24" id="questions">
-        <div data-product-questions>
+        <div data-product-questions className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+          <PdpSectionHeading title="Questions & Answers" eyebrow="Ask the community" />
           <ProductQA productSlug={product.slug} />
         </div>
       </LazyMount>
+
 
       {/* Sticky mobile purchase dock — compact: Price + Add to Cart + Buy Now. */}
       {showPurchaseDock && (
