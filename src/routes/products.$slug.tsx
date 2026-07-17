@@ -653,40 +653,26 @@ function ProductPage() {
   return (
     <>
       <div data-product-page data-product-phase="final" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 sm:pt-6 product-page-clearance sm:pb-24 lg:pb-16">
-        {/* Breadcrumb — quiet, single line */}
-        <nav aria-label="Breadcrumb" className="text-[11px] text-muted-foreground/70 mb-4 sm:mb-6 truncate">
-          <Link to="/" className="hover:text-foreground transition-colors">Shop</Link>
-          {breadcrumbCat && breadcrumbParent && (
-            <>
-              <span className="mx-2 text-muted-foreground/40">/</span>
-              <Link to="/category/$slug" params={{ slug: breadcrumbParent.slug }} className="hover:text-foreground transition-colors">{breadcrumbParent.name}</Link>
-              <span className="mx-2 text-muted-foreground/40">/</span>
-              <Link to="/category/$main/$sub" params={{ main: breadcrumbParent.slug, sub: breadcrumbCat.slug }} className="hover:text-foreground transition-colors">{breadcrumbCat.name}</Link>
-            </>
-          )}
-          {breadcrumbCat && !breadcrumbParent && (
-            <>
-              <span className="mx-2 text-muted-foreground/40">/</span>
-              <Link to="/category/$slug" params={{ slug: breadcrumbCat.slug }} className="hover:text-foreground transition-colors">{breadcrumbCat.name}</Link>
-            </>
-          )}
-          {!breadcrumbCat && (
-            <>
-              <span className="mx-2 text-muted-foreground/40">/</span>
-              <Link to="/category/$slug" params={{ slug: product.category }} className="hover:text-foreground transition-colors capitalize">{product.category}</Link>
-            </>
-          )}
-          <span className="mx-2 text-muted-foreground/40">/</span>
-          <span className="text-foreground/80">{product.name}</span>
-        </nav>
+        {/* Breadcrumb removed for v5.1 — gallery leads the page. */}
+
 
         <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
           {/* ─────── Gallery — edge-to-edge on mobile, no card ─────── */}
           <div className="lg:sticky lg:top-24 lg:self-start -mx-4 sm:mx-0">
             <div
               data-product-image
-              className="relative w-full aspect-[4/5] sm:aspect-square sm:rounded-3xl overflow-hidden bg-white/[0.02] group"
+              onTouchStart={(e) => { (e.currentTarget as unknown as { _sx: number })._sx = e.touches[0].clientX; }}
+              onTouchEnd={(e) => {
+                const start = (e.currentTarget as unknown as { _sx?: number })._sx;
+                if (start == null || galleryMedia.length < 2) return;
+                const dx = e.changedTouches[0].clientX - start;
+                if (Math.abs(dx) < 40) return;
+                const next = dx < 0 ? activeImg + 1 : activeImg - 1;
+                setActiveImg(Math.max(0, Math.min(galleryMedia.length - 1, next)));
+              }}
+              className="relative w-full aspect-[4/5] sm:aspect-square sm:rounded-sm overflow-hidden bg-white/[0.02] group touch-pan-y"
             >
+
               {activeMedia?.kind === "video" ? (
                 <video
                   key={activeMedia.id}
@@ -757,22 +743,25 @@ function ProductPage() {
                 </span>
               )}
 
-              {/* Image indicator — minimalist dots (mobile-first pattern) */}
+              {/* Image indicator — dots + "1/N" counter */}
               {galleryMedia.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-full bg-black/35 backdrop-blur-md px-2.5 py-1.5">
-                  {galleryMedia.slice(0, 8).map((m, i) => (
-                    <button
-                      key={m.id}
-                      onClick={() => setActiveImg(i)}
-                      aria-label={`View image ${i + 1}`}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${i === activeImg ? "w-6 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"}`}
-                    />
-                  ))}
-                  {galleryMedia.length > 8 && (
-                    <span className="ml-1 text-[10px] font-mono text-white/70 tabular-nums">+{galleryMedia.length - 8}</span>
-                  )}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md px-3 py-1.5">
+                  <div className="flex items-center gap-1.5">
+                    {galleryMedia.slice(0, 6).map((m, i) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setActiveImg(i)}
+                        aria-label={`View image ${i + 1}`}
+                        className={`h-1.5 rounded-full transition-all duration-200 ${i === activeImg ? "w-5 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-mono text-white/80 tabular-nums pl-1 border-l border-white/20">
+                    {activeImg + 1}/{galleryMedia.length}
+                  </span>
                 </div>
               )}
+
 
               {isAdmin && (
                 <Suspense fallback={null}>
@@ -799,7 +788,7 @@ function ProductPage() {
                     onClick={() => setActiveImg(i)}
                     aria-label={item.kind === "video" ? "Play video" : `View image ${i + 1}`}
                     aria-current={i === activeImg}
-                    className={`relative size-16 shrink-0 rounded-2xl overflow-hidden transition-all duration-200 active:scale-95 bg-white/[0.03] ${i === activeImg ? "ring-2 ring-accent opacity-100" : "opacity-55 hover:opacity-100"}`}
+                    className={`relative size-16 shrink-0 rounded-sm overflow-hidden transition-all duration-200 active:scale-95 bg-white/[0.03] ${i === activeImg ? "ring-2 ring-accent opacity-100" : "opacity-55 hover:opacity-100"}`}
                   >
                     {item.kind === "video" ? (
                       item.poster ? (
@@ -984,29 +973,15 @@ function ProductPage() {
               })}
             </div>
 
-            {/* Highlight chips — subtle, low contrast */}
-            {highlightChips.length > 0 && (
-              <div className="mt-8 flex flex-wrap gap-2">
-                {highlightChips.map((c, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center rounded-full bg-white/[0.04] border border-white/[0.06] px-3 py-1.5 text-[12px] text-foreground/80"
-                  >
-                    {c}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Description — 18px heading, no card, collapse handled inside */}
-            <section className="mt-10">
-              <h2 className="mb-4 text-[18px] font-semibold tracking-tight">Description</h2>
+            {/* Description — premium heading with accent line */}
+            <section className="mt-12">
+              <PdpSectionHeading title="Description" eyebrow="About this product" />
               <ProductDescription description={product.description} />
               {product.features?.length > 0 && (
                 <ul className="mt-4 space-y-2">
                   {product.features.map((feat: string, i: number) => (
                     <li key={i} className="flex items-start gap-2.5 text-[15px] text-muted-foreground leading-relaxed">
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
+                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
                       <span>{feat}</span>
                     </li>
                   ))}
@@ -1014,10 +989,10 @@ function ProductPage() {
               )}
             </section>
 
-            {/* Specifications — clean divided table, no card */}
+            {/* Specifications — clean divided table with premium heading */}
             {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <section className="mt-10">
-                <h2 className="mb-4 text-[18px] font-semibold tracking-tight">Specifications</h2>
+              <section className="mt-12">
+                <PdpSectionHeading title="Specifications" eyebrow="Technical details" />
                 <dl className="divide-y divide-border/50">
                   {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
                     <div key={k} className="grid grid-cols-[40%_60%] gap-4 py-3 text-[14px]">
@@ -1028,6 +1003,7 @@ function ProductPage() {
                 </dl>
               </section>
             )}
+
 
             <div data-product-sticky-threshold aria-hidden className="h-px w-full" />
           </div>
@@ -1057,15 +1033,18 @@ function ProductPage() {
       )}
 
       <LazyMount minHeight={120} className="scroll-mt-24" id="reviews">
-        <div data-product-reviews>
+        <div data-product-reviews className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+          <PdpSectionHeading title="Customer Reviews" eyebrow="What buyers say" />
           <ProductReviews productSlug={product.slug} onAggregateChange={invalidateProducts} />
         </div>
       </LazyMount>
       <LazyMount minHeight={120} className="scroll-mt-24" id="questions">
-        <div data-product-questions>
+        <div data-product-questions className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+          <PdpSectionHeading title="Questions & Answers" eyebrow="Ask the community" />
           <ProductQA productSlug={product.slug} />
         </div>
       </LazyMount>
+
 
       {/* Sticky mobile purchase dock — compact: Price + Add to Cart + Buy Now. */}
       {showPurchaseDock && (
@@ -1107,6 +1086,22 @@ function ProductPage() {
 
 
     </>
+  );
+}
+
+function PdpSectionHeading({ title, eyebrow }: { title: string; eyebrow?: string }) {
+  return (
+    <div className="mb-6 flex items-center gap-3">
+      <span aria-hidden className="h-6 w-[3px] rounded-full bg-accent" />
+      <div className="flex flex-col leading-tight">
+        {eyebrow && (
+          <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            {eyebrow}
+          </span>
+        )}
+        <h2 className="text-[20px] sm:text-[22px] font-semibold tracking-tight">{title}</h2>
+      </div>
+    </div>
   );
 }
 
