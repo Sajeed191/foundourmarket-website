@@ -1033,14 +1033,14 @@ function ProductPage() {
       )}
 
       <LazyMount minHeight={120} className="scroll-mt-24" id="reviews">
-        <div data-product-reviews className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
-          <PdpSectionHeading title="Customer Reviews" eyebrow="What buyers say" />
+        <div data-product-reviews className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+          <PdpSectionHeading title="Customer Reviews" subtitle="Real feedback from real shoppers" />
           <ProductReviews productSlug={product.slug} onAggregateChange={invalidateProducts} />
         </div>
       </LazyMount>
       <LazyMount minHeight={120} className="scroll-mt-24" id="questions">
-        <div data-product-questions className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
-          <PdpSectionHeading title="Questions & Answers" eyebrow="Ask the community" />
+        <div data-product-questions className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+          <PdpSectionHeading title="Questions & Answers" subtitle="Ask anything about this product" />
           <ProductQA productSlug={product.slug} />
         </div>
       </LazyMount>
