@@ -5,7 +5,7 @@ import {
   ShoppingCart, Zap, Check, Loader2, Lock,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useProduct, invalidateProducts, refreshProducts } from "@/lib/use-products";
 import { openShare, toPreviewImage } from "@/lib/share";
