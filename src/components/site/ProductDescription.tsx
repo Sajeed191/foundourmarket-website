@@ -68,7 +68,6 @@ function SectionView({ section }: { section: DescriptionSection }) {
     case "overview":
       return (
         <div>
-          <SectionHeading icon={FileText}>{section.title}</SectionHeading>
           <div className="space-y-3">
             {section.paragraphs.map((p, i) => (
               <p key={i} className="text-sm text-muted-foreground leading-relaxed break-words">
@@ -78,6 +77,7 @@ function SectionView({ section }: { section: DescriptionSection }) {
           </div>
         </div>
       );
+
     case "features":
       return (
         <div>
