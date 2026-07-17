@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Heart, Truck, Shield, RotateCcw, Minus, Plus, Scale,
-  ChevronDown, Share2, Sparkles, Package, Clock, CheckCircle2, Users, ShoppingBag as ShoppingBagIcon, Play, Layers, Info,
+  Heart, Truck, RotateCcw, Minus, Plus,
+  Share2, Sparkles, CheckCircle2, Play,
   ShoppingCart, Zap, Check, Loader2, Lock,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
@@ -15,7 +15,6 @@ import { useCart } from "@/lib/cart";
 import { useBuyNow } from "@/lib/use-buy-now";
 import { useLayoutMetrics } from "@/lib/layout-metrics";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
-import { RelatedProducts } from "@/components/site/RelatedProducts";
 
 import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
@@ -26,13 +25,8 @@ import { fetchProductImages, fetchProductVariants, fetchProduct, discountPercent
 import { fetchPublicColorGalleries, type VariantImage } from "@/lib/variant-images";
 import { useProductBadges } from "@/lib/use-product-badges";
 import { ProductBadge, ProductBadgeAnchor } from "@/components/ui/ProductBadge";
-import { fetchActiveFaqs, type ProductFaq } from "@/lib/product-faqs";
 import { recordEvent, fetchFBT, fetchAlsoViewed } from "@/lib/personalization";
 import { recordViewedPrice } from "@/lib/viewed-prices";
-import { RecommendationStrip } from "@/components/site/RecommendationStrip";
-import { RecommendedForYou } from "@/components/site/RecommendedForYou";
-import { RecentlyViewed } from "@/components/site/RecentlyViewed";
-import { PDPRecommendations } from "@/components/site/PDPRecommendations";
 const PDPRelationshipSections = lazy(() =>
   import("@/components/site/PDPRelationshipSections").then((m) => ({
     default: m.PDPRelationshipSections,
@@ -53,10 +47,7 @@ import { resizedStorageImage } from "@/lib/storage-image";
 import { VariantSelector } from "@/components/site/VariantSelector";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductDescription } from "@/components/site/ProductDescription";
-import { ProductInfoPanel } from "@/components/site/ProductInfoPanel";
-import { TrustGuarantee } from "@/components/site/ProductTrustBlocks";
 import { formatSold } from "@/lib/format-sold";
-import { SellerTrustCard, ProductComparison } from "@/components/site/ProductSellerTrust";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/products/$slug")({
@@ -250,12 +241,6 @@ function ProductPage() {
   // element's viewport visibility (only one purchase section shows at a time).
   const inlinePurchaseRef = useRef<HTMLDivElement>(null);
   const [titleExpanded, setTitleExpanded] = useState(false);
-  const [showAllBadges, setShowAllBadges] = useState(false);
-  // Single-open accordion group for the detail sections below the fold.
-  const [openSection, setOpenSection] = useState<string | null>("specs");
-  const toggleSection = (id: string) => setOpenSection((cur) => (cur === id ? null : id));
-  // Premium Information Hub — one tabbed card for Delivery / Offers / Seller / Warranty.
-  const [infoTab, setInfoTab] = useState<"delivery" | "offers" | "seller" | "warranty">("delivery");
 
 
 
@@ -611,8 +596,6 @@ function ProductPage() {
       ? [{ key: "lowstock", label: `Only ${effectiveStock} left`, emoji: "⚠️", className: "bg-destructive/90 text-destructive-foreground" }]
       : []),
   ];
-  const visibleBadges = showAllBadges ? heroBadges : heroBadges.slice(0, 2);
-  const hiddenBadgeCount = heroBadges.length - visibleBadges.length;
 
 
 
@@ -869,93 +852,88 @@ function ProductPage() {
           </div>
 
 
-          {/* Info */}
+          {/* Info column — clean vertical stack, minimal cards, generous rhythm.
+              Hierarchy: Badge → Title → Rating+Sold → Price → Variants →
+              CTAs → Shipping trust → Description → Specifications. */}
           <motion.div
             data-product-info
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-4 lg:mt-0"
           >
-            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent/90 mb-1.5 mt-4 lg:mt-0">{product.tagline}</p>
-            <h1 className={`text-[1.35rem] sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight mb-1 text-balance leading-[1.22] sm:leading-[1.12] ${titleExpanded ? "" : "line-clamp-3"}`}>{product.name}</h1>
+            {/* 1. Badge (single, canonical) */}
+            {heroBadges[0] && (
+              <div className="mb-3">
+                <ProductBadge label={heroBadges[0].label} />
+              </div>
+            )}
+
+            {/* 2. Product Title (22px mobile / larger desktop, semibold) */}
+            <h1 className={`text-[22px] sm:text-3xl lg:text-4xl font-display font-semibold tracking-tight text-balance leading-[1.2] ${titleExpanded ? "" : "line-clamp-3"}`}>
+              {product.name}
+            </h1>
             {product.name.length > 70 && (
               <button
                 onClick={() => setTitleExpanded((v) => !v)}
-                className="mb-2.5 text-[11px] font-mono uppercase tracking-widest text-accent hover:underline"
+                className="mt-1 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground"
                 aria-expanded={titleExpanded}
               >
                 {titleExpanded ? "Read less" : "Read more"}
               </button>
             )}
 
-
-            <div className="flex items-center gap-3 mb-3 flex-wrap">
+            {/* 3. Rating + Reviews • Sold — one clean line */}
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
               <StarRating
                 rating={product.rating}
-                count={product.reviews}
+                count={0}
                 showValue={product.reviews > 0}
-                starClassName="size-3.5"
-                textClassName="text-xs font-mono text-muted-foreground/70"
-                glow
+                starClassName="size-4"
+                textClassName="text-[13px] font-medium text-foreground"
               />
-
-              <a href="#reviews" className="text-[10px] font-mono uppercase tracking-widest text-accent hover:underline">See reviews →</a>
+              {product.reviews > 0 && (
+                <a href="#reviews" className="hover:text-foreground">
+                  {product.reviews.toLocaleString()} {product.reviews === 1 ? "review" : "reviews"}
+                </a>
+              )}
+              {socialProof && socialProof.sold > 0 && (
+                <>
+                  <span aria-hidden className="text-muted-foreground/50">•</span>
+                  <span>{formatSold(socialProof.sold)} sold</span>
+                </>
+              )}
             </div>
-            {product.reviews > 0 && product.ratingSource && product.ratingSource !== "customer_reviews" && (
-              <p className="-mt-2 mb-4 text-[11px] text-muted-foreground/70">Based on customer and imported reviews</p>
-            )}
 
-            {/* subtle gradient separator */}
-            <div aria-hidden className="h-px w-full mb-3 bg-gradient-to-r from-border/0 via-border/70 to-border/0" />
-
-
-            {/* Premium animated price block */}
-            {currencyReady ? (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="mb-3"
-              >
-                <div className="flex items-baseline gap-3 sm:gap-4 flex-wrap">
-                  <span className="fom-price-current text-4xl sm:text-5xl font-display tracking-tight">{format(effectivePrice)}</span>
+            {/* 4. Price block — spacious, no card */}
+            <div className="mt-6">
+              {currencyReady ? (
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <span className="fom-price-current text-[34px] sm:text-4xl font-display tracking-tight leading-none">
+                    {format(effectivePrice)}
+                  </span>
                   {originalPrice && originalPrice > effectivePrice && (
-                    <span className="fom-price-compare text-base font-mono">{format(originalPrice)}</span>
+                    <>
+                      <span className="fom-price-compare text-base font-mono line-through text-muted-foreground/70">
+                        {format(originalPrice)}
+                      </span>
+                      {discountPct && (
+                        <span className="text-[13px] font-semibold text-accent">
+                          −{discountPct}%
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
-                {originalPrice && originalPrice > effectivePrice && (
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <p className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-widest text-accent">
-                      <Sparkles className="size-3.5" /> Save {format(originalPrice - effectivePrice)}
-                    </p>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 border border-destructive/30 text-destructive px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-widest">
-                      🔥 Limited Offer
-                    </span>
-                  </div>
-                )}
-              </motion.div>
-            ) : (
-              <div className="mb-4 space-y-2">
-                <span aria-hidden className="block h-11 sm:h-12 w-40 rounded-xl bg-white/[0.06] animate-pulse" />
-                <span aria-hidden className="block h-4 w-24 rounded bg-white/[0.05] animate-pulse" />
-              </div>
-            )}
-
-            {/* Real activity strip — only rendered when we have genuine data */}
-            {socialProof && (socialProof.sold > 0 || socialProof.views > 0) && (
-              <div className="mb-3 flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-widest">
-                {socialProof.sold > 0 && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-muted-foreground/90">
-                    <ShoppingBagIcon className="size-3 text-accent" /> {formatSold(socialProof.sold)} sold
-                  </span>
-                )}
-                {socialProof.views > 0 && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-muted-foreground/90">
-                    <Users className="size-3 text-accent" /> {formatSold(socialProof.views)} views
-                  </span>
-                )}
-              </div>
-            )}
+              ) : (
+                <div className="h-10 w-40 rounded-lg bg-white/[0.05] animate-pulse" />
+              )}
+              {isOOS ? (
+                <p className="mt-2 text-[13px] text-muted-foreground">Currently out of stock</p>
+              ) : lowStock ? (
+                <p className="mt-2 text-[13px] text-accent">Only {effectiveStock} left in stock</p>
+              ) : null}
+            </div>
 
             {isAdmin && (
               <Suspense fallback={null}>
@@ -963,232 +941,120 @@ function ProductPage() {
               </Suspense>
             )}
 
-
-
-            <div className="flex flex-wrap items-center gap-2 mb-4 text-[10px] font-mono uppercase tracking-widest">
-
-              {isOOS ? (
-                <span className="px-2.5 py-1 rounded-full bg-muted text-muted-foreground">Out of stock</span>
-              ) : lowStock ? (
-                <span className="px-2.5 py-1 rounded-full bg-accent/15 text-accent flex items-center gap-1.5">
-                  <span className="size-1.5 rounded-full bg-accent animate-pulse" /> Only {effectiveStock} left
-                </span>
-              ) : (
-                <span className="px-2.5 py-1 rounded-full bg-accent/10 text-accent flex items-center gap-1.5">
-                  <CheckCircle2 className="size-3" /> In stock
-                </span>
-              )}
-              
-            </div>
-
-            {/* Variants — fully dynamic, data-driven, adaptive selector */}
+            {/* 5. Variants */}
             {variants.length > 0 && (
-              <VariantSelector variants={variants} selectedId={variantId} onSelect={setVariantId} />
+              <div className="mt-6">
+                <VariantSelector variants={variants} selectedId={variantId} onSelect={setVariantId} />
+              </div>
             )}
 
-            {/* Premium purchase panel — unique FoundOurMarket design.
-                Compact glass card: two-button CTA row (Add to Cart morphs into a
-                quantity selector after a successful add) + trust strip at the
-                base. GPU-friendly (no backdrop blur). */}
-            <div ref={inlinePurchaseRef} className="mb-4 rounded-[20px] border border-white/10 bg-card/60 p-3 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.6)] sm:p-3.5">
-              {/* CTA row — Add to Cart (morphs into quantity selector) + Buy Now */}
-              <div className="grid grid-cols-2 gap-2.5">
-
-                {showQtySelector ? (
-                  <div
-                    key="qty"
-                    role="group"
-                    aria-label="Quantity in cart"
-                    className="inline-flex h-[54px] items-center justify-between rounded-2xl border border-accent/40 bg-white/[0.03] px-1 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-200 will-change-transform"
-                  >
-                    <button
-                      onClick={decCartQty}
-                      aria-label={cartQty <= 1 ? "Remove from cart" : "Decrease quantity"}
-                      className="grid size-11 place-items-center rounded-xl text-foreground/80 transition-colors hover:text-accent active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    >
-                      <Minus className="size-4" />
-                    </button>
-                    <span aria-live="polite" className="min-w-8 text-center font-mono text-sm font-semibold tabular-nums">{cartQty}</span>
-                    <button
-                      onClick={incCartQty}
-                      aria-label="Increase quantity"
-                      className="grid size-11 place-items-center rounded-xl text-foreground/80 transition-colors hover:text-accent active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    >
-                      <Plus className="size-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    key="add"
-                    onClick={handleAdd}
-                    disabled={isOOS || addState !== "idle"}
-                    aria-label={isOOS ? "Notify me when available" : "Add to cart"}
-                    className="inline-flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] px-3 text-sm font-bold text-black shadow-[var(--shadow-ember)] transition-transform active:scale-[0.97] disabled:opacity-60 motion-safe:animate-in motion-safe:fade-in duration-200 will-change-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-                  >
-                    {isOOS ? (
-                      "Notify Me"
-                    ) : addState === "loading" ? (
-                      <><Loader2 className="size-4 animate-spin" /> Adding…</>
-                    ) : addState === "success" ? (
-                      <span className="inline-flex items-center gap-2 motion-safe:animate-in motion-safe:zoom-in-75 duration-200"><Check className="size-4" strokeWidth={3} /> Added</span>
-                    ) : (
-                      <><ShoppingCart className="size-4" strokeWidth={2.5} /> Add to Cart</>
-                    )}
-                  </button>
-                )}
-                <Link
-                  to="/cart"
-                  onClick={handleBuyNow}
-                  aria-disabled={isOOS}
-                  aria-label={isOOS ? "Out of stock" : "Buy now"}
-                  className={`inline-flex h-[54px] items-center justify-center gap-2 rounded-2xl border border-accent/60 bg-white/[0.04] px-3 text-sm font-bold text-foreground transition-all hover:border-accent hover:bg-accent/10 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${isOOS ? "pointer-events-none opacity-50" : ""}`}
+            {/* 6–8. Quantity + CTAs — no card wrapper, just spacing */}
+            <div ref={inlinePurchaseRef} className="mt-6 grid grid-cols-2 gap-2.5">
+              {showQtySelector ? (
+                <div
+                  role="group"
+                  aria-label="Quantity in cart"
+                  className="inline-flex h-[54px] items-center justify-between rounded-2xl border border-accent/40 bg-transparent px-1"
                 >
-                  {isOOS ? (
-                    "Out of stock"
-                  ) : buyState === "loading" ? (
-                    <><Loader2 className="size-4 animate-spin text-accent" /> Preparing…</>
-                  ) : (
-                    <><Zap className="size-4 text-accent" strokeWidth={2.5} /> Buy Now</>
-                  )}
-                </Link>
-              </div>
-
-
-              {/* Trust strip */}
-              <div className="mt-3 flex items-center gap-3 overflow-x-auto pt-2.5 text-[11px] text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <span className="inline-flex shrink-0 items-center gap-1.5"><Truck className="size-3.5 text-accent/80" /> Free Delivery</span>
-                <span aria-hidden className="h-3 w-px shrink-0 bg-white/10" />
-                <span className="inline-flex shrink-0 items-center gap-1.5"><Lock className="size-3.5 text-accent/80" /> Secure Checkout</span>
-                <span aria-hidden className="h-3 w-px shrink-0 bg-white/10" />
-                <span className="inline-flex shrink-0 items-center gap-1.5"><RotateCcw className="size-3.5 text-accent/80" /> Easy Returns</span>
-              </div>
-            </div>
-
-            {/* Premium Information Hub — one tabbed card replacing the separate
-                Delivery, Offers, Seller and Warranty sections. */}
-            <div className="mb-4 rounded-2xl border border-border bg-card/50 overflow-hidden">
-              <div role="tablist" aria-label="Product information" className="flex border-b border-border/60">
-                {([
-                  { id: "delivery", label: "Delivery", icon: Truck },
-                  { id: "offers", label: "Offers", icon: Sparkles },
-                  { id: "seller", label: "Seller", icon: Users },
-                  { id: "warranty", label: "Warranty", icon: Shield },
-                ] as const).map((t) => (
                   <button
-                    key={t.id}
-                    role="tab"
-                    aria-selected={infoTab === t.id}
-                    onClick={() => setInfoTab(t.id)}
-                    className={`flex-1 min-h-11 flex items-center justify-center gap-1.5 px-1 py-2.5 text-[11px] font-mono uppercase tracking-widest transition-colors ${infoTab === t.id ? "text-accent border-b-2 border-accent bg-accent/[0.06]" : "text-muted-foreground hover:text-foreground"}`}
+                    onClick={decCartQty}
+                    aria-label={cartQty <= 1 ? "Remove from cart" : "Decrease quantity"}
+                    className="grid size-11 place-items-center rounded-xl text-foreground/80 transition-colors hover:text-accent active:scale-90"
                   >
-                    <t.icon className="hidden sm:block size-3.5 shrink-0" />
-                    <span>{t.label}</span>
-
+                    <Minus className="size-4" />
                   </button>
-                ))}
-              </div>
-              <div className="p-4 min-h-[7.5rem]">
-                {infoTab === "delivery" && (
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="size-9 rounded-full grid place-items-center bg-accent/10 text-accent shrink-0">
-                        <Truck className="size-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{unitShipping <= 0 ? "Free delivery" : `Shipping ${format(unitShipping)}`}</p>
-                        <p className="text-xs text-muted-foreground">{deliveryWindow ? <>Arrives <span className="text-foreground">{deliveryWindow}</span> · 5–10 business days</> : "Arrives in 5–10 business days"}</p>
-                      </div>
-                      <Link to="/track" className="ml-auto text-[10px] font-mono uppercase tracking-widest text-accent hover:underline shrink-0">Track</Link>
-                    </div>
-                    <Link to="/returns" className="flex items-center gap-2.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors">
-                      <RotateCcw className="size-4 text-accent shrink-0" />
-                      {product.returnEligible ? `${product.returnWindowDays}-day easy returns` : "No returns on this item"}
-                    </Link>
-                  </div>
-                )}
-                {infoTab === "offers" && (
-                  <div className="space-y-2.5 text-sm">
-                    {discountPct && originalPrice ? (
-                      <>
-                        <p className="inline-flex items-center gap-1.5 font-mono font-semibold uppercase tracking-widest text-accent text-xs">
-                          <Sparkles className="size-3.5" /> Save {format(originalPrice - effectivePrice)} ({discountPct}% off)
-                        </p>
-                        <p className="text-xs text-muted-foreground">Limited-time price. No coupon required — discount applied at checkout.</p>
-                      </>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">No active offers right now. Secure checkout with buyer protection on every order.</p>
-                    )}
-                  </div>
-                )}
-                {infoTab === "seller" && <SellerTrustCard product={product} />}
-                {infoTab === "warranty" && (
-                  <div className="space-y-2.5 text-sm">
-                    <Link to="/buyer-protection" className="flex items-center gap-2.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors">
-                      <Shield className="size-4 text-accent shrink-0" /> Buyer Protection on every order
-                    </Link>
-                    <p className="text-xs text-muted-foreground">{product.returnEligible ? `Covered by a ${product.returnWindowDays}-day return window and full refund support.` : "Full refund support if your item doesn't arrive as described."}</p>
-                  </div>
-                )}
-              </div>
+                  <span aria-live="polite" className="min-w-8 text-center font-mono text-sm font-semibold tabular-nums">{cartQty}</span>
+                  <button
+                    onClick={incCartQty}
+                    aria-label="Increase quantity"
+                    className="grid size-11 place-items-center rounded-xl text-foreground/80 transition-colors hover:text-accent active:scale-90"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleAdd}
+                  disabled={isOOS || addState !== "idle"}
+                  aria-label={isOOS ? "Notify me when available" : "Add to cart"}
+                  className="inline-flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,oklch(0.80_0.18_58),oklch(0.68_0.20_42))] px-3 text-sm font-bold text-black shadow-[var(--shadow-ember)] transition-transform active:scale-[0.97] disabled:opacity-60"
+                >
+                  {isOOS ? "Notify Me"
+                    : addState === "loading" ? (<><Loader2 className="size-4 animate-spin" /> Adding…</>)
+                    : addState === "success" ? (<><Check className="size-4" strokeWidth={3} /> Added</>)
+                    : (<><ShoppingCart className="size-4" strokeWidth={2.5} /> Add to Cart</>)}
+                </button>
+              )}
+              <Link
+                to="/cart"
+                onClick={handleBuyNow}
+                aria-disabled={isOOS}
+                aria-label={isOOS ? "Out of stock" : "Buy now"}
+                className={`inline-flex h-[54px] items-center justify-center gap-2 rounded-2xl border border-border bg-transparent px-3 text-sm font-bold text-foreground transition-all hover:border-accent/60 hover:bg-accent/5 active:scale-[0.97] ${isOOS ? "pointer-events-none opacity-50" : ""}`}
+              >
+                {isOOS ? "Out of stock"
+                  : buyState === "loading" ? (<><Loader2 className="size-4 animate-spin" /> Preparing…</>)
+                  : (<><Zap className="size-4" strokeWidth={2.5} /> Buy Now</>)}
+              </Link>
             </div>
 
+            {/* 9. Shipping & Returns — one clean 2×2 grid, subtle */}
+            <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 rounded-2xl border border-border/70 bg-card/30 p-4">
+              <div className="flex items-center gap-2.5 text-[13px]">
+                <Truck className="size-4 text-muted-foreground shrink-0" />
+                <span className="text-foreground">{unitShipping <= 0 ? "Free shipping" : `Ships from ${format(unitShipping)}`}</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-[13px]">
+                <RotateCcw className="size-4 text-muted-foreground shrink-0" />
+                <span className="text-foreground">{product.returnEligible ? `${product.returnWindowDays}-day returns` : "No returns"}</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-[13px]">
+                <Lock className="size-4 text-muted-foreground shrink-0" />
+                <span className="text-foreground">Secure payment</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-[13px]">
+                <CheckCircle2 className={`size-4 shrink-0 ${isOOS ? "text-muted-foreground" : "text-accent"}`} />
+                <span className="text-foreground">{isOOS ? "Out of stock" : "In stock"}</span>
+              </div>
+              {deliveryWindow && !isOOS && (
+                <p className="col-span-2 mt-1 text-[12px] text-muted-foreground">
+                  Estimated delivery <span className="text-foreground">{deliveryWindow}</span>
+                </p>
+              )}
+            </div>
 
-            {/* Product Highlights */}
-            {product.features?.length > 0 && (
-              <ProductInfoPanel title="Highlights" icon={Sparkles}>
-                <ul className="space-y-2.5">
+            {/* 10. Description — collapsible (handled inside component) */}
+            <section className="mt-8">
+              <h2 className="mb-3 text-[18px] font-semibold tracking-tight">Description</h2>
+              <ProductDescription description={product.description} />
+              {product.features?.length > 0 && (
+                <ul className="mt-4 space-y-2">
                   {product.features.map((feat: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-relaxed">
-                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
+                    <li key={i} className="flex items-start gap-2.5 text-[15px] text-muted-foreground leading-relaxed">
+                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
                       <span>{feat}</span>
                     </li>
                   ))}
                 </ul>
-              </ProductInfoPanel>
-            )}
+              )}
+            </section>
 
-            <div className="mb-4">
-              <ProductDescription description={product.description} />
-            </div>
-
+            {/* 11. Specifications — clean divided table, no card */}
             {product.specifications && Object.keys(product.specifications).length > 0 && (
-              <Accordion title="Specifications" icon={Layers} open={openSection === "specs"} onToggle={() => toggleSection("specs")}>
-                <dl className="divide-y divide-border/60">
+              <section className="mt-8">
+                <h2 className="mb-3 text-[18px] font-semibold tracking-tight">Specifications</h2>
+                <dl className="divide-y divide-border/60 border-y border-border/60">
                   {Object.entries(product.specifications as Record<string, string>).map(([k, v]) => (
-                    <div key={k} className="flex gap-4 py-2.5 text-sm">
-                      <dt className="w-1/3 shrink-0 text-muted-foreground">{k}</dt>
-                      <dd className="flex-1 text-foreground">{v}</dd>
+                    <div key={k} className="grid grid-cols-[40%_60%] gap-4 py-3 text-[14px]">
+                      <dt className="text-muted-foreground">{k}</dt>
+                      <dd className="text-foreground">{v}</dd>
                     </div>
                   ))}
                 </dl>
-              </Accordion>
+              </section>
             )}
-
-            {product.attributes && Object.keys(product.attributes).length > 0 && (
-              <Accordion title="Details" icon={Info} open={openSection === "details"} onToggle={() => toggleSection("details")}>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(product.attributes as Record<string, string>).map(([k, v]) => (
-                    <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 px-3 py-1 text-xs">
-                      <span className="text-muted-foreground">{k}:</span>
-                      <span className="text-foreground">{v}</span>
-                    </span>
-                  ))}
-                </div>
-              </Accordion>
-            )}
-
-
 
             <div data-product-sticky-threshold aria-hidden className="h-px w-full" />
-
-
-
-
-            <Accordion title="FAQ" icon={Sparkles} open={openSection === "faq"} onToggle={() => toggleSection("faq")}>
-              <ProductFaqList slug={product.slug} />
-            </Accordion>
-
-
           </motion.div>
         </div>
       </div>
@@ -1226,68 +1092,36 @@ function ProductPage() {
         </div>
       </LazyMount>
 
-      <PDPRecommendations
-        product={product}
-        alsoBoughtSlugs={alsoViewed}
-      />
-
-      <LazyMount minHeight={160}>
-        <RecommendedForYou excludeSlug={product.slug} />
-      </LazyMount>
-      <LazyMount minHeight={160}>
-        <RecentlyViewed excludeSlug={product.slug} />
-      </LazyMount>
-      <LazyMount minHeight={160}>
-        <ProductComparison product={product} />
-      </LazyMount>
-
-      <LazyMount minHeight={120}>
-        <TrustGuarantee />
-      </LazyMount>
-      
-
-      {/* Sticky mobile purchase dock — only mounts once the page is fully
-          initialized and the user has scrolled past the hero. */}
+      {/* Sticky mobile purchase dock — compact: Price + Add to Cart + Buy Now. */}
       {showPurchaseDock && (
-      <div ref={layoutMetrics.setCtaElement} data-app-cta data-product-cta data-floating-control className="sm:hidden fixed inset-x-0 z-[var(--z-floating-controls)] h-[var(--product-dock-height)] px-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300 ease-out will-change-transform" style={{ bottom: "var(--product-dock-bottom)", transform: navHidden ? "translateY(calc(var(--product-dock-bottom) - var(--mobile-safe-bottom)))" : "translateY(0)", transition: "transform 200ms ease-out", transitionDuration: "200ms" }}>
-        <div className="flex h-full items-center gap-2.5 rounded-[24px] border border-white/10 px-3" style={{ background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))", backdropFilter: "blur(32px) saturate(160%)", WebkitBackdropFilter: "blur(32px) saturate(160%)", boxShadow: "0 24px 60px -18px oklch(0 0 0 / 0.9)" }}>
-          <button
-            onClick={() => toggleWishlist(product.slug)}
-            aria-label={inWishlist(product.slug) ? "Remove from wishlist" : "Add to wishlist"}
-            className={`size-12 grid place-items-center rounded-full border shrink-0 transition-all active:scale-90 ${inWishlist(product.slug) ? "bg-accent/20 border-accent/50 text-accent" : "bg-white/[0.03] border-white/10 text-white/60 hover:text-accent"}`}
-          >
-            <Heart className={`size-[18px] ${inWishlist(product.slug) ? "fill-accent" : ""}`} />
-          </button>
-          <img
-            src={thumbDisplaySrc(activeMedia?.url || product.image)}
-            alt=""
-            aria-hidden
-            className="size-12 shrink-0 rounded-xl object-cover border border-white/10"
-          />
-          <div className="flex flex-col justify-center leading-none min-w-0 shrink">
-            <span className="text-[8px] font-mono uppercase tracking-widest text-muted-foreground/70">Total</span>
+      <div ref={layoutMetrics.setCtaElement} data-app-cta data-product-cta data-floating-control className="sm:hidden fixed inset-x-0 z-[var(--z-floating-controls)] h-[var(--product-dock-height)] px-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 duration-300 ease-out will-change-transform" style={{ bottom: "var(--product-dock-bottom)", transform: navHidden ? "translateY(calc(var(--product-dock-bottom) - var(--mobile-safe-bottom)))" : "translateY(0)", transition: "transform 200ms ease-out" }}>
+        <div className="flex h-full items-center gap-2 rounded-[24px] border border-white/10 px-3" style={{ background: "linear-gradient(135deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02))", backdropFilter: "blur(32px) saturate(160%)", WebkitBackdropFilter: "blur(32px) saturate(160%)", boxShadow: "0 24px 60px -18px oklch(0 0 0 / 0.9)" }}>
+          <div className="flex flex-col justify-center leading-none min-w-0 pr-1">
             {currencyReady ? (
-              <span className="flex items-baseline gap-1.5">
-                <span className="fom-price-current text-base font-display whitespace-nowrap">{format(effectivePrice * Math.max(1, cartQty))}</span>
-              </span>
+              <>
+                <span className="fom-price-current text-[17px] font-display whitespace-nowrap leading-tight">{format(effectivePrice * Math.max(1, cartQty))}</span>
+                {originalPrice && originalPrice > effectivePrice && (
+                  <span className="text-[11px] font-mono line-through text-muted-foreground/70 leading-tight">{format(originalPrice * Math.max(1, cartQty))}</span>
+                )}
+              </>
             ) : (
-              <span aria-hidden className="mt-0.5 h-4 w-14 rounded bg-white/[0.08] animate-pulse" />
+              <span aria-hidden className="h-4 w-14 rounded bg-white/[0.08] animate-pulse" />
             )}
           </div>
-
           <button
             onClick={handleAdd}
             disabled={isOOS}
-            className="size-12 shrink-0 grid place-items-center bg-white/[0.04] border border-white/10 text-white/70 rounded-full transition-all active:scale-90 disabled:opacity-40 hover:text-accent"
+            className="flex-1 min-h-[48px] inline-flex items-center justify-center gap-1.5 rounded-2xl border border-border bg-transparent text-foreground font-semibold text-[13px] transition-all active:scale-[0.97] disabled:opacity-40"
             aria-label={isOOS ? "Notify me" : "Add to cart"}
           >
-            <ShoppingBagIcon className="size-[18px]" />
+            <ShoppingCart className="size-4" strokeWidth={2.5} />
+            <span>Add</span>
           </button>
           <Link
             to="/cart"
             onClick={handleBuyNow}
             aria-disabled={isOOS}
-            className={`flex-1 grid place-items-center min-h-[52px] bg-accent text-accent-foreground font-bold rounded-2xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-[var(--shadow-ember)] ${isOOS ? "pointer-events-none opacity-50" : ""}`}
+            className={`flex-1 grid place-items-center min-h-[48px] bg-accent text-accent-foreground font-bold rounded-2xl text-[13px] uppercase tracking-widest transition-all active:scale-95 shadow-[var(--shadow-ember)] ${isOOS ? "pointer-events-none opacity-50" : ""}`}
           >
             {isOOS ? "Notify Me" : "Buy Now"}
           </Link>
@@ -1403,97 +1237,4 @@ function ProductPageSkeleton() {
   );
 }
 
-
-
-function Accordion({
-  title,
-  icon: Icon,
-  defaultOpen = false,
-  children,
-  open: openProp,
-  onToggle,
-}: {
-  title: string;
-  icon: typeof Package;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-  /** When provided, the accordion is controlled (used for single-open groups). */
-  open?: boolean;
-  onToggle?: () => void;
-}) {
-  const [openState, setOpen] = useState(defaultOpen);
-  const open = openProp !== undefined ? openProp : openState;
-  const toggle = () => (onToggle ? onToggle() : setOpen((v) => !v));
-  return (
-    <div className="border-t border-border mt-4 pt-4">
-      <button
-        onClick={toggle}
-        className="flex items-center justify-between w-full group"
-        aria-expanded={open}
-      >
-        <span className="flex items-center gap-2 text-sm font-medium">
-          <Icon className="size-4 text-accent" /> {title}
-        </span>
-        <ChevronDown className={`size-4 text-muted-foreground transition-transform group-hover:text-accent ${open ? "rotate-180" : ""}`} />
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="pt-4">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-
-function Faq({ q, a }: { q: string; a: string }) {
-  return (
-    <div>
-      <p className="font-medium flex items-center gap-2"><Clock className="size-3.5 text-accent" /> {q}</p>
-      <p className="text-muted-foreground mt-1 leading-relaxed whitespace-pre-wrap break-words">{a}</p>
-    </div>
-  );
-}
-
-function ProductFaqList({ slug }: { slug: string }) {
-  const [faqs, setFaqs] = useState<ProductFaq[] | null>(null);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    setFaqs(null);
-    setError(false);
-    fetchActiveFaqs(slug)
-      .then((data) => active && setFaqs(data))
-      .catch(() => active && setError(true));
-    return () => {
-      active = false;
-    };
-  }, [slug]);
-
-  if (error) {
-    return <p className="text-sm text-muted-foreground">Couldn't load FAQs right now.</p>;
-  }
-  if (faqs === null) {
-    return <p className="text-sm text-muted-foreground">Loading FAQs…</p>;
-  }
-  if (faqs.length === 0) {
-    return <p className="text-sm text-muted-foreground">No FAQs available.</p>;
-  }
-  return (
-    <div className="space-y-4 text-sm">
-      {faqs.map((f) => (
-        <Faq key={f.id} q={f.question} a={f.answer} />
-      ))}
-    </div>
-  );
-}
 
