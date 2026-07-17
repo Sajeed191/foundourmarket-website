@@ -24,7 +24,7 @@ import { useCompare } from "@/hooks/use-compare";
 import { useWishlist } from "@/lib/wishlist";
 import { fetchProductImages, fetchProductVariants, fetchProduct, discountPercent, type ProductImage, type ProductVariant } from "@/lib/products";
 import { fetchPublicColorGalleries, type VariantImage } from "@/lib/variant-images";
-import { computeBadges, DEFAULT_BADGE_SETTINGS } from "@/lib/badges";
+import { useProductBadges } from "@/lib/use-product-badges";
 import { ProductBadge, ProductBadgeAnchor } from "@/components/ui/ProductBadge";
 import { fetchActiveFaqs, type ProductFaq } from "@/lib/product-faqs";
 import { recordEvent, fetchFBT, fetchAlsoViewed } from "@/lib/personalization";
@@ -599,12 +599,13 @@ function ProductPage() {
   // Unified hero badge list — merchandising badges plus the sale/low-stock
   // pills, in priority order. The gallery renders at most 2 and collapses the
   // rest into a single "+N" pill so badges never overlap or clip.
+  const assignedPdpBadges = useProductBadges(product.slug);
   const heroBadges: { key: string; label: string; emoji?: string; className: string }[] = [
-    ...computeBadges(product, DEFAULT_BADGE_SETTINGS, 4).map((b) => ({
-      key: b.key,
+    ...assignedPdpBadges.map((b) => ({
+      key: b.badgeKey,
       label: b.label,
       emoji: b.emoji,
-      className: b.className,
+      className: "",
     })),
     ...(lowStock
       ? [{ key: "lowstock", label: `Only ${effectiveStock} left`, emoji: "⚠️", className: "bg-destructive/90 text-destructive-foreground" }]

@@ -20,10 +20,11 @@ import { logActivity } from "@/components/admin/AdminShell";
 import { CollapsibleModule } from "@/components/admin/CollapsibleModule";
 import { ProductFaqManager } from "@/components/admin/ProductFaqManager";
 import { ProductBadgeManager } from "@/components/admin/ProductBadgeManager";
-import { assignBadge, assignNewBadge } from "@/lib/use-product-badges";
+import { assignBadge, assignNewBadge, useProductBadges } from "@/lib/use-product-badges";
 import { createFaq } from "@/lib/product-faqs";
 import { useStoreSettings } from "@/lib/use-store-settings";
-import { computeBadges, DEFAULT_BADGE_SETTINGS, MAX_CARD_BADGES } from "@/lib/badges";
+// Preview badges come from the live Badge Manager assignment set below —
+// no computed fallbacks. Badge Manager is the single source of truth.
 import { ProductMediaGallery, ProductVideoUploader } from "@/components/admin/product-editor/media-fields";
 import {
   FeaturesBuilder, KeyValueBuilder, RichTextEditor, kvToArray, arrayToKv,
@@ -350,6 +351,8 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
   const [attrsRows, setAttrsRows] = useState<KV[]>(kvToArray(row?.attributes));
   // Stable slug used to group media (images/video) before the row is saved.
   const mediaSlug = form.slug.trim() || slugify(form.name);
+  // Live Badge Manager assignments for the preview card (empty for unsaved products).
+  const previewAssignedBadges = useProductBadges(mediaSlug);
 
   // ---- Duplicate Detection (Marketplace Intelligence) ----
   // Perceptual hash of the primary image, recomputed when the image changes.
@@ -820,7 +823,14 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
               giftIdea: form.gift_idea, recommended: form.recommended, homepageHero: form.homepage_hero,
               premium: false, fastSelling: false, editorsChoice: false,
             } as unknown as Product;
-            const badges = computeBadges(previewProduct, DEFAULT_BADGE_SETTINGS, MAX_CARD_BADGES);
+            const badges = previewAssignedBadges.map((b) => ({
+              key: b.badgeKey,
+              label: b.label,
+              emoji: b.emoji,
+              backgroundColor: b.backgroundColor || b.color,
+              textColor: b.textColor,
+              borderColor: b.borderColor,
+            }));
             const cardWidth = previewDevice === "mobile" ? "w-44" : "w-64";
 
             return (
@@ -845,8 +855,16 @@ export function ProductEditorModal({ row, categories, nextSort, onClose, onSaved
                         : <Package className="size-8 text-muted-foreground" />}
                       <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
                         {badges.map((b) => (
-                          <span key={b.key} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold ${b.className}`}>
-                            <span>{b.emoji}</span>{b.label}
+                          <span
+                            key={b.key}
+                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold"
+                            style={{
+                              backgroundColor: b.backgroundColor,
+                              color: b.textColor,
+                              border: b.borderColor ? `1px solid ${b.borderColor}` : undefined,
+                            }}
+                          >
+                            {b.emoji && <span>{b.emoji}</span>}{b.label}
                           </span>
                         ))}
                       </div>

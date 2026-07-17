@@ -8,7 +8,6 @@ import { useCart } from "@/lib/cart";
 import { useBuyNow } from "@/lib/use-buy-now";
 import { useWishlist } from "@/lib/wishlist";
 
-import { computeBadges, DEFAULT_BADGE_SETTINGS } from "@/lib/badges";
 import { useProductBadges, badgeAnimationClass } from "@/lib/use-product-badges";
 import { StarRating } from "@/components/site/StarRating";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,29 +46,17 @@ export function WishlistCard({
   const lowStock =
     product.stockQuantity > 0 && product.stockQuantity <= (product.lowStockThreshold || 10);
 
-  const badgeSettings = DEFAULT_BADGE_SETTINGS;
   const assigned = useProductBadges(product.slug);
-  const badges = assigned.length
-    ? assigned.map((b) => ({
-        key: b.badgeKey,
-        label: b.label,
-        emoji: b.emoji,
-        backgroundColor: b.backgroundColor || b.color,
-        textColor: b.textColor,
-        borderColor: b.borderColor,
-        animation: b.animation,
-        className: undefined as string | undefined,
-      }))
-    : computeBadges(product, badgeSettings).map((b) => ({
-        key: b.key,
-        label: b.label,
-        emoji: b.emoji,
-        backgroundColor: undefined as string | undefined,
-        textColor: undefined as string | undefined,
-        borderColor: undefined as string | undefined,
-        animation: undefined as string | undefined,
-        className: b.className,
-      }));
+  const badges = assigned.map((b) => ({
+    key: b.badgeKey,
+    label: b.label,
+    emoji: b.emoji,
+    backgroundColor: b.backgroundColor || b.color,
+    textColor: b.textColor,
+    borderColor: b.borderColor,
+    animation: b.animation,
+    className: undefined as string | undefined,
+  }));
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
