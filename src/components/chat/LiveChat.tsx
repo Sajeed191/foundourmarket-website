@@ -194,6 +194,8 @@ export function LiveChat() {
     setGreetVisible(false);
     try { sessionStorage.setItem("fom_chat_greet_seen", "1"); } catch { /* noop */ }
   }, []);
+  useEffect(() => { dismissGreetingRef.current = dismissGreeting; }, [dismissGreeting]);
+
 
 
   const scrollRef = useRef<HTMLDivElement>(null);
