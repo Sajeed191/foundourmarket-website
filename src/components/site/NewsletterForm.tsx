@@ -23,7 +23,7 @@ const emailSchema = z
 const REQUEST_TIMEOUT_MS = 12000;
 const SUBSCRIBE_URL = "/api/public/newsletter/subscribe";
 
-type Status = "idle" | "loading" | "success";
+type Status = "idle" | "loading" | "success" | "pending";
 
 async function postWithTimeout(body: Record<string, unknown>) {
   const controller = new AbortController();
