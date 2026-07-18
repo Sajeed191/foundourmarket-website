@@ -29,6 +29,19 @@ type Subscriber = {
   updated_at: string;
   subscribed_at: string | null;
   unsubscribed_at: string | null;
+  abuse_status: string | null;
+  flag_reason: string | null;
+  browser: string | null;
+};
+
+type AuditRow = {
+  id: string;
+  action: string;
+  target_email: string | null;
+  reason: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  actor_email: string | null;
 };
 
 type SortKey = "created_at" | "email" | "status";
@@ -39,11 +52,23 @@ const PAGE_SIZE = 25;
 async function fetchSubscribers(): Promise<Subscriber[]> {
   const { data, error } = await supabase
     .from("newsletter_subscribers")
-    .select("id,email,status,source,source_page,device,country,created_at,updated_at,subscribed_at,unsubscribed_at")
+    // Use a broad select so newly-added columns are picked up without regenerating types.
+    .select("*")
     .order("created_at", { ascending: false })
     .limit(5000);
   if (error) throw error;
-  return (data as Subscriber[]) ?? [];
+  return (data as unknown as Subscriber[]) ?? [];
+}
+
+async function fetchAudit(): Promise<AuditRow[]> {
+  const { data, error } = await supabase
+    // Not in generated types yet — cast through unknown.
+    .from("newsletter_audit_log" as never)
+    .select("id,action,target_email,reason,metadata,created_at,actor_email")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return (data as unknown as AuditRow[]) ?? [];
 }
 
 function toCSV(rows: Subscriber[]): string {
