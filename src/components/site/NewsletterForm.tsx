@@ -180,7 +180,10 @@ export function NewsletterForm({ source = "homepage" }: { source?: string }) {
     if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur();
   };
 
-  if (status === "success") {
+  if (status === "success" || status === "pending") {
+    const msg = status === "pending"
+      ? "Almost there — check your inbox to confirm."
+      : "You're in. Watch your inbox.";
     return (
       <div
         role="status"
@@ -188,7 +191,7 @@ export function NewsletterForm({ source = "homepage" }: { source?: string }) {
         className="max-w-md mx-auto flex items-center justify-center gap-3 px-6 py-4 rounded-full border border-accent/40 bg-accent/10 text-sm"
       >
         <Check className="size-4 text-accent shrink-0" />
-        <span className="truncate">You're in. Watch your inbox.</span>
+        <span className="truncate">{msg}</span>
       </div>
     );
   }
