@@ -307,7 +307,7 @@ export function LiveChat() {
             data-floating-control
             aria-label="Support options"
             onClick={() => setMenuOpen(true)}
-            className="group grid place-items-center size-14 rounded-full bg-gradient-to-br from-primary to-[oklch(0.62_0.17_35)] text-primary-foreground shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-[transform,box-shadow] duration-200 active:scale-95 hover:shadow-[0_12px_32px_-10px_var(--color-primary,theme(colors.orange.500))] motion-safe:animate-orb-breathe"
+            className="group relative grid place-items-center size-14 rounded-full bg-gradient-to-br from-primary to-[oklch(0.62_0.17_35)] text-primary-foreground shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-[transform,box-shadow] duration-200 active:scale-95 hover:shadow-[0_12px_32px_-10px_var(--color-primary,theme(colors.orange.500))] motion-safe:animate-orb-breathe"
           >
             <Headset className="size-6" strokeWidth={1.8} />
             {unread > 0 && (
