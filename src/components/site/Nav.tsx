@@ -314,7 +314,7 @@ export function Nav() {
         className="fixed inset-x-0 top-0 z-[99999] px-[max(0.75rem,var(--mobile-safe-left))] sm:px-4 pt-[calc(var(--mobile-safe-top)+0.4rem)] sm:pt-[calc(var(--mobile-safe-top)+0.6rem)]"
       >
         <nav
-          className={`max-w-7xl lg:max-w-[1480px] mx-auto rounded-none glass-strong bg-gradient-to-b from-white/[0.06] to-black/30 shadow-[0_10px_40px_-18px_oklch(0_0_0/0.7)] ring-1 lg:shadow-[0_16px_60px_-22px_oklch(0_0_0/0.75),0_0_50px_-22px_oklch(0.74_0.19_49/0.4)] ${
+          className={`max-w-7xl lg:max-w-[1480px] mx-auto rounded-[26px] glass-strong bg-gradient-to-b from-white/[0.06] to-black/30 shadow-[0_10px_40px_-18px_oklch(0_0_0/0.7)] ring-1 lg:shadow-[0_16px_60px_-22px_oklch(0_0_0/0.75),0_0_50px_-22px_oklch(0.74_0.19_49/0.4)] ${
             compact
               ? "bg-black/60 ring-accent/[0.14] shadow-[0_14px_46px_-18px_oklch(0_0_0/0.8),0_0_22px_-14px_oklch(0.74_0.19_49/0.3)]"
               : "ring-white/10 lg:ring-white/15"
