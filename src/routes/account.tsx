@@ -832,7 +832,7 @@ function PremiumSupportCard({
         <span aria-hidden className={`grid place-items-center size-10 sm:size-12 shrink-0 rounded-[14px] sm:rounded-2xl ring-1 ${t.text} ${t.ring} ${t.bg} transition-[transform,box-shadow] duration-200 group-hover:scale-[1.03] ${t.glow}`}>
           <Icon className="size-[18px] sm:size-[22px]" strokeWidth={1.7} />
         </span>
-        <p className="text-[13.5px] sm:text-[15px] font-semibold leading-tight tracking-tight text-foreground truncate">{title}</p>
+        <p className="min-w-0 flex-1 text-[13px] sm:text-[15px] font-semibold leading-tight tracking-tight text-foreground truncate">{title}</p>
       </div>
       <p className="mt-2 text-[11px] sm:text-[12px] leading-snug text-muted-foreground line-clamp-2">{desc}</p>
 
