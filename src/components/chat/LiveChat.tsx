@@ -1076,7 +1076,3 @@ function DraggableOrb({
   );
 }
 
-    </div>
-  );
-}
-
