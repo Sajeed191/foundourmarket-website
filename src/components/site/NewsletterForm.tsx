@@ -110,7 +110,7 @@ export function NewsletterForm({ source = "homepage" }: { source?: string }) {
       // Success / duplicate
       if (httpStatus === 200 && data.ok) {
         setEmail("");
-        setStatus("success");
+        setStatus(((data as { pending?: boolean }).pending) ? "pending" : "success");
         setSuccessPulse(true);
         window.setTimeout(() => setSuccessPulse(false), 1400);
         const isDuplicate = !!data.duplicate;
