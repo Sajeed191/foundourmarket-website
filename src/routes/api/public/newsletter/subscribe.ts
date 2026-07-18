@@ -82,6 +82,8 @@ type Settings = {
   min_submit_ms: number;
   abuse_threshold: number;
   block_minutes: number;
+  double_opt_in_enabled: boolean;
+  verification_ttl_hours: number;
 };
 
 const DEFAULTS: Settings = {
@@ -98,6 +100,8 @@ const DEFAULTS: Settings = {
   min_submit_ms: 750,
   abuse_threshold: 50,
   block_minutes: 60,
+  double_opt_in_enabled: false,
+  verification_ttl_hours: 24,
 };
 
 async function loadAdmin() {

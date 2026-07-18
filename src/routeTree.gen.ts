@@ -136,6 +136,7 @@ import { Route as PagesShippingRouteImport } from './routes/pages.shipping'
 import { Route as PagesReturnsRouteImport } from './routes/pages.returns'
 import { Route as PagesSlugRouteImport } from './routes/pages.$slug'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
+import { Route as NewsletterVerifiedRouteImport } from './routes/newsletter.verified'
 import { Route as HelpSellerAssistanceRouteImport } from './routes/help.seller-assistance'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
@@ -828,6 +829,11 @@ const OrdersIdRoute = OrdersIdRouteImport.update({
   path: '/orders/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewsletterVerifiedRoute = NewsletterVerifiedRouteImport.update({
+  id: '/newsletter/verified',
+  path: '/newsletter/verified',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpSellerAssistanceRoute = HelpSellerAssistanceRouteImport.update({
   id: '/seller-assistance',
   path: '/seller-assistance',
@@ -1211,6 +1217,7 @@ export interface FileRoutesByFullPath {
   '/category/$slug': typeof CategorySlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/help/seller-assistance': typeof HelpSellerAssistanceRoute
+  '/newsletter/verified': typeof NewsletterVerifiedRoute
   '/orders/$id': typeof OrdersIdRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/pages/returns': typeof PagesReturnsRoute
@@ -1385,6 +1392,7 @@ export interface FileRoutesByTo {
   '/category/$slug': typeof CategorySlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/help/seller-assistance': typeof HelpSellerAssistanceRoute
+  '/newsletter/verified': typeof NewsletterVerifiedRoute
   '/orders/$id': typeof OrdersIdRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/pages/returns': typeof PagesReturnsRoute
@@ -1561,6 +1569,7 @@ export interface FileRoutesById {
   '/category/$slug': typeof CategorySlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/help/seller-assistance': typeof HelpSellerAssistanceRoute
+  '/newsletter/verified': typeof NewsletterVerifiedRoute
   '/orders/$id': typeof OrdersIdRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/pages/returns': typeof PagesReturnsRoute
@@ -1738,6 +1747,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/email/unsubscribe'
     | '/help/seller-assistance'
+    | '/newsletter/verified'
     | '/orders/$id'
     | '/pages/$slug'
     | '/pages/returns'
@@ -1912,6 +1922,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/email/unsubscribe'
     | '/help/seller-assistance'
+    | '/newsletter/verified'
     | '/orders/$id'
     | '/pages/$slug'
     | '/pages/returns'
@@ -2087,6 +2098,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/email/unsubscribe'
     | '/help/seller-assistance'
+    | '/newsletter/verified'
     | '/orders/$id'
     | '/pages/$slug'
     | '/pages/returns'
@@ -2259,6 +2271,7 @@ export interface RootRouteChildren {
   AdminProductSlugRoute: typeof AdminProductSlugRouteWithChildren
   CategorySlugRoute: typeof CategorySlugRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  NewsletterVerifiedRoute: typeof NewsletterVerifiedRoute
   OrdersIdRoute: typeof OrdersIdRoute
   PagesSlugRoute: typeof PagesSlugRoute
   PagesReturnsRoute: typeof PagesReturnsRoute
@@ -3180,6 +3193,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrdersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/newsletter/verified': {
+      id: '/newsletter/verified'
+      path: '/newsletter/verified'
+      fullPath: '/newsletter/verified'
+      preLoaderRoute: typeof NewsletterVerifiedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/help/seller-assistance': {
       id: '/help/seller-assistance'
       path: '/seller-assistance'
@@ -3709,6 +3729,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminProductSlugRoute: AdminProductSlugRouteWithChildren,
   CategorySlugRoute: CategorySlugRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  NewsletterVerifiedRoute: NewsletterVerifiedRoute,
   OrdersIdRoute: OrdersIdRoute,
   PagesSlugRoute: PagesSlugRoute,
   PagesReturnsRoute: PagesReturnsRoute,
