@@ -59,6 +59,7 @@ import {
   accountLockedTemplate,
   suspiciousActivityTemplate,
 } from './security-emails'
+import { newsletterVerifyTemplate } from './newsletter-verify'
 import {
   returnRequestedTemplate,
   returnApprovedTemplate,
