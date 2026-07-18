@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactElement } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Instagram, Facebook, Youtube, Send, MessageCircle,
