@@ -658,7 +658,7 @@ function ProductPage() {
 
         <div data-product-hero className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
           {/* ─────── Gallery — edge-to-edge on mobile, no card ─────── */}
-          <div className="lg:sticky lg:top-24 lg:self-start -mx-4 sm:mx-0">
+          <div className="lg:sticky lg:top-24 lg:self-start -mx-4 sm:mx-0 rounded-none">
             <div
               data-product-image
               onTouchStart={(e) => { (e.currentTarget as unknown as { _sx: number })._sx = e.touches[0].clientX; }}
@@ -670,7 +670,8 @@ function ProductPage() {
                 const next = dx < 0 ? activeImg + 1 : activeImg - 1;
                 setActiveImg(Math.max(0, Math.min(galleryMedia.length - 1, next)));
               }}
-              className="relative w-full aspect-[4/5] sm:aspect-square overflow-hidden bg-white/[0.02] group touch-pan-y rounded-none"
+              className="relative w-full aspect-[4/5] sm:aspect-square overflow-hidden bg-white/[0.02] group touch-pan-y !rounded-none"
+              style={{ borderRadius: 0 }}
             >
 
               {activeMedia?.kind === "video" ? (
