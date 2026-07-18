@@ -469,11 +469,11 @@ export function Footer() {
           )}
 
           {/* ── 11 · Copyright ───────────────────────────────── */}
-          <section className="mt-6 flex flex-col items-center gap-1 border-t border-white/[0.05] pt-4 text-center">
+          <section className="mt-4 flex flex-col items-center gap-1 border-t border-white/[0.05] pt-4 pb-2 text-center">
             <p className="text-[12.5px] text-white/40">
               © 2026 <span className="font-semibold text-white/95"><BrandName /></span>
             </p>
-            <p className="text-[11px] text-white/35">Trusted Marketplace for Everyone.</p>
+            <p className="text-[11px] text-white/40">Connecting Buyers &amp; Sellers Worldwide.</p>
             <nav className="mt-1 flex gap-3 text-[11px] text-white/40">
               <Link to="/privacy" className={`transition-colors ${EASE} hover:text-white`}>Privacy</Link>
               <span className="text-white/20">•</span>
