@@ -137,25 +137,63 @@ export function LiveChat() {
   const [availability, setAvailability] = useState<Availability>("away");
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState<ChatOrder | null>(null);
-  // Hide the floating orb when scrolling down, reveal when scrolling up.
+  // Peek the floating orb ~80% off-screen while the user scrolls down, and
+  // restore after they scroll up OR pause scrolling for 600ms. Suppressed
+  // while the user is actively dragging the orb.
   const [orbHidden, setOrbHidden] = useState(false);
+  const draggingRef = useRef(false);
   useEffect(() => {
     let lastY = window.scrollY;
     let ticking = false;
+    let idleTimer: number | undefined;
+    const scheduleRestore = () => {
+      if (idleTimer) window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        if (!draggingRef.current) setOrbHidden(false);
+      }, 600);
+    };
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         const y = window.scrollY;
-        if (y > lastY + 8 && y > 120) setOrbHidden(true);
-        else if (y < lastY - 8) setOrbHidden(false);
+        if (!draggingRef.current) {
+          if (y > lastY + 8 && y > 120) setOrbHidden(true);
+          else if (y < lastY - 8) setOrbHidden(false);
+        }
         lastY = y;
         ticking = false;
+        scheduleRestore();
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (idleTimer) window.clearTimeout(idleTimer);
+    };
   }, []);
+
+  // First-visit greeting bubble — shown once per browser session, 6s after
+  // mount, auto-dismissed after 5s or as soon as the widget is opened.
+  const [greetVisible, setGreetVisible] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (sessionStorage.getItem("fom_chat_greet_seen") === "1") return;
+    } catch { /* noop */ }
+    const showT = window.setTimeout(() => setGreetVisible(true), 6000);
+    return () => window.clearTimeout(showT);
+  }, []);
+  useEffect(() => {
+    if (!greetVisible) return;
+    const hideT = window.setTimeout(() => setGreetVisible(false), 5000);
+    return () => window.clearTimeout(hideT);
+  }, [greetVisible]);
+  const dismissGreeting = useCallback(() => {
+    setGreetVisible(false);
+    try { sessionStorage.setItem("fom_chat_greet_seen", "1"); } catch { /* noop */ }
+  }, []);
+
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
