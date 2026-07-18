@@ -284,13 +284,13 @@ export function Footer() {
                 <Link
                   key={label}
                   to={to as never}
-                  className={`group flex h-12 w-full items-center gap-2.5 rounded-2xl bg-white/[0.03] px-3 ring-1 ring-white/[0.06] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.4)] transition-all ${EASE} hover:bg-white/[0.05] hover:ring-accent/30 active:-translate-y-0.5 active:shadow-[0_8px_20px_-8px] active:shadow-accent/60 active:ring-accent/50`}
+                  className={`group flex h-12 w-full items-center gap-2.5 rounded-2xl bg-white/[0.03] px-3 ring-1 ring-white/[0.06] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.4)] transition-all ${EASE} hover:bg-white/[0.05] hover:ring-accent/30 active:-translate-y-0.5 active:bg-white/[0.07] active:ring-accent/50 active:shadow-[0_10px_22px_-8px] active:shadow-accent/60`}
                   style={{ borderRadius: 16 }}
                 >
                   <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent/12 text-accent ring-1 ring-accent/20">
                     <Icon className="size-3.5" strokeWidth={2} />
                   </span>
-                  <span className="text-[13px] font-medium text-white/90 group-hover:text-white truncate">
+                  <span className="text-[13px] font-medium text-white/90 group-hover:text-white truncate leading-none">
                     {label}
                   </span>
                 </Link>
