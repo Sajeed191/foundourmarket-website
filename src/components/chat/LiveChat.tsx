@@ -297,7 +297,7 @@ export function LiveChat() {
             <span
               aria-hidden
               className={`absolute -bottom-0.5 -right-1 flex size-2.5 rounded-full ring-2 ring-primary ${
-                availability === "online" ? "bg-emerald-400" : availability === "busy" ? "bg-amber-400" : "bg-muted-foreground"
+                availability === "online" ? "bg-emerald-400" : availability === "away" ? "bg-amber-400" : "bg-muted-foreground"
               }`}
             >
               {availability === "online" && (
