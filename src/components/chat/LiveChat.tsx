@@ -55,6 +55,7 @@ import {
   type OrderStage,
 } from "@/lib/chat-orders";
 import { BrandName } from "@/components/site/BrandName";
+import { FloatingSupportOrb } from "@/components/chat/FloatingSupportOrb";
 
 type Msg = CrispMessage;
 
