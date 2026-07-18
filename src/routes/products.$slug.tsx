@@ -705,7 +705,8 @@ function ProductPage() {
                         if (primary && el.src !== primary) el.src = primary;
                         else if (product.image && el.src !== product.image) el.src = product.image;
                       }}
-                      className="absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-transform duration-700 group-hover:scale-[1.02]"
+                      className="absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-transform duration-700 group-hover:scale-[1.02] !rounded-none"
+                      style={{ borderRadius: 0 }}
                     />
                   );
                 })()
