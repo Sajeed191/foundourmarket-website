@@ -790,3 +790,29 @@ function EmojiButton({ onPick }: { onPick: (e: string) => void }) {
     </div>
   );
 }
+
+function ChatMenuOption({
+  icon: Icon, label, desc, onClick,
+}: {
+  icon: typeof Headset;
+  label: string;
+  desc?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-left transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+    >
+      <span className="size-10 rounded-xl grid place-items-center shrink-0 bg-accent/10 text-accent">
+        <Icon className="size-5" strokeWidth={1.8} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium leading-tight">{label}</span>
+        {desc && <span className="block text-[11px] text-muted-foreground mt-0.5 truncate">{desc}</span>}
+      </span>
+    </button>
+  );
+}
+
