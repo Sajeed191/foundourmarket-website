@@ -40,7 +40,7 @@ export const Route = createFileRoute('/api/public/newsletter/verify')({
 
         if (r.status === 'subscribed' && r.verified_at) {
           // Token already consumed; still show friendly success.
-          done('already')
+          return done('already')
         }
 
         const expiresAt = r.verification_expires_at ? new Date(r.verification_expires_at) : null
@@ -71,7 +71,7 @@ export const Route = createFileRoute('/api/public/newsletter/verify')({
           } as never)
         } catch { /* never break */ }
 
-        done('ok')
+        return done('ok')
       },
     },
   },
