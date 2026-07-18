@@ -83,7 +83,7 @@ function writeSnap(s: SnapStore) {
 const GRID = "grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5";
 
 /** Mounts children only once they scroll near the viewport (below-the-fold lazy). */
-function LazyMount({ children, minHeight = 0 }: { children: ReactNode; minHeight?: number }) {
+function LazyMount({ children, minHeight = 320 }: { children: ReactNode; minHeight?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [show, setShow] = useState(false);
   useEffect(() => {
