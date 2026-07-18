@@ -129,7 +129,8 @@ export function LiveChat() {
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const openRef = useRef(false);
-  useEffect(() => { openRef.current = open; if (open) { setUnread(0); dismissGreeting(); } }, [open, dismissGreeting]);
+  const dismissGreetingRef = useRef<() => void>(() => {});
+  useEffect(() => { openRef.current = open; if (open) { setUnread(0); dismissGreetingRef.current(); } }, [open]);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [operatorTyping, setOperatorTyping] = useState(false);
