@@ -129,7 +129,8 @@ export function LiveChat() {
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const openRef = useRef(false);
-  useEffect(() => { openRef.current = open; if (open) setUnread(0); }, [open]);
+  const dismissGreetingRef = useRef<() => void>(() => {});
+  useEffect(() => { openRef.current = open; if (open) { setUnread(0); dismissGreetingRef.current(); } }, [open]);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [operatorTyping, setOperatorTyping] = useState(false);
@@ -137,25 +138,65 @@ export function LiveChat() {
   const [availability, setAvailability] = useState<Availability>("away");
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState<ChatOrder | null>(null);
-  // Hide the floating orb when scrolling down, reveal when scrolling up.
+  // Peek the floating orb ~80% off-screen while the user scrolls down, and
+  // restore after they scroll up OR pause scrolling for 600ms. Suppressed
+  // while the user is actively dragging the orb.
   const [orbHidden, setOrbHidden] = useState(false);
+  const draggingRef = useRef(false);
   useEffect(() => {
     let lastY = window.scrollY;
     let ticking = false;
+    let idleTimer: number | undefined;
+    const scheduleRestore = () => {
+      if (idleTimer) window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        if (!draggingRef.current) setOrbHidden(false);
+      }, 600);
+    };
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         const y = window.scrollY;
-        if (y > lastY + 8 && y > 120) setOrbHidden(true);
-        else if (y < lastY - 8) setOrbHidden(false);
+        if (!draggingRef.current) {
+          if (y > lastY + 8 && y > 120) setOrbHidden(true);
+          else if (y < lastY - 8) setOrbHidden(false);
+        }
         lastY = y;
         ticking = false;
+        scheduleRestore();
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (idleTimer) window.clearTimeout(idleTimer);
+    };
   }, []);
+
+  // First-visit greeting bubble — shown once per browser session, 6s after
+  // mount, auto-dismissed after 5s or as soon as the widget is opened.
+  const [greetVisible, setGreetVisible] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (sessionStorage.getItem("fom_chat_greet_seen") === "1") return;
+    } catch { /* noop */ }
+    const showT = window.setTimeout(() => setGreetVisible(true), 6000);
+    return () => window.clearTimeout(showT);
+  }, []);
+  useEffect(() => {
+    if (!greetVisible) return;
+    const hideT = window.setTimeout(() => setGreetVisible(false), 5000);
+    return () => window.clearTimeout(hideT);
+  }, [greetVisible]);
+  const dismissGreeting = useCallback(() => {
+    setGreetVisible(false);
+    try { sessionStorage.setItem("fom_chat_greet_seen", "1"); } catch { /* noop */ }
+  }, []);
+  useEffect(() => { dismissGreetingRef.current = dismissGreeting; }, [dismissGreeting]);
+
+
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -284,12 +325,16 @@ export function LiveChat() {
       {/* Minimal floating support orb — 56px, orange gradient, gentle pulse. */}
       {!open && !isProductPage && (
         <DraggableOrb
-          orbHidden={orbHidden}
+          peek={orbHidden}
           availability={availability}
           unread={unread}
-          onTap={() => setMenuOpen(true)}
+          onTap={() => { dismissGreeting(); setMenuOpen(true); }}
+          onDragChange={(d) => { draggingRef.current = d; if (d) dismissGreeting(); }}
+          greetVisible={greetVisible}
+          onDismissGreeting={dismissGreeting}
         />
       )}
+
 
 
       {/* Premium bottom sheet — support quick actions */}
@@ -817,23 +862,32 @@ function ChatMenuOption({
 // to the default (bottom-right, above bottom nav) on every mount / refresh.
 // Snaps half-hidden to the nearest screen edge on release.
 const ORB_SIZE = 56;
-const EDGE_MARGIN = 16;
+const EDGE_MARGIN = 24;
+const NAV_CLEARANCE_FALLBACK = 110;
 const HIDDEN_RATIO = 0.4; // 40% of the orb sits off-screen after snap
+const PEEK_RATIO = 0.8;   // 80% of the orb slides down while scrolling
 const TAP_THRESHOLD = 8;
 
 function DraggableOrb({
-  orbHidden,
+  peek,
   availability,
   unread,
   onTap,
+  onDragChange,
+  greetVisible,
+  onDismissGreeting,
 }: {
-  orbHidden: boolean;
+  peek: boolean;
   availability: Availability;
   unread: number;
   onTap: () => void;
+  onDragChange: (dragging: boolean) => void;
+  greetVisible: boolean;
+  onDismissGreeting: () => void;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const posRef = useRef({ x: 0, y: 0 });
+  const peekRef = useRef(false);
   const dragRef = useRef({
     active: false,
     moved: false,
@@ -853,12 +907,10 @@ function DraggableOrb({
     const cs = getComputedStyle(document.documentElement);
     const headerH = parseFloat(cs.getPropertyValue("--app-header-height")) || 64;
     const navRaw = cs.getPropertyValue("--floating-bottom-offset").trim();
-    // Fallback nav clearance ~ 104px
-    let navH = 104;
+    let navH = NAV_CLEARANCE_FALLBACK;
     if (navRaw) {
-      // Rough parse — if it's a plain px value use it; otherwise measure below
       const n = parseFloat(navRaw);
-      if (Number.isFinite(n) && !navRaw.includes("calc")) navH = n;
+      if (Number.isFinite(n) && !navRaw.includes("calc")) navH = Math.max(n, NAV_CLEARANCE_FALLBACK);
     }
     const safeTop = headerH + EDGE_MARGIN;
     const safeBottom = vh - navH - ORB_SIZE;
@@ -870,10 +922,11 @@ function DraggableOrb({
   const applyTransform = useCallback((x: number, y: number, scale = 1, withTransition = false) => {
     const el = wrapRef.current;
     if (!el) return;
+    const peekY = peekRef.current && !dragRef.current.active ? ORB_SIZE * PEEK_RATIO : 0;
     el.style.transition = withTransition
-      ? "transform 260ms cubic-bezier(0.22, 1, 0.36, 1)"
+      ? "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)"
       : "none";
-    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+    el.style.transform = `translate3d(${x}px, ${y + peekY}px, 0) scale(${scale})`;
   }, []);
 
   // Initial default position: bottom-right, above bottom nav.
@@ -899,6 +952,13 @@ function DraggableOrb({
     };
   }, [applyTransform, getBounds]);
 
+  // React to smart-scroll peek toggles without touching drag state.
+  useEffect(() => {
+    peekRef.current = peek;
+    if (dragRef.current.active) return;
+    applyTransform(posRef.current.x, posRef.current.y, 1, true);
+  }, [peek, applyTransform]);
+
   const flushFrame = useCallback(() => {
     dragRef.current.rafId = 0;
     applyTransform(dragRef.current.nextX, dragRef.current.nextY, 1.05, false);
@@ -916,13 +976,12 @@ function DraggableOrb({
       d.baseY = posRef.current.y;
       d.nextX = posRef.current.x;
       d.nextY = posRef.current.y;
+      onDragChange(true);
       try {
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-      } catch {
-        /* noop */
-      }
+      } catch { /* noop */ }
     },
-    [],
+    [onDragChange],
   );
 
   const onPointerMove = useCallback(
@@ -950,22 +1009,20 @@ function DraggableOrb({
       d.active = false;
       try {
         (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch {
-        /* noop */
-      }
+      } catch { /* noop */ }
       if (d.rafId) {
         cancelAnimationFrame(d.rafId);
         d.rafId = 0;
       }
 
       if (!d.moved) {
-        // Treat as tap — restore scale, fire onTap.
         applyTransform(posRef.current.x, posRef.current.y, 1, true);
+        onDragChange(false);
         onTap();
         return;
       }
 
-      // Snap half-hidden to nearest edge.
+      // Snap half-hidden to nearest edge (spring-y easing).
       const b = getBounds();
       const centerX = d.nextX + ORB_SIZE / 2;
       const hiddenPx = ORB_SIZE * HIDDEN_RATIO;
@@ -974,14 +1031,15 @@ function DraggableOrb({
       const snapY = Math.min(Math.max(d.nextY, b.minY), b.maxY);
       posRef.current = { x: snapX, y: snapY };
       applyTransform(snapX, snapY, 1, true);
+      onDragChange(false);
     },
-    [applyTransform, getBounds, onTap],
+    [applyTransform, getBounds, onTap, onDragChange],
   );
 
   return (
     <div
       ref={wrapRef}
-      className={`fixed left-0 top-0 z-[60] flex items-end gap-2 transition-opacity duration-200 ${orbHidden ? "orb-hidden" : ""}`}
+      className="fixed left-0 top-0 z-[60] flex items-end gap-2"
       style={{ willChange: "transform", touchAction: "none" }}
     >
       <button
@@ -992,7 +1050,7 @@ function DraggableOrb({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className="group relative grid place-items-center size-14 rounded-full bg-gradient-to-br from-primary to-[oklch(0.62_0.17_35)] text-primary-foreground shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-[box-shadow] duration-200 hover:shadow-[0_12px_32px_-10px_var(--color-primary,theme(colors.orange.500))] motion-safe:animate-orb-breathe touch-none select-none"
+        className="group relative grid place-items-center size-14 rounded-full bg-gradient-to-br from-primary to-[oklch(0.62_0.17_35)] text-primary-foreground shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-[box-shadow] duration-200 hover:shadow-[0_12px_32px_-10px_var(--color-primary,theme(colors.orange.500))] motion-safe:animate-orb-pulse-periodic touch-none select-none"
       >
         <Headset className="size-6" strokeWidth={1.8} />
         {unread > 0 && (
@@ -1001,9 +1059,18 @@ function DraggableOrb({
           </span>
         )}
       </button>
-      {/* availability marker retained for a11y parity; visual pill removed while draggable */}
+      {greetVisible && (
+        <button
+          type="button"
+          onClick={onDismissGreeting}
+          className="absolute -top-3 right-[calc(100%+8px)] -translate-y-full whitespace-nowrap rounded-2xl border border-white/10 bg-card/95 px-3 py-2 text-[12px] font-medium text-foreground shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-1 duration-300"
+          aria-label="Dismiss greeting"
+        >
+          👋 Hi! Need help finding something?
+        </button>
+      )}
       <span className="sr-only">
-        {availability === "online" ? "Live chat online" : "Live chat away"}
+        {availability === "online" ? "Live chat online" : availability === "away" ? "Live chat away" : "Live chat offline"}
       </span>
     </div>
   );
