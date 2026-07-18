@@ -23,60 +23,15 @@ const DEFAULTS: StoreSettings = {
   free_shipping_threshold_usd: null,
 };
 
-/**
- * Live store settings (COD toggle, prepaid discount).
- * Public read via RLS; updates stream in realtime so checkout reflects
- * admin changes instantly.
- */
-export function useStoreSettings() {
-  const [settings, setSettings] = useState<StoreSettings>(DEFAULTS);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const { data } = await supabase
-        .from("store_settings_public")
-        .select("cod_enabled,prepaid_discount_percent,shipping_mode,free_shipping_enabled,flat_shipping_inr,flat_shipping_usd,free_shipping_threshold_inr,free_shipping_threshold_usd")
-        .limit(1)
-        .maybeSingle();
-      if (active && data) {
-        setSettings(normalizeSettings(data));
-      }
-      if (active) setLoading(false);
-    };
-    load();
-
-    // Live updates stream from the store_settings base table, which is
-    // staff-only. Anonymous visitors are no longer permitted to subscribe to
-    // the store-settings-live topic, so only wire up realtime for signed-in
-    // sessions (customers still get fresh values on initial load via the view).
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active || !data.session) return;
-      channel = supabase
-        .channel("store-settings-live")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "store_settings" },
-          (payload) => {
-            const row = payload.new as Partial<StoreSettings> | null;
-            if (row) {
-              setSettings(normalizeSettings(row));
-            }
-          },
-        )
-        .subscribe();
-    });
-
-    return () => {
-      active = false;
-      if (channel) supabase.removeChannel(channel);
-    };
-  }, []);
-
-  return { settings, loading };
-}
+// Module-level cache + inflight so every consumer across the app shares a
+// single request, even when many components mount simultaneously on a route
+// change. Refresh in the background past the SWR TTL and on window focus.
+let cache: StoreSettings | null = null;
+let cacheLoadedAt = 0;
+let inflight: Promise<StoreSettings> | null = null;
+const subscribers = new Set<(s: StoreSettings) => void>();
+const SWR_TTL = 60_000;
+let realtimeBound = false;
 
 function normalizeSettings(row: Record<string, unknown>): StoreSettings {
   const mode = row.shipping_mode;
@@ -93,4 +48,68 @@ function normalizeSettings(row: Record<string, unknown>): StoreSettings {
     free_shipping_threshold_inr: row.free_shipping_threshold_inr == null ? null : Number(row.free_shipping_threshold_inr),
     free_shipping_threshold_usd: row.free_shipping_threshold_usd == null ? null : Number(row.free_shipping_threshold_usd),
   };
+}
+
+function load(force = false): Promise<StoreSettings> {
+  if (cache && !force) return Promise.resolve(cache);
+  if (inflight) return inflight;
+  inflight = (async () => {
+    const { data } = await supabase
+      .from("store_settings_public")
+      .select("cod_enabled,prepaid_discount_percent,shipping_mode,free_shipping_enabled,flat_shipping_inr,flat_shipping_usd,free_shipping_threshold_inr,free_shipping_threshold_usd")
+      .limit(1)
+      .maybeSingle();
+    const s = data ? normalizeSettings(data) : (cache ?? DEFAULTS);
+    cache = s;
+    cacheLoadedAt = Date.now();
+    inflight = null;
+    subscribers.forEach((fn) => fn(s));
+    return s;
+  })();
+  return inflight;
+}
+
+function bindRealtime() {
+  if (realtimeBound || typeof window === "undefined") return;
+  realtimeBound = true;
+  // Only admin sessions can read from store_settings base table. Customer
+  // sessions never received these events; we now rely on focus/visibility
+  // refresh for everyone and only wire realtime for signed-in sessions.
+  void supabase.auth.getSession().then(({ data }) => {
+    if (!data.session) return;
+    supabase
+      .channel("store-settings-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "store_settings" }, () => {
+        cache = null;
+        void load(true);
+      })
+      .subscribe();
+  });
+  const onFocus = () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    if (Date.now() - cacheLoadedAt > SWR_TTL) void load(true);
+  };
+  window.addEventListener("focus", onFocus);
+  document.addEventListener("visibilitychange", onFocus);
+}
+
+/**
+ * Live store settings (COD toggle, prepaid discount).
+ * Public read via RLS; updates stream in realtime so checkout reflects
+ * admin changes instantly.
+ */
+export function useStoreSettings() {
+  const [settings, setSettings] = useState<StoreSettings>(cache ?? DEFAULTS);
+  const [loading, setLoading] = useState(!cache);
+
+  useEffect(() => {
+    let active = true;
+    bindRealtime();
+    const sub = (s: StoreSettings) => { if (active) setSettings(s); };
+    subscribers.add(sub);
+    load().then((s) => { if (active) { setSettings(s); setLoading(false); } });
+    return () => { active = false; subscribers.delete(sub); };
+  }, []);
+
+  return { settings, loading };
 }
