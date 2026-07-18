@@ -7,6 +7,7 @@ import {
   ArrowUp,
 } from "lucide-react";
 import { BrandName } from "@/components/site/BrandName";
+import { NewsletterForm } from "@/components/site/NewsletterForm";
 
 /* ---------- Data ---------- */
 
