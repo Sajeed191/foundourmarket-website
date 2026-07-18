@@ -572,6 +572,8 @@ function NewsletterAdmin() {
         )}
       </div>
 
+      <NewsletterSecurityPanel />
+
       {/* Audit log — collapsible, lazy-loaded */}
       <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02]">
         <button
