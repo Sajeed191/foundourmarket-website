@@ -288,7 +288,7 @@ export function LiveChat() {
           data-floating-control
           aria-label="Open live support chat"
           onClick={() => setOpen(true)}
-          className={`group fixed right-4 z-[60] flex items-center gap-2.5 h-14 rounded-full pl-4 pr-5 bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground shadow-[0_10px_30px_-8px_var(--color-primary,theme(colors.orange.500))] ring-1 ring-white/15 backdrop-blur-sm transition-[transform,box-shadow,padding,width] duration-300 ease-out active:scale-95 hover:shadow-[0_14px_44px_-10px_var(--color-primary,theme(colors.orange.500))] motion-safe:animate-orb-breathe ${orbHidden ? "orb-hidden" : ""} w-14 [&_.orb-label]:hidden hover:w-auto hover:[&_.orb-label]:inline motion-safe:[&:not(:hover)]:animate-orb-peek`}
+          className={`group fixed right-4 z-[60] flex items-center gap-2.5 h-14 rounded-full pl-4 pr-5 bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground shadow-[0_10px_30px_-8px_var(--color-primary,theme(colors.orange.500))] ring-1 ring-white/15 backdrop-blur-sm transition-[transform,box-shadow,padding,width] duration-300 ease-out active:scale-95 hover:shadow-[0_14px_44px_-10px_var(--color-primary,theme(colors.orange.500))] motion-safe:animate-orb-breathe ${orbHidden ? "orb-hidden" : ""} w-14 [&_.orb-label]:hidden hover:w-auto hover:[&_.orb-label]:inline`}
           style={{ bottom: "calc(var(--floating-bottom-offset))" }}
         >
           <span className="relative grid place-items-center size-6 shrink-0">
