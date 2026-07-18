@@ -384,11 +384,11 @@ export function Footer() {
           <Divider />
 
           {/* ── 7 · Trust features 2×2 — 2 line clamp ────────── */}
-          <section className="grid grid-cols-2 gap-2">
+          <section className="grid grid-cols-2 gap-2 auto-rows-fr">
             {TRUST_FEATURES.map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
-                className="flex items-start gap-2.5 rounded-2xl bg-white/[0.045] px-3 py-2.5 ring-1 ring-white/[0.06]"
+                className={`flex h-full items-start gap-3 rounded-2xl bg-white/[0.045] px-3 py-3 ring-1 ring-white/[0.05] transition-all ${EASE} hover:ring-accent/30 hover:shadow-[0_0_18px_-8px] hover:shadow-accent/50`}
                 style={{ borderRadius: 16 }}
               >
                 <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent/12 text-accent ring-1 ring-accent/20 mt-0.5">
@@ -397,7 +397,7 @@ export function Footer() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[12.5px] font-semibold text-white/95 leading-tight">{title}</p>
                   <p
-                    className="mt-0.5 text-[11px] text-white/55 leading-snug overflow-hidden"
+                    className="mt-1 text-[11px] text-white/65 leading-snug overflow-hidden"
                     style={{
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
