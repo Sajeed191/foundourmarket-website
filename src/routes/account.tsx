@@ -494,9 +494,8 @@ function AccountPage() {
           </motion.section>
         )}
 
-        {/* 5 — ACCOUNT UTILITIES */}
+        {/* 5 — SUPPORT & ACCOUNT (premium hub) */}
         <motion.section {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.12 }} className="pt-1">
-          <SectionHeader title="Support & account" eyebrow="Utilities" />
           <AccountUtilities user={user} avatarUrl={avatarUrl} firstName={firstName} signOut={signOut} />
         </motion.section>
 
