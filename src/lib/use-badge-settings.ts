@@ -50,20 +50,34 @@ function settingsToRow(s: BadgeSettings) {
 }
 
 let cache: BadgeSettings | null = null;
+let cacheLoadedAt = 0;
 let inflight: Promise<BadgeSettings> | null = null;
 const subscribers = new Set<(s: BadgeSettings) => void>();
 let realtimeBound = false;
+const SWR_TTL = 60_000;
 
 function bindRealtime() {
   if (realtimeBound || typeof window === "undefined") return;
   realtimeBound = true;
-  supabase
-    .channel("rt-badge-settings")
-    .on("postgres_changes", { event: "*", schema: "public", table: "badge_settings" }, () => {
-      cache = null;
-      load(true);
-    })
-    .subscribe();
+  // Only admins write to badge_settings; customer sessions never received
+  // realtime events, so only bind for signed-in sessions. Everyone else
+  // refreshes on focus/visibility past the SWR TTL.
+  void supabase.auth.getSession().then(({ data }) => {
+    if (!data.session) return;
+    supabase
+      .channel("rt-badge-settings")
+      .on("postgres_changes", { event: "*", schema: "public", table: "badge_settings" }, () => {
+        cache = null;
+        load(true);
+      })
+      .subscribe();
+  });
+  const onFocus = () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    if (Date.now() - cacheLoadedAt > SWR_TTL) load(true);
+  };
+  window.addEventListener("focus", onFocus);
+  document.addEventListener("visibilitychange", onFocus);
 }
 
 async function load(force = false): Promise<BadgeSettings> {
@@ -77,6 +91,7 @@ async function load(force = false): Promise<BadgeSettings> {
         .maybeSingle();
       const s = data ? rowToSettings(data as Row) : DEFAULT_BADGE_SETTINGS;
       cache = s;
+      cacheLoadedAt = Date.now();
       inflight = null;
       subscribers.forEach((fn) => fn(s));
       return s;

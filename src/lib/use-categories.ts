@@ -34,17 +34,31 @@ let inflight: Promise<Category[]> | null = null;
 const subscribers = new Set<(c: Category[]) => void>();
 let realtimeBound = false;
 
+let categoriesLoadedAt = 0;
 function bindRealtime() {
-  if (realtimeBound) return;
+  if (realtimeBound || typeof window === "undefined") return;
   realtimeBound = true;
-  supabase
-    .channel("categories-live")
-    .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => {
-      invalidateCategories();
-      if (allCache !== null) loadAllPublished(true);
-      if (adminCache !== null) loadAdminCategories(true);
-    })
-    .subscribe();
+  const refreshAll = () => {
+    invalidateCategories();
+    if (allCache !== null) loadAllPublished(true);
+    if (adminCache !== null) loadAdminCategories(true);
+  };
+  // Only staff mutate categories; customer sessions previously held an idle
+  // realtime channel for no benefit. Bind realtime only for signed-in
+  // sessions; anonymous visitors refresh on focus/visibility past the TTL.
+  void supabase.auth.getSession().then(({ data }) => {
+    if (!data.session) return;
+    supabase
+      .channel("categories-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => refreshAll())
+      .subscribe();
+  });
+  const onFocus = () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    if (Date.now() - categoriesLoadedAt > 60_000) refreshAll();
+  };
+  window.addEventListener("focus", onFocus);
+  document.addEventListener("visibilitychange", onFocus);
 }
 
 /** Storefront loader — only published, homepage-visible categories. */
@@ -60,6 +74,7 @@ export async function loadCategories(force = false): Promise<Category[]> {
         .order("sort_order", { ascending: true });
       const list = (data as Category[] | null) ?? [];
       cache = list;
+      categoriesLoadedAt = Date.now();
       inflight = null;
       subscribers.forEach((s) => s(list));
       return list;

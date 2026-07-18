@@ -203,6 +203,80 @@ export async function trackVisit(path: string): Promise<void> {
   void import("@/lib/ga4").then((m) => m.ga4PageView(path)).catch(() => {});
 }
 
+// Cache the current auth user id so trackEvent doesn't hit the network on
+// every call. supabase.auth.getUser() is a JWKS-validating call; for
+// high-frequency analytics we resolve it once and refresh only on sign-in /
+// sign-out via onAuthStateChange.
+let cachedUserId: string | null = null;
+let userIdResolved = false;
+async function getCurrentUserId(): Promise<string | null> {
+  if (userIdResolved) return cachedUserId;
+  try {
+    const { data } = await supabase.auth.getSession();
+    cachedUserId = data.session?.user?.id ?? null;
+  } catch {
+    cachedUserId = null;
+  }
+  userIdResolved = true;
+  return cachedUserId;
+}
+if (typeof window !== "undefined") {
+  supabase.auth.onAuthStateChange((_evt, session) => {
+    cachedUserId = session?.user?.id ?? null;
+    userIdResolved = true;
+  });
+}
+
+// Batch analytics_events inserts. Individual events used to fire one HTTP +
+// one INSERT per interaction; on busy pages (grid impressions, scroll depth,
+// hover) this dominated the DB write budget. We now coalesce into a single
+// batched INSERT flushed on an idle timer or when the buffer fills up.
+type PendingEvent = {
+  user_id: string | null;
+  session_id: string;
+  event: string;
+  path: string;
+  referrer: string | null;
+  product_slug: string | null;
+  value: number | null;
+  metadata: Record<string, unknown>;
+};
+const buffer: PendingEvent[] = [];
+const BATCH_MAX = 20;
+const BATCH_INTERVAL_MS = 1500;
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function flush() {
+  flushTimer = null;
+  if (!buffer.length) return;
+  const rows = buffer.splice(0, buffer.length);
+  try {
+    await supabase.from("analytics_events").insert(rows as never);
+  } catch {
+    /* swallow analytics errors — never block the storefront */
+  }
+}
+
+function scheduleFlush() {
+  if (buffer.length >= BATCH_MAX) {
+    if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+    void flush();
+    return;
+  }
+  if (flushTimer) return;
+  flushTimer = setTimeout(() => { void flush(); }, BATCH_INTERVAL_MS);
+}
+
+if (typeof window !== "undefined") {
+  // Best-effort flush before the tab unloads or is backgrounded so events
+  // aren't lost.
+  const finalFlush = () => { if (buffer.length) void flush(); };
+  window.addEventListener("pagehide", finalFlush);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") finalFlush();
+  });
+}
+
 /** Emit a domain analytics event (product_view, add_to_cart, purchase, …). */
 export async function trackEvent(
   event: string,
@@ -215,9 +289,9 @@ export async function trackEvent(
 ): Promise<void> {
   if (typeof window === "undefined") return;
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from("analytics_events").insert({
-      user_id: user?.id ?? null,
+    const uid = await getCurrentUserId();
+    buffer.push({
+      user_id: uid,
       session_id: sessionId().id,
       event,
       path: opts.path ?? window.location.pathname,
@@ -229,8 +303,9 @@ export async function trackEvent(
         device: deviceType(),
         visitor_id: visitorId(),
         ...(opts.metadata ?? {}),
-      } as never,
+      },
     });
+    scheduleFlush();
   } catch {
     /* swallow analytics errors */
   }
