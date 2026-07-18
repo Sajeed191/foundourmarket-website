@@ -10,6 +10,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { NewsletterSecurityPanel } from "@/components/admin/NewsletterSecurityPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin-newsletter")({
