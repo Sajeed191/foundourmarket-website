@@ -791,17 +791,33 @@ function UtilityCard({
   );
 }
 
-/* Minimal, premium support card — one icon, one title, one line, one CTA. */
-function MinimalSupportCard({
-  icon: Icon, title, desc, cta, onClick, lowMotion,
+/* ---------- Premium support card with tone-aware icon, metadata rows, and CTA ---------- */
+type CardTone = "accent" | "sky" | "emerald" | "violet";
+
+const TONE: Record<CardTone, { text: string; ring: string; bg: string; glow: string; border: string; ctaBorder: string; ctaHover: string }> = {
+  accent:   { text: "text-accent",         ring: "ring-accent/25",         bg: "bg-accent/[0.06]",         glow: "group-hover:shadow-[0_0_28px_-8px_var(--color-accent)]",  border: "hover:border-accent/25",         ctaBorder: "border-accent/40 text-accent",         ctaHover: "hover:bg-accent/10" },
+  sky:      { text: "text-sky-400",        ring: "ring-sky-400/25",        bg: "bg-sky-400/[0.06]",        glow: "group-hover:shadow-[0_0_28px_-8px_theme(colors.sky.400)]", border: "hover:border-sky-400/25",       ctaBorder: "border-sky-400/40 text-sky-400",       ctaHover: "hover:bg-sky-400/10" },
+  emerald:  { text: "text-emerald-400",    ring: "ring-emerald-400/25",    bg: "bg-emerald-400/[0.06]",    glow: "group-hover:shadow-[0_0_28px_-8px_theme(colors.emerald.400)]", border: "hover:border-emerald-400/25", ctaBorder: "border-emerald-400/40 text-emerald-400", ctaHover: "hover:bg-emerald-400/10" },
+  violet:   { text: "text-violet-400",     ring: "ring-violet-400/25",     bg: "bg-violet-400/[0.06]",     glow: "group-hover:shadow-[0_0_28px_-8px_theme(colors.violet.400)]", border: "hover:border-violet-400/25",  ctaBorder: "border-violet-400/40 text-violet-400", ctaHover: "hover:bg-violet-400/10" },
+};
+
+type MetaRow = { icon: typeof Package; label: string; value: string; valueClass?: string };
+
+function PremiumSupportCard({
+  tone, icon: Icon, title, desc, rows, chips, pills, cta, onClick, lowMotion,
 }: {
+  tone: CardTone;
   icon: typeof Package;
   title: string;
   desc: string;
+  rows?: MetaRow[];
+  chips?: string[];
+  pills?: { icon: typeof Package; label: string; tone: CardTone }[];
   cta: string;
   onClick: () => void;
   lowMotion: boolean;
 }) {
+  const t = TONE[tone];
   return (
     <motion.button
       type="button"
@@ -809,25 +825,72 @@ function MinimalSupportCard({
       whileHover={lowMotion ? undefined : { y: -2 }}
       whileTap={lowMotion ? undefined : { scale: 0.99 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      className="group relative h-full min-h-[200px] flex flex-col text-left rounded-[28px] p-5 sm:p-6 bg-white/[0.02] border border-white/[0.06] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.4)] transition-[border-color,box-shadow] duration-200 hover:border-accent/25 hover:shadow-[0_10px_30px_-14px_var(--color-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+      className={`group relative h-full flex flex-col text-left rounded-[24px] p-4 sm:p-5 bg-white/[0.02] border border-white/[0.06] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.4)] transition-[border-color,box-shadow] duration-200 ${t.border} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50`}
     >
-      <span
-        aria-hidden
-        className="grid place-items-center size-14 rounded-2xl text-accent ring-1 ring-accent/25 bg-accent/[0.04] transition-[transform,box-shadow] duration-200 group-hover:scale-[1.03] group-hover:shadow-[0_0_24px_-8px_var(--color-accent)]"
-      >
-        <Icon className="size-6" strokeWidth={1.6} />
-      </span>
+      {/* Header: icon + title/desc */}
+      <div className="flex items-start gap-3">
+        <span aria-hidden className={`grid place-items-center size-12 shrink-0 rounded-2xl ring-1 ${t.text} ${t.ring} ${t.bg} transition-[transform,box-shadow] duration-200 group-hover:scale-[1.03] ${t.glow}`}>
+          <Icon className="size-[22px]" strokeWidth={1.7} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[15px] font-semibold leading-tight tracking-tight text-foreground">{title}</p>
+          <p className="mt-1 text-[12px] leading-snug text-muted-foreground">{desc}</p>
+        </div>
+      </div>
 
-      <p className="mt-5 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{title}</p>
-      <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">{desc}</p>
+      {/* Divider */}
+      <div className="my-4 h-px w-full bg-white/[0.06]" />
 
-      <span className="mt-auto pt-5 inline-flex items-center gap-1 text-[12px] font-semibold text-accent">
+      {/* Metadata rows */}
+      {rows && rows.length > 0 && (
+        <ul className="space-y-2">
+          {rows.map((r) => (
+            <li key={r.label} className="flex items-center justify-between text-[12px]">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <r.icon className="size-3.5" strokeWidth={1.6} />
+                <span className="text-foreground/85">{r.label}</span>
+              </span>
+              <span className={`font-medium ${r.valueClass ?? "text-foreground"}`}>{r.value}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Chips row */}
+      {chips && chips.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {chips.map((c) => (
+            <span key={c} className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10.5px] font-medium text-foreground/80">
+              {c}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Pills grid (contact channels) */}
+      {pills && pills.length > 0 && (
+        <div className="grid grid-cols-2 gap-2">
+          {pills.map((p) => {
+            const pt = TONE[p.tone];
+            return (
+              <span key={p.label} className={`flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-2 py-2 text-[11.5px] font-medium ${pt.text}`}>
+                <p.icon className="size-3.5" strokeWidth={1.7} />
+                <span className="text-foreground/90">{p.label}</span>
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      {/* CTA */}
+      <span className={`mt-4 inline-flex items-center justify-center gap-1.5 rounded-xl border ${t.ctaBorder} ${t.ctaHover} px-3 py-2 text-[12.5px] font-semibold transition-colors`}>
         {cta}
-        <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+        <ChevronRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
       </span>
     </motion.button>
   );
 }
+
 
 
 
