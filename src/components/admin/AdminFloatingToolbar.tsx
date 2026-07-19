@@ -35,6 +35,13 @@ import { useCommandCenter } from "@/lib/command-center";
 import { Command as CommandIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
+import {
+  registerFloating,
+  updateFloating,
+  subscribeFloating,
+  getStackOffset,
+  isChatActive,
+} from "@/lib/floating-stack";
 import { StorefrontDashboardPanel } from "@/components/admin/StorefrontDashboardPanel";
 import { BulkVisibilityPanel } from "@/components/admin/BulkVisibilityPanel";
 
