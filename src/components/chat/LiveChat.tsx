@@ -912,6 +912,11 @@ function DraggableOrb({
   const getBounds = useCallback(() => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    // Shrink the safe area when the on-screen keyboard / a bottom sheet
+    // covers the lower portion of the viewport — visualViewport reflects the
+    // real visible region on iOS Safari and Chrome for Android.
+    const vv = window.visualViewport;
+    const visibleBottom = vv ? vv.height + vv.offsetTop : vh;
     const cs = getComputedStyle(document.documentElement);
     const headerH = parseFloat(cs.getPropertyValue("--app-header-height")) || 64;
     const navRaw = cs.getPropertyValue("--floating-bottom-offset").trim();
@@ -921,7 +926,7 @@ function DraggableOrb({
       if (Number.isFinite(n) && !navRaw.includes("calc")) navH = Math.max(n, NAV_CLEARANCE_FALLBACK);
     }
     const safeTop = headerH + EDGE_MARGIN;
-    const safeBottom = vh - navH - ORB_SIZE;
+    const safeBottom = Math.min(vh, visibleBottom) - navH - ORB_SIZE;
     const minX = EDGE_MARGIN;
     const maxX = vw - ORB_SIZE - EDGE_MARGIN;
     return { vw, vh, minX, maxX, minY: safeTop, maxY: Math.max(safeTop, safeBottom) };
