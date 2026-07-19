@@ -143,10 +143,17 @@ export function AdminFloatingToolbar() {
     (x: number, y: number, scale = 1, withTransition = false) => {
       const el = wrapRef.current;
       if (!el) return;
+      // Collision system: shift up by the total height of higher-priority
+      // widgets docked on the same side (Live Chat at priority 1). Recede
+      // visually while the chat surface is open — never hidden.
+      const offsetY = getStackOffset("admin-toolbar");
+      const dim = isChatActive();
+      const finalScale = scale * (dim ? 0.88 : 1);
+      el.style.opacity = dim ? "0.55" : "1";
       el.style.transition = withTransition
-        ? "transform 260ms cubic-bezier(0.22, 1, 0.36, 1)"
-        : "none";
-      el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+        ? "transform 200ms ease-out, opacity 200ms ease-out"
+        : "opacity 200ms ease-out";
+      el.style.transform = `translate3d(${x}px, ${y - offsetY}px, 0) scale(${finalScale})`;
     },
     [],
   );
