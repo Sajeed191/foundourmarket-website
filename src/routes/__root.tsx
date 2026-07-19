@@ -863,6 +863,20 @@ function AppRoot() {
       return () => clearTimeout(t);
     }
   }, []);
+  // Infrastructure v2.0 — boot request queue + network quality on idle.
+  // Fully lazy; never blocks hydration and adds no eager cost to the entry chunk.
+  useEffect(() => {
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+    };
+    const start = () => import("@/lib/infra").then((m) => m.bootInfra()).catch(() => {});
+    if (w.requestIdleCallback) {
+      w.requestIdleCallback(start, { timeout: 5000 });
+    } else {
+      const t = setTimeout(start, 3000);
+      return () => clearTimeout(t);
+    }
+  }, []);
   // Warm the global products cache immediately on hydration so route components
   // (home, search, category, product) render with data already in memory instead
   // of each kicking off its own fetch on mount.
