@@ -142,25 +142,23 @@ export function LiveChat() {
   const [orbHidden, setOrbHidden] = useState(false);
   const draggingRef = useRef(false);
   useEffect(() => {
-    let lastY = window.scrollY;
     let ticking = false;
     let idleTimer: number | undefined;
     const scheduleRestore = () => {
       if (idleTimer) window.clearTimeout(idleTimer);
       idleTimer = window.setTimeout(() => {
         if (!draggingRef.current) setOrbHidden(false);
-      }, 600);
+      }, 700);
     };
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const y = window.scrollY;
         if (!draggingRef.current) {
-          if (y > lastY + 8 && y > 120) setOrbHidden(true);
-          else if (y < lastY - 8) setOrbHidden(false);
+          setOrbHidden(true);
+          // Also dismiss the greeting bubble while scrolling.
+          dismissGreetingRef.current();
         }
-        lastY = y;
         ticking = false;
         scheduleRestore();
       });
