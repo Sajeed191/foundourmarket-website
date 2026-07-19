@@ -172,20 +172,20 @@ export function LiveChat() {
     };
   }, []);
 
-  // First-visit greeting bubble — shown once per browser session, 6s after
-  // mount, auto-dismissed after 5s or as soon as the widget is opened.
+  // First-visit greeting bubble — shown once per browser session, 800ms after
+  // mount, auto-dismissed after 4s or as soon as the widget is opened/scrolled.
   const [greetVisible, setGreetVisible] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
       if (sessionStorage.getItem("fom_chat_greet_seen") === "1") return;
     } catch { /* noop */ }
-    const showT = window.setTimeout(() => setGreetVisible(true), 6000);
+    const showT = window.setTimeout(() => setGreetVisible(true), 800);
     return () => window.clearTimeout(showT);
   }, []);
   useEffect(() => {
     if (!greetVisible) return;
-    const hideT = window.setTimeout(() => setGreetVisible(false), 5000);
+    const hideT = window.setTimeout(() => setGreetVisible(false), 4000);
     return () => window.clearTimeout(hideT);
   }, [greetVisible]);
   const dismissGreeting = useCallback(() => {
