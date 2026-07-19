@@ -41,7 +41,10 @@ import {
   subscribeFloating,
   getStackOffset,
   isChatActive,
+  getFooterLift,
+  isContextHidden,
 } from "@/lib/floating-stack";
+
 import { StorefrontDashboardPanel } from "@/components/admin/StorefrontDashboardPanel";
 import { BulkVisibilityPanel } from "@/components/admin/BulkVisibilityPanel";
 
@@ -121,6 +124,9 @@ export function AdminFloatingToolbar() {
     const h = rect?.height || 48;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    // Respect the on-screen keyboard: shrink usable Y to visualViewport.
+    const vv = window.visualViewport;
+    const visibleBottom = vv ? vv.height + vv.offsetTop : vh;
     const cs = getComputedStyle(document.documentElement);
     const headerH = parseFloat(cs.getPropertyValue("--app-header-height")) || 64;
     const navRaw = cs.getPropertyValue("--floating-bottom-offset").trim();
@@ -135,7 +141,7 @@ export function AdminFloatingToolbar() {
       minX: EDGE_MARGIN,
       maxX: vw - w - EDGE_MARGIN,
       minY: headerH + EDGE_MARGIN,
-      maxY: Math.max(headerH + EDGE_MARGIN, vh - navH - h),
+      maxY: Math.max(headerH + EDGE_MARGIN, visibleBottom - navH - h),
     };
   }, []);
 
@@ -147,16 +153,20 @@ export function AdminFloatingToolbar() {
       // widgets docked on the same side (Live Chat at priority 1). Recede
       // visually while the chat surface is open — never hidden.
       const offsetY = getStackOffset("admin-toolbar");
+      const lift = getFooterLift();
       const dim = isChatActive();
+      const hidden = isContextHidden();
       const finalScale = scale * (dim ? 0.88 : 1);
-      el.style.opacity = dim ? "0.55" : "1";
+      el.style.opacity = hidden ? "0" : dim ? "0.55" : "1";
+      el.style.pointerEvents = hidden ? "none" : "";
       el.style.transition = withTransition
-        ? "transform 200ms ease-out, opacity 200ms ease-out"
+        ? "transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease-out"
         : "opacity 200ms ease-out";
-      el.style.transform = `translate3d(${x}px, ${y - offsetY}px, 0) scale(${finalScale})`;
+      el.style.transform = `translate3d(${x}px, ${y - offsetY - lift}px, 0) scale(${finalScale})`;
     },
     [],
   );
+
 
   const resetToDefault = useCallback(
     (withTransition = true) => {
@@ -207,6 +217,8 @@ export function AdminFloatingToolbar() {
     });
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("scroll", onResize);
     return () => {
       unregister();
       unsubscribe();
@@ -214,7 +226,10 @@ export function AdminFloatingToolbar() {
       cleanupExtra();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("scroll", onResize);
     };
+
   }, [applyTransform, getBounds, resetToDefault, gated]);
 
   // When the panel opens, ensure the toolbar is fully on-screen so the popover is reachable.
