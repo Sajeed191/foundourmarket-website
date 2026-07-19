@@ -875,21 +875,35 @@ function ChatMenuOption({
   );
 }
 
-// Draggable Messenger-style chat head. Position is NEVER persisted — resets
-// to the default (bottom-right, above bottom nav) on every mount / refresh.
-// Snaps half-hidden to the nearest screen edge on release.
+// Draggable Messenger-style chat head. Dock side persists per browser tab
+// (module-level, resets on refresh). Snaps ~40% off the nearest edge on
+// release. Scroll-shrinks to ~80% (never disappears).
 const ORB_SIZE = 56;
 const EDGE_MARGIN = 24;
 const NAV_CLEARANCE_FALLBACK = 110;
-const HIDDEN_RATIO = 0.4; // 40% of the orb sits off-screen after snap
-const PEEK_RATIO = 0.8;   // 80% of the orb slides down while scrolling
+const HIDDEN_RATIO = 0.35; // 35% of the orb sits off-screen after snap
+const PEEK_SCALE = 0.8;    // shrink while scrolling
 const TAP_THRESHOLD = 8;
+const LONG_PRESS_MS = 450;
+
+// Module-level: survives client-side nav within the same tab, resets on refresh.
+let sessionDockSide: "left" | "right" | null = null;
+
+function ringClass(a: Availability): { color: string; anim: string } {
+  switch (a) {
+    case "online":  return { color: "ring-emerald-400/80", anim: "orb-ring-online" };
+    case "away":    return { color: "ring-amber-400/80",   anim: "orb-ring-busy" };
+    case "offline": return { color: "ring-white/25",       anim: "" };
+    default:        return { color: "ring-white/25",       anim: "" };
+  }
+}
 
 function DraggableOrb({
   peek,
   availability,
   unread,
   onTap,
+  onLongPress,
   onDragChange,
   greetVisible,
   onDismissGreeting,
@@ -898,6 +912,7 @@ function DraggableOrb({
   availability: Availability;
   unread: number;
   onTap: () => void;
+  onLongPress: () => void;
   onDragChange: (dragging: boolean) => void;
   greetVisible: boolean;
   onDismissGreeting: () => void;
@@ -905,25 +920,16 @@ function DraggableOrb({
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const posRef = useRef({ x: 0, y: 0 });
   const peekRef = useRef(false);
+  const longPressTimer = useRef<number | undefined>(undefined);
+  const longPressedRef = useRef(false);
   const dragRef = useRef({
-    active: false,
-    moved: false,
-    startX: 0,
-    startY: 0,
-    baseX: 0,
-    baseY: 0,
-    pointerId: 0,
-    rafId: 0,
-    nextX: 0,
-    nextY: 0,
+    active: false, moved: false, startX: 0, startY: 0,
+    baseX: 0, baseY: 0, pointerId: 0, rafId: 0, nextX: 0, nextY: 0,
   });
 
   const getBounds = useCallback(() => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    // Shrink the safe area when the on-screen keyboard / a bottom sheet
-    // covers the lower portion of the viewport — visualViewport reflects the
-    // real visible region on iOS Safari and Chrome for Android.
     const vv = window.visualViewport;
     const visibleBottom = vv ? vv.height + vv.offsetTop : vh;
     const cs = getComputedStyle(document.documentElement);
@@ -935,7 +941,8 @@ function DraggableOrb({
       if (Number.isFinite(n) && !navRaw.includes("calc")) navH = Math.max(n, NAV_CLEARANCE_FALLBACK);
     }
     const safeTop = headerH + EDGE_MARGIN;
-    const safeBottom = Math.min(vh, visibleBottom) - navH - ORB_SIZE;
+    // 16px extra clearance above keyboard / bottom nav.
+    const safeBottom = Math.min(vh, visibleBottom) - navH - ORB_SIZE - 16;
     const minX = EDGE_MARGIN;
     const maxX = vw - ORB_SIZE - EDGE_MARGIN;
     return { vw, vh, minX, maxX, minY: safeTop, maxY: Math.max(safeTop, safeBottom) };
@@ -944,33 +951,35 @@ function DraggableOrb({
   const applyTransform = useCallback((x: number, y: number, scale = 1, withTransition = false) => {
     const el = wrapRef.current;
     if (!el) return;
-    const peekY = peekRef.current && !dragRef.current.active ? ORB_SIZE * PEEK_RATIO : 0;
+    const shrink = peekRef.current && !dragRef.current.active ? PEEK_SCALE : scale;
     el.style.transition = withTransition
       ? "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)"
       : "none";
-    el.style.transform = `translate3d(${x}px, ${y + peekY}px, 0) scale(${scale})`;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${shrink})`;
   }, []);
 
-  // Initial default position: bottom-right, above bottom nav.
   const [placed, setPlaced] = useState(false);
   useEffect(() => {
-    // Wait until --app-header-height is actually published before computing
-    // the safe area. This is more robust than a fixed-frame delay: it holds
-    // the orb invisible through late fonts, hydration, or LayoutMetrics
-    // re-measures, and only reveals once layout metrics are truly valid.
     let cleanupExtra = () => {};
     const cancelWait = waitForLayoutReady(isHeaderLayoutReady, () => {
       const raf = requestAnimationFrame(() => {
         const b = getBounds();
-        posRef.current = { x: b.maxX, y: b.maxY };
-        applyTransform(b.maxX, b.maxY, 1, false);
+        // Restore dock side within the same tab (module-level, resets on refresh).
+        const dockRight = sessionDockSide !== "left";
+        const hiddenPx = ORB_SIZE * HIDDEN_RATIO;
+        const x = dockRight ? b.vw - ORB_SIZE + hiddenPx : -hiddenPx;
+        // Default y is bottom.
+        posRef.current = { x: dockRight ? b.maxX : x, y: b.maxY };
+        // On first mount ever this tab, use full-visible bottom-right (no dock offset).
+        if (sessionDockSide === null) posRef.current = { x: b.maxX, y: b.maxY };
+        applyTransform(posRef.current.x, posRef.current.y, 1, false);
         setPlaced(true);
       });
       cleanupExtra = () => cancelAnimationFrame(raf);
     });
     const onResize = () => {
       const b = getBounds();
-      const x = Math.min(Math.max(posRef.current.x, b.minX), b.maxX);
+      const x = Math.min(Math.max(posRef.current.x, sessionDockSide === "left" ? -ORB_SIZE * HIDDEN_RATIO : b.minX), sessionDockSide === "right" ? b.vw - ORB_SIZE + ORB_SIZE * HIDDEN_RATIO : b.maxX);
       const y = Math.min(Math.max(posRef.current.y, b.minY), b.maxY);
       posRef.current = { x, y };
       applyTransform(x, y, 1, false);
@@ -989,7 +998,6 @@ function DraggableOrb({
     };
   }, [applyTransform, getBounds]);
 
-  // React to smart-scroll peek toggles without touching drag state.
   useEffect(() => {
     peekRef.current = peek;
     if (dragRef.current.active) return;
@@ -1000,6 +1008,13 @@ function DraggableOrb({
     dragRef.current.rafId = 0;
     applyTransform(dragRef.current.nextX, dragRef.current.nextY, 1.05, false);
   }, [applyTransform]);
+
+  const clearLongPress = useCallback(() => {
+    if (longPressTimer.current) {
+      window.clearTimeout(longPressTimer.current);
+      longPressTimer.current = undefined;
+    }
+  }, []);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -1013,12 +1028,20 @@ function DraggableOrb({
       d.baseY = posRef.current.y;
       d.nextX = posRef.current.x;
       d.nextY = posRef.current.y;
+      longPressedRef.current = false;
+      clearLongPress();
+      longPressTimer.current = window.setTimeout(() => {
+        if (!dragRef.current.moved) {
+          longPressedRef.current = true;
+          onLongPress();
+        }
+      }, LONG_PRESS_MS);
       onDragChange(true);
       try {
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       } catch { /* noop */ }
     },
-    [onDragChange],
+    [onDragChange, onLongPress, clearLongPress],
   );
 
   const onPointerMove = useCallback(
@@ -1029,6 +1052,7 @@ function DraggableOrb({
       const dy = e.clientY - d.startY;
       if (!d.moved && Math.hypot(dx, dy) < TAP_THRESHOLD) return;
       d.moved = true;
+      clearLongPress();
       const b = getBounds();
       const x = Math.min(Math.max(d.baseX + dx, b.minX), b.maxX);
       const y = Math.min(Math.max(d.baseY + dy, b.minY), b.maxY);
@@ -1036,7 +1060,7 @@ function DraggableOrb({
       d.nextY = y;
       if (!d.rafId) d.rafId = requestAnimationFrame(flushFrame);
     },
-    [flushFrame, getBounds],
+    [flushFrame, getBounds, clearLongPress],
   );
 
   const endDrag = useCallback(
@@ -1044,6 +1068,7 @@ function DraggableOrb({
       const d = dragRef.current;
       if (!d.active) return;
       d.active = false;
+      clearLongPress();
       try {
         (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
       } catch { /* noop */ }
@@ -1055,23 +1080,26 @@ function DraggableOrb({
       if (!d.moved) {
         applyTransform(posRef.current.x, posRef.current.y, 1, true);
         onDragChange(false);
-        onTap();
+        if (!longPressedRef.current) onTap();
         return;
       }
 
-      // Snap half-hidden to nearest edge (spring-y easing).
+      // Magnetic dock: snap ~35% off the nearest edge.
       const b = getBounds();
       const centerX = d.nextX + ORB_SIZE / 2;
       const hiddenPx = ORB_SIZE * HIDDEN_RATIO;
-      const snapX =
-        centerX < b.vw / 2 ? -hiddenPx : b.vw - ORB_SIZE + hiddenPx;
+      const dockRight = centerX >= b.vw / 2;
+      sessionDockSide = dockRight ? "right" : "left";
+      const snapX = dockRight ? b.vw - ORB_SIZE + hiddenPx : -hiddenPx;
       const snapY = Math.min(Math.max(d.nextY, b.minY), b.maxY);
       posRef.current = { x: snapX, y: snapY };
       applyTransform(snapX, snapY, 1, true);
       onDragChange(false);
     },
-    [applyTransform, getBounds, onTap, onDragChange],
+    [applyTransform, getBounds, onTap, onDragChange, clearLongPress],
   );
+
+  const ring = ringClass(availability);
 
   return (
     <div
@@ -1088,14 +1116,26 @@ function DraggableOrb({
       <button
         type="button"
         data-floating-control
-        aria-label="Support options"
+        aria-label={
+          availability === "online" ? "Live chat online — tap to open, long-press for options"
+          : availability === "away" ? "Support busy — tap to open, long-press for options"
+          : "Support offline — tap to contact us"
+        }
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        className="group relative grid place-items-center size-14 rounded-full bg-gradient-to-br from-primary to-[oklch(0.62_0.17_35)] text-primary-foreground shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] ring-1 ring-white/10 transition-[box-shadow] duration-200 hover:shadow-[0_12px_32px_-10px_var(--color-primary,theme(colors.orange.500))] motion-safe:animate-orb-pulse-periodic touch-none select-none"
+        onContextMenu={(e) => e.preventDefault()}
+        className={`group relative grid place-items-center size-14 md:size-[60px] lg:size-16 rounded-full bg-gradient-to-br from-primary to-[oklch(0.62_0.17_35)] text-primary-foreground shadow-[0_10px_28px_-10px_rgba(0,0,0,0.55)] ring-2 ${ring.color} backdrop-blur-md transition-[box-shadow] duration-200 hover:shadow-[0_16px_36px_-10px_var(--color-primary,theme(colors.orange.500))] motion-safe:animate-orb-pulse-periodic touch-none select-none`}
       >
-        <Headset className="size-6" strokeWidth={1.8} />
+        {/* Animated status ring overlay */}
+        {ring.anim && (
+          <span
+            aria-hidden
+            className={`pointer-events-none absolute -inset-1 rounded-full ring-2 ${ring.color} ${ring.anim}`}
+          />
+        )}
+        <Headset className="size-6 md:size-[26px] lg:size-7" strokeWidth={1.8} />
         {unread > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold grid place-items-center ring-2 ring-background">
             {unread > 9 ? "9+" : unread}
@@ -1113,9 +1153,10 @@ function DraggableOrb({
         </button>
       )}
       <span className="sr-only">
-        {availability === "online" ? "Live chat online" : availability === "away" ? "Live chat away" : "Live chat offline"}
+        {availability === "online" ? "Live chat online" : availability === "away" ? "Live chat busy" : "Live chat offline"}
       </span>
     </div>
   );
 }
+
 
