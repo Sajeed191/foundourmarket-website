@@ -61,8 +61,8 @@ const HISTORY_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
 const STARTUP_GUARD_SCRIPT = `(function(){
   if (typeof window === 'undefined') return;
   var BUILD_ID = ${JSON.stringify(BUILD_ID)};
-  var MAX_RECOVER = 3;      // capped reload attempts before the fatal screen
-  var BASE_DELAY = 800;     // exponential backoff base (ms)
+  var MAX_RECOVER = 1;      // one automatic hard reload per browser session
+  var BASE_DELAY = 1000;    // silent recovery delay before the reload (ms)
   var fatalShown = false;
   var pendingOffline = false;
   var recovering = false;
