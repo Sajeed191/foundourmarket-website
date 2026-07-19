@@ -246,6 +246,8 @@ export function AdminFloatingToolbar() {
     [applyTransform, getBounds],
   );
 
+  if (gated) return null;
+
   return (
     <div
       ref={wrapRef}
