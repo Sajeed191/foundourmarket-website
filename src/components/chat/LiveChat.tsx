@@ -328,7 +328,15 @@ export function LiveChat() {
           peek={orbHidden}
           availability={availability}
           unread={unread}
-          onTap={() => { dismissGreeting(); setMenuOpen(true); }}
+          onTap={() => {
+            dismissGreeting();
+            // Offline → route straight to the contact form instead of live chat.
+            if (availability === "offline") {
+              window.location.href = "/contact";
+              return;
+            }
+            setMenuOpen(true);
+          }}
           onDragChange={(d) => { draggingRef.current = d; if (d) dismissGreeting(); }}
           greetVisible={greetVisible}
           onDismissGreeting={dismissGreeting}
