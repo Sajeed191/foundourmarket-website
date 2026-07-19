@@ -45,6 +45,7 @@ import { startCapabilityGovernor, publishRenderDiagnostics } from "@/lib/runtime
 import { startMotionTier } from "@/lib/motion-tier";
 import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
+import { IsolatedBoundary } from "@/components/site/IsolatedBoundary";
 import { installStartupDiagnostics, useRenderDiagnostics } from "@/lib/startup-diagnostics";
 import { initDebugFlags, getFlag } from "@/lib/debug-flags";
 import { installDebugDiagnostics, patchImageDecode } from "@/lib/debug-diagnostics";
@@ -734,15 +735,15 @@ function DeferredShell({
 
   return (
     <Suspense fallback={null}>
-      <RegionSelectModal />
-      {!isAuthRoute && <AdminMobileBar />}
-      {!isAuthRoute && <AdminFloatingToolbar />}
-      {!isAuthRoute && <AdminOverlayIndicator />}
-      {!isAuthRoute && <AdminCommandCenter />}
-      <CompareTray />
-      <InstallPrompt />
-      {!hideLiveChat && <LiveChat />}
-      {!hideLiveChat && <SupportReplyWatcher />}
+      <IsolatedBoundary name="RegionSelectModal"><RegionSelectModal /></IsolatedBoundary>
+      {!isAuthRoute && <IsolatedBoundary name="AdminMobileBar"><AdminMobileBar /></IsolatedBoundary>}
+      {!isAuthRoute && <IsolatedBoundary name="AdminFloatingToolbar"><AdminFloatingToolbar /></IsolatedBoundary>}
+      {!isAuthRoute && <IsolatedBoundary name="AdminOverlayIndicator"><AdminOverlayIndicator /></IsolatedBoundary>}
+      {!isAuthRoute && <IsolatedBoundary name="AdminCommandCenter"><AdminCommandCenter /></IsolatedBoundary>}
+      <IsolatedBoundary name="CompareTray"><CompareTray /></IsolatedBoundary>
+      <IsolatedBoundary name="InstallPrompt"><InstallPrompt /></IsolatedBoundary>
+      {!hideLiveChat && <IsolatedBoundary name="LiveChat"><LiveChat /></IsolatedBoundary>}
+      {!hideLiveChat && <IsolatedBoundary name="SupportReplyWatcher"><SupportReplyWatcher /></IsolatedBoundary>}
     </Suspense>
   );
 }
