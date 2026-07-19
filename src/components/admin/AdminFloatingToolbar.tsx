@@ -284,9 +284,11 @@ export function AdminFloatingToolbar() {
       const b = getBounds();
       const centerX = d.nextX + b.w / 2;
       const hiddenPx = b.w * HIDDEN_RATIO;
-      const snapX = centerX < b.vw / 2 ? -hiddenPx : b.vw - b.w + hiddenPx;
+      const dockRight = centerX >= b.vw / 2;
+      const snapX = dockRight ? b.vw - b.w + hiddenPx : -hiddenPx;
       const snapY = Math.min(Math.max(d.nextY, b.minY), b.maxY);
       posRef.current = { x: snapX, y: snapY };
+      updateFloating("admin-toolbar", { side: dockRight ? "right" : "left" });
       applyTransform(snapX, snapY, 1, true);
     },
     [applyTransform, getBounds],
