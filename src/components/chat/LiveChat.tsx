@@ -961,6 +961,15 @@ function DraggableOrb({
 
   const [placed, setPlaced] = useState(false);
   useEffect(() => {
+    // Register with the floating-widgets collision system. Live Chat is the
+    // highest-priority floating action, so it never moves for others — lower-
+    // priority widgets (Admin toolbar, future) shift out of its way.
+    const unregister = registerFloating("livechat", {
+      priority: 1,
+      side: sessionDockSide ?? "right",
+      width: ORB_SIZE,
+      height: ORB_SIZE,
+    });
     let cleanupExtra = () => {};
     const cancelWait = waitForLayoutReady(isHeaderLayoutReady, () => {
       const raf = requestAnimationFrame(() => {
@@ -990,6 +999,7 @@ function DraggableOrb({
     window.visualViewport?.addEventListener("resize", onResize);
     window.visualViewport?.addEventListener("scroll", onResize);
     return () => {
+      unregister();
       cancelWait();
       cleanupExtra();
       window.removeEventListener("resize", onResize);
