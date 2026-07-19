@@ -57,7 +57,7 @@ import {
 import { BrandName } from "@/components/site/BrandName";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
 import { useSupportSettings } from "@/lib/use-support-settings";
-import { registerFloating, updateFloating, setChatActive } from "@/lib/floating-stack";
+import { registerFloating, updateFloating, subscribeFloating, setChatActive, getFooterLift, isContextHidden } from "@/lib/floating-stack";
 
 type Msg = CrispMessage;
 
@@ -952,15 +952,25 @@ function DraggableOrb({
     return { vw, vh, minX, maxX, minY: safeTop, maxY: Math.max(safeTop, safeBottom) };
   }, []);
 
+  const idlePeekRef = useRef(false);
+
   const applyTransform = useCallback((x: number, y: number, scale = 1, withTransition = false) => {
     const el = wrapRef.current;
     if (!el) return;
-    const shrink = peekRef.current && !dragRef.current.active ? PEEK_SCALE : scale;
+    const dragging = dragRef.current.active;
+    const peeked = (peekRef.current || idlePeekRef.current) && !dragging;
+    const shrink = peeked ? PEEK_SCALE : scale;
+    const lift = getFooterLift();
+    const hidden = isContextHidden();
+    const opacity = hidden ? 0 : peeked ? 0.8 : 1;
+    el.style.opacity = String(opacity);
+    el.style.pointerEvents = hidden ? "none" : "";
     el.style.transition = withTransition
-      ? "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)"
-      : "none";
-    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${shrink})`;
+      ? "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease-out"
+      : "opacity 220ms ease-out";
+    el.style.transform = `translate3d(${x}px, ${y - lift}px, 0) scale(${shrink})`;
   }, []);
+
 
   const [placed, setPlaced] = useState(false);
   useEffect(() => {
@@ -1001,8 +1011,14 @@ function DraggableOrb({
     window.addEventListener("orientationchange", onResize);
     window.visualViewport?.addEventListener("resize", onResize);
     window.visualViewport?.addEventListener("scroll", onResize);
+    // Re-apply transform whenever the floating stack changes (footer lift,
+    // fullscreen context hide, admin toolbar side changes).
+    const unsubscribe = subscribeFloating(() => {
+      applyTransform(posRef.current.x, posRef.current.y, 1, true);
+    });
     return () => {
       unregister();
+      unsubscribe();
       cancelWait();
       cleanupExtra();
       window.removeEventListener("resize", onResize);
@@ -1011,6 +1027,44 @@ function DraggableOrb({
       window.visualViewport?.removeEventListener("scroll", onResize);
     };
   }, [applyTransform, getBounds]);
+
+  // Edge Peek Mode — after 12s of no user interaction, dock the orb ~35% off
+  // the nearest edge (magnetic idle) and shrink. Any pointer/keyboard/scroll
+  // input restores full presence. Suppressed while dragging.
+  useEffect(() => {
+    let t: number | undefined;
+    const restore = () => {
+      if (!idlePeekRef.current) return;
+      idlePeekRef.current = false;
+      const b = getBounds();
+      const dockRight = sessionDockSide !== "left";
+      posRef.current = { x: dockRight ? b.maxX : b.minX, y: posRef.current.y };
+      applyTransform(posRef.current.x, posRef.current.y, 1, true);
+    };
+    const arm = () => {
+      restore();
+      if (t) window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        if (dragRef.current.active) return;
+        const b = getBounds();
+        const dockRight = sessionDockSide !== "left";
+        const hiddenPx = ORB_SIZE * HIDDEN_RATIO;
+        const snapX = dockRight ? b.vw - ORB_SIZE + hiddenPx : -hiddenPx;
+        posRef.current = { x: snapX, y: posRef.current.y };
+        sessionDockSide = dockRight ? "right" : "left";
+        idlePeekRef.current = true;
+        applyTransform(snapX, posRef.current.y, 1, true);
+      }, 12000);
+    };
+    arm();
+    const evts: (keyof WindowEventMap)[] = ["pointerdown", "keydown", "scroll", "touchstart"];
+    evts.forEach((e) => window.addEventListener(e, arm, { passive: true } as AddEventListenerOptions));
+    return () => {
+      if (t) window.clearTimeout(t);
+      evts.forEach((e) => window.removeEventListener(e, arm));
+    };
+  }, [applyTransform, getBounds]);
+
 
   useEffect(() => {
     peekRef.current = peek;
