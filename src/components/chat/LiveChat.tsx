@@ -57,6 +57,7 @@ import {
 import { BrandName } from "@/components/site/BrandName";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
 import { useSupportSettings } from "@/lib/use-support-settings";
+import { registerFloating, updateFloating, setChatActive } from "@/lib/floating-stack";
 
 type Msg = CrispMessage;
 
