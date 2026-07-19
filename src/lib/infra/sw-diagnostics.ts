@@ -8,7 +8,7 @@ import { getDeploymentStats } from "./deployment-recovery";
 import { getChunkRecoveryStats } from "./chunk-recovery-v2";
 import { getHealth } from "./health-monitor";
 import { getNetworkQuality } from "./network-quality";
-import { getRequestQueue } from "./request-queue";
+import { count as queueCount } from "./request-queue";
 
 export type SWDiagnostics = {
   ok: boolean;
@@ -19,8 +19,9 @@ export type SWDiagnostics = {
   chunk: ReturnType<typeof getChunkRecoveryStats>;
   health: ReturnType<typeof getHealth>;
   network: ReturnType<typeof getNetworkQuality>;
-  queue: Awaited<ReturnType<typeof getRequestQueue>>;
+  queueDepth: number;
 };
+
 
 export async function readDiagnostics(): Promise<SWDiagnostics> {
   const sw = await sendToSW<{
@@ -38,6 +39,7 @@ export async function readDiagnostics(): Promise<SWDiagnostics> {
     chunk: getChunkRecoveryStats(),
     health: getHealth(),
     network: getNetworkQuality(),
-    queue: await getRequestQueue(),
+    queueDepth: await queueCount().catch(() => 0),
   };
 }
+
