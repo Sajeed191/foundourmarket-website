@@ -62,13 +62,22 @@ const HISTORY_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
 const STARTUP_GUARD_SCRIPT = `(function(){
   if (typeof window === 'undefined') return;
   var BUILD_ID = ${JSON.stringify(BUILD_ID)};
-  // Exponential backoff schedule (ms): 1s, 2s, 4s, 8s, 15s, then background
-  // polling every 30s indefinitely until the app becomes healthy again.
+  // Exponential backoff schedule (ms) used only when a real chunk failure
+  // triggers recovery. Never used for connectivity blips.
   var BACKOFF = [1000, 2000, 4000, 8000, 15000];
   var POLL_INTERVAL = 30000;
-  var recovering = false;
-  var pendingOffline = false;
-  var wasEverDegraded = false;
+
+  // -------- Connection state machine (single source of truth) -----------
+  // States: 'healthy' | 'offline' | 'recovering'
+  // Transitions are debounced (3s) and toasts throttled (60s cooldown).
+  var state = 'healthy';
+  var recovering = false;               // an actual reload is scheduled
+  var hadRealOfflinePeriod = false;     // sticky flag for the current session
+  var lastToastAt = 0;                  // cooldown timestamp
+  var offlineDebounceTimer = 0;
+  var onlineDebounceTimer = 0;
+  var STABLE_MS = 3000;
+  var COOLDOWN_MS = 60000;
 
   function txt(x){
     try { return typeof x === 'string' ? x : (x && (x.message || (x.reason && x.reason.message) || x.type || '')) || ''; }
@@ -90,6 +99,18 @@ const STARTUP_GUARD_SCRIPT = `(function(){
   function markStart(){ try { sessionStorage.setItem('fom_recovery_started', String(Date.now())); } catch(e){} }
   function readStart(){ try { return parseInt(sessionStorage.getItem('fom_recovery_started') || '0', 10) || 0; } catch(e){ return 0; } }
   function clearStart(){ try { sessionStorage.removeItem('fom_recovery_started'); } catch(e){} }
+  function markRealOffline(){
+    hadRealOfflinePeriod = true;
+    try { sessionStorage.setItem('fom_real_offline', '1'); } catch(e){}
+  }
+  function hadRealOffline(){
+    if (hadRealOfflinePeriod) return true;
+    try { return sessionStorage.getItem('fom_real_offline') === '1'; } catch(e){ return false; }
+  }
+  function clearRealOffline(){
+    hadRealOfflinePeriod = false;
+    try { sessionStorage.removeItem('fom_real_offline'); } catch(e){}
+  }
 
   function log(name, payload){
     try {
@@ -101,11 +122,17 @@ const STARTUP_GUARD_SCRIPT = `(function(){
     } catch(e) {}
     try { console.warn('[startup-diagnostics]', name, payload || {}); } catch(e) {}
   }
+  function diag(reason, prev, next, source, extra){
+    log('recovery-transition', {
+      reason: reason || '',
+      prev: prev, next: next, source: source || '',
+      at: Date.now(), extra: extra || {}
+    });
+  }
 
-  // Premium native-style pill toast. Height <=48px, rounded, blur, orange
-  // accent. Never blocks scroll, never covers bottom nav (sits above it),
-  // never disables the UI. Injected by this inline script so it works even
-  // before React hydrates.
+  // Premium native-style pill toast. Injected by this inline script so it
+  // works even before React hydrates. Rendering is purely presentational —
+  // gating decisions live in the state machine below.
   var toastEl = null;
   var toastHideTimer = 0;
   function ensureToast(){
@@ -154,8 +181,8 @@ const STARTUP_GUARD_SCRIPT = `(function(){
     document.body.appendChild(toastEl);
     return toastEl;
   }
-  function showToast(msg, opts){
-    var tone = (opts && opts.tone) || 'progress'; // 'progress' | 'success' | 'offline'
+  function renderToast(msg, opts){
+    var tone = (opts && opts.tone) || 'progress';
     var autoHide = opts && typeof opts.autoHide === 'number' ? opts.autoHide : (tone === 'success' ? 1800 : 0);
     var commit = function(){
       var el = ensureToast();
@@ -184,8 +211,19 @@ const STARTUP_GUARD_SCRIPT = `(function(){
     toastEl.style.opacity = '0';
     toastEl.style.transform = 'translate(-50%,20px)';
   }
-  window.__fomShowToast = function(msg, opts){ showToast(msg, opts); };
+  // Public direct-toast bridge (used by non-recovery UI). Bypasses the
+  // state machine intentionally — callers own their own throttling.
+  window.__fomShowToast = function(msg, opts){ renderToast(msg, opts); };
   window.__fomHideToast = hideToast;
+
+  // Gated recovery toast — respects cooldown and current state.
+  function recoveryToast(msg, opts){
+    var now = Date.now();
+    if (now - lastToastAt < COOLDOWN_MS) return false;
+    lastToastAt = now;
+    renderToast(msg, opts);
+    return true;
+  }
 
   function telemetry(reason, assetUrl, status){
     log('asset-load-failure', {
@@ -207,21 +245,21 @@ const STARTUP_GUARD_SCRIPT = `(function(){
     } catch(e){ try { location.reload(); } catch(x){} }
   }
 
+  // Real recovery: only invoked when we KNOW the app is unusable (chunk
+  // load failure, entry-script failure, or a caller explicitly claiming a
+  // chunk error). Never invoked on visibility/queue/health events.
   function doRecover(reason, assetUrl, status){
     if (recovering) return;
+    var prev = state;
     telemetry(reason, assetUrl, status);
-    wasEverDegraded = true;
     if (!readStart()) markStart();
 
     if (!navigator.onLine){
-      if (pendingOffline) return;
-      pendingOffline = true;
-      showToast("You're offline", { tone: 'offline' });
-      log('recovery-waiting-online', {});
+      if (state !== 'offline'){ state = 'offline'; markRealOffline(); }
+      diag(txt(reason), prev, 'offline', 'chunk-while-offline');
+      recoveryToast("You're offline", { tone: 'offline' });
       var onOnline = function(){
         window.removeEventListener('online', onOnline);
-        pendingOffline = false;
-        showToast('Reconnecting…');
         doRecover(reason, assetUrl, status);
       };
       window.addEventListener('online', onOnline);
@@ -230,31 +268,50 @@ const STARTUP_GUARD_SCRIPT = `(function(){
 
     var count = getCount();
     var delay = count < BACKOFF.length ? BACKOFF[count] : POLL_INTERVAL;
-    if (count >= BACKOFF.length){
-      log('recovery-polling', { intervalMs: POLL_INTERVAL });
-    }
     recovering = true;
+    state = 'recovering';
     setCount(count + 1);
-    showToast(count === 0 ? 'Reconnecting…' : 'Trying to reconnect…');
-    log('recovery-scheduled', { attempt: count + 1, delayMs: delay });
+    // First attempt: silent within cooldown. Deep retries (>=2) show the
+    // subtle pill so the user knows something is happening.
+    if (count === 0) recoveryToast('Reconnecting…');
+    else if (count >= 2) recoveryToast('Trying to reconnect…');
+    diag(txt(reason), prev, 'recovering', 'chunk-error', { attempt: count + 1, delayMs: delay });
     setTimeout(reloadFresh, delay);
   }
 
-  window.__fomRecover = function(reason){ doRecover(reason, urlOf(reason), null); };
-  // Legacy full-screen fatal hook is now a silent no-op that surfaces only the
-  // small connection toast — the app must never be replaced by an error page.
-  window.__fomShowStartupError = function(reason){ doRecover(reason, urlOf(reason), null); };
+  // Public recovery hook — accepts an optional reason. Only acts on
+  // genuine chunk / entry-script failures OR when the caller sets
+  // { force: true }. Other errors are ignored (logged only).
+  window.__fomRecover = function(reason, opts){
+    var forced = !!(opts && opts.force);
+    if (!forced && !isEntryFailure(reason)){
+      log('recovery-ignored', { reason: txt(reason).slice(0, 200) });
+      return;
+    }
+    doRecover(reason, urlOf(reason), null);
+  };
+  // Legacy full-screen fatal hook: same rule — only recover for real
+  // chunk failures. Do NOT reload on generic React errors.
+  window.__fomShowStartupError = function(reason){
+    if (!isEntryFailure(reason)){ log('startup-error-ignored', { reason: txt(reason).slice(0, 200) }); return; }
+    doRecover(reason, urlOf(reason), null);
+  };
   window.__fomBootOk = function(){
     var started = readStart();
     var recoveredFrom = started ? Date.now() - started : 0;
     log('boot-ok', recoveredFrom ? { recoveredInMs: recoveredFrom, attempts: getCount() } : {});
     setCount(0);
     clearStart();
-    if (recoveredFrom > 0){
-      showToast('Connection restored', { tone: 'success', autoHide: 1800 });
+    state = 'healthy';
+    recovering = false;
+    // Only surface "Connection restored" when the user actually experienced
+    // a real offline period during this session AND recovery was triggered.
+    if (recoveredFrom > 0 && hadRealOffline() && (Date.now() - lastToastAt) >= 1200){
+      recoveryToast('Connection restored', { tone: 'success', autoHide: 1800 });
     } else {
       hideToast();
     }
+    clearRealOffline();
     try {
       var u = new URL(location.href);
       if (u.searchParams.has('_rc') || u.searchParams.has('_v')) {
@@ -264,27 +321,71 @@ const STARTUP_GUARD_SCRIPT = `(function(){
       }
     } catch(e){}
   };
-  window.addEventListener('online', function(){
-    log('network-online');
-    if (wasEverDegraded){
-      showToast('Back online', { tone: 'success', autoHide: 1600 });
-    }
-  });
-  window.addEventListener('offline', function(){
-    log('network-offline');
-    wasEverDegraded = true;
-    showToast("You're offline", { tone: 'offline' });
-  });
-  // Page visibility: when the tab comes back, quietly re-validate. If the
-  // network dropped while hidden, surface the offline pill immediately.
+
+  // -------------- Debounced online/offline transitions ------------------
+  function onOfflineRaw(){
+    log('network-offline-raw');
+    if (onlineDebounceTimer){ clearTimeout(onlineDebounceTimer); onlineDebounceTimer = 0; }
+    if (offlineDebounceTimer) return;
+    offlineDebounceTimer = setTimeout(function(){
+      offlineDebounceTimer = 0;
+      if (navigator.onLine) return; // flapped back within debounce window
+      if (state === 'offline') return;
+      var prev = state; state = 'offline';
+      markRealOffline();
+      diag('network-offline', prev, 'offline', 'network');
+      recoveryToast("You're offline", { tone: 'offline' });
+    }, STABLE_MS);
+  }
+  function onOnlineRaw(){
+    log('network-online-raw');
+    if (offlineDebounceTimer){ clearTimeout(offlineDebounceTimer); offlineDebounceTimer = 0; }
+    // If we never actually transitioned to 'offline', do nothing.
+    if (state !== 'offline' && !hadRealOffline()) return;
+    if (onlineDebounceTimer) return;
+    onlineDebounceTimer = setTimeout(function(){
+      onlineDebounceTimer = 0;
+      if (!navigator.onLine) return;
+      if (state === 'healthy') return;
+      var prev = state; state = 'healthy';
+      diag('network-online', prev, 'healthy', 'network');
+      // "Connection restored" only fires when we truly had an offline period.
+      recoveryToast('Connection restored', { tone: 'success', autoHide: 1600 });
+      clearRealOffline();
+    }, STABLE_MS);
+  }
+  window.addEventListener('online', onOnlineRaw);
+  window.addEventListener('offline', onOfflineRaw);
+
+  // Visibility changes: silent. Log only. Never toast.
   document.addEventListener('visibilitychange', function(){
     if (document.visibilityState !== 'visible') return;
-    if (!navigator.onLine){ showToast("You're offline", { tone: 'offline' }); return; }
     log('visibility-revalidate');
   });
-  window.addEventListener('vite:preloadError', function(e){ try { e.preventDefault(); } catch(x) {} var p = e && e.payload; doRecover(p || e, urlOf(p || e), null); });
-  window.addEventListener('unhandledrejection', function(e){ if (isEntryFailure(e.reason)) { try { e.preventDefault(); } catch(x) {} doRecover(e.reason, urlOf(e.reason), null); } });
-  window.addEventListener('error', function(e){ var t = e && e.target; var src = t && (t.src || t.href) || ''; if (isEntryFailure(e && e.message) || isAssetUrl(src)) doRecover(e && e.message || src, src, null); }, true);
+
+  // Chunk / entry-script failure surface — the only genuine triggers for
+  // real recovery. Media/image errors are ignored.
+  window.addEventListener('vite:preloadError', function(e){
+    try { e.preventDefault(); } catch(x) {}
+    var p = e && e.payload;
+    doRecover(p || e, urlOf(p || e), null);
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    if (isEntryFailure(e.reason)) {
+      try { e.preventDefault(); } catch(x) {}
+      doRecover(e.reason, urlOf(e.reason), null);
+    }
+  });
+  window.addEventListener('error', function(e){
+    var t = e && e.target;
+    var src = t && (t.src || t.href) || '';
+    // Only script/css chunk failures — never <img>, <video>, etc.
+    var tag = t && t.tagName ? String(t.tagName).toLowerCase() : '';
+    var chunkTag = tag === 'script' || tag === 'link';
+    if (isEntryFailure(e && e.message) || (chunkTag && isAssetUrl(src))){
+      doRecover(e && e.message || src, src, null);
+    }
+  }, true);
 })();`;
 
 
