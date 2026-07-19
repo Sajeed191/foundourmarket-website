@@ -1011,8 +1011,14 @@ function DraggableOrb({
     window.addEventListener("orientationchange", onResize);
     window.visualViewport?.addEventListener("resize", onResize);
     window.visualViewport?.addEventListener("scroll", onResize);
+    // Re-apply transform whenever the floating stack changes (footer lift,
+    // fullscreen context hide, admin toolbar side changes).
+    const unsubscribe = subscribeFloating(() => {
+      applyTransform(posRef.current.x, posRef.current.y, 1, true);
+    });
     return () => {
       unregister();
+      unsubscribe();
       cancelWait();
       cleanupExtra();
       window.removeEventListener("resize", onResize);
@@ -1021,6 +1027,44 @@ function DraggableOrb({
       window.visualViewport?.removeEventListener("scroll", onResize);
     };
   }, [applyTransform, getBounds]);
+
+  // Edge Peek Mode — after 12s of no user interaction, dock the orb ~35% off
+  // the nearest edge (magnetic idle) and shrink. Any pointer/keyboard/scroll
+  // input restores full presence. Suppressed while dragging.
+  useEffect(() => {
+    let t: number | undefined;
+    const restore = () => {
+      if (!idlePeekRef.current) return;
+      idlePeekRef.current = false;
+      const b = getBounds();
+      const dockRight = sessionDockSide !== "left";
+      posRef.current = { x: dockRight ? b.maxX : b.minX, y: posRef.current.y };
+      applyTransform(posRef.current.x, posRef.current.y, 1, true);
+    };
+    const arm = () => {
+      restore();
+      if (t) window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        if (dragRef.current.active) return;
+        const b = getBounds();
+        const dockRight = sessionDockSide !== "left";
+        const hiddenPx = ORB_SIZE * HIDDEN_RATIO;
+        const snapX = dockRight ? b.vw - ORB_SIZE + hiddenPx : -hiddenPx;
+        posRef.current = { x: snapX, y: posRef.current.y };
+        sessionDockSide = dockRight ? "right" : "left";
+        idlePeekRef.current = true;
+        applyTransform(snapX, posRef.current.y, 1, true);
+      }, 12000);
+    };
+    arm();
+    const evts: (keyof WindowEventMap)[] = ["pointerdown", "keydown", "scroll", "touchstart"];
+    evts.forEach((e) => window.addEventListener(e, arm, { passive: true } as AddEventListenerOptions));
+    return () => {
+      if (t) window.clearTimeout(t);
+      evts.forEach((e) => window.removeEventListener(e, arm));
+    };
+  }, [applyTransform, getBounds]);
+
 
   useEffect(() => {
     peekRef.current = peek;
