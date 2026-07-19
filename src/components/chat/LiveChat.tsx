@@ -320,8 +320,8 @@ export function LiveChat() {
 
   return (
     <>
-      {/* Minimal floating support orb — 56px, orange gradient, gentle pulse. */}
-      {!open && !isProductPage && (
+      {/* Premium floating support orb — draggable, status ring, long-press menu. */}
+      {!open && (
         <DraggableOrb
           peek={orbHidden}
           availability={availability}
@@ -333,24 +333,24 @@ export function LiveChat() {
               window.location.href = "/contact";
               return;
             }
-            setMenuOpen(true);
+            // Tap opens the chat directly (morph animation via chat-slide-up).
+            setOpen(true);
           }}
+          onLongPress={() => { dismissGreeting(); setMenuOpen(true); }}
           onDragChange={(d) => { draggingRef.current = d; if (d) dismissGreeting(); }}
           greetVisible={greetVisible}
           onDismissGreeting={dismissGreeting}
         />
       )}
 
-
-
-      {/* Premium bottom sheet — support quick actions */}
+      {/* Long-press quick actions menu */}
       {menuOpen && !open && (
         <div
           className="fixed inset-0 z-[65] flex items-end justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setMenuOpen(false)}
           role="dialog"
           aria-modal="true"
-          aria-label="Support options"
+          aria-label="Support quick actions"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -360,8 +360,8 @@ export function LiveChat() {
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/15" aria-hidden />
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-display font-semibold text-base leading-tight">How can we help?</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">Support hours · Mon–Sun · 9 AM–9 PM</p>
+                <p className="font-display font-semibold text-base leading-tight">Quick actions</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">Choose how you'd like to get help</p>
               </div>
               <button
                 type="button"
@@ -375,26 +375,39 @@ export function LiveChat() {
             <div className="mt-4 space-y-2">
               <ChatMenuOption
                 icon={Headset}
-                label="Start Live Chat"
+                label="Live Chat"
                 desc="Chat with our support team"
                 onClick={() => { setMenuOpen(false); setOpen(true); }}
               />
+              {whatsappNumber && (
+                <ChatMenuOption
+                  icon={LifeBuoy}
+                  label="WhatsApp"
+                  desc={whatsappNumber}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    const n = whatsappNumber.replace(/[^\d]/g, "");
+                    window.open(`https://wa.me/${n}`, "_blank", "noopener,noreferrer");
+                  }}
+                />
+              )}
               <ChatMenuOption
                 icon={FileText}
-                label="Email"
-                desc="support@foundourmarket.com"
-                onClick={() => { setMenuOpen(false); window.location.href = "mailto:support@foundourmarket.com"; }}
+                label="Help Center"
+                desc="Browse guides and FAQs"
+                onClick={() => { setMenuOpen(false); window.location.href = "/help"; }}
               />
               <ChatMenuOption
-                icon={LifeBuoy}
-                label="Call Me Back"
-                desc="We'll reach out shortly"
-                onClick={() => { setMenuOpen(false); window.location.href = "/contact"; }}
+                icon={Package}
+                label="Track Order"
+                desc="View your recent orders"
+                onClick={() => { setMenuOpen(false); window.location.href = "/account"; }}
               />
             </div>
           </div>
         </div>
       )}
+
 
 
 
