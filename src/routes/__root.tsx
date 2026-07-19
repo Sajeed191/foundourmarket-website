@@ -45,6 +45,7 @@ import { startCapabilityGovernor, publishRenderDiagnostics } from "@/lib/runtime
 import { startMotionTier } from "@/lib/motion-tier";
 import { lazyWithRetry, installChunkRecovery } from "@/lib/chunk-recovery";
 import { AppErrorBoundary } from "@/components/site/AppErrorBoundary";
+import { IsolatedBoundary } from "@/components/site/IsolatedBoundary";
 import { installStartupDiagnostics, useRenderDiagnostics } from "@/lib/startup-diagnostics";
 import { initDebugFlags, getFlag } from "@/lib/debug-flags";
 import { installDebugDiagnostics, patchImageDecode } from "@/lib/debug-diagnostics";
