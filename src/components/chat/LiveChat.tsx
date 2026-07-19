@@ -56,6 +56,7 @@ import {
 } from "@/lib/chat-orders";
 import { BrandName } from "@/components/site/BrandName";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
+import { useSupportSettings } from "@/lib/use-support-settings";
 
 type Msg = CrispMessage;
 
