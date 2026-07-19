@@ -34,6 +34,7 @@ import { useAdminMode } from "@/lib/admin-mode";
 import { useCommandCenter } from "@/lib/command-center";
 import { Command as CommandIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
 import { StorefrontDashboardPanel } from "@/components/admin/StorefrontDashboardPanel";
 import { BulkVisibilityPanel } from "@/components/admin/BulkVisibilityPanel";
 
@@ -155,16 +156,20 @@ export function AdminFloatingToolbar() {
   const [placed, setPlaced] = useState(false);
   useEffect(() => {
     if (gated) return;
-    // Measure after layout so we know the actual pill width AND the header
-    // height (--app-header-height is set by LayoutMetricsProvider on its own
-    // rAF). Double-rAF guarantees we read post-layout values.
-    let raf2 = 0;
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => {
+    // Wait until the sticky header actually published --app-header-height
+    // (LayoutMetricsProvider writes it on its own rAF, and font/layout shifts
+    // can push that past two frames). Only then compute the safe position and
+    // reveal the toolbar. Capped at ~30 frames so a broken header can never
+    // hide the widget forever.
+    const cancelWait = waitForLayoutReady(isHeaderLayoutReady, () => {
+      // One more rAF so the resolved values are committed before we read them.
+      const raf = requestAnimationFrame(() => {
         resetToDefault(false);
         setPlaced(true);
       });
+      cleanupExtra = () => cancelAnimationFrame(raf);
     });
+    let cleanupExtra = () => {};
     const onResize = () => {
       const b = getBounds();
       const x = Math.min(Math.max(posRef.current.x, b.minX - b.w * HIDDEN_RATIO), b.maxX + b.w * HIDDEN_RATIO);
@@ -175,8 +180,8 @@ export function AdminFloatingToolbar() {
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
     return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
+      cancelWait();
+      cleanupExtra();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
     };
