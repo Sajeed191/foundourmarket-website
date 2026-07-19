@@ -78,7 +78,13 @@ export function AdminFloatingToolbar() {
   const [dashboard, setDashboard] = useState(false);
   const [bulk, setBulk] = useState(false);
 
-  if (loading || !isAdmin) return null;
+  // NOTE: do NOT early-return before the hooks below. Doing so changes the
+  // hook count between renders (loading→ready flips `isAdmin`) and triggers
+  // "Rendered more hooks than during the previous render", which cascades
+  // into AppErrorBoundary and blanks the entire app. Gate the final render
+  // instead — every hook must run on every render.
+  const gated = loading || !isAdmin;
+
 
   // --- Draggable Messenger-style chat-head behavior (mirrors LiveChat orb) ---
   // Position is NEVER persisted; resets to default (bottom-right) on every mount.
