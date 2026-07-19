@@ -114,7 +114,7 @@ export function LiveChat() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAuthRoute = pathname.startsWith("/auth");
   const { user } = useAuth();
-  const support = useSupportSettings();
+  const { settings: support } = useSupportSettings();
   const whatsappNumber = support.whatsappNumbers[0] || "";
 
   const customerName = useMemo(() => {
