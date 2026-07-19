@@ -140,28 +140,33 @@ export function LiveChat() {
   // can visually recede while the chat surface or quick-actions menu is open.
   useEffect(() => { setChatActive(open || menuOpen); return () => setChatActive(false); }, [open, menuOpen]);
   const [activeOrder, setActiveOrder] = useState<ChatOrder | null>(null);
-  // Peek the floating orb ~80% off-screen while the user scrolls down, and
-  // restore after they scroll up OR pause scrolling for 600ms. Suppressed
-  // while the user is actively dragging the orb.
+  // Fixed floating orb — smart scroll hide. While the user scrolls DOWN the
+  // orb slides out (translateY(120%) + opacity 0). Scrolling UP or pausing
+  // scroll for 300ms restores it. Fully fixed position; not draggable.
   const [orbHidden, setOrbHidden] = useState(false);
-  const draggingRef = useRef(false);
   useEffect(() => {
     let ticking = false;
     let idleTimer: number | undefined;
+    let lastY = typeof window !== "undefined" ? window.scrollY : 0;
+    const THRESH = 6;
     const scheduleRestore = () => {
       if (idleTimer) window.clearTimeout(idleTimer);
-      idleTimer = window.setTimeout(() => {
-        if (!draggingRef.current) setOrbHidden(false);
-      }, 700);
+      idleTimer = window.setTimeout(() => setOrbHidden(false), 300);
     };
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        if (!draggingRef.current) {
-          setOrbHidden(true);
-          // Also dismiss the greeting bubble while scrolling.
-          dismissGreetingRef.current();
+        const y = window.scrollY;
+        const dy = y - lastY;
+        if (Math.abs(dy) >= THRESH) {
+          if (dy > 0 && y > 40) {
+            setOrbHidden(true);
+            dismissGreetingRef.current();
+          } else if (dy < 0) {
+            setOrbHidden(false);
+          }
+          lastY = y;
         }
         ticking = false;
         scheduleRestore();
@@ -174,15 +179,15 @@ export function LiveChat() {
     };
   }, []);
 
-  // First-visit greeting bubble — shown once per browser session, 800ms after
-  // mount, auto-dismissed after 4s or as soon as the widget is opened/scrolled.
+  // "Need help?" tooltip — first-time visitors only. Appears 4s after mount,
+  // auto-hides 4s later. Persisted in localStorage so it never returns.
   const [greetVisible, setGreetVisible] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (sessionStorage.getItem("fom_chat_greet_seen") === "1") return;
+      if (localStorage.getItem("fom_chat_greet_seen") === "1") return;
     } catch { /* noop */ }
-    const showT = window.setTimeout(() => setGreetVisible(true), 800);
+    const showT = window.setTimeout(() => setGreetVisible(true), 4000);
     return () => window.clearTimeout(showT);
   }, []);
   useEffect(() => {
@@ -192,7 +197,7 @@ export function LiveChat() {
   }, [greetVisible]);
   const dismissGreeting = useCallback(() => {
     setGreetVisible(false);
-    try { sessionStorage.setItem("fom_chat_greet_seen", "1"); } catch { /* noop */ }
+    try { localStorage.setItem("fom_chat_greet_seen", "1"); } catch { /* noop */ }
   }, []);
   useEffect(() => { dismissGreetingRef.current = dismissGreeting; }, [dismissGreeting]);
 
