@@ -57,6 +57,7 @@ import {
 import { BrandName } from "@/components/site/BrandName";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
 import { useSupportSettings } from "@/lib/use-support-settings";
+import { registerFloating, updateFloating, setChatActive } from "@/lib/floating-stack";
 
 type Msg = CrispMessage;
 
@@ -135,6 +136,9 @@ export function LiveChat() {
   const [operatorJoined, setOperatorJoined] = useState(false);
   const [availability, setAvailability] = useState<Availability>("away");
   const [menuOpen, setMenuOpen] = useState(false);
+  // Broadcast active state so lower-priority floating widgets (Admin toolbar)
+  // can visually recede while the chat surface or quick-actions menu is open.
+  useEffect(() => { setChatActive(open || menuOpen); return () => setChatActive(false); }, [open, menuOpen]);
   const [activeOrder, setActiveOrder] = useState<ChatOrder | null>(null);
   // Peek the floating orb ~80% off-screen while the user scrolls down, and
   // restore after they scroll up OR pause scrolling for 600ms. Suppressed
@@ -960,6 +964,15 @@ function DraggableOrb({
 
   const [placed, setPlaced] = useState(false);
   useEffect(() => {
+    // Register with the floating-widgets collision system. Live Chat is the
+    // highest-priority floating action, so it never moves for others — lower-
+    // priority widgets (Admin toolbar, future) shift out of its way.
+    const unregister = registerFloating("livechat", {
+      priority: 1,
+      side: sessionDockSide ?? "right",
+      width: ORB_SIZE,
+      height: ORB_SIZE,
+    });
     let cleanupExtra = () => {};
     const cancelWait = waitForLayoutReady(isHeaderLayoutReady, () => {
       const raf = requestAnimationFrame(() => {
@@ -989,6 +1002,7 @@ function DraggableOrb({
     window.visualViewport?.addEventListener("resize", onResize);
     window.visualViewport?.addEventListener("scroll", onResize);
     return () => {
+      unregister();
       cancelWait();
       cleanupExtra();
       window.removeEventListener("resize", onResize);
@@ -1090,6 +1104,7 @@ function DraggableOrb({
       const hiddenPx = ORB_SIZE * HIDDEN_RATIO;
       const dockRight = centerX >= b.vw / 2;
       sessionDockSide = dockRight ? "right" : "left";
+      updateFloating("livechat", { side: sessionDockSide });
       const snapX = dockRight ? b.vw - ORB_SIZE + hiddenPx : -hiddenPx;
       const snapY = Math.min(Math.max(d.nextY, b.minY), b.maxY);
       posRef.current = { x: snapX, y: snapY };

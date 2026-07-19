@@ -35,6 +35,13 @@ import { useCommandCenter } from "@/lib/command-center";
 import { Command as CommandIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
+import {
+  registerFloating,
+  updateFloating,
+  subscribeFloating,
+  getStackOffset,
+  isChatActive,
+} from "@/lib/floating-stack";
 import { StorefrontDashboardPanel } from "@/components/admin/StorefrontDashboardPanel";
 import { BulkVisibilityPanel } from "@/components/admin/BulkVisibilityPanel";
 
@@ -136,10 +143,17 @@ export function AdminFloatingToolbar() {
     (x: number, y: number, scale = 1, withTransition = false) => {
       const el = wrapRef.current;
       if (!el) return;
+      // Collision system: shift up by the total height of higher-priority
+      // widgets docked on the same side (Live Chat at priority 1). Recede
+      // visually while the chat surface is open — never hidden.
+      const offsetY = getStackOffset("admin-toolbar");
+      const dim = isChatActive();
+      const finalScale = scale * (dim ? 0.88 : 1);
+      el.style.opacity = dim ? "0.55" : "1";
       el.style.transition = withTransition
-        ? "transform 260ms cubic-bezier(0.22, 1, 0.36, 1)"
-        : "none";
-      el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+        ? "transform 200ms ease-out, opacity 200ms ease-out"
+        : "opacity 200ms ease-out";
+      el.style.transform = `translate3d(${x}px, ${y - offsetY}px, 0) scale(${finalScale})`;
     },
     [],
   );
@@ -156,14 +170,23 @@ export function AdminFloatingToolbar() {
   const [placed, setPlaced] = useState(false);
   useEffect(() => {
     if (gated) return;
-    // Wait until the sticky header actually published --app-header-height
-    // (LayoutMetricsProvider writes it on its own rAF, and font/layout shifts
-    // can push that past two frames). Only then compute the safe position and
-    // reveal the toolbar. Capped at ~30 frames so a broken header can never
-    // hide the widget forever.
+    // Register with the collision system as a lower-priority widget so we
+    // shift up automatically when the Live Chat orb is on the same side.
+    // Approximate rest size — final measurement happens on first render.
+    const unregister = registerFloating("admin-toolbar", {
+      priority: 2,
+      side: "right",
+      width: 120,
+      height: 48,
+    });
     const cancelWait = waitForLayoutReady(isHeaderLayoutReady, () => {
-      // One more rAF so the resolved values are committed before we read them.
       const raf = requestAnimationFrame(() => {
+        // Measure once we're mounted and update our registered size so
+        // higher-priority widgets calculating clearance see the real height.
+        const rect = wrapRef.current?.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0) {
+          updateFloating("admin-toolbar", { width: Math.round(rect.width), height: Math.round(rect.height) });
+        }
         resetToDefault(false);
         setPlaced(true);
       });
@@ -177,9 +200,16 @@ export function AdminFloatingToolbar() {
       posRef.current = { x, y };
       applyTransform(x, y, 1, false);
     };
+    // Re-apply transform whenever the collision stack changes (Live Chat
+    // mounts/unmounts, docks to the other side, or opens/closes the chat).
+    const unsubscribe = subscribeFloating(() => {
+      applyTransform(posRef.current.x, posRef.current.y, 1, true);
+    });
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
     return () => {
+      unregister();
+      unsubscribe();
       cancelWait();
       cleanupExtra();
       window.removeEventListener("resize", onResize);
@@ -254,9 +284,11 @@ export function AdminFloatingToolbar() {
       const b = getBounds();
       const centerX = d.nextX + b.w / 2;
       const hiddenPx = b.w * HIDDEN_RATIO;
-      const snapX = centerX < b.vw / 2 ? -hiddenPx : b.vw - b.w + hiddenPx;
+      const dockRight = centerX >= b.vw / 2;
+      const snapX = dockRight ? b.vw - b.w + hiddenPx : -hiddenPx;
       const snapY = Math.min(Math.max(d.nextY, b.minY), b.maxY);
       posRef.current = { x: snapX, y: snapY };
+      updateFloating("admin-toolbar", { side: dockRight ? "right" : "left" });
       applyTransform(snapX, snapY, 1, true);
     },
     [applyTransform, getBounds],
