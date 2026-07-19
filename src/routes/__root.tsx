@@ -301,20 +301,37 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold">This page didn't load</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Something went wrong on our end.</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="rounded-full bg-accent px-6 py-3 text-xs font-medium uppercase tracking-widest text-accent-foreground"
-          >
-            Try again
+  useEffect(() => {
+    const w = window as unknown as {
+      __fomShowToast?: (msg: string) => void;
+      __fomRecover?: (reason?: unknown) => void;
+    };
+    w.__fomShowToast?.("Reconnecting…");
+    // Silently retry the loader a few times before falling back to the
+    // background recovery pipeline. No full-screen error page ever renders.
+    let cancelled = false;
+    let attempt = 0;
+    const tick = () => {
+      if (cancelled) return;
+      attempt += 1;
+      router.invalidate();
+      reset();
+      if (attempt < 5) {
+        setTimeout(tick, 1200 + Math.round(Math.random() * 400));
+      } else {
+        w.__fomRecover?.(error);
+      }
+    };
+    const t = setTimeout(tick, 1000);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [error, reset, router]);
+  // Render nothing — the previous route content stays visible under the toast.
+  return null;
+}
+
           </button>
           <a
             href="/"
