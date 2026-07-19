@@ -86,8 +86,8 @@ const STARTUP_GUARD_SCRIPT = `(function(){
     try { return (navigator.serviceWorker && navigator.serviceWorker.controller && navigator.serviceWorker.controller.scriptURL) || 'none'; }
     catch(e){ return 'unknown'; }
   }
-  function getCount(){ try { return parseInt(sessionStorage.getItem('fom_recover_count') || '0', 10) || 0; } catch(e){ return 0; } }
-  function setCount(n){ try { sessionStorage.setItem('fom_recover_count', String(n)); } catch(e){} }
+  function getCount(){ try { return parseInt(sessionStorage.getItem('fom_auto_reload_count') || '0', 10) || 0; } catch(e){ return 0; } }
+  function setCount(n){ try { sessionStorage.setItem('fom_auto_reload_count', String(n)); } catch(e){} }
 
   function log(name, payload){
     try {
