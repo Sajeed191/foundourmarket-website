@@ -2,25 +2,28 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 /**
- * FoundOurMarket™ — Editorial Section Heading v7 (Magazine Chapter Opener).
+ * FoundOurMarket™ — Editorial Section Heading v8 (Luxury Magazine Opener).
  *
- * Composition
- *   [enormous ghost word — 90-140px, 900, uppercase, 3-5% opacity, cropped by edges]
- *   Title (30px, 800, pure white — no glow, no shadow)
- *   Subtitle (12px, neutral gray, one sentence)
- *   ── 80px × 1px divider, rgba(255,140,40,.4), grows left→right ──
+ * Composition (all centered, calm, editorial)
+ *   [ghost word — 110-160px, 900, uppercase, 2-3% opacity, offset + cropped]
+ *   Title       (26-28px, 900, pure white, -0.02em)
+ *      ↓ 12px
+ *   Subtitle    (12px, neutral gray)
+ *      ↓ 18px
+ *   Divider     (80×2px metallic orange, edges fade)
+ *      ↓ 26px  (content gap owned by wrapper padding-bottom)
  *
- * Motion (once on enter, 650ms cubic-bezier(.22,1,.36,1))
- *   Ghost word drifts up ~20px + fades in.
- *   Title fades + slides up.
- *   Subtitle fades in 120ms later.
- *   Divider expands from 0 → 80px.
+ * Motion (once on enter, 700ms cubic-bezier(.22,1,.36,1))
+ *   Ghost:    opacity 0→3%, translateY(-16px)
+ *   Title:    opacity + translateY(18px→0)
+ *   Subtitle: 80ms delay
+ *   Divider:  160ms delay, width 0→80px
  *
- * Background: one soft radial orange spotlight (~4%, large blur). Nothing else.
+ * Section rhythm: 80px top / 36px bottom.
+ * Background: one radial orange spotlight (~3%, 120px blur) — never a blob.
  *
- * Legacy props (align/eyebrow/badge/right/icon/live/liveLabel/href/hrefLabel)
- * are accepted for API back-compat but intentionally unused — the v7 design is
- * a single centered, minimal composition per spec.
+ * Back-compat: legacy props are accepted and intentionally unused; v8 is a
+ * single centered, minimal composition per spec.
  */
 
 const REVEAL_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
@@ -29,7 +32,7 @@ export function PremiumSectionHeading({
   title,
   subtitle,
   ghost,
-  // Back-compat — accepted but unused in v7.
+  // Back-compat — accepted but unused in v8.
   right: _right,
   align: _align,
   eyebrow: _eyebrow,
@@ -96,17 +99,19 @@ export function PremiumSectionHeading({
 
   const ghostWord = (ghost ?? title.split(/\s+/)[0] ?? title).toUpperCase();
 
+  // Ghost is offset slightly off-center for an editorial, cropped feel.
+  // Base translation: X -54% (nudged left of center), Y -50%. Reveal shifts Y by -16px.
   const ghostStyle: React.CSSProperties = {
-    opacity: shown ? 0.04 : 0,
+    opacity: shown ? 0.03 : 0,
     transform: shown
-      ? "translate3d(-50%, calc(-50% - 20px), 0)"
-      : "translate3d(-50%, -50%, 0)",
-    transition: `opacity 800ms ${REVEAL_EASE}, transform 800ms ${REVEAL_EASE}`,
+      ? "translate3d(-54%, calc(-50% - 16px), 0)"
+      : "translate3d(-54%, -50%, 0)",
+    transition: `opacity 700ms ${REVEAL_EASE}, transform 700ms ${REVEAL_EASE}`,
     willChange: "opacity, transform",
     fontFamily: '"Inter Tight", Inter, ui-sans-serif, system-ui, sans-serif',
     fontWeight: 900,
-    fontSize: "clamp(90px, 30vw, 140px)",
-    letterSpacing: "-6px",
+    fontSize: "clamp(110px, 34vw, 160px)",
+    letterSpacing: "-0.06em",
     lineHeight: 0.9,
     color: "white",
     top: "50%",
@@ -115,32 +120,38 @@ export function PremiumSectionHeading({
 
   const titleStyle: React.CSSProperties = {
     opacity: shown ? 1 : 0,
-    transform: shown ? "translate3d(0,0,0)" : "translate3d(0,12px,0)",
-    transition: `opacity 650ms ${REVEAL_EASE}, transform 650ms ${REVEAL_EASE}`,
+    transform: shown ? "translate3d(0,0,0)" : "translate3d(0,18px,0)",
+    transition: `opacity 700ms ${REVEAL_EASE}, transform 700ms ${REVEAL_EASE}`,
     willChange: shown ? undefined : "opacity, transform",
     fontFamily: '"Inter Tight", Inter, ui-sans-serif, system-ui, sans-serif',
-    fontWeight: 800,
-    fontSize: "30px",
-    lineHeight: 1.1,
-    letterSpacing: "-0.018em",
+    fontWeight: 900,
+    fontSize: "clamp(26px, 6.6vw, 28px)",
+    lineHeight: 1.25,
+    letterSpacing: "-0.02em",
     color: "#ffffff",
   };
 
   const subStyle: React.CSSProperties = {
     opacity: shown ? 1 : 0,
-    transform: shown ? "translate3d(0,0,0)" : "translate3d(0,8px,0)",
-    transition: `opacity 650ms ${REVEAL_EASE} 120ms, transform 650ms ${REVEAL_EASE} 120ms`,
+    transform: shown ? "translate3d(0,0,0)" : "translate3d(0,10px,0)",
+    transition: `opacity 700ms ${REVEAL_EASE} 80ms, transform 700ms ${REVEAL_EASE} 80ms`,
     willChange: shown ? undefined : "opacity, transform",
     fontSize: "12px",
+    lineHeight: 1.5,
     color: "rgba(255,255,255,0.55)",
+    marginTop: "12px",
   };
 
   const dividerStyle: React.CSSProperties = {
     width: shown ? "80px" : "0px",
-    height: "1px",
-    background: "rgba(255,140,40,0.4)",
-    transition: `width 600ms ${REVEAL_EASE} 220ms`,
-    willChange: shown ? undefined : "width",
+    height: "2px",
+    background:
+      "linear-gradient(90deg, transparent 0%, rgba(255,140,40,0.85) 50%, transparent 100%)",
+    transition: `width 700ms ${REVEAL_EASE} 160ms, opacity 700ms ${REVEAL_EASE} 160ms`,
+    willChange: shown ? undefined : "width, opacity",
+    opacity: shown ? 1 : 0,
+    marginTop: "18px",
+    borderRadius: "1px",
   };
 
   return (
@@ -148,22 +159,24 @@ export function PremiumSectionHeading({
       ref={ref}
       className="relative isolate flex flex-col items-center overflow-hidden text-center"
       style={{
-        marginTop: "72px",
-        marginBottom: "28px",
+        marginTop: "80px",
+        marginBottom: "36px",
+        // 26px gap between the divider and following content.
+        paddingBottom: "26px",
       }}
     >
-      {/* Soft radial orange spotlight (~4%) */}
+      {/* Single soft radial spotlight — ~3%, 120px blur, never a blob */}
       <span
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[280px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[320px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(255,140,40,0.04) 0%, rgba(255,140,40,0.02) 45%, transparent 72%)",
-          filter: "blur(24px)",
+            "radial-gradient(ellipse at center, rgba(255,140,40,0.03) 0%, rgba(255,140,40,0.015) 50%, transparent 75%)",
+          filter: "blur(120px)",
         }}
       />
 
-      {/* Enormous ghost word */}
+      {/* Enormous ghost word (offset, cropped by overflow-hidden) */}
       <span
         aria-hidden
         className="pointer-events-none absolute -z-10 select-none whitespace-nowrap uppercase"
@@ -179,19 +192,19 @@ export function PremiumSectionHeading({
 
       {/* Subtitle */}
       {subtitle && (
-        <p className="relative mt-2" style={subStyle}>
+        <p className="relative" style={subStyle}>
           {subtitle}
         </p>
       )}
 
-      {/* Divider */}
-      <span aria-hidden className="relative mt-4 block" style={dividerStyle} />
+      {/* Metallic divider */}
+      <span aria-hidden className="relative block" style={dividerStyle} />
     </div>
   );
 }
 
 /**
- * Premium gradient divider — kept as a no-op-friendly spacer between sections.
+ * Premium gradient divider between sections (unchanged spacer).
  */
 export function PremiumSectionDivider() {
   return (
