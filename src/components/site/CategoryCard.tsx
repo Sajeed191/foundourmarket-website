@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Package,
@@ -70,7 +71,7 @@ const DEFAULT_THEME = "standard";
  * There are no category-type branches; the only fork is the data-driven image
  * vs icon fallback (used when a category genuinely has no image).
  */
-export function CategoryCard({
+export function CategoryCardImpl({
   category,
   count,
   to,
@@ -151,3 +152,15 @@ export function CategoryCard({
     </Link>
   );
 }
+
+export const CategoryCard = memo(CategoryCardImpl, (a, b) =>
+  a.count === b.count &&
+  a.to === b.to &&
+  a.category.id === b.category.id &&
+  a.category.image === b.category.image &&
+  a.category.mobile_image === b.category.mobile_image &&
+  a.category.name === b.category.name &&
+  a.category.slug === b.category.slug &&
+  a.category.theme === b.category.theme &&
+  a.params.slug === b.params.slug,
+);

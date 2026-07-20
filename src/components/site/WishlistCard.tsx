@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Heart, Zap, Eye, TrendingDown } from "lucide-react";
 import { type Product, discountPercent } from "@/lib/products";
 import { useRegion } from "@/lib/region";
@@ -22,7 +22,7 @@ export type WishlistCardProps = {
   onQuickView: () => void;
 };
 
-export function WishlistCard({
+function WishlistCardImpl({
   product,
   variantSummary,
   priceDrop,
@@ -293,3 +293,21 @@ export function WishlistCard({
     </div>
   );
 }
+
+export const WishlistCard = memo(WishlistCardImpl, (a, b) =>
+  a.selected === b.selected &&
+  a.selectMode === b.selectMode &&
+  a.priceDrop === b.priceDrop &&
+  a.variantSummary === b.variantSummary &&
+  a.onToggleSelect === b.onToggleSelect &&
+  a.onQuickView === b.onQuickView &&
+  a.product.slug === b.product.slug &&
+  a.product.image === b.product.image &&
+  a.product.name === b.product.name &&
+  a.product.price === b.product.price &&
+  a.product.comparePriceInr === b.product.comparePriceInr &&
+  a.product.inStock === b.product.inStock &&
+  a.product.stockQuantity === b.product.stockQuantity &&
+  a.product.rating === b.product.rating &&
+  a.product.reviews === b.product.reviews,
+);
