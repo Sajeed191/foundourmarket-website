@@ -144,6 +144,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ApiAiShoppingRouteImport } from './routes/api/ai-shopping'
 import { Route as AdminProductSlugRouteImport } from './routes/admin-product.$slug'
 import { Route as AdminCustomersCustomerIdRouteImport } from './routes/admin-customers.$customerId'
 import { Route as AccountSupportRouteImport } from './routes/account_.support'
@@ -871,6 +872,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const ApiAiShoppingRoute = ApiAiShoppingRouteImport.update({
+  id: '/api/ai-shopping',
+  path: '/api/ai-shopping',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminProductSlugRoute = AdminProductSlugRouteImport.update({
   id: '/admin-product/$slug',
   path: '/admin-product/$slug',
@@ -1226,6 +1232,7 @@ export interface FileRoutesByFullPath {
   '/account/support': typeof AccountSupportRoute
   '/admin-customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin-product/$slug': typeof AdminProductSlugRouteWithChildren
+  '/api/ai-shopping': typeof ApiAiShoppingRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -1403,6 +1410,7 @@ export interface FileRoutesByTo {
   '/account/security': typeof AccountSecurityRoute
   '/account/support': typeof AccountSupportRoute
   '/admin-customers/$customerId': typeof AdminCustomersCustomerIdRoute
+  '/api/ai-shopping': typeof ApiAiShoppingRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -1582,6 +1590,7 @@ export interface FileRoutesById {
   '/account_/support': typeof AccountSupportRoute
   '/admin-customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin-product/$slug': typeof AdminProductSlugRouteWithChildren
+  '/api/ai-shopping': typeof ApiAiShoppingRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -1762,6 +1771,7 @@ export interface FileRouteTypes {
     | '/account/support'
     | '/admin-customers/$customerId'
     | '/admin-product/$slug'
+    | '/api/ai-shopping'
     | '/auth/callback'
     | '/blog/$slug'
     | '/category/$slug'
@@ -1939,6 +1949,7 @@ export interface FileRouteTypes {
     | '/account/security'
     | '/account/support'
     | '/admin-customers/$customerId'
+    | '/api/ai-shopping'
     | '/auth/callback'
     | '/blog/$slug'
     | '/category/$slug'
@@ -2117,6 +2128,7 @@ export interface FileRouteTypes {
     | '/account_/support'
     | '/admin-customers/$customerId'
     | '/admin-product/$slug'
+    | '/api/ai-shopping'
     | '/auth/callback'
     | '/blog/$slug'
     | '/category/$slug'
@@ -2295,6 +2307,7 @@ export interface RootRouteChildren {
   AccountSecurityRoute: typeof AccountSecurityRoute
   AccountSupportRoute: typeof AccountSupportRoute
   AdminProductSlugRoute: typeof AdminProductSlugRouteWithChildren
+  ApiAiShoppingRoute: typeof ApiAiShoppingRoute
   CategorySlugRoute: typeof CategorySlugRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   NewsletterVerifiedRoute: typeof NewsletterVerifiedRoute
@@ -3275,6 +3288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/api/ai-shopping': {
+      id: '/api/ai-shopping'
+      path: '/api/ai-shopping'
+      fullPath: '/api/ai-shopping'
+      preLoaderRoute: typeof ApiAiShoppingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-product/$slug': {
       id: '/admin-product/$slug'
       path: '/admin-product/$slug'
@@ -3769,6 +3789,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountSecurityRoute: AccountSecurityRoute,
   AccountSupportRoute: AccountSupportRoute,
   AdminProductSlugRoute: AdminProductSlugRouteWithChildren,
+  ApiAiShoppingRoute: ApiAiShoppingRoute,
   CategorySlugRoute: CategorySlugRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   NewsletterVerifiedRoute: NewsletterVerifiedRoute,

@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { AiShoppingMount } from "@/components/chat/AiShoppingMount";
 import { GpuCompatBanner } from "@/components/site/GpuCompatBanner";
 import { MotionConfig } from "framer-motion";
 import { RegionProvider } from "@/lib/region";
@@ -434,6 +435,15 @@ const InstallPrompt = lazyWithRetry(() =>
 const LiveChat = lazyWithRetry(() =>
   import("@/components/chat/LiveChat").then((m) => ({ default: m.LiveChat })),
 );
+// Communication Hub is tiny (~4KB) and always mounted so the chooser opens
+// instantly. The AI Shopping Assistant is lazy — its JS + chat state only
+// load after the customer picks "AI Shopping" for the first time.
+const CommunicationHub = lazyWithRetry(() =>
+  import("@/components/chat/CommunicationHub").then((m) => ({ default: m.CommunicationHub })),
+);
+// AiShoppingMount is a ~1KB gatekeeper (event listener only). It stays in
+// the main bundle so it can catch the very first `fom:ai:open` event; the
+// heavy AiShoppingAssistant it renders is lazy-loaded inside it.
 const SearchCommand = lazyWithRetry(() =>
   import("@/components/site/SearchCommand").then((m) => ({
     default: m.SearchCommand as unknown as React.ComponentType<unknown>,
@@ -753,6 +763,8 @@ function DeferredShell({
       <IsolatedBoundary name="CompareTray"><CompareTray /></IsolatedBoundary>
       <IsolatedBoundary name="InstallPrompt"><InstallPrompt /></IsolatedBoundary>
       {!hideLiveChat && <IsolatedBoundary name="LiveChat"><LiveChat /></IsolatedBoundary>}
+      {!hideLiveChat && <IsolatedBoundary name="CommunicationHub"><CommunicationHub /></IsolatedBoundary>}
+      {!hideLiveChat && <IsolatedBoundary name="AiShoppingAssistant"><AiShoppingMount /></IsolatedBoundary>}
       {!hideLiveChat && <IsolatedBoundary name="SupportReplyWatcher"><SupportReplyWatcher /></IsolatedBoundary>}
     </Suspense>
   );
