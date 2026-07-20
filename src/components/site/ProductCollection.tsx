@@ -47,7 +47,11 @@ export function ProductCollection({
   description: string;
   icon: LucideIcon;
   sort: CollectionSort;
-  /** Legacy flag-based filter — used as a fallback if `collectionKey` isn't set. */
+  /**
+   * @deprecated Legacy flag-based filter — retained only for backward compatibility.
+   * New callers must use `collectionKey` so eligibility flows through Site Rules +
+   * live badge assignments. Slated for removal after all rails migrate.
+   */
   filterFlag?: "trending" | "bestseller" | "flashDeal" | "featured";
   /** Site-Rules collection key — drives eligibility (via badge assignments) + limit. */
   collectionKey?: HomepageCollectionKey;
