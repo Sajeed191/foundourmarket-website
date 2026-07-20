@@ -115,14 +115,21 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-/* Cinematic ambient divider — layered glow between sections */
+import { PremiumSectionHeading, PremiumSectionDivider } from "@/components/site/PremiumSectionHeading";
+
+/* Cinematic ambient divider — thin transparent→orange→transparent gradient */
 function CinematicDivider() {
-  return (
-    <div aria-hidden className="relative h-px max-w-7xl mx-auto my-2 sm:my-4">
-      <div className="absolute inset-x-6 sm:inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
-    </div>
-  );
+  return <PremiumSectionDivider />;
 }
+
+/* Section-specific subtitles ("dynamic labels" per premium heading spec). */
+const SECTION_SUBTITLE: Record<string, string> = {
+  categories: "Explore everything, all in one place.",
+  flash_deals: "Limited-time offers. Don't miss today's biggest savings.",
+  trending: "Most popular today across the marketplace.",
+  new_arrivals: "Fresh picks, just added.",
+  best_sellers: "Customer favorites of the season.",
+};
 
 /* Full-width premium "View All" button shown directly below each product section */
 function ViewAllButton({ to, label = "View All" }: { to: string; label?: string }) {
