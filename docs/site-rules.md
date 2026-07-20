@@ -51,6 +51,23 @@ currently resolved products; break ties with the priority order
 Every homepage rail reads eligibility through `productInHomepageCollection()`
 so the resolver is the single source of truth.
 
+## Single Visible Promotional Badge Policy — v1.0 (FROZEN)
+
+Customer-facing surfaces must never display more than one promotional badge
+for a product. The canonical badge is chosen by the same resolver that drives
+homepage collection eligibility, so display and placement stay in sync.
+
+- **Customer layer** — `ProductCard`, `WishlistCard`, and the PDP consume
+  `useResolvedProductBadges(slug)` (see `src/lib/use-product-badges.ts`),
+  which filters the assigned list through `filterToResolvedPromoBadges` to
+  drop every promo badge that isn't in the resolved collection. Featured
+  and non-promotional badges pass through unchanged.
+- **Admin layer** — `admin-products`, `ProductEditorModal`, and the badge
+  manager keep using `useProductBadges(slug)` so operators still see every
+  assignment for editing and auditing.
+- **No new queries or writes** — filtering reads the cached
+  `resolvedPromoBySlug` snapshot; rendering never touches the database.
+
 ## Admin pages that write to the same data
 
 - `src/routes/admin-site-rules.tsx` — limits, rotation, reshuffle schedule,
