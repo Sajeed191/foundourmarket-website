@@ -122,13 +122,21 @@ function CinematicDivider() {
   return <PremiumSectionDivider />;
 }
 
-/* Section identity — subtitle copy, background ghost word, and alignment. */
+/* Section identity — editorial label, subtitle, ghost word, badge, alignment. */
+const SECTION_EYEBROW: Record<string, string> = {
+  categories: "Curated Collection",
+  flash_deals: "Limited Offers",
+  trending: "Popular Picks",
+  new_arrivals: "Latest Arrivals",
+  best_sellers: "Customer Favorites",
+};
+
 const SECTION_SUBTITLE: Record<string, string> = {
-  categories: "Discover every department carefully curated for you.",
-  flash_deals: "Limited-time prices. New deals every day.",
-  trending: "Popular choices loved by thousands of shoppers.",
-  new_arrivals: "Fresh arrivals from trusted brands.",
-  best_sellers: "Top-rated products chosen by customers.",
+  categories: "Explore every department curated for you.",
+  flash_deals: "Today's best prices from trusted sellers.",
+  trending: "Trending products customers love.",
+  new_arrivals: "Fresh arrivals added daily.",
+  best_sellers: "Most purchased products this week.",
 };
 
 const SECTION_GHOST: Record<string, string> = {
@@ -137,6 +145,14 @@ const SECTION_GHOST: Record<string, string> = {
   trending: "TRENDING",
   new_arrivals: "NEW",
   best_sellers: "BEST",
+};
+
+const SECTION_BADGE: Record<string, string> = {
+  categories: "Handpicked",
+  flash_deals: "Live",
+  trending: "Updated Today",
+  new_arrivals: "Fresh",
+  best_sellers: "Daily",
 };
 
 /* Alternating alignment — editorial rhythm across the homepage. */
