@@ -245,7 +245,7 @@ function SectionComingSoon({
    When no products carry the section's badge, an elegant "Coming Soon"
    placeholder renders instead of hiding the section. */
 function ProductSection({
-  sectionKey, eyebrow, title, icon, products, isAdmin, active, viewAllTo, prominent = false, minHeight = 260, limit = 4,
+  sectionKey, eyebrow, title, icon, products, isAdmin, active, viewAllTo, prominent = false, minHeight = 260, limit = 4, eligibleCount,
 }: {
   sectionKey: string;
   eyebrow: string;
@@ -258,12 +258,25 @@ function ProductSection({
   prominent?: boolean;
   minHeight?: number;
   limit?: number;
+  /** Total number of eligible products (before rotation/preview slicing). Drives View All visibility. */
+  eligibleCount?: number;
 }) {
   // Only the admin-controlled active toggle hides the section. An empty product
   // list now shows an elegant "Coming Soon" message rather than disappearing.
   if (!active && !isAdmin) return null;
   const preview = products.slice(0, limit);
   const isEmpty = preview.length === 0;
+  // View All visibility is driven by the ELIGIBLE pool, not the visible preview.
+  // If there are more eligible products than the homepage preview slot count,
+  // the CTA must appear so shoppers can reach the full collection.
+  const totalEligible = typeof eligibleCount === "number" ? eligibleCount : preview.length;
+  const showViewAll = !isEmpty && totalEligible > limit;
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug(
+      `[Homepage Collection] collection=${sectionKey} eligible=${totalEligible} homepagePreview=${preview.length} showViewAll=${showViewAll}`,
+    );
+  }
   // Section-specific badge: inside a dedicated section, each card shows only
   // that section's badge.
   const sectionBadge =
@@ -287,7 +300,7 @@ function ProductSection({
         eyebrow={eyebrow}
         title={title}
         icon={icon}
-        href={isEmpty ? undefined : viewAllTo}
+        href={showViewAll ? viewAllTo : undefined}
         sectionKey={sectionKey}
         editable={isAdmin}
         active={active}
@@ -298,13 +311,6 @@ function ProductSection({
       ) : (
         <LazyMount minHeight={minHeight}>
           {sectionKey === "trending" ? (
-            // TEMPORARY EXPERIMENT — Trending only. Same ProductCard, same DOM
-            // wrapper (data-product-grid / data-product-card-frame), same CSS
-            // classes, same data/sorting/limit. The ONLY change is *when* cards
-            // mount: VirtualizedProductGrid → IncrementalGrid stages the initial
-            // mount in batches of 16 (virtualizeThreshold={0} forces the batched
-            // path), exactly as Browse (/search) does. No virtualization,
-            // no unmounting, no pagination.
             <VirtualizedProductGrid
               items={preview}
               virtualizeThreshold={0}
@@ -323,9 +329,18 @@ function ProductSection({
               ))}
             </div>
           )}
-          
         </LazyMount>
-
+      )}
+      {showViewAll && (
+        <div className="relative mt-6 sm:mt-8 flex justify-center">
+          <Link
+            to={viewAllTo}
+            className="group inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/[0.04] px-7 py-3.5 text-[12px] font-mono font-semibold uppercase tracking-[0.18em] text-accent transition-[background-color,border-color,box-shadow] duration-200 hover:bg-accent/10 hover:border-accent/60 hover:shadow-[0_10px_30px_-12px_rgba(255,138,0,0.5)]"
+          >
+            View All
+            <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </Link>
+        </div>
       )}
     </SectionTracker>
   );
