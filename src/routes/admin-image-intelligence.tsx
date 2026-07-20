@@ -45,8 +45,8 @@ function ImageIntelligencePage() {
   const analyzeFn = useServerFn(analyzeProductImage);
   const normalizeFn = useServerFn(normalizeProductImage);
 
-  const settings = useQuery({ queryKey: ["intel-settings"], queryFn: () => settingsFn() });
-  const jobs = useQuery({ queryKey: ["intel-jobs"], queryFn: () => jobsFn({ data: { limit: 50 } }) });
+  const settings = useQuery({ queryKey: ["intel-settings"], queryFn: () => settingsFn(), staleTime: 5 * 60_000 });
+  const jobs = useQuery({ queryKey: ["intel-jobs"], queryFn: () => jobsFn({ data: { limit: 50 } }), staleTime: 60_000 });
 
   const setMode = useMutation({
     mutationFn: (mode: IntelligenceMode) => updateFn({ data: { mode } }),
