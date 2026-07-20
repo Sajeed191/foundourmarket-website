@@ -269,12 +269,16 @@ export function AiShoppingAssistant() {
   }, [input, sendMessage]);
 
   const switchToSupport = useCallback(() => {
+    const ctx = getShoppingContext();
+    recordAiEvent("ai_support_handoff", { page: ctx.page, route: ctx.route ?? null });
     setLastHubChoice("support");
     setOpen(false);
     openCrispChat();
   }, []);
 
   const onChipClick = useCallback((chip: string) => {
+    const ctx = getShoppingContext();
+    recordAiEvent("ai_chip_clicked", { page: ctx.page, route: ctx.route ?? null }, { chip });
     if (/customer support/i.test(chip)) { switchToSupport(); return; }
     sendMessage(chip);
   }, [sendMessage, switchToSupport]);
