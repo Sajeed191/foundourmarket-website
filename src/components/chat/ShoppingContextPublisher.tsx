@@ -54,7 +54,7 @@ export function ShoppingContextPublisher() {
       .map((d) => ({
         slug: d.slug,
         name: d.product?.name ?? d.slug,
-        price_inr: d.product?.price_inr ?? null,
+        price_inr: d.product?.priceInr ?? null,
         category: d.product?.category ?? null,
         quantity: d.qty,
         variant: d.variant?.name ?? null,
@@ -63,7 +63,7 @@ export function ShoppingContextPublisher() {
       new Set(items.map((i) => i.category).filter((c): c is string => !!c)),
     ).slice(0, 8);
     const subtotal_inr = items.reduce(
-      (sum, i) => (i.price_inr ? sum + i.price_inr * i.quantity : sum),
+      (sum, i) => (i.priceInr ? sum + i.priceInr * i.quantity : sum),
       0,
     );
     return {
@@ -82,11 +82,11 @@ export function ShoppingContextPublisher() {
       return {
         slug,
         name: p?.name ?? slug,
-        price_inr: p?.price_inr ?? null,
+        price_inr: p?.priceInr ?? null,
         category: p?.category ?? null,
       };
     });
-    const prices = items.map((i) => i.price_inr ?? 0).filter((n) => n > 0);
+    const prices = items.map((i) => i.priceInr ?? 0).filter((n) => n > 0);
     const categories = Array.from(
       new Set(items.map((i) => i.category).filter((c): c is string => !!c)),
     ).slice(0, 8);
