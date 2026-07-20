@@ -657,7 +657,7 @@ function Home() {
       {/* 3 · Main Categories — premium 2-column marketplace grid */}
       <section id="categories" className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto scroll-mt-24">
         <div className="relative">
-          <SectionHeader eyebrow="Browse" title="Main Categories" href="/categories" />
+          <SectionHeader eyebrow="Browse" title="Main Categories" icon={LayoutGrid} href="/categories" sectionKey="categories" />
           {isProductAdmin && (
             <button
               onClick={() => setEditCats(true)}
