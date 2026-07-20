@@ -607,6 +607,26 @@ function ProductPage() {
   // editor — they're managing the product, not shopping.
   const showPurchaseDock = dataReady && mobileDockVisible && !editorOpen;
 
+  // Publish the Buy Now dock's presence to the floating-widgets stack so the
+  // Live Chat orb automatically lifts above it — never overlaps the sticky
+  // purchase bar. Value is dock height + inline gap; 0 when the dock is
+  // absent. No layout reads, no scroll dependency.
+  useEffect(() => {
+    let cancelled = false;
+    void import("@/lib/floating-stack").then(({ setBuyBarLift }) => {
+      if (cancelled) return;
+      // Dock CSS: --product-dock-height ≈ 5rem (80px) + 16px breathing room.
+      setBuyBarLift(showPurchaseDock ? 96 : 0);
+    });
+    return () => {
+      cancelled = true;
+      void import("@/lib/floating-stack").then(({ setBuyBarLift }) => {
+        setBuyBarLift(0);
+      });
+    };
+  }, [showPurchaseDock]);
+
+
   const handleAdd = () => {
     if (addState !== "idle") return;
     if (missingVariant) { toast.error("Please select an option first"); return; }
