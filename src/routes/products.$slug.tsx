@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Heart, Truck, RotateCcw, Minus, Plus,
-  Share2, Sparkles, CheckCircle2, Play,
+  Share2, Play,
   ShoppingCart, Zap, Check, Loader2, Lock,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
