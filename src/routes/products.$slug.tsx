@@ -646,9 +646,16 @@ function ProductPage() {
     if (assignedPdpBadges.some((b) => b.badgeKey === "best_seller")) out.push("Best Seller");
     if (product.brand) out.push(product.brand);
     out.push("Secure Payment");
-    out.push("Genuine Product");
     return out.slice(0, 6);
   })();
+  void highlightChips;
+
+  // Stock availability — real inventory only. No "Genuine/Authentic" claims.
+  const stockBadge = isOOS
+    ? { tone: "muted" as const, label: "Currently unavailable", sub: "Out of stock" }
+    : lowStock
+      ? { tone: "warn" as const, label: `Only ${effectiveStock} left`, sub: "Ships in 24 hours" }
+      : { tone: "ok" as const, label: "In Stock", sub: "Ready to ship" };
 
   return (
     <>
