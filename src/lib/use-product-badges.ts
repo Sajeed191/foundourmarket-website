@@ -162,13 +162,35 @@ export function badgeScheduleState(b: BadgeType, now = Date.now()): "scheduled" 
 }
 
 // ---- module-level cache + pub/sub so the whole grid shares one fetch ----
-type Snapshot = { types: BadgeType[]; map: Map<string, RenderBadge[]> };
+type Snapshot = {
+  types: BadgeType[];
+  map: Map<string, RenderBadge[]>;
+  /**
+   * Featured Editorial Override — per-slug set of promotional collections a
+   * product is allowed to appear in. Enforces the "one promotional badge per
+   * product" rule at read time even when legacy data has multiple. Featured
+   * is NOT a promotional collection and is checked separately via badges.
+   */
+  resolvedPromoBySlug: Map<string, Set<PromoCollection>>;
+};
 const EMPTY_BADGES: RenderBadge[] = [];
-const EMPTY_SNAPSHOT: Snapshot = { types: [], map: new Map() };
+const EMPTY_SNAPSHOT: Snapshot = { types: [], map: new Map(), resolvedPromoBySlug: new Map() };
 let cache: Snapshot | null = null;
 let inflight: Promise<Snapshot> | null = null;
 const subscribers = new Set<() => void>();
 let realtimeBound = false;
+
+/** Featured Editorial Override — resolver configuration (set from Site Rules). */
+export type PromoResolverConfig = { allowMultiForFeatured: boolean };
+let resolverConfig: PromoResolverConfig = { allowMultiForFeatured: false };
+export function setPromoResolverConfig(next: PromoResolverConfig): void {
+  if (resolverConfig.allowMultiForFeatured === next.allowMultiForFeatured) return;
+  resolverConfig = next;
+  if (cache) {
+    cache = { ...cache, resolvedPromoBySlug: resolvePromoCollections(cache.map) };
+    subscribers.forEach((fn) => fn());
+  }
+}
 
 function subscribeBadges(listener: () => void) {
   subscribers.add(listener);
@@ -215,7 +237,7 @@ async function load(force = false): Promise<Snapshot> {
       for (const [, list] of map) {
         list.sort((x, y) => x.sortOrder - y.sortOrder || y.priority - x.priority);
       }
-      const snap: Snapshot = { types, map };
+      const snap: Snapshot = { types, map, resolvedPromoBySlug: resolvePromoCollections(map) };
       cache = snap;
       inflight = null;
       subscribers.forEach((fn) => fn());
