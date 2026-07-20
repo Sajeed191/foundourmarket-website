@@ -13,6 +13,7 @@ import { useHomepageSections, toggleHomepageSection } from "@/lib/use-homepage-s
 import type { Product } from "@/lib/products";
 import { ProductImage } from "@/components/site/ProductImage";
 import { PremiumSectionHeading } from "@/components/site/PremiumSectionHeading";
+import { PremiumProductCarousel } from "@/components/site/PremiumProductCarousel";
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
