@@ -212,7 +212,11 @@ export const Route = createFileRoute("/api/ai-shopping")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const body = (await request.json().catch(() => ({}))) as { messages?: ChatMessage[] };
+        const body = (await request.json().catch(() => ({}))) as {
+          messages?: ChatMessage[];
+          context?: ShoppingContext;
+        };
+        const shoppingContext = body.context ?? null;
         const incoming = Array.isArray(body.messages) ? body.messages : [];
         const sanitized: ChatMessage[] = incoming
           .filter((m) => m && (m.role === "user" || m.role === "assistant"))
@@ -229,7 +233,7 @@ export const Route = createFileRoute("/api/ai-shopping")({
         const stream = new ReadableStream<Uint8Array>({
           async start(controller) {
             try {
-              await streamAiShopping(userText, sanitized, controller);
+              await streamAiShopping(userText, sanitized, controller, shoppingContext);
             } catch (err) {
               const message = err instanceof Error ? err.message : "AI request failed";
               controller.enqueue(jsonLine({ type: "error", message }));
