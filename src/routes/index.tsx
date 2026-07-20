@@ -124,57 +124,21 @@ function CinematicDivider() {
 
 /* Section identity — editorial label, subtitle, ghost word, badge, alignment. */
 const SECTION_EYEBROW: Record<string, string> = {
-  categories: "Curated Collection",
+  categories: "Featured Collection",
   flash_deals: "Limited Offers",
-  trending: "Popular Picks",
-  new_arrivals: "Latest Arrivals",
+  trending: "Popular This Week",
+  new_arrivals: "Just Released",
   best_sellers: "Customer Favorites",
 };
 
 const SECTION_SUBTITLE: Record<string, string> = {
-  categories: "Explore every department curated for you.",
+  categories: "Explore curated collections chosen for every lifestyle.",
   flash_deals: "Today's best prices from trusted sellers.",
-  trending: "Trending products customers love.",
-  new_arrivals: "Fresh arrivals added daily.",
-  best_sellers: "Most purchased products this week.",
+  trending: "The pieces our community is loving right now.",
+  new_arrivals: "Fresh finds, added to the collection this week.",
+  best_sellers: "The most-loved pieces across the marketplace.",
 };
 
-const SECTION_GHOST: Record<string, string> = {
-  categories: "CATEGORIES",
-  flash_deals: "FLASH",
-  trending: "TRENDING",
-  new_arrivals: "NEW",
-  best_sellers: "BEST",
-};
-
-const SECTION_BADGE: Record<string, string> = {
-  categories: "Handpicked",
-  flash_deals: "Live",
-  trending: "Updated Today",
-  new_arrivals: "Fresh",
-  best_sellers: "Daily",
-};
-
-/* Alternating alignment — editorial rhythm across the homepage. */
-const SECTION_ALIGN: Record<string, "center" | "left"> = {
-  categories: "center",
-  flash_deals: "left",
-  trending: "center",
-  new_arrivals: "left",
-  best_sellers: "center",
-};
-
-/* Full-width premium "View All" button shown directly below each product section */
-function ViewAllButton({ to, label = "View All" }: { to: string; label?: string }) {
-  return (
-    <Link
-      to={to}
-      className="mt-4 flex items-center justify-center gap-2 w-full rounded-2xl glass-strong border-2 border-accent py-3.5 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-accent hover:bg-accent/10 active:scale-[0.99] transition-colors"
-    >
-      {label} <ArrowRight className="size-3.5" />
-    </Link>
-  );
-}
 
 /* Premium category icon mapping — keyed by keyword in slug/name. */
 const CATEGORY_ICON_RULES: { match: string[]; icon: LucideIcon }[] = [
@@ -299,7 +263,7 @@ function ProductSection({
               ))}
             </div>
           )}
-          <ViewAllButton to={viewAllTo} />
+          
         </LazyMount>
 
       )}
@@ -341,23 +305,17 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
   }
 
   const subtitle = sectionKey ? SECTION_SUBTITLE[sectionKey] : undefined;
-  const ghost = sectionKey ? SECTION_GHOST[sectionKey] : undefined;
-  const align = (sectionKey && SECTION_ALIGN[sectionKey]) || "center";
-  const eyebrowLabel = sectionKey ? SECTION_EYEBROW[sectionKey] : undefined;
-  const badgeLabel = sectionKey ? SECTION_BADGE[sectionKey] : undefined;
+  const eyebrowLabel = sectionKey ? SECTION_EYEBROW[sectionKey] : eyebrow;
   void eyebrow;
-  void href;
-  void hrefLabel;
 
   return (
     <>
       <PremiumSectionHeading
         title={title}
         subtitle={subtitle}
-        ghost={ghost}
-        align={align}
         eyebrow={eyebrowLabel}
-        badge={badgeLabel}
+        href={href}
+        hrefLabel={hrefLabel}
         right={
           editable && sectionKey ? (
             <div className="flex items-center gap-1.5">
