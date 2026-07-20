@@ -22,7 +22,7 @@ import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid
 import type { Product } from "@/lib/products";
 import { buildBrowsePresentation, sortProductsForBrowse } from "@/lib/browse";
 import { useHomepageCollectionRules } from "@/lib/site-rules";
-import { useRegion } from "@/lib/region";
+import { sortRef as _sortRef } from "@/lib/noop-marker"; void _sortRef;
 
 
 export const Route = createFileRoute("/deals")({
@@ -76,7 +76,7 @@ function DealsPage() {
   // Deals & Promotions page.
   const { items, loading } = useFlashDeals();
   const rules = useHomepageCollectionRules();
-  const { currency } = useRegion();
+
   const countdown = useDailyCountdown();
   const [activeCat, setActiveCat] = useState<string>("all");
   const [sort, setSort] = useState<DealSort>("savings");
