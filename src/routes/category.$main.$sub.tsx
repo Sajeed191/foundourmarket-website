@@ -9,6 +9,7 @@ import type { Product } from "@/lib/products";
 import { titleizeSlug } from "@/lib/category-path";
 import { Loader2 } from "lucide-react";
 import { buildBrowsePresentation, sortProductsForBrowse } from "@/lib/browse";
+import { usePublishShoppingContext } from "@/lib/ai-shopping/shopping-context";
 
 export const Route = createFileRoute("/category/$main/$sub")({
   head: ({ params }) => {
