@@ -10,8 +10,9 @@ import { toast } from "sonner";
 import { onAiOpen, onAiClose, openHub, setLastHubChoice } from "@/lib/ai-shopping/events";
 import { openCrispChat } from "@/lib/crisp";
 import { conversationStore as store } from "@/lib/ai-shopping/conversation-store";
-import type { AiMessage, AiProductRef, AiThread, AiThreadIndexEntry } from "@/lib/ai-shopping/types";
+import type { AiMessage, AiProductRef, AiThread, AiThreadIndexEntry, AiSource, AiCompare } from "@/lib/ai-shopping/types";
 import { AiProductCard } from "./ai-shopping/AiProductCard";
+import { AiCompareBlock, AiSourceBadge } from "./ai-shopping/AiExplainBlocks";
 import { getShoppingContext } from "@/lib/ai-shopping/shopping-context";
 import { recordAiEvent } from "@/lib/ai-shopping/analytics";
 
