@@ -279,16 +279,19 @@ function sanitizeExplainPayload(raw: unknown): AttachExplanationsPayload | null 
   let compare: AiCompare | undefined;
   const cRaw = r.compare && typeof r.compare === "object" ? (r.compare as Record<string, unknown>) : null;
   if (cRaw && Array.isArray(cRaw.rows)) {
-    const rows = cRaw.rows
-      .map((row: unknown) => {
+    type Row = { slug: string; verdict: string; highlight?: string };
+    const rows: Row[] = cRaw.rows
+      .map((row: unknown): Row | null => {
         if (!row || typeof row !== "object") return null;
         const o = row as Record<string, unknown>;
         const slug = typeof o.slug === "string" ? o.slug : "";
         const verdict = typeof o.verdict === "string" ? o.verdict : "";
         if (!slug || !verdict) return null;
-        return { slug, verdict, highlight: typeof o.highlight === "string" ? o.highlight : undefined };
+        const out: Row = { slug, verdict };
+        if (typeof o.highlight === "string") out.highlight = o.highlight;
+        return out;
       })
-      .filter((x): x is { slug: string; verdict: string; highlight?: string } => x !== null)
+      .filter((x): x is Row => x !== null)
       .slice(0, 3);
     if (rows.length >= 2) {
       compare = { title: typeof cRaw.title === "string" ? cRaw.title : undefined, rows };
