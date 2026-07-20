@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Heart, Truck, RotateCcw, Minus, Plus,
-  Share2, Sparkles, CheckCircle2, Play,
+  Share2, Play,
   ShoppingCart, Zap, Check, Loader2, Lock,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
@@ -646,9 +646,16 @@ function ProductPage() {
     if (assignedPdpBadges.some((b) => b.badgeKey === "best_seller")) out.push("Best Seller");
     if (product.brand) out.push(product.brand);
     out.push("Secure Payment");
-    out.push("Genuine Product");
     return out.slice(0, 6);
   })();
+  void highlightChips;
+
+  // Stock availability — real inventory only. No "Genuine/Authentic" claims.
+  const stockBadge = isOOS
+    ? { tone: "muted" as const, label: "Currently unavailable", sub: "Out of stock" }
+    : lowStock
+      ? { tone: "warn" as const, label: `Only ${effectiveStock} left`, sub: "Ships in 24 hours" }
+      : { tone: "ok" as const, label: "In Stock", sub: "Ready to ship" };
 
   return (
     <>
@@ -889,12 +896,41 @@ function ProductPage() {
               ) : (
                 <div className="h-9 w-40 rounded-lg bg-white/[0.05] animate-pulse" />
               )}
-              {isOOS ? (
-                <p className="mt-2 text-[13px] text-muted-foreground">Currently out of stock</p>
-              ) : lowStock ? (
-                <p className="mt-2 text-[13px] text-accent">Only {effectiveStock} left in stock</p>
-              ) : null}
+              {/* Premium stock pill — replaces the old star/Sparkles row */}
+              <div className="mt-3">
+                <span
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                    stockBadge.tone === "ok"
+                      ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
+                      : stockBadge.tone === "warn"
+                        ? "border-accent/30 bg-accent/10 text-accent"
+                        : "border-border bg-white/[0.03] text-muted-foreground"
+                  }`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span className="relative inline-flex size-2">
+                    {stockBadge.tone === "ok" && (
+                      <span className="absolute inset-0 rounded-full bg-emerald-400/70 animate-ping motion-reduce:hidden" />
+                    )}
+                    <span
+                      className={`relative inline-flex size-2 rounded-full ${
+                        stockBadge.tone === "ok"
+                          ? "bg-emerald-400"
+                          : stockBadge.tone === "warn"
+                            ? "bg-accent"
+                            : "bg-muted-foreground/60"
+                      }`}
+                    />
+                  </span>
+                  <span>{stockBadge.label}</span>
+                  <span className="text-muted-foreground/70">·</span>
+                  <span className="text-foreground/70">{stockBadge.sub}</span>
+                </span>
+              </div>
             </div>
+
+
 
             {isAdmin && (
               <Suspense fallback={null}>
@@ -955,24 +991,57 @@ function ProductPage() {
               </Link>
             </div>
 
-            {/* Trust panel — one clean 2-col grid, no card */}
-            <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-3.5">
-              {[
-                { icon: Truck, label: unitShipping <= 0 ? "Free Shipping" : `Ships from ${format(unitShipping)}` },
-                { icon: RotateCcw, label: product.returnEligible ? `${product.returnWindowDays}-Day Returns` : "No Returns" },
-                { icon: Lock, label: "Secure Payment" },
-                { icon: CheckCircle2, label: "Genuine Product" },
-                { icon: Sparkles, label: isOOS ? "Out of stock" : "In Stock", accent: !isOOS },
-                ...(deliveryWindow && !isOOS ? [{ icon: Truck, label: `Delivery ${deliveryWindow}` }] : []),
-              ].map((row, i) => {
-                const Icon = row.icon;
-                return (
-                  <div key={i} className="flex items-center gap-2.5 text-[13px]">
-                    <Icon className={`size-[15px] shrink-0 ${row.accent ? "text-accent" : "text-muted-foreground"}`} strokeWidth={1.75} />
-                    <span className="text-foreground/90">{row.label}</span>
-                  </div>
-                );
-              })}
+            {/* Delivery & trust — premium glass card. Only real, data-backed rows. */}
+            <div
+              className="mt-8 rounded-2xl border border-white/10 p-4 sm:p-5"
+              style={{
+                background:
+                  "linear-gradient(135deg, oklch(1 0 0 / 0.05), oklch(1 0 0 / 0.015))",
+                backdropFilter: "blur(20px) saturate(140%)",
+                WebkitBackdropFilter: "blur(20px) saturate(140%)",
+              }}
+            >
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5">
+                {[
+                  deliveryWindow && !isOOS
+                    ? { icon: Truck, label: "Estimated Delivery", value: deliveryWindow, accent: true }
+                    : null,
+                  {
+                    icon: Truck,
+                    label: unitShipping <= 0 ? "Free Shipping" : "Shipping",
+                    value: unitShipping <= 0 ? "On this order" : `From ${format(unitShipping)}`,
+                  },
+                  product.returnEligible
+                    ? { icon: RotateCcw, label: "Easy Returns", value: `${product.returnWindowDays}-day window` }
+                    : null,
+                  { icon: Lock, label: "Secure Checkout", value: "Encrypted payment" },
+                ]
+                  .filter((r): r is { icon: typeof Truck; label: string; value: string; accent?: boolean } => !!r)
+                  .map((row, i) => {
+                    const Icon = row.icon;
+                    return (
+                      <li key={i} className="flex items-start gap-3">
+                        <span
+                          className={`grid size-9 shrink-0 place-items-center rounded-xl border ${
+                            row.accent
+                              ? "border-accent/30 bg-accent/10 text-accent"
+                              : "border-white/10 bg-white/[0.03] text-muted-foreground"
+                          }`}
+                        >
+                          <Icon className="size-[16px]" strokeWidth={1.75} />
+                        </span>
+                        <div className="min-w-0 leading-tight">
+                          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+                            {row.label}
+                          </p>
+                          <p className="mt-0.5 text-[13.5px] font-medium text-foreground/90 truncate">
+                            {row.value}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+              </ul>
             </div>
 
             {/* Product Overview — description component owns its own subsection titles */}
