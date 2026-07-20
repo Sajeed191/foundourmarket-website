@@ -3,7 +3,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 
 import {
   Search, ArrowRight, Star, Sparkles, Award, Package, Globe2, Flame,
-  BadgeCheck, Pencil, Truck, ShieldCheck, Zap, Gift,
+  BadgeCheck, Pencil, Truck, ShieldCheck, Zap, Gift, LayoutGrid,
   Sofa, UtensilsCrossed, Gamepad2, Cpu, ToyBrick, PawPrint, Car, Shirt, Dumbbell,
   Watch, Headphones, Gem, Baby, Wrench, BookOpen,
 } from "lucide-react";
@@ -115,14 +115,21 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-/* Cinematic ambient divider — layered glow between sections */
+import { PremiumSectionHeading, PremiumSectionDivider } from "@/components/site/PremiumSectionHeading";
+
+/* Cinematic ambient divider — thin transparent→orange→transparent gradient */
 function CinematicDivider() {
-  return (
-    <div aria-hidden className="relative h-px max-w-7xl mx-auto my-2 sm:my-4">
-      <div className="absolute inset-x-6 sm:inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
-    </div>
-  );
+  return <PremiumSectionDivider />;
 }
+
+/* Section-specific subtitles ("dynamic labels" per premium heading spec). */
+const SECTION_SUBTITLE: Record<string, string> = {
+  categories: "Explore everything, all in one place.",
+  flash_deals: "Limited-time offers. Don't miss today's biggest savings.",
+  trending: "Most popular today across the marketplace.",
+  new_arrivals: "Fresh picks, just added.",
+  best_sellers: "Customer favorites of the season.",
+};
 
 /* Full-width premium "View All" button shown directly below each product section */
 function ViewAllButton({ to, label = "View All" }: { to: string; label?: string }) {
@@ -300,40 +307,38 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
     }
   }
 
+  const subtitle = sectionKey ? SECTION_SUBTITLE[sectionKey] : undefined;
+
   return (
-    <Reveal className="flex justify-between items-end mb-4 sm:mb-6 gap-4">
-      <div className="min-w-0">
-        {eyebrow && (
-          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2 flex items-center gap-2">
-            {Icon && <Icon className="size-3" />} {eyebrow}
-          </p>
-        )}
-        <div className="flex items-center gap-2">
-          <h2 className={`${prominent ? "text-fluid-3xl" : "text-fluid-2xl"} font-display tracking-tight`}>{title}</h2>
-          {editable && sectionKey && (
-            <InlineActiveToggle
-              active={active}
-              label="Section"
-              size="sm"
-              onToggle={(next) => toggleHomepageSection(sectionKey, next)}
-            />
-          )}
-          {editable && sectionKey && (
-            <button
-              onClick={open}
-              aria-label="Edit section"
-              className="grid size-7 shrink-0 place-items-center rounded-full border border-accent/30 bg-accent/10 text-accent transition-colors hover:bg-accent/20"
-            >
-              <Pencil className="size-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
-      {href && (
-        <Link to={href} className="hidden sm:inline-block text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-foreground hover:border-foreground transition-colors">
-          {hrefLabel}
-        </Link>
-      )}
+    <>
+      <PremiumSectionHeading
+        icon={Icon as LucideIcon | undefined}
+        title={title}
+        subtitle={subtitle ?? (eyebrow || undefined)}
+        href={href}
+        hrefLabel={hrefLabel}
+        right={
+          editable && sectionKey ? (
+            <div className="flex items-center gap-1.5">
+              <InlineActiveToggle
+                active={active}
+                label="Section"
+                size="sm"
+                onToggle={(next) => toggleHomepageSection(sectionKey, next)}
+              />
+              <button
+                onClick={open}
+                aria-label="Edit section"
+                className="grid size-8 shrink-0 place-items-center rounded-full border border-accent/30 bg-accent/10 text-accent transition-colors hover:bg-accent/20"
+              >
+                <Pencil className="size-3.5" />
+              </button>
+            </div>
+          ) : undefined
+        }
+      />
+      {/* Silence unused-var warnings; prominent kept for API back-compat. */}
+      {prominent ? null : null}
 
       {editing && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" onClick={() => !saving && setEditing(false)}>
@@ -394,7 +399,7 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
           </div>
         </div>
       )}
-    </Reveal>
+    </>
   );
 }
 
@@ -652,7 +657,7 @@ function Home() {
       {/* 3 · Main Categories — premium 2-column marketplace grid */}
       <section id="categories" className="px-4 sm:px-6 py-6 sm:py-8 max-w-7xl mx-auto scroll-mt-24">
         <div className="relative">
-          <SectionHeader eyebrow="Browse" title="Main Categories" href="/categories" />
+          <SectionHeader eyebrow="Browse" title="Main Categories" icon={LayoutGrid} href="/categories" sectionKey="categories" />
           {isProductAdmin && (
             <button
               onClick={() => setEditCats(true)}
