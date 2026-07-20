@@ -429,29 +429,3 @@ function ModeChoice({
     </button>
   );
 }
-  icon: React.ReactNode;
-  title: string;
-  to?: string;
-  cta?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-border/50 bg-card/30 p-4 flex flex-col justify-between min-h-[110px]">
-      <div className="flex items-center gap-2">
-        <span className="size-7 grid place-items-center rounded-md bg-muted/40 text-muted-foreground">
-          {icon}
-        </span>
-        <div className="text-xs font-medium">{title}</div>
-      </div>
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground/70">
-          Coming soon
-        </span>
-        {to && cta ? (
-          <Link to={to} className="text-[11px] text-accent hover:underline inline-flex items-center gap-1">
-            {cta} <ArrowRight className="size-3" />
-          </Link>
-        ) : null}
-      </div>
-    </div>
-  );
-}
