@@ -991,24 +991,57 @@ function ProductPage() {
               </Link>
             </div>
 
-            {/* Trust panel — one clean 2-col grid, no card */}
-            <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-3.5">
-              {[
-                { icon: Truck, label: unitShipping <= 0 ? "Free Shipping" : `Ships from ${format(unitShipping)}` },
-                { icon: RotateCcw, label: product.returnEligible ? `${product.returnWindowDays}-Day Returns` : "No Returns" },
-                { icon: Lock, label: "Secure Payment" },
-                { icon: CheckCircle2, label: "Genuine Product" },
-                { icon: Sparkles, label: isOOS ? "Out of stock" : "In Stock", accent: !isOOS },
-                ...(deliveryWindow && !isOOS ? [{ icon: Truck, label: `Delivery ${deliveryWindow}` }] : []),
-              ].map((row, i) => {
-                const Icon = row.icon;
-                return (
-                  <div key={i} className="flex items-center gap-2.5 text-[13px]">
-                    <Icon className={`size-[15px] shrink-0 ${row.accent ? "text-accent" : "text-muted-foreground"}`} strokeWidth={1.75} />
-                    <span className="text-foreground/90">{row.label}</span>
-                  </div>
-                );
-              })}
+            {/* Delivery & trust — premium glass card. Only real, data-backed rows. */}
+            <div
+              className="mt-8 rounded-2xl border border-white/10 p-4 sm:p-5"
+              style={{
+                background:
+                  "linear-gradient(135deg, oklch(1 0 0 / 0.05), oklch(1 0 0 / 0.015))",
+                backdropFilter: "blur(20px) saturate(140%)",
+                WebkitBackdropFilter: "blur(20px) saturate(140%)",
+              }}
+            >
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5">
+                {[
+                  deliveryWindow && !isOOS
+                    ? { icon: Truck, label: "Estimated Delivery", value: deliveryWindow, accent: true }
+                    : null,
+                  {
+                    icon: Truck,
+                    label: unitShipping <= 0 ? "Free Shipping" : "Shipping",
+                    value: unitShipping <= 0 ? "On this order" : `From ${format(unitShipping)}`,
+                  },
+                  product.returnEligible
+                    ? { icon: RotateCcw, label: "Easy Returns", value: `${product.returnWindowDays}-day window` }
+                    : null,
+                  { icon: Lock, label: "Secure Checkout", value: "Encrypted payment" },
+                ]
+                  .filter((r): r is { icon: typeof Truck; label: string; value: string; accent?: boolean } => !!r)
+                  .map((row, i) => {
+                    const Icon = row.icon;
+                    return (
+                      <li key={i} className="flex items-start gap-3">
+                        <span
+                          className={`grid size-9 shrink-0 place-items-center rounded-xl border ${
+                            row.accent
+                              ? "border-accent/30 bg-accent/10 text-accent"
+                              : "border-white/10 bg-white/[0.03] text-muted-foreground"
+                          }`}
+                        >
+                          <Icon className="size-[16px]" strokeWidth={1.75} />
+                        </span>
+                        <div className="min-w-0 leading-tight">
+                          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+                            {row.label}
+                          </p>
+                          <p className="mt-0.5 text-[13.5px] font-medium text-foreground/90 truncate">
+                            {row.value}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+              </ul>
             </div>
 
             {/* Product Overview — description component owns its own subsection titles */}
