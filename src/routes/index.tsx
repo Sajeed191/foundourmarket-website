@@ -169,16 +169,70 @@ function iconForCategory(slug: string, name: string): LucideIcon {
 
 /* Elegant empty-state messaging per home section — sections stay visible even
    when no products currently carry the required badge. */
-const SECTION_EMPTY_COPY: Record<string, string> = {
-  trending: "More trending products are on the way.",
-  new_arrivals: "New products are arriving soon.",
-  best_sellers: "More best sellers are on the way.",
+const SECTION_EMPTY_COPY: Record<string, { title: string; message: string }> = {
+  trending: {
+    title: "Coming Soon",
+    message: "We're preparing the next trending collection.",
+  },
+  new_arrivals: {
+    title: "Coming Soon",
+    message: "New arrivals will appear here soon.",
+  },
+  best_sellers: {
+    title: "Coming Soon",
+    message: "Our best-selling products will appear here soon.",
+  },
+  featured: {
+    title: "Coming Soon",
+    message: "A new featured collection is on the way.",
+  },
 };
+
+/* Premium "Coming Soon" placeholder — matches the marketplace aesthetic:
+   soft neutral surface, subtle icon, large heading, minimal message. */
+function SectionComingSoon({
+  icon: Icon,
+  title,
+  message,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  message: string;
+}) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-3xl px-6 py-12 sm:py-14 text-center motion-safe:animate-fade-in"
+      style={{
+        background: "linear-gradient(160deg, oklch(0.16 0.006 60) 0%, oklch(0.18 0.008 60) 100%)",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 h-40 w-2/3 rounded-full blur-3xl opacity-20"
+        style={{ background: "var(--gradient-ember)" }}
+      />
+      <div className="relative flex flex-col items-center gap-4">
+        {Icon && (
+          <div className="grid size-12 place-items-center rounded-2xl bg-white/[0.04] text-accent/90 ring-1 ring-white/10">
+            <Icon className="size-5" strokeWidth={1.75} />
+          </div>
+        )}
+        <h3 className="text-2xl sm:text-[26px] font-display font-semibold tracking-tight text-foreground">
+          {title}
+        </h3>
+        <p className="max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
+          {message}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 /* Single product section (lazy-mounted). Shows exactly 4 products in a 2×2
    mobile grid (no carousel) with a full-width premium "View All" button.
-   When no products carry the section's badge, an elegant empty state renders
-   instead of hiding the section. */
+   When no products carry the section's badge, an elegant "Coming Soon"
+   placeholder renders instead of hiding the section. */
 function ProductSection({
   sectionKey, eyebrow, title, icon, products, isAdmin, active, viewAllTo, prominent = false, minHeight = 260, limit = 4,
 }: {
@@ -195,7 +249,7 @@ function ProductSection({
   limit?: number;
 }) {
   // Only the admin-controlled active toggle hides the section. An empty product
-  // list now shows an elegant message rather than disappearing.
+  // list now shows an elegant "Coming Soon" message rather than disappearing.
   if (!active && !isAdmin) return null;
   const preview = products.slice(0, limit);
   const isEmpty = preview.length === 0;
@@ -209,6 +263,10 @@ function ProductSection({
         : sectionKey === "new_arrivals"
           ? "new"
           : null;
+  const emptyCopy = SECTION_EMPTY_COPY[sectionKey] ?? {
+    title: "Coming Soon",
+    message: "More products are on the way.",
+  };
   return (
     <SectionTracker
       sectionKey={sectionKey}
@@ -225,16 +283,7 @@ function ProductSection({
         prominent={prominent}
       />
       {isEmpty ? (
-        <div className="grid place-items-center rounded-3xl border border-dashed border-accent/20 bg-card/40 px-6 py-12 text-center">
-          {icon && (
-            <div className="mb-3 grid size-11 place-items-center rounded-2xl bg-accent/10 text-accent ring-1 ring-accent/20">
-              {(() => { const I = icon; return <I className="size-5" />; })()}
-            </div>
-          )}
-          <p className="text-sm text-muted-foreground">
-            {SECTION_EMPTY_COPY[sectionKey] ?? "More products are on the way."}
-          </p>
-        </div>
+        <SectionComingSoon icon={icon} title={emptyCopy.title} message={emptyCopy.message} />
       ) : (
         <LazyMount minHeight={minHeight}>
           {sectionKey === "trending" ? (
