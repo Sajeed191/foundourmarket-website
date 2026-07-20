@@ -27,7 +27,9 @@ const entries = new Map<string, FloatingEntry>();
 const subs = new Set<() => void>();
 let chatActive = false;
 let footerLift = 0;
+let buyBarLift = 0;
 let contextHidden = false;
+
 
 
 function emit() {
@@ -109,6 +111,21 @@ export function setFooterLift(v: number): void {
 }
 export function getFooterLift(): number {
   return footerLift;
+}
+
+/**
+ * Extra vertical offset (positive px = move UP) every floating widget should
+ * apply so it clears the PDP sticky purchase dock (Buy Now bar). Published by
+ * the PDP whenever the dock is visible; 0 otherwise.
+ */
+export function setBuyBarLift(v: number): void {
+  const next = Math.max(0, Math.round(v));
+  if (Math.abs(next - buyBarLift) < 1) return;
+  buyBarLift = next;
+  emit();
+}
+export function getBuyBarLift(): number {
+  return buyBarLift;
 }
 
 /**

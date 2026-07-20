@@ -57,7 +57,7 @@ import {
 import { BrandName } from "@/components/site/BrandName";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
 import { useSupportSettings } from "@/lib/use-support-settings";
-import { registerFloating, subscribeFloating, setChatActive, isContextHidden } from "@/lib/floating-stack";
+import { registerFloating, subscribeFloating, setChatActive, isContextHidden, getBuyBarLift } from "@/lib/floating-stack";
 
 type Msg = CrispMessage;
 
@@ -939,8 +939,10 @@ function FixedOrb({
     const el = wrapRef.current;
     if (!el) return;
     const c = cachedRef.current;
-    el.style.bottom = `calc(${c.navH + BOTTOM_GAP + c.kb}px + env(safe-area-inset-bottom, 0px))`;
+    const buyBar = getBuyBarLift();
+    el.style.bottom = `calc(${c.navH + BOTTOM_GAP + c.kb + buyBar}px + env(safe-area-inset-bottom, 0px))`;
   }, []);
+
 
   // Full recompute — allowed only on real layout events, never on scroll or
   // floating UI changes.
@@ -1029,11 +1031,13 @@ function FixedOrb({
     window.addEventListener("orientationchange", onOrientation);
     window.visualViewport?.addEventListener("resize", onVVResize);
 
-    // Re-apply visibility only on floating-stack changes. Live Chat position is
-    // deliberately locked and must ignore footer/sticky CTA/toast stack changes.
+    // Re-apply on floating-stack changes. Position updates for buy-bar/footer
+    // lift (real layout events, not scroll); visibility updates for context.
     const unsubscribe = subscribeFloating(() => {
+      writeBottom();
       applyVisibility();
     });
+
     return () => {
       unregister();
       unsubscribe();
