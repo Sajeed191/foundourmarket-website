@@ -3,7 +3,7 @@
 // Wishlist. Buy Now = add + navigate to /cart.
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Star, ShoppingBag, Heart, Zap, Check } from "lucide-react";
+import { Star, ShoppingBag, Heart, Zap, Check, Sparkles, ChevronDown, ThumbsUp, ThumbsDown, ShieldCheck } from "lucide-react";
 import { useCartActions, readLineQty } from "@/lib/cart";
 import { useWishlistActions } from "@/lib/wishlist";
 import { toast } from "sonner";
