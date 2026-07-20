@@ -160,6 +160,8 @@ export function AiShoppingAssistant() {
     let accumulated = "";
     let finalProducts: AiProductRef[] | undefined;
     let finalSuggestions: string[] | undefined;
+    let finalSource: AiSource | undefined;
+    let finalCompare: AiCompare | undefined;
     let streamError: string | null = null;
 
     try {
@@ -192,7 +194,15 @@ export function AiShoppingAssistant() {
         for (const line of lines) {
           const t = line.trim();
           if (!t) continue;
-          let evt: { type: string; text?: string; products?: AiProductRef[]; suggestions?: string[]; message?: string };
+          let evt: {
+            type: string;
+            text?: string;
+            products?: AiProductRef[];
+            suggestions?: string[];
+            source?: AiSource;
+            compare?: AiCompare;
+            message?: string;
+          };
           try { evt = JSON.parse(t); } catch { continue; }
           if (evt.type === "token" && typeof evt.text === "string") {
             accumulated += evt.text;
@@ -201,6 +211,10 @@ export function AiShoppingAssistant() {
             finalProducts = evt.products.slice(0, 6);
           } else if (evt.type === "suggestions" && Array.isArray(evt.suggestions)) {
             finalSuggestions = evt.suggestions.slice(0, 5);
+          } else if (evt.type === "source" && typeof evt.source === "string") {
+            finalSource = evt.source;
+          } else if (evt.type === "compare" && evt.compare) {
+            finalCompare = evt.compare;
           } else if (evt.type === "error") {
             streamError = evt.message ?? "Something went wrong";
           } else if (evt.type === "done") {
@@ -216,6 +230,8 @@ export function AiShoppingAssistant() {
       const assistantMsg: AiMessage = {
         ...store.makeMessage("assistant", replyText, finalProducts),
         suggestions: finalSuggestions,
+        source: finalSource,
+        compare: finalCompare,
       };
       persist({ ...withUser, messages: [...withUser.messages, assistantMsg] });
       const postCtx = getShoppingContext();
@@ -228,7 +244,7 @@ export function AiShoppingAssistant() {
         recordAiEvent(
           "ai_recommendation_shown",
           { page: postCtx.page, route: postCtx.route ?? null },
-          { count: finalProducts.length },
+          { count: finalProducts.length, source: finalSource ?? "unknown" },
         );
       }
     } catch (err) {
