@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AI_SHOPPING_TOOLS, executeTool, type AiProductSummary } from "@/lib/ai-shopping/tools.server";
+import {
+  AI_SHOPPING_TOOLS,
+  executeTool,
+  type AiProductSummary,
+  type AttachExplanationsPayload,
+} from "@/lib/ai-shopping/tools.server";
 import { generateSuggestions } from "@/lib/ai-shopping/suggestions";
 import { summarizeShoppingContext, type ShoppingContext } from "@/lib/ai-shopping/shopping-context";
+import type { AiExplanation, AiSource, AiCompare } from "@/lib/ai-shopping/types";
 
 type ChatMessage = {
   role: "system" | "user" | "assistant" | "tool";
