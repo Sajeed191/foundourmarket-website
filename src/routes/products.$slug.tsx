@@ -1011,47 +1011,44 @@ function ProductPage() {
                 reverts to Add to Cart when qty hits 0. Buy Now stays as the primary CTA. */}
             <div ref={inlinePurchaseRef} className="mt-6 flex items-stretch gap-2.5">
               <div className="flex-1 relative h-[52px]">
-                {/* Quantity stepper — visible only after item is in cart */}
-                <div
-                  aria-hidden={!showQtySelector}
-                  className={`absolute inset-0 inline-flex items-center justify-between rounded-full border border-accent/40 bg-accent/5 px-1 transition-all duration-200 ease-out ${
-                    showQtySelector ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
-                  }`}
-                >
-                  <button
-                    onClick={decCartQty}
-                    aria-label={cartQty <= 1 ? "Remove from cart" : "Decrease quantity"}
-                    className="grid size-11 place-items-center rounded-full text-foreground/80 transition-colors hover:text-accent active:scale-90"
+                {showQtySelector ? (
+                  <div
+                    key="qty"
+                    className="absolute inset-0 inline-flex items-center justify-between rounded-full border border-accent/40 bg-background px-1 animate-in fade-in zoom-in-95 duration-200 ease-out"
                   >
-                    <Minus className="size-4" />
-                  </button>
-                  <span aria-live="polite" className="flex-1 text-center font-mono text-[15px] font-semibold tabular-nums text-foreground">
-                    {Math.max(1, cartQty)}
-                    <span className="ml-1.5 text-[11px] font-normal text-muted-foreground uppercase tracking-widest">in cart</span>
-                  </span>
+                    <button
+                      onClick={decCartQty}
+                      aria-label={cartQty <= 1 ? "Remove from cart" : "Decrease quantity"}
+                      className="grid size-11 place-items-center rounded-full text-foreground/80 transition-colors hover:text-accent active:scale-90"
+                    >
+                      <Minus className="size-4" />
+                    </button>
+                    <span aria-live="polite" className="flex-1 text-center font-mono text-[15px] font-semibold tabular-nums text-foreground">
+                      {Math.max(1, cartQty)}
+                      <span className="ml-1.5 text-[11px] font-normal text-muted-foreground uppercase tracking-widest">in cart</span>
+                    </span>
+                    <button
+                      onClick={incCartQty}
+                      aria-label="Increase quantity"
+                      className="grid size-11 place-items-center rounded-full text-foreground/80 transition-colors hover:text-accent active:scale-90"
+                    >
+                      <Plus className="size-4" />
+                    </button>
+                  </div>
+                ) : (
                   <button
-                    onClick={incCartQty}
-                    aria-label="Increase quantity"
-                    className="grid size-11 place-items-center rounded-full text-foreground/80 transition-colors hover:text-accent active:scale-90"
+                    key="add"
+                    onClick={handleAdd}
+                    disabled={isOOS || addState !== "idle"}
+                    aria-label={isOOS ? "Notify me when available" : "Add to cart"}
+                    className="absolute inset-0 inline-flex items-center justify-center gap-2 rounded-full border border-border bg-transparent text-foreground text-[14px] font-semibold transition-all duration-200 ease-out hover:border-accent/60 hover:bg-accent/5 active:scale-[0.98] disabled:opacity-60 animate-in fade-in zoom-in-95"
                   >
-                    <Plus className="size-4" />
+                    {isOOS ? "Notify Me"
+                      : addState === "loading" ? (<><Loader2 className="size-4 animate-spin" /> Adding…</>)
+                      : addState === "success" ? (<><Check className="size-4" strokeWidth={3} /> Added</>)
+                      : (<><ShoppingCart className="size-4" strokeWidth={2.25} /> Add to Cart</>)}
                   </button>
-                </div>
-                {/* Add to Cart — default state */}
-                <button
-                  onClick={handleAdd}
-                  disabled={isOOS || addState !== "idle" || showQtySelector}
-                  aria-hidden={showQtySelector}
-                  aria-label={isOOS ? "Notify me when available" : "Add to cart"}
-                  className={`absolute inset-0 inline-flex items-center justify-center gap-2 rounded-full border border-border bg-transparent text-foreground text-[14px] font-semibold transition-all duration-200 ease-out hover:border-accent/60 hover:bg-accent/5 active:scale-[0.98] disabled:opacity-60 ${
-                    showQtySelector ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
-                  }`}
-                >
-                  {isOOS ? "Notify Me"
-                    : addState === "loading" ? (<><Loader2 className="size-4 animate-spin" /> Adding…</>)
-                    : addState === "success" ? (<><Check className="size-4" strokeWidth={3} /> Added</>)
-                    : (<><ShoppingCart className="size-4" strokeWidth={2.25} /> Add to Cart</>)}
-                </button>
+                )}
               </div>
               <Link
                 to="/cart"
