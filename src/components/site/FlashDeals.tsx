@@ -270,9 +270,10 @@ export function FlashDeals() {
 
         {/* Header — premium unified section heading */}
         <PremiumSectionHeading
-          eyebrow="Limited Time"
           title="Flash Deals"
-          subtitle="Limited-time savings updated throughout the day."
+          ghost="FLASH"
+          align="left"
+          subtitle="Limited-time prices. New deals every day."
           right={
             <div className="flex items-center gap-2">
               {soonestEndAt && (
