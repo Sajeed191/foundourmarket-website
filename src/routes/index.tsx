@@ -898,8 +898,9 @@ function Home() {
             active={sections.trending.active}
             viewAllTo="/products/trending"
             prominent
-            minHeight={320}
-            limit={4}
+            minHeight={360}
+            limit={5}
+            variant="trending-hero"
           />
               <ProductSection
                 sectionKey="new_arrivals"
@@ -910,6 +911,9 @@ function Home() {
                 isAdmin={isProductAdmin}
                 active={sections.new_arrivals.active}
                 viewAllTo="/products/new-arrivals"
+                minHeight={320}
+                limit={8}
+                variant="carousel"
               />
               <ProductSection
                 sectionKey="best_sellers"
@@ -920,6 +924,9 @@ function Home() {
                 isAdmin={isProductAdmin}
                 active={sections.best_sellers.active}
                 viewAllTo="/products/best-sellers"
+                minHeight={360}
+                limit={4}
+                variant="bestsellers-featured"
               />
         </>
       ))}
