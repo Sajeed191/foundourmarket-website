@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Gift,
@@ -14,12 +14,16 @@ import {
   ShieldCheck,
   Truck,
   LayoutGrid,
+  ArrowDownWideNarrow,
 } from "lucide-react";
 import { useFlashDeals } from "@/lib/use-flash-deals";
 import { BrowseCard } from "@/components/site/BrowseCard";
 import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid";
 import type { Product } from "@/lib/products";
 import { buildBrowsePresentation, sortProductsForBrowse } from "@/lib/browse";
+import { useHomepageCollectionRules } from "@/lib/site-rules";
+import { useRegion } from "@/lib/region";
+
 
 export const Route = createFileRoute("/deals")({
   head: () => ({
@@ -64,13 +68,19 @@ function useDailyCountdown() {
   };
 }
 
+type DealSort = "savings" | "ending" | "newest" | "rating";
+
 function DealsPage() {
   // Single shared Flash Deal source — identical to the homepage Flash Deals
   // section, so any product shown there also appears here on the Offers /
   // Deals & Promotions page.
   const { items, loading } = useFlashDeals();
+  const rules = useHomepageCollectionRules();
+  const { currency } = useRegion();
   const countdown = useDailyCountdown();
   const [activeCat, setActiveCat] = useState<string>("all");
+  const [sort, setSort] = useState<DealSort>("savings");
+  const sortRef = useRef<HTMLDivElement | null>(null);
 
   const dealProducts = useMemo(
     () => items
@@ -78,6 +88,24 @@ function DealsPage() {
       .map((i) => i.product),
     [items],
   );
+
+  // Dev-only verification: eligible vs visible vs hidden by rotation / limit.
+  useEffect(() => {
+    if (!import.meta.env.DEV || loading) return;
+    const cap = rules.limits.flash_deals;
+    const visible = items.length;
+    // eligible = items pool BEFORE the rotation slice — approximated via
+    // items when eligible <= cap; else `visible` equals cap and rotation hides
+    // the tail. useFlashDeals already logs its own eligible count.
+    // eslint-disable-next-line no-console
+    console.info(
+      `[Deals · View All] visible=${visible} | cap(limit)=${cap} | category=${activeCat}`,
+    );
+    if (visible > cap) {
+      // eslint-disable-next-line no-console
+      console.warn("[Deals] visible exceeds Site Rules limit — check hook cap");
+    }
+  }, [items.length, rules.limits.flash_deals, activeCat, loading]);
 
   const topDiscount = dealProducts.reduce((max, p) => Math.max(max, p.discount ?? 0), 0);
 
@@ -96,23 +124,40 @@ function DealsPage() {
   );
 
   // Browse Presentation Adapter — same adapter as /category, surface: "deals".
-  // Emphasises discount depth + availability; no separate "deal score".
   const presentation = useMemo(
     () => buildBrowsePresentation({ products: filteredProducts, surface: "deals" }),
     [filteredProducts],
   );
-  const visibleProducts = useMemo(
-    () => sortProductsForBrowse(filteredProducts, presentation, "recommended"),
-    [filteredProducts, presentation],
-  );
+
+  const visibleProducts = useMemo(() => {
+    const base = sortProductsForBrowse(filteredProducts, presentation, "recommended");
+    const arr = [...base];
+    switch (sort) {
+      case "savings":
+        return arr.sort((a, b) => (b.discount ?? 0) - (a.discount ?? 0));
+      case "newest":
+        return arr.sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+      case "rating":
+        return arr.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      case "ending":
+      default:
+        return arr;
+    }
+  }, [filteredProducts, presentation, sort]);
 
   const getProductKey = useCallback((p: Product) => p.id ?? p.slug, []);
   const renderProduct = useCallback(
     (p: Product, i: number) => (
-      <BrowseCard product={p} presentation={presentation.get(p.id ?? p.slug)} priority={i < 4} />
+      <BrowseCard
+        product={p}
+        presentation={presentation.get(p.id ?? p.slug)}
+        priority={i < 4}
+        forceBadge={p.flashDeal ? "flash_deal" : "hot_deal"}
+      />
     ),
     [presentation],
   );
+
 
   if (loading) {
     return (
