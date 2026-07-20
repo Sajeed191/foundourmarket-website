@@ -199,7 +199,7 @@ function FallbackNotice() {
 
 
 export function FlashDeals() {
-  const { items: allItems, loading, now, products } = useFlashDeals();
+  const { items: allItems, loading, now } = useFlashDeals();
   const { sections } = useHomepageSections();
   const { canEdit: isAdmin } = useProductAdminEditing();
 
