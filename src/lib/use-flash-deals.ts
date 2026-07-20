@@ -33,8 +33,9 @@ export type FlashItem = {
 };
 
 /**
- * Legacy helper retained only for older non-homepage callers. Curated homepage
- * Flash Deal membership is driven by live product_badges assignments below.
+ * @deprecated Legacy helper retained only for older non-homepage callers.
+ * Curated homepage Flash Deal membership is driven by live `product_badges`
+ * assignments enforced by the Site Rules Controller. Do not use in new code.
  */
 export function isFlashDealProduct(p: Product): boolean {
   if (p.flashDeal || p.hotDeal) return true;
