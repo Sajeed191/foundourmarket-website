@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AI_SHOPPING_TOOLS, executeTool, type AiProductSummary } from "@/lib/ai-shopping/tools.server";
 import { generateSuggestions } from "@/lib/ai-shopping/suggestions";
+import { summarizeShoppingContext, type ShoppingContext } from "@/lib/ai-shopping/shopping-context";
 
 type ChatMessage = {
   role: "system" | "user" | "assistant" | "tool";
@@ -73,12 +74,29 @@ async function streamAiShopping(
   userText: string,
   userMessages: ChatMessage[],
   controller: ReadableStreamDefaultController<Uint8Array>,
+  shoppingContext: ShoppingContext | null,
 ): Promise<void> {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("Missing LOVABLE_API_KEY");
 
+  const contextMsgs: ChatMessage[] = [];
+  if (shoppingContext && shoppingContext.page !== "other") {
+    const summary = summarizeShoppingContext(shoppingContext);
+    contextMsgs.push({
+      role: "system",
+      content:
+        `CURRENT SHOPPING CONTEXT (auto-detected — do not ask the user to repeat it):\n${summary}\n\n` +
+        `Use this to answer contextual questions immediately. On a product page, "this" or "it" refers to the product above. ` +
+        `On a category or search page, refine within the visible list before searching the whole catalog. ` +
+        `On the cart page, base savings/upsell/accessory suggestions on the items in "cart.entries". ` +
+        `On the wishlist page, compare "wishlist.entries" for the customer. ` +
+        `On an order page, do NOT answer — redirect to Customer Support per the hand-off rule.`,
+    });
+  }
+
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
+    ...contextMsgs,
     ...userMessages,
   ];
   const productBySlug = new Map<string, AiProductSummary>();
