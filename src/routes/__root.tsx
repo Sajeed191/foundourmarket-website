@@ -440,9 +440,9 @@ const LiveChat = lazyWithRetry(() =>
 const CommunicationHub = lazyWithRetry(() =>
   import("@/components/chat/CommunicationHub").then((m) => ({ default: m.CommunicationHub })),
 );
-const AiShoppingMount = lazyWithRetry(() =>
-  import("@/components/chat/AiShoppingMount").then((m) => ({ default: m.AiShoppingMount })),
-);
+// AiShoppingMount is a ~1KB gatekeeper (event listener only). It stays in
+// the main bundle so it can catch the very first `fom:ai:open` event; the
+// heavy AiShoppingAssistant it renders is lazy-loaded inside it.
 const SearchCommand = lazyWithRetry(() =>
   import("@/components/site/SearchCommand").then((m) => ({
     default: m.SearchCommand as unknown as React.ComponentType<unknown>,
