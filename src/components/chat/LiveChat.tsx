@@ -145,7 +145,6 @@ export function LiveChat() {
   // scroll for 300ms restores it. Fully fixed position; not draggable.
   const [orbHidden, setOrbHidden] = useState(false);
   useEffect(() => {
-    let ticking = false;
     let idleTimer: number | undefined;
     let lastY = typeof window !== "undefined" ? window.scrollY : 0;
     const THRESH = 6;
