@@ -330,26 +330,41 @@ function DealsPage() {
           ))}
         </motion.div>
 
-        {/* Section heading */}
+        {/* Sticky sort/filter bar */}
         {visibleProducts.length > 0 && (
-          <motion.div
-            {...fadeUp}
-            transition={{ ...fadeUp.transition, delay: 0.08 }}
+          <div
             id="deals-grid"
-            className="flex items-end justify-between scroll-mt-20"
+            className="sticky top-[calc(var(--app-header-h,4.75rem)+4px)] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2.5 backdrop-blur-xl bg-background/70 border-y border-white/[0.06] scroll-mt-20"
           >
-            <div>
-              <h2 className="text-lg sm:text-xl font-display font-semibold">Today's offers</h2>
-              <p className="text-sm text-muted-foreground">
-                <span className="text-foreground font-semibold">{visibleProducts.length}</span> active deal{visibleProducts.length === 1 ? "" : "s"}
-                {activeCat !== "all" && <span> in {activeCat}</span>}
-              </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[13px] sm:text-sm font-medium truncate">
+                  <span className="text-foreground font-semibold">{visibleProducts.length}</span> deal{visibleProducts.length === 1 ? "" : "s"}
+                  {activeCat !== "all" && <span className="text-muted-foreground"> · {activeCat}</span>}
+                </p>
+                <p className="hidden sm:block text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-0.5">
+                  <span className="inline-block size-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5 align-middle" />
+                  Live · rotates every {rules.rotationHours}h
+                </p>
+              </div>
+              <label className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] pl-3 pr-2 py-1.5 text-[11px] font-medium">
+                <ArrowDownWideNarrow className="size-3.5 text-accent" />
+                <span className="sr-only">Sort</span>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as DealSort)}
+                  className="bg-transparent text-[11px] font-mono uppercase tracking-widest focus:outline-none appearance-none pr-1"
+                >
+                  <option value="savings">Biggest savings</option>
+                  <option value="ending">Ending soon</option>
+                  <option value="newest">Newest</option>
+                  <option value="rating">Best rating</option>
+                </select>
+              </label>
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
-            </div>
-          </motion.div>
+          </div>
         )}
+
 
         {/* Products grid */}
         {visibleProducts.length > 0 ? (
