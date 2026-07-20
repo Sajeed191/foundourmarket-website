@@ -105,13 +105,13 @@ export function MobileBottomNav() {
   const lastCommit = useRef(0);
 
   useEffect(() => {
-    let rafId = 0;
     let pendingScrolling = false;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let hiddenLockUntil = 0; // hard lock window after entering hidden
     let lastVelAt = 0; // velocity update clamp (max 1 per VELOCITY_THROTTLE_MS)
     let dirSign = 0; // last confirmed scroll direction (+1 down, -1 up)
     let dirSince = 0; // timestamp the current direction was confirmed
+    let off: (() => void) | undefined;
 
     const canUpdate = (now: number) => now - lastCommit.current > TRANSITION_LOCK_MS;
 
@@ -121,7 +121,7 @@ export function MobileBottomNav() {
         if (!pendingScrolling) {
           if (settleTimer) clearTimeout(settleTimer);
           settleTimer = setTimeout(
-            () => schedule(false),
+            () => evaluate(false),
             Math.max(16, TRANSITION_LOCK_MS - (now - lastCommit.current) + 16),
           );
         }
@@ -135,8 +135,8 @@ export function MobileBottomNav() {
       setNavState(next);
     };
 
-    const evaluate = () => {
-      rafId = 0;
+    const evaluate = (isScrolling: boolean) => {
+      pendingScrolling = isScrolling;
       const now = performance.now();
       const y = Math.max(window.scrollY, 0);
 
@@ -180,32 +180,26 @@ export function MobileBottomNav() {
       commit(next, now);
     };
 
-
-    const schedule = (isScrolling: boolean) => {
-      pendingScrolling = isScrolling;
-      if (rafId) return;
-      rafId = requestAnimationFrame(evaluate);
-    };
-
-    const onScroll = () => {
-      lastScrollAt.current = performance.now();
-      if (settleTimer) clearTimeout(settleTimer);
-      schedule(true);
-
-      // One settle lock only: after the inertia tail is quiet, schedule a final
-      // rAF commit. No React state updates happen inside this timeout.
-      settleTimer = setTimeout(() => schedule(false), SETTLE_LOCK_MS);
-    };
-
-
-    const now = performance.now();
+    const initNow = performance.now();
     lastY.current = Math.max(window.scrollY, 0);
-    lastT.current = now;
-    lastScrollAt.current = now;
-    window.addEventListener("scroll", onScroll, { passive: true });
+    lastT.current = initNow;
+    lastScrollAt.current = initNow;
+
+    // Perf v3 — shared scroll bus. Bus callbacks already run inside a single
+    // rAF flush, so we drop the local rafId gate; we still schedule the
+    // settle re-evaluation via a timeout because it must fire ONCE after
+    // scroll stops (not on every subsequent scroll event).
+    import("@/lib/scroll-bus").then(({ onScroll }) => {
+      off = onScroll(() => {
+        lastScrollAt.current = performance.now();
+        if (settleTimer) clearTimeout(settleTimer);
+        evaluate(true);
+        settleTimer = setTimeout(() => evaluate(false), SETTLE_LOCK_MS);
+      });
+    });
+
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(rafId);
+      off?.();
       if (settleTimer) clearTimeout(settleTimer);
     };
   }, []);
