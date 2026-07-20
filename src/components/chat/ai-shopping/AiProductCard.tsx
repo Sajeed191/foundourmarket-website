@@ -8,6 +8,8 @@ import { useCartActions, readLineQty } from "@/lib/cart";
 import { useWishlistActions } from "@/lib/wishlist";
 import { toast } from "sonner";
 import type { AiProductRef } from "@/lib/ai-shopping/types";
+import { getShoppingContext } from "@/lib/ai-shopping/shopping-context";
+import { recordAiEvent } from "@/lib/ai-shopping/analytics";
 
 function formatInr(v: number | null): string {
   if (v == null) return "";
@@ -30,8 +32,18 @@ export function AiProductCard({ product }: { product: AiProductRef }) {
     ? Math.round(((product.compare_price_inr - product.price_inr) / product.compare_price_inr) * 100)
     : 0;
 
+  const emit = useCallback((action: "view" | "cart" | "buy" | "wish") => {
+    const ctx = getShoppingContext();
+    recordAiEvent(
+      "ai_product_clicked",
+      { page: ctx.page, route: ctx.route ?? null },
+      { slug: product.slug, action },
+    );
+  }, [product.slug]);
+
   const handleCart = useCallback(async () => {
     if (busy) return;
+    emit("cart");
     setBusy("cart");
     try {
       const inCart = readLineQty(product.slug) > 0;
@@ -44,10 +56,11 @@ export function AiProductCard({ product }: { product: AiProductRef }) {
     } finally {
       setBusy(null);
     }
-  }, [add, busy, product.slug]);
+  }, [add, busy, emit, product.slug]);
 
   const handleBuy = useCallback(async () => {
     if (busy) return;
+    emit("buy");
     setBusy("buy");
     try {
       const inCart = readLineQty(product.slug) > 0;
@@ -58,10 +71,11 @@ export function AiProductCard({ product }: { product: AiProductRef }) {
     } finally {
       setBusy(null);
     }
-  }, [add, busy, navigate, product.slug]);
+  }, [add, busy, emit, navigate, product.slug]);
 
   const handleWish = useCallback(async () => {
     if (busy) return;
+    emit("wish");
     setBusy("wish");
     try {
       await toggle(product.slug);
@@ -69,13 +83,14 @@ export function AiProductCard({ product }: { product: AiProductRef }) {
     } finally {
       setBusy(null);
     }
-  }, [busy, product.slug, toggle]);
+  }, [busy, emit, product.slug, toggle]);
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/70 backdrop-blur-xl transition-all hover:border-primary/50">
       <Link
         to="/products/$slug"
         params={{ slug: product.slug }}
+        onClick={() => emit("view")}
         className="group flex gap-3 p-2.5"
         aria-label={`View ${product.name}`}
       >
