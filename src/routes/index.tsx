@@ -245,7 +245,7 @@ function SectionComingSoon({
    When no products carry the section's badge, an elegant "Coming Soon"
    placeholder renders instead of hiding the section. */
 function ProductSection({
-  sectionKey, eyebrow, title, icon, products, isAdmin, active, viewAllTo, prominent = false, minHeight = 260, limit = 4,
+  sectionKey, eyebrow, title, icon, products, isAdmin, active, viewAllTo, prominent = false, minHeight = 260, limit = 4, eligibleCount,
 }: {
   sectionKey: string;
   eyebrow: string;
@@ -258,12 +258,25 @@ function ProductSection({
   prominent?: boolean;
   minHeight?: number;
   limit?: number;
+  /** Total number of eligible products (before rotation/preview slicing). Drives View All visibility. */
+  eligibleCount?: number;
 }) {
   // Only the admin-controlled active toggle hides the section. An empty product
   // list now shows an elegant "Coming Soon" message rather than disappearing.
   if (!active && !isAdmin) return null;
   const preview = products.slice(0, limit);
   const isEmpty = preview.length === 0;
+  // View All visibility is driven by the ELIGIBLE pool, not the visible preview.
+  // If there are more eligible products than the homepage preview slot count,
+  // the CTA must appear so shoppers can reach the full collection.
+  const totalEligible = typeof eligibleCount === "number" ? eligibleCount : preview.length;
+  const showViewAll = !isEmpty && totalEligible > limit;
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug(
+      `[Homepage Collection] collection=${sectionKey} eligible=${totalEligible} homepagePreview=${preview.length} showViewAll=${showViewAll}`,
+    );
+  }
   // Section-specific badge: inside a dedicated section, each card shows only
   // that section's badge.
   const sectionBadge =
@@ -287,7 +300,7 @@ function ProductSection({
         eyebrow={eyebrow}
         title={title}
         icon={icon}
-        href={isEmpty ? undefined : viewAllTo}
+        href={showViewAll ? viewAllTo : undefined}
         sectionKey={sectionKey}
         editable={isAdmin}
         active={active}
@@ -298,13 +311,6 @@ function ProductSection({
       ) : (
         <LazyMount minHeight={minHeight}>
           {sectionKey === "trending" ? (
-            // TEMPORARY EXPERIMENT — Trending only. Same ProductCard, same DOM
-            // wrapper (data-product-grid / data-product-card-frame), same CSS
-            // classes, same data/sorting/limit. The ONLY change is *when* cards
-            // mount: VirtualizedProductGrid → IncrementalGrid stages the initial
-            // mount in batches of 16 (virtualizeThreshold={0} forces the batched
-            // path), exactly as Browse (/search) does. No virtualization,
-            // no unmounting, no pagination.
             <VirtualizedProductGrid
               items={preview}
               virtualizeThreshold={0}
@@ -323,9 +329,18 @@ function ProductSection({
               ))}
             </div>
           )}
-          
         </LazyMount>
-
+      )}
+      {showViewAll && (
+        <div className="relative mt-6 sm:mt-8 flex justify-center">
+          <Link
+            to={viewAllTo}
+            className="group inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/[0.04] px-7 py-3.5 text-[12px] font-mono font-semibold uppercase tracking-[0.18em] text-accent transition-[background-color,border-color,box-shadow] duration-200 hover:bg-accent/10 hover:border-accent/60 hover:shadow-[0_10px_30px_-12px_rgba(255,138,0,0.5)]"
+          >
+            View All
+            <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </Link>
+        </div>
       )}
     </SectionTracker>
   );
@@ -594,7 +609,7 @@ function Home() {
     const eligible = products.filter((p) =>
       productInHomepageCollection(p.slug, badgeAssignments.get(p.slug), ["trending"]),
     );
-    return fairPagedSlice(
+    const preview = fairPagedSlice(
       eligible,
       rules.limits.trending,
       rotationNow,
@@ -602,13 +617,14 @@ function Home() {
       rotationNonce,
       "trending",
     ).slice(0, HOMEPAGE_PREVIEW);
+    return { preview, eligibleCount: eligible.length };
   }, [products, badgeAssignments, rules.limits.trending, rules.rotationHours, rotationNonce, rotationNow]);
 
   const newArrivals = useMemo(() => {
     const eligible = products
       .filter((p) => productInHomepageCollection(p.slug, badgeAssignments.get(p.slug), ["new"]))
       .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
-    return fairPagedSlice(
+    const preview = fairPagedSlice(
       eligible,
       rules.limits.new_arrivals,
       rotationNow,
@@ -616,13 +632,14 @@ function Home() {
       rotationNonce,
       "new_arrivals",
     ).slice(0, HOMEPAGE_PREVIEW);
+    return { preview, eligibleCount: eligible.length };
   }, [products, badgeAssignments, rules.limits.new_arrivals, rules.rotationHours, rotationNonce, rotationNow]);
 
   const bestSellers = useMemo(() => {
     const eligible = products.filter((p) =>
       productInHomepageCollection(p.slug, badgeAssignments.get(p.slug), ["bestseller"]),
     );
-    return fairPagedSlice(
+    const preview = fairPagedSlice(
       eligible,
       rules.limits.best_sellers,
       rotationNow,
@@ -630,13 +647,14 @@ function Home() {
       rotationNonce,
       "best_sellers",
     ).slice(0, HOMEPAGE_PREVIEW);
+    return { preview, eligibleCount: eligible.length };
   }, [products, badgeAssignments, rules.limits.best_sellers, rules.rotationHours, rotationNonce, rotationNow]);
 
   const featured = useMemo(() => {
     const eligible = products.filter((p) =>
       productInHomepageCollection(p.slug, badgeAssignments.get(p.slug), ["featured"]),
     );
-    return fairPagedSlice(
+    const preview = fairPagedSlice(
       eligible,
       rules.limits.featured,
       rotationNow,
@@ -644,6 +662,7 @@ function Home() {
       rotationNonce,
       "featured",
     ).slice(0, HOMEPAGE_PREVIEW);
+    return { preview, eligibleCount: eligible.length };
   }, [products, badgeAssignments, rules.limits.featured, rules.rotationHours, rotationNonce, rotationNow]);
 
 
@@ -877,7 +896,8 @@ function Home() {
             eyebrow={sections.trending.eyebrow}
             title={sections.trending.title}
             icon={Flame}
-            products={trending}
+            products={trending.preview}
+            eligibleCount={trending.eligibleCount}
             isAdmin={isProductAdmin}
             active={sections.trending.active}
             viewAllTo="/products/trending"
@@ -890,7 +910,8 @@ function Home() {
                 eyebrow={sections.new_arrivals.eyebrow}
                 title={sections.new_arrivals.title}
                 icon={Sparkles}
-                products={newArrivals}
+                products={newArrivals.preview}
+                eligibleCount={newArrivals.eligibleCount}
                 isAdmin={isProductAdmin}
                 active={sections.new_arrivals.active}
                 viewAllTo="/products/new-arrivals"
@@ -900,7 +921,8 @@ function Home() {
                 eyebrow={sections.best_sellers.eyebrow}
                 title={sections.best_sellers.title}
                 icon={Award}
-                products={bestSellers}
+                products={bestSellers.preview}
+                eligibleCount={bestSellers.eligibleCount}
                 isAdmin={isProductAdmin}
                 active={sections.best_sellers.active}
                 viewAllTo="/products/best-sellers"
