@@ -276,7 +276,7 @@ function ProductSection({
       ) : (
         <LazyMount minHeight={minHeight}>
           {variant === "carousel" ? (
-            <PremiumProductCarousel
+            <PremiumProductCarousel<Product>
               items={preview}
               size="regular"
               ariaLabel={title}
