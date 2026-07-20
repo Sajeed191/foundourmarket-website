@@ -886,7 +886,7 @@ function ChatMenuOption({
 // safe-area insets and the software keyboard (visualViewport). Hides while
 // the user scrolls down and restores on scroll-up or 300ms of idle scroll.
 const ORB_SIZE = 56;
-const EDGE_INSET = 16;
+const EDGE_INSET = 20;
 const BOTTOM_GAP = 16;
 const LONG_PRESS_MS = 500;
 const TAP_THRESHOLD = 8;
@@ -966,12 +966,12 @@ function FixedOrb({
     if (!el) return;
     const ctxHidden = isContextHidden();
     const off = hidden || ctxHidden;
-    // Show: 180ms ease-out, translateY(16px → 0), opacity 0 → 1.
-    // Hide: 180ms ease-in,  translateY(0 → 24px), opacity 1 → 0.
+    // Show: 180ms ease-out, translateY(20px → 0), opacity 0 → 1.
+    // Hide: 180ms ease-in,  translateY(0 → 20px), opacity 1 → 0.
     el.style.transition = off
       ? "transform 180ms ease-in, opacity 180ms ease-in"
       : "transform 180ms ease-out, opacity 180ms ease-out";
-    el.style.transform = off ? "translateY(24px)" : "translateY(0)";
+    el.style.transform = off ? "translateY(20px)" : "translateY(0)";
     el.style.opacity = off ? "0" : "1";
     el.style.pointerEvents = off ? "none" : "";
   }, [hidden]);
