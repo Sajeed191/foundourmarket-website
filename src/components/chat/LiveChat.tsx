@@ -929,6 +929,7 @@ function FixedOrb({
   const cachedRef = useRef({ navH: 96, kb: 0, baselineVV: 0 });
 
   const readBottomNavHeight = useCallback(() => {
+    if (window.matchMedia("(min-width: 768px)").matches) return 0;
     const css = getComputedStyle(document.documentElement);
     const rootFontPx = Number.parseFloat(css.fontSize) || 16;
     return rootFontPx * 5.75;
