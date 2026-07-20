@@ -43,6 +43,7 @@ function cloneRules(r: HomepageCollectionRules): HomepageCollectionRules {
     rotationHours: r.rotationHours,
     reshuffleTimesIst: [...r.reshuffleTimesIst],
     reshuffleEnabled: r.reshuffleEnabled,
+    featuredMode: r.featuredMode,
   };
 }
 
@@ -217,6 +218,28 @@ function SiteRulesPage() {
             >
               <Plus className="size-3.5" /> Add time
             </button>
+          </div>
+        </Card>
+
+        {/* Featured Behavior (Featured Editorial Override) */}
+        <Card
+          icon={<Star className="size-4" />}
+          title="Featured behavior"
+          description="Featured is an editorial overlay, not a promotional badge. Choose how it interacts with promotional sections."
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <ModeChoice
+              active={draft.featuredMode === "editorial_overlay"}
+              onClick={() => setDraft({ ...draft, featuredMode: "editorial_overlay" })}
+              title="Editorial overlay"
+              hint="Default. Featured coexists with one promotional section (Trending, Flash Deals, Best Sellers, or New Arrivals). Products without Featured never appear in more than one promo section."
+            />
+            <ModeChoice
+              active={draft.featuredMode === "multi_section"}
+              onClick={() => setDraft({ ...draft, featuredMode: "multi_section" })}
+              title="Allow Featured in multiple sections"
+              hint="Featured products may appear in every promotional section they are badged for. Non-Featured products still follow the single-promo rule."
+            />
           </div>
         </Card>
 
