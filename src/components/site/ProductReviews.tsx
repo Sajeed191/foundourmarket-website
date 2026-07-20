@@ -664,7 +664,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
           {/* List / empty state */}
           {sorted.length === 0 ? (
-            <EmptyState canWrite={!!user && eligible} onWrite={openCompose} filtered={filter !== "all"} onReset={() => setFilter("all")} />
+            <EmptyState canWrite={!!user && !hasReviewed} onWrite={openCompose} filtered={filter !== "all"} onReset={() => setFilter("all")} />
           ) : (
             <>
               <ul className="grid gap-5 sm:grid-cols-2">
