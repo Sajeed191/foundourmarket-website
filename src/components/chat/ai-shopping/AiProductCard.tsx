@@ -90,6 +90,7 @@ export function AiProductCard({ product }: { product: AiProductRef }) {
       <Link
         to="/products/$slug"
         params={{ slug: product.slug }}
+        onClick={() => emit("view")}
         className="group flex gap-3 p-2.5"
         aria-label={`View ${product.name}`}
       >
