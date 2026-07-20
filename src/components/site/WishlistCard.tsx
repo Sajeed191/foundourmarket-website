@@ -22,7 +22,7 @@ export type WishlistCardProps = {
   onQuickView: () => void;
 };
 
-export function WishlistCard({
+function WishlistCardImpl({
   product,
   variantSummary,
   priceDrop,
