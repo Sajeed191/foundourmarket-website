@@ -226,47 +226,39 @@ export function Nav() {
   // momentum scrolling cannot strand the header in a clipped or transparent state.
   const [scrollMode, setScrollMode] = useState<"visible" | "compact">("visible");
   useEffect(() => {
-    let ticking = false;
     const JITTER = 6; // ignore micro scroll noise (<6px)
     forceTopNavVisible();
 
-    const update = () => {
-      ticking = false;
-      forceTopNavVisible();
-      const y = Math.max(window.scrollY, 0);
-      const delta = y - lastY.current;
+    // Perf v3 — shared scroll bus. Fires once per animation frame with the
+    // cached scrollY, so no local ticking gate is needed.
+    let off: (() => void) | undefined;
+    import("@/lib/scroll-bus").then(({ onScroll: onScrollBus }) => {
+      off = onScrollBus((rawY) => {
+        forceTopNavVisible();
+        const y = Math.max(rawY, 0);
+        const delta = y - lastY.current;
 
-      if (lowEnd || y < 30) {
-        setScrollMode("visible");
+        if (lowEnd || y < 30) {
+          setScrollMode("visible");
+          lastY.current = y;
+          return;
+        }
+        // Micro jitter — do not commit a direction change (keep last state).
+        if (Math.abs(delta) < JITTER) return;
+
+        // Upward intent is the priority signal: reveal instantly, per frame.
+        if (delta < 0) setScrollMode("visible");
+        else if (y > 80) setScrollMode("compact");
         lastY.current = y;
-        return;
-      }
-      // Micro jitter — do not commit a direction change (keep last state).
-      if (Math.abs(delta) < JITTER) return;
-
-      // Upward intent is the priority signal: reveal instantly, per frame.
-      if (delta < 0) setScrollMode("visible");
-      else if (y > 80) setScrollMode("compact");
-      lastY.current = y;
-    };
-
-    const onScroll = () => {
-      forceTopNavVisible();
-      // Single rAF-throttled controller. No scroll-stop timeout: idle keeps the
-      // last committed state, so the header is never toggled off in a timer.
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    };
+      });
+    });
     const restore = () => forceTopNavVisible();
     window.addEventListener("touchstart", restore, { passive: true });
     window.addEventListener("wheel", restore, { passive: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
+      off?.();
       window.removeEventListener("touchstart", restore);
       window.removeEventListener("wheel", restore);
-      window.removeEventListener("scroll", onScroll);
     };
   }, [forceTopNavVisible, lowEnd]);
   const compact = !lowEnd && scrollMode === "compact";

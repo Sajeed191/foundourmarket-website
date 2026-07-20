@@ -56,21 +56,19 @@ export function FloatingContextObserver() {
     // Initial pass after layout settles.
     const raf = requestAnimationFrame(compute);
 
-    // v5.0 stability lock: do NOT listen to scroll or visualViewport scroll.
-    // Address-bar collapse/expand fires those continuously and would jitter
-    // the floating widgets. Only recompute on real layout events.
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    window.visualViewport?.addEventListener("resize", onResize);
+    // Perf v3 — shared resize bus already coalesces window resize,
+    // orientationchange, and visualViewport resize into a single rAF flush.
+    let offResize: (() => void) | undefined;
+    import("@/lib/scroll-bus").then(({ onResize }) => {
+      offResize = onResize(compute);
+    });
 
     const onFs = () => setContextHidden(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onFs);
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-      window.visualViewport?.removeEventListener("resize", onResize);
+      offResize?.();
       document.removeEventListener("fullscreenchange", onFs);
     };
 
