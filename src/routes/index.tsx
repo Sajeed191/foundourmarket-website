@@ -307,40 +307,38 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
     }
   }
 
+  const subtitle = sectionKey ? SECTION_SUBTITLE[sectionKey] : undefined;
+
   return (
-    <Reveal className="flex justify-between items-end mb-4 sm:mb-6 gap-4">
-      <div className="min-w-0">
-        {eyebrow && (
-          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent mb-2 flex items-center gap-2">
-            {Icon && <Icon className="size-3" />} {eyebrow}
-          </p>
-        )}
-        <div className="flex items-center gap-2">
-          <h2 className={`${prominent ? "text-fluid-3xl" : "text-fluid-2xl"} font-display tracking-tight`}>{title}</h2>
-          {editable && sectionKey && (
-            <InlineActiveToggle
-              active={active}
-              label="Section"
-              size="sm"
-              onToggle={(next) => toggleHomepageSection(sectionKey, next)}
-            />
-          )}
-          {editable && sectionKey && (
-            <button
-              onClick={open}
-              aria-label="Edit section"
-              className="grid size-7 shrink-0 place-items-center rounded-full border border-accent/30 bg-accent/10 text-accent transition-colors hover:bg-accent/20"
-            >
-              <Pencil className="size-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
-      {href && (
-        <Link to={href} className="hidden sm:inline-block text-xs font-mono uppercase tracking-widest text-accent border-b border-accent pb-1 hover:text-foreground hover:border-foreground transition-colors">
-          {hrefLabel}
-        </Link>
-      )}
+    <>
+      <PremiumSectionHeading
+        icon={Icon as LucideIcon | undefined}
+        title={title}
+        subtitle={subtitle ?? (eyebrow || undefined)}
+        href={href}
+        hrefLabel={hrefLabel}
+        right={
+          editable && sectionKey ? (
+            <div className="flex items-center gap-1.5">
+              <InlineActiveToggle
+                active={active}
+                label="Section"
+                size="sm"
+                onToggle={(next) => toggleHomepageSection(sectionKey, next)}
+              />
+              <button
+                onClick={open}
+                aria-label="Edit section"
+                className="grid size-8 shrink-0 place-items-center rounded-full border border-accent/30 bg-accent/10 text-accent transition-colors hover:bg-accent/20"
+              >
+                <Pencil className="size-3.5" />
+              </button>
+            </div>
+          ) : undefined
+        }
+      />
+      {/* Silence unused-var warnings; prominent kept for API back-compat. */}
+      {prominent ? null : null}
 
       {editing && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" onClick={() => !saving && setEditing(false)}>
@@ -401,7 +399,7 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
           </div>
         </div>
       )}
-    </Reveal>
+    </>
   );
 }
 
