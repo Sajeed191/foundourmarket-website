@@ -1201,44 +1201,41 @@ function ProductPage() {
             )}
           </div>
           <div className="flex-1 relative min-h-[48px]">
-            {/* Stepper — after first add */}
-            <div
-              aria-hidden={!showQtySelector}
-              className={`absolute inset-0 inline-flex items-center justify-between rounded-2xl border border-accent/40 bg-accent/10 px-1 transition-all duration-200 ease-out ${
-                showQtySelector ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
-              }`}
-            >
-              <button
-                onClick={decCartQty}
-                aria-label={cartQty <= 1 ? "Remove from cart" : "Decrease quantity"}
-                className="grid size-10 place-items-center rounded-xl text-foreground/80 active:scale-90"
+            {showQtySelector ? (
+              <div
+                key="qty-sticky"
+                className="absolute inset-0 inline-flex items-center justify-between rounded-2xl border border-accent/40 bg-background px-1 animate-in fade-in zoom-in-95 duration-200 ease-out"
               >
-                <Minus className="size-4" />
-              </button>
-              <span aria-live="polite" className="flex-1 text-center font-mono text-[14px] font-semibold tabular-nums text-foreground">
-                {Math.max(1, cartQty)}
-              </span>
+                <button
+                  onClick={decCartQty}
+                  aria-label={cartQty <= 1 ? "Remove from cart" : "Decrease quantity"}
+                  className="grid size-10 place-items-center rounded-xl text-foreground/80 active:scale-90"
+                >
+                  <Minus className="size-4" />
+                </button>
+                <span aria-live="polite" className="flex-1 text-center font-mono text-[14px] font-semibold tabular-nums text-foreground">
+                  {Math.max(1, cartQty)}
+                </span>
+                <button
+                  onClick={incCartQty}
+                  aria-label="Increase quantity"
+                  className="grid size-10 place-items-center rounded-xl text-foreground/80 active:scale-90"
+                >
+                  <Plus className="size-4" />
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={incCartQty}
-                aria-label="Increase quantity"
-                className="grid size-10 place-items-center rounded-xl text-foreground/80 active:scale-90"
+                key="add-sticky"
+                onClick={handleAdd}
+                disabled={isOOS}
+                className="absolute inset-0 inline-flex items-center justify-center gap-1.5 rounded-2xl border border-border bg-transparent text-foreground font-semibold text-[13px] transition-all duration-200 ease-out active:scale-[0.97] disabled:opacity-40 animate-in fade-in zoom-in-95"
+                aria-label={isOOS ? "Notify me" : "Add to cart"}
               >
-                <Plus className="size-4" />
+                <ShoppingCart className="size-4" strokeWidth={2.5} />
+                <span>Add</span>
               </button>
-            </div>
-            {/* Add — default */}
-            <button
-              onClick={handleAdd}
-              disabled={isOOS || showQtySelector}
-              aria-hidden={showQtySelector}
-              className={`absolute inset-0 inline-flex items-center justify-center gap-1.5 rounded-2xl border border-border bg-transparent text-foreground font-semibold text-[13px] transition-all duration-200 ease-out active:scale-[0.97] disabled:opacity-40 ${
-                showQtySelector ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
-              }`}
-              aria-label={isOOS ? "Notify me" : "Add to cart"}
-            >
-              <ShoppingCart className="size-4" strokeWidth={2.5} />
-              <span>Add</span>
-            </button>
+            )}
           </div>
           <Link
             to="/cart"
