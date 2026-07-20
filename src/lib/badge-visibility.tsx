@@ -227,7 +227,7 @@ export function computeContextBadges(
     case "flash":
       // Flash section only ever renders the one balanced badge per selected deal.
       if (chosenFlash) return [singleBadge(chosenFlash)];
-      return all.filter((b) => isFlashKey(b.key)).slice(0, 1);
+      return [];
     case "bestseller":
       return all.filter((b) => b.key === "bestseller").slice(0, 1);
     case "trending":
