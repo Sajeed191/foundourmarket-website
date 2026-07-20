@@ -316,23 +316,17 @@ function SectionHeader({ eyebrow, title, icon: Icon, href, hrefLabel = "View All
   }
 
   const subtitle = sectionKey ? SECTION_SUBTITLE[sectionKey] : undefined;
-  const ghost = sectionKey ? SECTION_GHOST[sectionKey] : undefined;
-  const align = (sectionKey && SECTION_ALIGN[sectionKey]) || "center";
-  const eyebrowLabel = sectionKey ? SECTION_EYEBROW[sectionKey] : undefined;
-  const badgeLabel = sectionKey ? SECTION_BADGE[sectionKey] : undefined;
+  const eyebrowLabel = sectionKey ? SECTION_EYEBROW[sectionKey] : eyebrow;
   void eyebrow;
-  void href;
-  void hrefLabel;
 
   return (
     <>
       <PremiumSectionHeading
         title={title}
         subtitle={subtitle}
-        ghost={ghost}
-        align={align}
         eyebrow={eyebrowLabel}
-        badge={badgeLabel}
+        href={href}
+        hrefLabel={hrefLabel}
         right={
           editable && sectionKey ? (
             <div className="flex items-center gap-1.5">
