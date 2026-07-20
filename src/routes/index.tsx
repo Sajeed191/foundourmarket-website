@@ -896,7 +896,8 @@ function Home() {
             eyebrow={sections.trending.eyebrow}
             title={sections.trending.title}
             icon={Flame}
-            products={trending}
+            products={trending.preview}
+            eligibleCount={trending.eligibleCount}
             isAdmin={isProductAdmin}
             active={sections.trending.active}
             viewAllTo="/products/trending"
@@ -909,7 +910,8 @@ function Home() {
                 eyebrow={sections.new_arrivals.eyebrow}
                 title={sections.new_arrivals.title}
                 icon={Sparkles}
-                products={newArrivals}
+                products={newArrivals.preview}
+                eligibleCount={newArrivals.eligibleCount}
                 isAdmin={isProductAdmin}
                 active={sections.new_arrivals.active}
                 viewAllTo="/products/new-arrivals"
@@ -919,7 +921,8 @@ function Home() {
                 eyebrow={sections.best_sellers.eyebrow}
                 title={sections.best_sellers.title}
                 icon={Award}
-                products={bestSellers}
+                products={bestSellers.preview}
+                eligibleCount={bestSellers.eligibleCount}
                 isAdmin={isProductAdmin}
                 active={sections.best_sellers.active}
                 viewAllTo="/products/best-sellers"
