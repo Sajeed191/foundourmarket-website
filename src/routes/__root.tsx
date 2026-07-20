@@ -434,6 +434,15 @@ const InstallPrompt = lazyWithRetry(() =>
 const LiveChat = lazyWithRetry(() =>
   import("@/components/chat/LiveChat").then((m) => ({ default: m.LiveChat })),
 );
+// Communication Hub is tiny (~4KB) and always mounted so the chooser opens
+// instantly. The AI Shopping Assistant is lazy — its JS + chat state only
+// load after the customer picks "AI Shopping" for the first time.
+const CommunicationHub = lazyWithRetry(() =>
+  import("@/components/chat/CommunicationHub").then((m) => ({ default: m.CommunicationHub })),
+);
+const AiShoppingAssistant = lazyWithRetry(() =>
+  import("@/components/chat/AiShoppingAssistant").then((m) => ({ default: m.AiShoppingAssistant })),
+);
 const SearchCommand = lazyWithRetry(() =>
   import("@/components/site/SearchCommand").then((m) => ({
     default: m.SearchCommand as unknown as React.ComponentType<unknown>,
@@ -753,6 +762,8 @@ function DeferredShell({
       <IsolatedBoundary name="CompareTray"><CompareTray /></IsolatedBoundary>
       <IsolatedBoundary name="InstallPrompt"><InstallPrompt /></IsolatedBoundary>
       {!hideLiveChat && <IsolatedBoundary name="LiveChat"><LiveChat /></IsolatedBoundary>}
+      {!hideLiveChat && <IsolatedBoundary name="CommunicationHub"><CommunicationHub /></IsolatedBoundary>}
+      {!hideLiveChat && <IsolatedBoundary name="AiShoppingAssistant"><AiShoppingAssistant /></IsolatedBoundary>}
       {!hideLiveChat && <IsolatedBoundary name="SupportReplyWatcher"><SupportReplyWatcher /></IsolatedBoundary>}
     </Suspense>
   );

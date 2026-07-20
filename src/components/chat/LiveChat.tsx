@@ -58,6 +58,7 @@ import { BrandName } from "@/components/site/BrandName";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
 import { useSupportSettings } from "@/lib/use-support-settings";
 import { registerFloating, subscribeFloating, setChatActive, isContextHidden, getBuyBarLift } from "@/lib/floating-stack";
+import { getLastHubChoice, openHub, openAiAssistant, setLastHubChoice } from "@/lib/ai-shopping/events";
 
 type Msg = CrispMessage;
 
@@ -335,9 +336,15 @@ export function LiveChat() {
               window.location.href = "/contact";
               return;
             }
-            setOpen(true);
+            // Communication Hub: remember the last choice so repeat taps go
+            // straight to the surface the customer prefers. First tap (no
+            // memory) shows the chooser sheet.
+            const last = getLastHubChoice();
+            if (last === "ai") openAiAssistant();
+            else if (last === "support") setOpen(true);
+            else openHub();
           }}
-          onLongPress={() => { dismissGreeting(); setMenuOpen(true); }}
+          onLongPress={() => { dismissGreeting(); openHub(); }}
           greetVisible={greetVisible}
           onDismissGreeting={dismissGreeting}
         />
@@ -469,6 +476,16 @@ export function LiveChat() {
                     marginRight: "env(safe-area-inset-right)",
                   }}
                 >
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setLastHubChoice("ai");
+                      closePanel();
+                      openAiAssistant();
+                    }}
+                    className="cursor-pointer gap-2 rounded-xl px-3 py-2.5 text-sm text-foreground focus:bg-foreground/5"
+                  >
+                    ✨ Switch to AI Shopping
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onSelect={() => { setMessages([]); setOperatorJoined(false); toast.success("Conversation cleared"); }}
                     className="cursor-pointer rounded-xl px-3 py-2.5 text-sm text-foreground focus:bg-foreground/5"
