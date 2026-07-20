@@ -12,6 +12,7 @@ import { useFlashDeals, type FlashItem } from "@/lib/use-flash-deals";
 import { useHomepageSections, toggleHomepageSection } from "@/lib/use-homepage-sections";
 import type { Product } from "@/lib/products";
 import { ProductImage } from "@/components/site/ProductImage";
+import { PremiumSectionHeading } from "@/components/site/PremiumSectionHeading";
 
 function pad(n: number) {
   return n.toString().padStart(2, "0");
