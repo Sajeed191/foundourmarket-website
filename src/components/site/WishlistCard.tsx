@@ -293,3 +293,21 @@ function WishlistCardImpl({
     </div>
   );
 }
+
+export const WishlistCard = memo(WishlistCardImpl, (a, b) =>
+  a.selected === b.selected &&
+  a.selectMode === b.selectMode &&
+  a.priceDrop === b.priceDrop &&
+  a.variantSummary === b.variantSummary &&
+  a.onToggleSelect === b.onToggleSelect &&
+  a.onQuickView === b.onQuickView &&
+  a.product.slug === b.product.slug &&
+  a.product.image === b.product.image &&
+  a.product.name === b.product.name &&
+  a.product.price === b.product.price &&
+  a.product.compareAtPrice === b.product.compareAtPrice &&
+  a.product.inStock === b.product.inStock &&
+  a.product.stockQuantity === b.product.stockQuantity &&
+  a.product.rating === b.product.rating &&
+  a.product.reviews === b.product.reviews,
+);
