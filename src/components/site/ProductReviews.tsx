@@ -7,7 +7,7 @@ import {
   ImagePlus, X, Pin, Sparkles, ShieldCheck, EyeOff, Eye, MessageSquare, Play, Brain,
   Camera, BadgeCheck, PackageCheck, ChevronLeft, ChevronRight, ThumbsUp as Recommend,
   Users, TrendingUp, Check, ArrowRight, ArrowLeft, ZoomIn,
-  LogIn, UserPlus, ShoppingBag, Repeat, HelpCircle, LifeBuoy, Lock, Bookmark, Truck, CalendarCheck,
+  LogIn, UserPlus, ShoppingBag, Repeat, HelpCircle, LifeBuoy, Bookmark, Truck, CalendarCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
