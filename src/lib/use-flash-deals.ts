@@ -111,7 +111,7 @@ export function useFlashDeals() {
 
 
 
-  const items = useMemo<FlashItem[]>(() => {
+  const result = useMemo(() => {
     let totalFlagged = 0;
     const active: FlashItem[] = [];
     let excludedUnavailable = 0;
@@ -140,7 +140,8 @@ export function useFlashDeals() {
     // the next scheduled refresh. Excluded eligible products keep their
     // Flash/Hot flags in the database but are hidden publicly until selected.
     const cap = Math.max(1, Math.min(FLASH_VISIBLE_HARD_CAP, Math.floor(rules.limits.flash_deals)));
-    const ordered = seededShuffle(active, flashSeed).slice(0, cap);
+    const shuffled = seededShuffle(active, flashSeed);
+    const ordered = shuffled.slice(0, cap);
 
     if (typeof window !== "undefined" && import.meta.env.DEV) {
       // eslint-disable-next-line no-console
@@ -149,9 +150,24 @@ export function useFlashDeals() {
       console.info("[FlashDeals] current display order:", ordered.map((i) => i.product.slug));
     }
 
-    return ordered;
+    return {
+      items: ordered,
+      eligibleCount: active.length,
+      windowCount: shuffled.length,
+      hiddenByLimit: Math.max(0, shuffled.length - ordered.length),
+      cap,
+    };
   }, [products, badgeAssignments, liveDealByProductId, flashSeed, now, rules.limits.flash_deals]);
 
 
-  return { items, loading: loading || badgesLoading, now, products };
+  return {
+    items: result.items,
+    eligibleCount: result.eligibleCount,
+    windowCount: result.windowCount,
+    hiddenByLimit: result.hiddenByLimit,
+    cap: result.cap,
+    loading: loading || badgesLoading,
+    now,
+    products,
+  };
 }
