@@ -57,7 +57,7 @@ import {
 import { BrandName } from "@/components/site/BrandName";
 import { waitForLayoutReady, isHeaderLayoutReady } from "@/lib/wait-for-layout";
 import { useSupportSettings } from "@/lib/use-support-settings";
-import { registerFloating, subscribeFloating, setChatActive, getFooterLift, isContextHidden } from "@/lib/floating-stack";
+import { registerFloating, subscribeFloating, setChatActive, isContextHidden } from "@/lib/floating-stack";
 
 type Msg = CrispMessage;
 
@@ -327,7 +327,7 @@ export function LiveChat() {
 
   return (
     <>
-      {/* Premium floating support orb — draggable, status ring, long-press menu. */}
+      {/* Premium floating support orb — fixed, status ring, long-press menu. */}
       {!open && (
         <FixedOrb
           hidden={orbHidden}
@@ -886,7 +886,7 @@ function ChatMenuOption({
 // safe-area insets and the software keyboard (visualViewport). Hides while
 // the user scrolls down and restores on scroll-up or 300ms of idle scroll.
 const ORB_SIZE = 56;
-const EDGE_INSET = 16;
+const EDGE_INSET = 20;
 const BOTTOM_GAP = 16;
 const LONG_PRESS_MS = 500;
 const TAP_THRESHOLD = 8;
@@ -923,36 +923,30 @@ function FixedOrb({
   const downRef = useRef({ active: false, moved: false, x: 0, y: 0 });
   const [placed, setPlaced] = useState(false);
 
-  // Cached layout inputs. Position is computed ONCE after layout is ready and
-  // then only recomputed on real layout events (orientation, keyboard, footer
-  // lift, debounced window resize). We intentionally do NOT listen to scroll
-  // or visualViewport scroll — those fire during Chrome/Safari address-bar
-  // animation and would cause visible jitter (v5.0 stability lock).
-  const cachedRef = useRef({ navH: 96, kb: 0, footer: 0, baselineVV: 0 });
+  // Position Lock v6.0: compute the fixed anchor after layout is ready, cache
+  // it, and never tie it to footer/sticky CTA/toast/bottom-sheet visibility.
+  // Scroll only changes opacity/transform through applyVisibility().
+  const cachedRef = useRef({ navH: 96, kb: 0, baselineVV: 0 });
 
-  const readNavH = useCallback(() => {
-    const cs = getComputedStyle(document.documentElement);
-    const navRaw = cs.getPropertyValue("--floating-bottom-offset").trim();
-    let navH = 96;
-    if (navRaw) {
-      const n = parseFloat(navRaw);
-      if (Number.isFinite(n) && !navRaw.includes("calc")) navH = Math.max(n, 72);
-    }
-    return navH;
+  const readBottomNavHeight = useCallback(() => {
+    if (window.matchMedia("(min-width: 768px)").matches) return 0;
+    const css = getComputedStyle(document.documentElement);
+    const rootFontPx = Number.parseFloat(css.fontSize) || 16;
+    return rootFontPx * 5.75;
   }, []);
 
   const writeBottom = useCallback(() => {
     const el = wrapRef.current;
     if (!el) return;
     const c = cachedRef.current;
-    el.style.bottom = `${c.navH + BOTTOM_GAP + c.kb + c.footer}px`;
+    el.style.bottom = `calc(${c.navH + BOTTOM_GAP + c.kb}px + env(safe-area-inset-bottom, 0px))`;
   }, []);
 
-  // Full recompute — allowed only on real layout events, never on scroll.
+  // Full recompute — allowed only on real layout events, never on scroll or
+  // floating UI changes.
   const applyPosition = useCallback(() => {
     const c = cachedRef.current;
-    c.navH = readNavH();
-    c.footer = getFooterLift();
+    c.navH = readBottomNavHeight();
     const vv = window.visualViewport;
     // Keyboard height: measured against the cached baseline (captured at
     // layout-ready). Only counts when the shrink is large enough to be a
@@ -964,19 +958,19 @@ function FixedOrb({
       c.kb = 0;
     }
     writeBottom();
-  }, [readNavH, writeBottom]);
+  }, [readBottomNavHeight, writeBottom]);
 
   const applyVisibility = useCallback(() => {
     const el = wrapRef.current;
     if (!el) return;
     const ctxHidden = isContextHidden();
     const off = hidden || ctxHidden;
-    // Show: 180ms ease-out, translateY(16px → 0), opacity 0 → 1.
-    // Hide: 180ms ease-in,  translateY(0 → 24px), opacity 1 → 0.
+    // Show: 180ms ease-out, translateY(20px → 0), opacity 0 → 1.
+    // Hide: 180ms ease-in,  translateY(0 → 20px), opacity 1 → 0.
     el.style.transition = off
       ? "transform 180ms ease-in, opacity 180ms ease-in"
       : "transform 180ms ease-out, opacity 180ms ease-out";
-    el.style.transform = off ? "translateY(24px)" : "translateY(0)";
+    el.style.transform = off ? "translateY(20px)" : "translateY(0)";
     el.style.opacity = off ? "0" : "1";
     el.style.pointerEvents = off ? "none" : "";
   }, [hidden]);
@@ -1035,9 +1029,9 @@ function FixedOrb({
     window.addEventListener("orientationchange", onOrientation);
     window.visualViewport?.addEventListener("resize", onVVResize);
 
-    // Re-apply on floating-stack changes (footer lift, fullscreen context).
+    // Re-apply visibility only on floating-stack changes. Live Chat position is
+    // deliberately locked and must ignore footer/sticky CTA/toast stack changes.
     const unsubscribe = subscribeFloating(() => {
-      applyPosition();
       applyVisibility();
     });
     return () => {
