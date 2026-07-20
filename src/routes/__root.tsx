@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { AiShoppingMount } from "@/components/chat/AiShoppingMount";
 import { GpuCompatBanner } from "@/components/site/GpuCompatBanner";
 import { MotionConfig } from "framer-motion";
 import { RegionProvider } from "@/lib/region";
