@@ -124,11 +124,19 @@ function CinematicDivider() {
 
 /* Section-specific subtitles ("dynamic labels" per premium heading spec). */
 const SECTION_SUBTITLE: Record<string, string> = {
-  categories: "Explore everything, all in one place.",
-  flash_deals: "Limited-time offers. Don't miss today's biggest savings.",
-  trending: "Most popular today across the marketplace.",
-  new_arrivals: "Fresh picks, just added.",
-  best_sellers: "Customer favorites of the season.",
+  categories: "Explore every department with confidence.",
+  flash_deals: "Limited-time savings updated throughout the day.",
+  trending: "What shoppers are choosing right now.",
+  new_arrivals: "Fresh additions curated for you.",
+  best_sellers: "Customer favourites with proven quality.",
+};
+
+const SECTION_EYEBROW: Record<string, string> = {
+  categories: "The Marketplace",
+  flash_deals: "Limited Time",
+  trending: "In Demand",
+  new_arrivals: "Just In",
+  best_sellers: "Customer Favourites",
 };
 
 /* Full-width premium "View All" button shown directly below each product section */
