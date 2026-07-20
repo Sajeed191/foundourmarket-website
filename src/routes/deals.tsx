@@ -84,7 +84,7 @@ function DealsPage() {
   // Shared, badge-gated, Site-Rules-capped source used by homepage + /deals.
   // Do NOT re-filter by static p.flashDeal/hotDeal — the hook already gated by
   // live product_badges assignments. That extra filter was the "only 2 shown" bug.
-  const { items, loading } = useFlashDeals();
+  const { items, eligibleCount, windowCount, hiddenByLimit, cap, loading } = useFlashDeals();
   const rules = useHomepageCollectionRules();
   const countdown = useDailyCountdown();
 
