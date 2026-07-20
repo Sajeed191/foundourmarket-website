@@ -133,7 +133,7 @@ function DealsPage() {
       case "rating":
         return arr.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
       case "popular":
-        return arr.sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0));
+        return arr.sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0));
       case "ending":
       default:
         return arr.sort((a, b) => {
