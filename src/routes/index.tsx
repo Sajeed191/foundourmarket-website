@@ -609,7 +609,7 @@ function Home() {
     const eligible = products.filter((p) =>
       productInHomepageCollection(p.slug, badgeAssignments.get(p.slug), ["trending"]),
     );
-    return fairPagedSlice(
+    const preview = fairPagedSlice(
       eligible,
       rules.limits.trending,
       rotationNow,
@@ -617,13 +617,14 @@ function Home() {
       rotationNonce,
       "trending",
     ).slice(0, HOMEPAGE_PREVIEW);
+    return { preview, eligibleCount: eligible.length };
   }, [products, badgeAssignments, rules.limits.trending, rules.rotationHours, rotationNonce, rotationNow]);
 
   const newArrivals = useMemo(() => {
     const eligible = products
       .filter((p) => productInHomepageCollection(p.slug, badgeAssignments.get(p.slug), ["new"]))
       .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
-    return fairPagedSlice(
+    const preview = fairPagedSlice(
       eligible,
       rules.limits.new_arrivals,
       rotationNow,
@@ -631,13 +632,14 @@ function Home() {
       rotationNonce,
       "new_arrivals",
     ).slice(0, HOMEPAGE_PREVIEW);
+    return { preview, eligibleCount: eligible.length };
   }, [products, badgeAssignments, rules.limits.new_arrivals, rules.rotationHours, rotationNonce, rotationNow]);
 
   const bestSellers = useMemo(() => {
     const eligible = products.filter((p) =>
       productInHomepageCollection(p.slug, badgeAssignments.get(p.slug), ["bestseller"]),
     );
-    return fairPagedSlice(
+    const preview = fairPagedSlice(
       eligible,
       rules.limits.best_sellers,
       rotationNow,
@@ -645,13 +647,14 @@ function Home() {
       rotationNonce,
       "best_sellers",
     ).slice(0, HOMEPAGE_PREVIEW);
+    return { preview, eligibleCount: eligible.length };
   }, [products, badgeAssignments, rules.limits.best_sellers, rules.rotationHours, rotationNonce, rotationNow]);
 
   const featured = useMemo(() => {
     const eligible = products.filter((p) =>
       productInHomepageCollection(p.slug, badgeAssignments.get(p.slug), ["featured"]),
     );
-    return fairPagedSlice(
+    const preview = fairPagedSlice(
       eligible,
       rules.limits.featured,
       rotationNow,
@@ -659,6 +662,7 @@ function Home() {
       rotationNonce,
       "featured",
     ).slice(0, HOMEPAGE_PREVIEW);
+    return { preview, eligibleCount: eligible.length };
   }, [products, badgeAssignments, rules.limits.featured, rules.rotationHours, rotationNonce, rotationNow]);
 
 
