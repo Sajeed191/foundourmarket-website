@@ -179,10 +179,11 @@ function DealsPage() {
   // Dev verification logs (Part 1)
   useEffect(() => {
     if (!import.meta.env.DEV || loading) return;
+    const hiddenByRotation = Math.max(0, eligibleCount - windowCount);
     console.info(
-      `[Flash Deals · View All] eligible/window=${items.length} | siteRulesLimit=${rules.limits.flash_deals} | homepagePreview=4 | visible=${sortedProducts.length} | category=${activeCat} | rendered=${visible.length}`,
+      `[Deals]\nEligible: ${eligibleCount}\nRotation Window: ${windowCount}\nHomepage Preview: 4\nView All Visible: ${items.length}\nHidden By Rotation: ${hiddenByRotation}\nHidden By Limit: ${hiddenByLimit}\n(Site Rules cap: ${cap} · category filter: ${activeCat} · rendered: ${visible.length})`,
     );
-  }, [items.length, sortedProducts.length, visible.length, activeCat, loading, rules.limits.flash_deals]);
+  }, [eligibleCount, windowCount, items.length, hiddenByLimit, cap, activeCat, visible.length, loading]);
 
   // Infinite scroll sentinel
   const sentinelRef = useRef<HTMLDivElement | null>(null);
