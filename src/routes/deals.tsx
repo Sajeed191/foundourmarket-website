@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Gift,
@@ -80,7 +80,7 @@ function DealsPage() {
   const countdown = useDailyCountdown();
   const [activeCat, setActiveCat] = useState<string>("all");
   const [sort, setSort] = useState<DealSort>("savings");
-  const sortRef = useRef<HTMLDivElement | null>(null);
+  
 
   const dealProducts = useMemo(
     () => items
