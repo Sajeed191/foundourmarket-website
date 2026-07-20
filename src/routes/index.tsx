@@ -35,6 +35,8 @@ import { SearchButton } from "@/components/site/SearchButton";
 import { SearchOverlay } from "@/components/site/SearchOverlay";
 import { LazyMount } from "@/components/site/LazyMount";
 import { ProductSkeletonGrid } from "@/components/site/ProductSkeleton";
+import { PremiumProductCarousel } from "@/components/site/PremiumProductCarousel";
+import type { Product } from "@/lib/products";
 
 // Below-the-fold: lazy so the code stays out of the initial homepage chunk.
 const FlashDeals = lazy(() =>
