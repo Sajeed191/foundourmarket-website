@@ -74,6 +74,25 @@ function SubcategoryPage() {
     if (cat?.id) void supabase.rpc("track_category_event", { _id: cat.id, _event: "view" });
   }, [cat?.id]);
 
+  usePublishShoppingContext(
+    () => ({
+      page: "category",
+      route: `/category/${main}/${sub}`,
+      category: {
+        slug: sub,
+        name: cat?.name ?? null,
+        visible: items.slice(0, 12).map((p) => ({
+          slug: p.slug,
+          name: p.name,
+          price_inr: p.priceInr ?? null,
+          category: p.category ?? null,
+        })),
+      },
+    }),
+    [main, sub, cat?.name, items],
+  );
+
+
   const getProductKey = useCallback((p: Product) => p.id ?? p.slug, []);
   const renderProduct = useCallback(
     (p: Product, i: number) => (

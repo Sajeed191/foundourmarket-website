@@ -8,6 +8,7 @@ import { VirtualizedProductGrid } from "@/components/site/VirtualizedProductGrid
 import type { Product } from "@/lib/products";
 import { Loader2, ArrowRight } from "lucide-react";
 import { buildBrowsePresentation, sortProductsForBrowse } from "@/lib/browse";
+import { usePublishShoppingContext } from "@/lib/ai-shopping/shopping-context";
 
 function titleize(slug: string) {
   return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
