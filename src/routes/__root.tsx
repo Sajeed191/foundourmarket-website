@@ -925,13 +925,13 @@ function AppRoot() {
 
   useEffect(() => {
     initDebugFlags();
-    // Affected-Device Confidence System: loads persisted per-device evidence,
-    // re-scores (a previously-confirmed device activates immediately), and
-    // installs always-on runtime-evidence listeners. Compatibility Mode only
-    // activates at score >= 90% (suspect hardware + verified runtime anomalies).
-    initCompatConfidence();
-    installDebugDiagnostics();
-    patchImageDecode();
+    // Affected-Device Confidence System + debug diagnostics: dynamic-imported
+    // so ~1k LOC of always-mount-once code stays out of the initial bundle.
+    void import("@/lib/compat-confidence").then((m) => m.initCompatConfidence());
+    void import("@/lib/debug-diagnostics").then((m) => {
+      m.installDebugDiagnostics();
+      m.patchImageDecode();
+    });
     installStartupDiagnostics();
     installChunkRecovery();
     // Infra v2.0 owns SW lifecycle. On approved hosts it registers /sw.js;
