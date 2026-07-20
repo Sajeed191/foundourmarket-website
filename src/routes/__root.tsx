@@ -52,13 +52,20 @@ import { installStartupDiagnostics, useRenderDiagnostics } from "@/lib/startup-d
 import { initDebugFlags, getFlag } from "@/lib/debug-flags";
 import { installDebugDiagnostics, patchImageDecode } from "@/lib/debug-diagnostics";
 import { initCompatConfidence } from "@/lib/compat-confidence";
-import { DebugPanel } from "@/components/site/DebugPanel";
+// Perf v3 — debug overlays are self-gated to render nothing in prod, but
+// static imports still shipped ~1.1k LOC of parse cost on every cold load.
+// Lazy so they only enter the initial bundle when the user actually opens
+// them (dev/admin/?debug flags).
+const DebugPanel = lazyWithRetry(() =>
+  import("@/components/site/DebugPanel").then((m) => ({ default: m.DebugPanel })),
+);
+const WindowMetricsPanel = lazyWithRetry(() =>
+  import("@/components/site/WindowMetricsPanel").then((m) => ({ default: m.WindowMetricsPanel })),
+);
 import { useRegion } from "@/lib/region";
 import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { buildVisibleMap } from "@/lib/product-availability";
 import { RecommendationProvider } from "@/lib/recommendations";
-
-import { WindowMetricsPanel } from "@/components/site/WindowMetricsPanel";
 
 const HISTORY_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
 
