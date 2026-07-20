@@ -341,7 +341,7 @@ export function Nav() {
                 }`}
               >
                 <span aria-hidden className="pointer-events-none absolute -inset-1 rounded-2xl bg-accent/25 blur-md -z-[1]" />
-                <img loading="lazy" decoding="async" src={logoSrc} alt="FoundOurMarket logo" className="size-full object-cover" />
+                <img loading="eager" fetchPriority="high" decoding="async" src={logoSrc} alt="FoundOurMarket logo" className="size-full object-cover" />
               </span>
               <span className="flex min-w-0 flex-col leading-none">
                 <span className="truncate text-[15px] sm:text-xl lg:text-[22px] font-semibold tracking-tight">
