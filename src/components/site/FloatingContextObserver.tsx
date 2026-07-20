@@ -18,7 +18,6 @@ export function FloatingContextObserver() {
 
     const CLEARANCE = 24;
     let footerEl: HTMLElement | null = null;
-    let ticking = false;
 
     const resolveFooter = () => {
       if (footerEl && footerEl.isConnected) return footerEl;
@@ -27,7 +26,6 @@ export function FloatingContextObserver() {
     };
 
     const compute = () => {
-      ticking = false;
       const el = resolveFooter();
       if (!el) {
         setFooterLift(0);
@@ -47,11 +45,6 @@ export function FloatingContextObserver() {
       setFooterLift(Math.min(lift, window.innerHeight * 0.55));
     };
 
-    const onResize = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(compute);
-    };
 
     // Initial pass after layout settles.
     const raf = requestAnimationFrame(compute);
