@@ -47,7 +47,7 @@ export function FloatingContextObserver() {
       setFooterLift(Math.min(lift, window.innerHeight * 0.55));
     };
 
-    const onScroll = () => {
+    const onResize = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(compute);
@@ -56,24 +56,24 @@ export function FloatingContextObserver() {
     // Initial pass after layout settles.
     const raf = requestAnimationFrame(compute);
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    window.addEventListener("orientationchange", onScroll);
-    window.visualViewport?.addEventListener("resize", onScroll);
-    window.visualViewport?.addEventListener("scroll", onScroll);
+    // v5.0 stability lock: do NOT listen to scroll or visualViewport scroll.
+    // Address-bar collapse/expand fires those continuously and would jitter
+    // the floating widgets. Only recompute on real layout events.
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
 
     const onFs = () => setContextHidden(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onFs);
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      window.removeEventListener("orientationchange", onScroll);
-      window.visualViewport?.removeEventListener("resize", onScroll);
-      window.visualViewport?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
       document.removeEventListener("fullscreenchange", onFs);
     };
+
   }, []);
   return null;
 }
