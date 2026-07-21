@@ -120,6 +120,10 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [expanded, setExpanded] = useState(false);
+  // Per-row popovers for the redesigned card (v2.0).
+  const [moreOpenId, setMoreOpenId] = useState<string | null>(null);
+  const [modOpenId, setModOpenId] = useState<string | null>(null);
+  const [replyOpenId, setReplyOpenId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const table = (isAdmin ? "product_reviews" : "product_reviews_public") as "product_reviews_public";
