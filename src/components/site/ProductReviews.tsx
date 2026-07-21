@@ -52,6 +52,24 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// Muted, brand-safe accent palette for initial-based avatars. Deterministic
+// per name so a given customer always gets the same swatch across the site.
+const AVATAR_PALETTE = [
+  { bg: "bg-amber-500/20", fg: "text-amber-300", ring: "ring-amber-400/25" },
+  { bg: "bg-emerald-500/20", fg: "text-emerald-300", ring: "ring-emerald-400/25" },
+  { bg: "bg-sky-500/20", fg: "text-sky-300", ring: "ring-sky-400/25" },
+  { bg: "bg-violet-500/20", fg: "text-violet-300", ring: "ring-violet-400/25" },
+  { bg: "bg-rose-500/20", fg: "text-rose-300", ring: "ring-rose-400/25" },
+  { bg: "bg-teal-500/20", fg: "text-teal-300", ring: "ring-teal-400/25" },
+  { bg: "bg-orange-500/20", fg: "text-orange-300", ring: "ring-orange-400/25" },
+  { bg: "bg-indigo-500/20", fg: "text-indigo-300", ring: "ring-indigo-400/25" },
+];
+function avatarSwatch(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+}
+
 // Themes derived from review text to surface "what customers love".
 const HIGHLIGHT_THEMES: { label: string; keywords: string[] }[] = [
   { label: "Quality", keywords: ["quality", "well made", "well-made", "durable", "premium", "sturdy", "excellent", "build"] },
