@@ -397,16 +397,29 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   // staff moderation
-  async function patch(id: string, fields: TablesUpdate<"product_reviews">) {
+  async function patch(id: string, fields: TablesUpdate<"product_reviews">, successMsg?: string): Promise<boolean> {
+    // Optimistically update local list so admin sees change instantly.
+    setReviews((prev) => prev.map((r) => (r.id === id ? ({ ...r, ...(fields as Partial<Review>) }) : r)));
     const { error } = await supabase.from("product_reviews").update(fields).eq("id", id);
-    if (error) toast.error(error.message);
+    if (error) {
+      toast.error("Action failed", { description: error.message });
+      await load();
+      return false;
+    }
+    if (successMsg) toast.success(successMsg);
+    await load();
+    onAggregateChange?.();
+    return true;
   }
   async function postReply(id: string) {
     const text = (replyDrafts[id] ?? "").trim();
     if (!text || !user) return;
-    await patch(id, { admin_reply: text, admin_reply_at: new Date().toISOString(), admin_reply_by: user.id });
-    setReplyDrafts((d) => ({ ...d, [id]: "" }));
-    toast.success("Reply published");
+    const ok = await patch(
+      id,
+      { admin_reply: text, admin_reply_at: new Date().toISOString(), admin_reply_by: user.id },
+      "Reply published",
+    );
+    if (ok) setReplyDrafts((d) => ({ ...d, [id]: "" }));
   }
   async function analyzeOne(id: string) {
     setAnalyzing(id);
