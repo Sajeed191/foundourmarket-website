@@ -3436,6 +3436,8 @@ export type Database = {
           body: string | null
           created_at: string
           deleted_at: string | null
+          deleted_by: string | null
+          deleted_reason: string | null
           fake_reasons: string | null
           fake_score: number | null
           featured: boolean
@@ -3467,6 +3469,8 @@ export type Database = {
           body?: string | null
           created_at?: string
           deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_reason?: string | null
           fake_reasons?: string | null
           fake_score?: number | null
           featured?: boolean
@@ -3498,6 +3502,8 @@ export type Database = {
           body?: string | null
           created_at?: string
           deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_reason?: string | null
           fake_reasons?: string | null
           fake_score?: number | null
           featured?: boolean
@@ -7088,8 +7094,14 @@ export type Database = {
         }
         Returns: string
       }
+      admin_hard_delete_review: { Args: { p_id: string }; Returns: undefined }
       admin_order_detail: { Args: { _order_id: string }; Returns: Json }
       admin_order_operations: { Args: { _limit?: number }; Returns: Json }
+      admin_restore_review: { Args: { p_id: string }; Returns: undefined }
+      admin_soft_delete_review: {
+        Args: { p_id: string; p_reason?: string }
+        Returns: undefined
+      }
       admin_staff_performance: { Args: never; Returns: Json }
       admin_user_directory: { Args: never; Returns: Json }
       audit_flash_deals: {
