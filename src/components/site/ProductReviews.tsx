@@ -34,12 +34,15 @@ type PurchaseState = {
   delivered_at?: string | null;
 };
 
-type ReviewFilter = "all" | "verified" | "photo" | "video" | "featured" | "pinned" | "ai" | "5" | "4" | "3" | "2" | "1";
+type ReviewFilter =
+  | "all" | "verified" | "photo" | "video" | "featured" | "pinned" | "ai"
+  | "published" | "pending" | "hidden" | "rejected" | "deleted"
+  | "5" | "4" | "3" | "2" | "1";
 type ReviewSort = "newest" | "oldest" | "helpful" | "highest" | "lowest";
 
 // Full column set incl. moderation/sentiment/fraud internals — admin moderation only.
 const REVIEW_COLS =
-  "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, report_count, is_flagged, admin_reply, admin_reply_at, admin_reply_by, sentiment, sentiment_score, sentiment_summary, fake_score, fake_reasons, created_at";
+  "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, report_count, is_flagged, admin_reply, admin_reply_at, admin_reply_by, sentiment, sentiment_score, sentiment_summary, fake_score, fake_reasons, created_at, deleted_at, deleted_by, deleted_reason";
 // Safe public columns — granted to anonymous visitors. No reviewer UUIDs are
 // exposed; author display name/avatar are denormalized into the view instead.
 const REVIEW_COLS_PUBLIC =
