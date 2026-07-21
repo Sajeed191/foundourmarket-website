@@ -248,8 +248,13 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }, [published]);
 
   const sorted = useMemo(() => {
+    const q = query.trim().toLowerCase();
     let list = reviews.slice();
     list = list.filter((r) => {
+      if (q) {
+        const hay = `${r.title ?? ""} ${r.body ?? ""} ${r.author_name ?? ""} ${(isAdmin && r.user_id) ? profiles[r.user_id]?.full_name ?? "" : ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
       // Deleted reviews are hidden by default; only visible under the explicit
       // "Deleted" filter (admin-only archive view).
       if (r.status === "deleted" && filter !== "deleted") return false;
