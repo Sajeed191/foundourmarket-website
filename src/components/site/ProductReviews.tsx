@@ -241,6 +241,9 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const sorted = useMemo(() => {
     let list = reviews.slice();
     list = list.filter((r) => {
+      // Deleted reviews are hidden by default; only visible under the explicit
+      // "Deleted" filter (admin-only archive view).
+      if (r.status === "deleted" && filter !== "deleted") return false;
       switch (filter) {
         case "verified": return r.verified_purchase;
         case "photo": return (r.media ?? []).some((m) => m.type === "image");
@@ -248,6 +251,11 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         case "featured": return !!r.featured;
         case "pinned": return !!r.pinned;
         case "ai": return !!(r.sentiment_summary || r.fake_reasons || r.sentiment);
+        case "published": return r.status === "published";
+        case "pending": return r.status === "pending";
+        case "hidden": return r.status === "hidden";
+        case "rejected": return r.status === "rejected";
+        case "deleted": return r.status === "deleted";
         case "5": return Math.round(r.rating) === 5;
         case "4": return Math.round(r.rating) === 4;
         case "3": return Math.round(r.rating) === 3;
