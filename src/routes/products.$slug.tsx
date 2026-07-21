@@ -1177,6 +1177,8 @@ function ProductPage() {
         </div>
       </div>
 
+      <PDPCompareSection currentProduct={product} />
+
       {/* Intelligent PDP recommendations — every rail flows through the
           centralized engine (scored, reason-tagged, diversity-passed) and is
           deferred until near the viewport so core product info paints first. */}
