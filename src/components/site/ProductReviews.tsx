@@ -943,12 +943,18 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                                 <ThumbsDown className="size-3.5" /> {r.not_helpful_count}
                               </button>
                               {!isOwn && user && (
-                                <button onClick={() => setReportFor(reportFor === r.id ? null : r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive ml-auto">
-                                  <Flag className="size-3.5" /> Report
-                                </button>
+                                reportedIds.has(r.id) ? (
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground/70 ml-auto">
+                                    <Flag className="size-3.5" /> Reported
+                                  </span>
+                                ) : (
+                                  <button onClick={() => setReportFor(reportFor === r.id ? null : r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive ml-auto">
+                                    <Flag className="size-3.5" /> Report
+                                  </button>
+                                )
                               )}
                               {isOwn && (
-                                <button onClick={() => { setEditingId(r.id); setEditRating(r.rating); setEditTitle(r.title ?? ""); setEditBody(r.body ?? ""); }} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">
+                                <button onClick={() => { setEditingId(r.id); setEditRating(r.rating); setEditTitle(r.title ?? ""); setEditBody(r.body ?? ""); setEditMedia((r.media ?? []).slice()); }} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">
                                   <Pencil className="size-3.5" /> Edit
                                 </button>
                               )}
