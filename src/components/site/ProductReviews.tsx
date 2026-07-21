@@ -620,12 +620,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   return (
     <section className="max-w-7xl mx-auto pt-2 pb-14 sm:pb-20">
-      {trust !== null && hasReviews && (
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/[0.07] px-3.5 py-1.5">
-          <ShieldCheck className="size-4 text-accent" />
-          <span className="text-[11px] font-mono uppercase tracking-widest text-accent">Trust score {trust}/100</span>
-        </div>
-      )}
+      {/* Trust Score removed: opaque numeric scores reduced buyer confidence. */}
+
 
       {loading ? (
         <ReviewsSkeleton />
