@@ -600,29 +600,28 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   const filterChips: { key: ReviewFilter; label: string; adminOnly?: boolean }[] = [
-    { key: "all", label: "All reviews" },
-    { key: "verified", label: "Verified" },
-    { key: "photo", label: "With photos" },
-    { key: "video", label: "With videos" },
-    { key: "featured", label: "Featured" },
-    { key: "pinned", label: "Pinned" },
-    { key: "ai", label: "AI Insights" },
+    { key: "all", label: "All" },
+    { key: "photo", label: "Photos" },
+    { key: "video", label: "Videos" },
+    { key: "verified", label: "Verified Buyers" },
     { key: "5", label: "5★" },
     { key: "4", label: "4★" },
     { key: "3", label: "3★" },
     { key: "2", label: "2★" },
     { key: "1", label: "1★" },
+    { key: "featured", label: "Featured", adminOnly: true },
+    { key: "pinned", label: "Pinned", adminOnly: true },
+    { key: "ai", label: "AI Insights", adminOnly: true },
     { key: "pending", label: "Pending", adminOnly: true },
     { key: "hidden", label: "Hidden", adminOnly: true },
     { key: "rejected", label: "Rejected", adminOnly: true },
     { key: "deleted", label: "Deleted", adminOnly: true },
   ].filter((c) => !c.adminOnly || isAdmin) as { key: ReviewFilter; label: string; adminOnly?: boolean }[];
   const sortChips: { key: ReviewSort; label: string }[] = [
-    { key: "newest", label: "Newest" },
-    { key: "oldest", label: "Oldest" },
-    { key: "helpful", label: "Most helpful" },
-    { key: "highest", label: "Highest" },
-    { key: "lowest", label: "Lowest" },
+    { key: "newest", label: "Most Recent" },
+    { key: "helpful", label: "Most Helpful" },
+    { key: "highest", label: "Highest Rated" },
+    { key: "lowest", label: "Lowest Rated" },
   ];
 
   const hasReviews = published.length > 0;
