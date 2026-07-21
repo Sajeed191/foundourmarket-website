@@ -34,8 +34,8 @@ type PurchaseState = {
   delivered_at?: string | null;
 };
 
-type ReviewFilter = "all" | "verified" | "photo" | "5" | "4" | "3" | "2" | "1";
-type ReviewSort = "newest" | "helpful" | "highest" | "lowest";
+type ReviewFilter = "all" | "verified" | "photo" | "video" | "featured" | "pinned" | "ai" | "5" | "4" | "3" | "2" | "1";
+type ReviewSort = "newest" | "oldest" | "helpful" | "highest" | "lowest";
 
 // Full column set incl. moderation/sentiment/fraud internals — admin moderation only.
 const REVIEW_COLS =
