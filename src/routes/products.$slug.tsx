@@ -1199,9 +1199,9 @@ function ProductPage() {
             />
           </Suspense>
         </LazyMount>
-            )}
+      )}
 
-            <PDPCompareSection currentProduct={product} />
+
 
 
 
