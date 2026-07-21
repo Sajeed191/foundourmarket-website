@@ -744,8 +744,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
           {expanded && hasReviews && (
             <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <StatCard icon={<Users className="size-4" />} value={verifiedCount.toLocaleString()} label="Verified Buyers" />
-              <StatCard icon={<Star className="size-4" />} value={avg.toFixed(1)} label="Average Rating" />
-              <StatCard icon={<TrendingUp className="size-4" />} value={`${trust ?? 98}%`} label="Trust Score" />
+              <StatCard icon={<Camera className="size-4" />} value={photoReviews.length.toLocaleString()} label="Photo Reviews" />
+              <StatCard icon={<Video className="size-4" />} value={videoReviews.length.toLocaleString()} label="Video Reviews" />
               <StatCard icon={<Recommend className="size-4" />} value={`${recommendPct}%`} label="Recommend" highlight />
             </div>
           )}
