@@ -984,15 +984,10 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                               </div>
                             )}
 
-                            {isAdmin && r.sentiment && (
-                              <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-mono">
-                                <Badge tone={r.sentiment === "negative" ? "danger" : r.sentiment === "positive" ? "accent" : "muted"}>
-                                  <Brain className="size-2.5" /> {r.sentiment} {r.sentiment_score ?? 0}
-                                </Badge>
-                                {typeof r.fake_score === "number" && (
-                                  <Badge tone={r.fake_score >= 60 ? "danger" : "muted"}>Fake risk {r.fake_score}</Badge>
-                                )}
-                                {r.sentiment_summary && <span className="text-muted-foreground">{r.sentiment_summary}</span>}
+                            {isAdmin && r.sentiment_summary && (
+                              <div className="mt-3 flex items-start gap-2 rounded-lg border border-white/5 bg-white/[0.02] p-2.5 text-[10px] font-mono text-muted-foreground">
+                                <Brain className="size-3 text-accent mt-0.5 shrink-0" />
+                                <span>{r.sentiment_summary}</span>
                               </div>
                             )}
 
