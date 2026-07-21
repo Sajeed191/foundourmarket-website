@@ -20,6 +20,7 @@ import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
 import { StarRating } from "@/components/site/StarRating";
 import { useCompare } from "@/hooks/use-compare";
+import { PDPCompareSection } from "@/components/site/PDPCompareSection";
 import { useWishlist } from "@/lib/wishlist";
 import { fetchProductImages, fetchProductVariants, fetchProduct, discountPercent, type ProductImage, type ProductVariant } from "@/lib/products";
 import { fetchPublicColorGalleries, type VariantImage } from "@/lib/variant-images";
@@ -209,7 +210,7 @@ function ProductPage() {
   const { add, items: cartItems, setQty: cartSetQty, remove: cartRemove } = useCart();
   const buyNow = useBuyNow();
   const { record } = useRecentlyViewed();
-  const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
+  const { has: inWishlistDup } = useCompare(); void inWishlistDup;
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   
   // Purchase-button UI states (visual only — underlying cart/buy-now logic unchanged).
@@ -1198,7 +1199,11 @@ function ProductPage() {
             />
           </Suspense>
         </LazyMount>
-      )}
+            )}
+
+            <PDPCompareSection currentProduct={product} />
+
+
 
       <LazyMount minHeight={160} rootMargin="400px" className="scroll-mt-24" id="reviews">
         <div data-product-reviews className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
