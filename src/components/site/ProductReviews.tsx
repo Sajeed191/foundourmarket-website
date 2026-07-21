@@ -1077,18 +1077,6 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                               >
                                 <ThumbsUp className="size-3.5" /> Helpful {r.helpful_count > 0 ? `(${r.helpful_count})` : ""}
                               </button>
-                              <button
-                                onClick={() => vote(r, "not_helpful")}
-                                aria-label="Not helpful"
-                                className={cn(
-                                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
-                                  myVotes[r.id] === "not_helpful"
-                                    ? "bg-destructive/15 text-destructive"
-                                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
-                                )}
-                              >
-                                <ThumbsDown className="size-3.5" /> {r.not_helpful_count > 0 ? r.not_helpful_count : ""}
-                              </button>
 
                               {/* More menu (Edit / Delete / Report / Copy link) */}
                               <div className="relative ml-auto">
