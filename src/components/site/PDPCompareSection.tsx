@@ -7,7 +7,6 @@ import { useProducts } from "@/lib/use-products";
 import { resolveImage, type Product } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { useCompare } from "@/hooks/use-compare";
-import { PdpSectionHeading } from "@/components/site/PdpSectionHeading";
 
 /**
  * PDP — Product Comparison section.
