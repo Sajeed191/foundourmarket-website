@@ -34,8 +34,8 @@ type PurchaseState = {
   delivered_at?: string | null;
 };
 
-type ReviewFilter = "all" | "verified" | "photo" | "5" | "4" | "3" | "2" | "1";
-type ReviewSort = "newest" | "helpful" | "highest" | "lowest";
+type ReviewFilter = "all" | "verified" | "photo" | "video" | "featured" | "pinned" | "ai" | "5" | "4" | "3" | "2" | "1";
+type ReviewSort = "newest" | "oldest" | "helpful" | "highest" | "lowest";
 
 // Full column set incl. moderation/sentiment/fraud internals — admin moderation only.
 const REVIEW_COLS =
@@ -102,8 +102,15 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [editRating, setEditRating] = useState(5);
   const [editTitle, setEditTitle] = useState("");
   const [editBody, setEditBody] = useState("");
+  const [editMedia, setEditMedia] = useState<ReviewMedia[]>([]);
+  const [editUploading, setEditUploading] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  const editFileRef = useRef<HTMLInputElement>(null);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [reportFor, setReportFor] = useState<string | null>(null);
+  const [reportedIds, setReportedIds] = useState<Set<string>>(new Set());
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [expanded, setExpanded] = useState(false);
@@ -158,6 +165,12 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     setMyVotes(map);
   }, [user]);
 
+  const loadMyReports = useCallback(async () => {
+    if (!user) { setReportedIds(new Set()); return; }
+    const { data } = await supabase.from("review_reports").select("review_id").eq("user_id", user.id);
+    setReportedIds(new Set((data ?? []).map((r: any) => r.review_id as string)));
+  }, [user]);
+
   const loadEligibility = useCallback(async () => {
     if (!user) { setEligible(false); setPurchase({ purchased: false, delivered: false }); return; }
     const [{ data }, { data: ps }] = await Promise.all([
@@ -171,6 +184,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
   useEffect(() => { setLoading(true); load(); }, [load]);
   useEffect(() => { loadMyVotes(); }, [loadMyVotes]);
+  useEffect(() => { loadMyReports(); }, [loadMyReports]);
   useEffect(() => { loadEligibility(); }, [loadEligibility]);
 
   // realtime
@@ -226,7 +240,11 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     list = list.filter((r) => {
       switch (filter) {
         case "verified": return r.verified_purchase;
-        case "photo": return (r.media?.length ?? 0) > 0;
+        case "photo": return (r.media ?? []).some((m) => m.type === "image");
+        case "video": return (r.media ?? []).some((m) => m.type === "video");
+        case "featured": return !!r.featured;
+        case "pinned": return !!r.pinned;
+        case "ai": return !!(r.sentiment_summary || r.fake_reasons || r.sentiment);
         case "5": return Math.round(r.rating) === 5;
         case "4": return Math.round(r.rating) === 4;
         case "3": return Math.round(r.rating) === 3;
@@ -241,6 +259,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
       if (sort === "helpful") return (b.helpful_count ?? 0) - (a.helpful_count ?? 0);
       if (sort === "highest") return b.rating - a.rating;
       if (sort === "lowest") return a.rating - b.rating;
+      if (sort === "oldest") return +new Date(a.created_at) - +new Date(b.created_at);
       return +new Date(b.created_at) - +new Date(a.created_at);
     });
   }, [reviews, filter, sort]);
@@ -359,41 +378,119 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   }
 
   async function saveEdit(id: string) {
-    const { resilientRpc } = await import("@/lib/infra/supabase-resilient");
-    const r = await resilientRpc("review.submit", "update_own_review", {
-      p_id: id,
-      p_rating: editRating,
-      p_title: editTitle.trim() || undefined,
-      p_body: editBody.trim() || undefined,
-    }, `review.update:${id}`);
-    if (!r.ok) { toast.error((r.error as any)?.message ?? "Update failed"); return; }
-    setEditingId(null);
-    if (!r.queued) { await load(); onAggregateChange?.(); }
+    if (!user) return;
+    setEditSaving(true);
+    // Snapshot for rollback.
+    const prevList = reviews;
+    const prevMine = myReview;
+    // Optimistic apply.
+    const patchLocal = { rating: editRating, title: editTitle.trim() || null, body: editBody.trim() || null, media: editMedia };
+    setReviews((list) => list.map((x) => (x.id === id ? { ...x, ...patchLocal } as Review : x)));
+    if (myReview?.id === id) setMyReview({ ...myReview, ...patchLocal } as Review);
+    try {
+      const { resilientRpc } = await import("@/lib/infra/supabase-resilient");
+      const r = await resilientRpc("review.submit", "update_own_review", {
+        p_id: id,
+        p_rating: editRating,
+        p_title: editTitle.trim() || undefined,
+        p_body: editBody.trim() || undefined,
+      }, `review.update:${id}`);
+      if (!r.ok) throw new Error((r.error as any)?.message ?? "Update failed");
+      // Media isn't handled by the RPC — patch it directly under RLS.
+      const { error: mErr } = await supabase
+        .from("product_reviews")
+        .update({ media: editMedia as never })
+        .eq("id", id)
+        .eq("user_id", user.id);
+      if (mErr) throw new Error(mErr.message);
+      setEditingId(null);
+      toast.success("Review updated");
+      if (!r.queued) { await load(); onAggregateChange?.(); }
+    } catch (e) {
+      setReviews(prevList);
+      setMyReview(prevMine);
+      toast.error(e instanceof Error ? e.message : "Update failed");
+    } finally {
+      setEditSaving(false);
+    }
   }
 
-  async function remove(id: string) {
-    if (!confirm("Are you sure you want to delete this review?")) return;
-    const { resilientRpc } = await import("@/lib/infra/supabase-resilient");
-    const r = await resilientRpc("review.submit", "soft_delete_own_review", { p_id: id }, `review.delete:${id}`);
-    if (!r.ok) { toast.error((r.error as any)?.message ?? "Delete failed"); return; }
-    if (!r.queued) { toast.success("Review deleted."); await load(); onAggregateChange?.(); }
+  async function onPickEditFiles(files: FileList | null) {
+    if (!files || !user) return;
+    setEditUploading(true);
+    try {
+      const uploaded: ReviewMedia[] = [];
+      for (const f of Array.from(files).slice(0, 6 - editMedia.length)) {
+        try {
+          uploaded.push(await uploadReviewMedia(f, user.id));
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Upload failed");
+        }
+      }
+      if (uploaded.length) setEditMedia((m) => [...m, ...uploaded].slice(0, 6));
+    } finally {
+      setEditUploading(false);
+      if (editFileRef.current) editFileRef.current.value = "";
+    }
   }
+
+  async function confirmDelete() {
+    const id = confirmDeleteId;
+    if (!id) return;
+    setDeleting(true);
+    // Snapshot + optimistic remove.
+    const prevList = reviews;
+    const prevMine = myReview;
+    setReviews((list) => list.filter((r) => r.id !== id));
+    if (myReview?.id === id) setMyReview(null);
+    try {
+      const { resilientRpc } = await import("@/lib/infra/supabase-resilient");
+      const r = await resilientRpc("review.submit", "soft_delete_own_review", { p_id: id }, `review.delete:${id}`);
+      if (!r.ok) throw new Error((r.error as any)?.message ?? "Delete failed");
+      toast.success("Review deleted");
+      if (!r.queued) { await load(); onAggregateChange?.(); }
+    } catch (e) {
+      setReviews(prevList);
+      setMyReview(prevMine);
+      toast.error(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteId(null);
+    }
+  }
+
+  function requestDelete(id: string) { setConfirmDeleteId(id); }
 
 
   async function vote(r: Review, v: "helpful" | "not_helpful") {
     if (!user) { toast.error("Sign in to vote"); return; }
-    const next = myVotes[r.id] === v ? null : v;
+    const prev = myVotes[r.id] ?? null;
+    const next = prev === v ? null : v;
+    // Optimistically update my vote map and the review's counts.
     setMyVotes((m) => { const c = { ...m }; if (next) c[r.id] = next; else delete c[r.id]; return c; });
+    const deltaHelpful = (next === "helpful" ? 1 : 0) - (prev === "helpful" ? 1 : 0);
+    const deltaNot = (next === "not_helpful" ? 1 : 0) - (prev === "not_helpful" ? 1 : 0);
+    setReviews((list) => list.map((x) => x.id === r.id
+      ? { ...x, helpful_count: Math.max(0, (x.helpful_count ?? 0) + deltaHelpful), not_helpful_count: Math.max(0, (x.not_helpful_count ?? 0) + deltaNot) }
+      : x));
     const { error } = await castReviewVote(r.id, user.id, next);
-    if (error) toast.error(error.message);
+    if (error) {
+      // Rollback on failure.
+      setMyVotes((m) => { const c = { ...m }; if (prev) c[r.id] = prev; else delete c[r.id]; return c; });
+      setReviews((list) => list.map((x) => x.id === r.id
+        ? { ...x, helpful_count: Math.max(0, (x.helpful_count ?? 0) - deltaHelpful), not_helpful_count: Math.max(0, (x.not_helpful_count ?? 0) - deltaNot) }
+        : x));
+      toast.error(error.message);
+    }
   }
 
   async function submitReport(reviewId: string, reason: string) {
     if (!user) return;
     const { error } = await reportReview(reviewId, user.id, reason);
     setReportFor(null);
-    if (error) toast.error(error.message);
-    else toast.success("Reported — thank you. Our team will review it.");
+    if (error) { toast.error(error.message); return; }
+    setReportedIds((s) => new Set(s).add(reviewId));
+    toast.success("Reported — thank you. Our team will review it.");
   }
 
   // staff moderation
@@ -437,6 +534,10 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     { key: "all", label: "All reviews" },
     { key: "verified", label: "Verified" },
     { key: "photo", label: "With photos" },
+    { key: "video", label: "With videos" },
+    { key: "featured", label: "Featured" },
+    { key: "pinned", label: "Pinned" },
+    { key: "ai", label: "AI Insights" },
     { key: "5", label: "5★" },
     { key: "4", label: "4★" },
     { key: "3", label: "3★" },
@@ -445,6 +546,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   ];
   const sortChips: { key: ReviewSort; label: string }[] = [
     { key: "newest", label: "Newest" },
+    { key: "oldest", label: "Oldest" },
     { key: "helpful", label: "Most helpful" },
     { key: "highest", label: "Highest" },
     { key: "lowest", label: "Lowest" },
@@ -567,7 +669,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                   <button onClick={startEditMyReview} className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110">
                     <Pencil className="size-3.5" /> Edit Review
                   </button>
-                  <button onClick={() => remove(myReview.id)} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-destructive/50 hover:text-destructive">
+                  <button onClick={() => requestDelete(myReview.id)} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-destructive/50 hover:text-destructive">
                     <Trash2 className="size-3.5" /> Delete Review
                   </button>
                 </div>
@@ -727,12 +829,39 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                               ))}
                             </div>
                             <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} maxLength={120}
+                              placeholder="Review title"
                               className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-2.5 focus:outline-none focus:border-accent" />
                             <textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} maxLength={2000} rows={3}
+                              placeholder="Your experience"
                               className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-accent" />
+                            <div className="mb-3">
+                              <p className="mb-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Photos &amp; videos</p>
+                              <div className="flex flex-wrap gap-2">
+                                {editMedia.map((m, i) => (
+                                  <div key={i} className="relative size-16 overflow-hidden rounded-lg border border-border">
+                                    {m.type === "image"
+                                      ? <img loading="lazy" decoding="async" src={m.url} alt="" className="size-full object-cover" />
+                                      : <video src={m.url} className="size-full object-cover" muted playsInline />}
+                                    <button type="button" onClick={() => setEditMedia((p) => p.filter((_, idx) => idx !== i))}
+                                      className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-background/90 text-foreground ring-1 ring-border">
+                                      <X className="size-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                                {editMedia.length < 6 && (
+                                  <button type="button" onClick={() => editFileRef.current?.click()} disabled={editUploading}
+                                    className="grid size-16 place-items-center rounded-lg border border-dashed border-border text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-50">
+                                    {editUploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+                                  </button>
+                                )}
+                              </div>
+                              <input ref={editFileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => onPickEditFiles(e.target.files)} />
+                            </div>
                             <div className="flex gap-2">
-                              <button onClick={() => saveEdit(r.id)} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground">Update</button>
-                              <button onClick={() => setEditingId(null)} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest border border-border">Cancel</button>
+                              <button onClick={() => saveEdit(r.id)} disabled={editSaving || editUploading} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground disabled:opacity-50">
+                                {editSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} {editSaving ? "Saving…" : "Update"}
+                              </button>
+                              <button onClick={() => setEditingId(null)} disabled={editSaving} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest border border-border">Cancel</button>
                             </div>
                           </div>
                         ) : (
@@ -814,17 +943,23 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                                 <ThumbsDown className="size-3.5" /> {r.not_helpful_count}
                               </button>
                               {!isOwn && user && (
-                                <button onClick={() => setReportFor(reportFor === r.id ? null : r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive ml-auto">
-                                  <Flag className="size-3.5" /> Report
-                                </button>
+                                reportedIds.has(r.id) ? (
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground/70 ml-auto">
+                                    <Flag className="size-3.5" /> Reported
+                                  </span>
+                                ) : (
+                                  <button onClick={() => setReportFor(reportFor === r.id ? null : r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive ml-auto">
+                                    <Flag className="size-3.5" /> Report
+                                  </button>
+                                )
                               )}
                               {isOwn && (
-                                <button onClick={() => { setEditingId(r.id); setEditRating(r.rating); setEditTitle(r.title ?? ""); setEditBody(r.body ?? ""); }} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">
+                                <button onClick={() => { setEditingId(r.id); setEditRating(r.rating); setEditTitle(r.title ?? ""); setEditBody(r.body ?? ""); setEditMedia((r.media ?? []).slice()); }} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-accent">
                                   <Pencil className="size-3.5" /> Edit
                                 </button>
                               )}
                               {(isOwn || isAdmin) && (
-                                <button onClick={() => remove(r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
+                                <button onClick={() => requestDelete(r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
                                   <Trash2 className="size-3.5" /> Delete
                                 </button>
                               )}
@@ -933,6 +1068,50 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         onIndex={setLightboxIndex}
         onClose={() => setLightboxList(null)}
       />
+
+      {/* Delete confirmation dialog */}
+      <AnimatePresence>
+        {confirmDeleteId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !deleting && setConfirmDeleteId(null)}
+            className="fixed inset-0 z-[var(--z-modal-dialog)] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-3xl border border-white/10 bg-card p-6 text-center shadow-[var(--shadow-float)]"
+            >
+              <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-destructive/15 text-destructive">
+                <Trash2 className="size-5" />
+              </div>
+              <p className="mt-4 text-base font-display">Delete this review?</p>
+              <p className="mt-1.5 text-sm text-muted-foreground">This review will be removed and can't be recovered. The product rating and count will update immediately.</p>
+              <div className="mt-5 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-center">
+                <button
+                  onClick={() => setConfirmDeleteId(null)}
+                  disabled={deleting}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-accent/40 hover:text-accent disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleting}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-destructive px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-destructive-foreground transition-all hover:brightness-110 disabled:opacity-50"
+                >
+                  {deleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+                  {deleting ? "Deleting…" : "Delete Review"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
@@ -1039,8 +1218,8 @@ function EmptyState({ canWrite, onWrite, filtered, onReset }: { canWrite: boolea
         <span className="inline-grid size-16 place-items-center rounded-2xl bg-accent/15 text-accent animate-glow">
           <Star className="size-8 fill-accent" />
         </span>
-        <h3 className="mt-5 text-xl font-display">Be the first to review</h3>
-        <p className="mt-2 max-w-sm text-sm text-muted-foreground">Share your experience and help other customers shop with confidence.</p>
+        <h3 className="mt-5 text-xl font-display">No reviews yet</h3>
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">Be the first to share your experience.</p>
         {canWrite && (
           <button onClick={onWrite} className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-accent-foreground hover:brightness-110 hover:shadow-[var(--shadow-ember)]">
             <Pencil className="size-3.5" /> Write Review
@@ -1349,9 +1528,18 @@ function Lightbox({ list, index, onIndex, onClose }: { list: ReviewMedia[] | nul
             </button>
           )}
           {current.type === "image" ? (
-            <motion.img key={current.url} src={current.url} alt="" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="max-h-[78vh] max-w-full rounded-2xl object-contain" />
+            <motion.img
+              key={current.url}
+              src={current.url}
+              alt=""
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-h-[78vh] max-w-full rounded-2xl object-contain select-none"
+              style={{ touchAction: "pinch-zoom" }}
+              draggable={false}
+            />
           ) : (
-            <video key={current.url} src={current.url} controls autoPlay className="max-h-[78vh] max-w-full rounded-2xl" />
+            <video key={current.url} src={current.url} controls autoPlay playsInline className="max-h-[78vh] max-w-full rounded-2xl" />
           )}
           {count > 1 && (
             <button onClick={() => onIndex((index + 1) % count)} className="absolute right-2 z-10 grid size-11 place-items-center rounded-full border border-white/10 bg-background/60 text-foreground hover:text-accent">
