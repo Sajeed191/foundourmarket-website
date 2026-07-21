@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Heart, Truck, RotateCcw, Minus, Plus,
-  Share2, Play, Scale,
+  Share2, Play,
   ShoppingCart, Zap, Check, Loader2, Lock,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
@@ -19,7 +19,7 @@ import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
 import { StarRating } from "@/components/site/StarRating";
-import { useCompare } from "@/hooks/use-compare";
+import { PDPCompareSection } from "@/components/site/PDPCompareSection";
 import { useWishlist } from "@/lib/wishlist";
 import { fetchProductImages, fetchProductVariants, fetchProduct, discountPercent, type ProductImage, type ProductVariant } from "@/lib/products";
 import { fetchPublicColorGalleries, type VariantImage } from "@/lib/variant-images";
@@ -209,7 +209,7 @@ function ProductPage() {
   const { add, items: cartItems, setQty: cartSetQty, remove: cartRemove } = useCart();
   const buyNow = useBuyNow();
   const { record } = useRecentlyViewed();
-  const { has: inCompare, toggle: toggleCompare, isFull: compareFull } = useCompare();
+  
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   
   // Purchase-button UI states (visual only — underlying cart/buy-now logic unchanged).
@@ -790,22 +790,6 @@ function ProductPage() {
                 >
                   <Share2 className="size-[18px]" />
                 </button>
-                <button
-                  onClick={() => {
-                    const active = inCompare(product.slug);
-                    if (!active && compareFull) {
-                      toast.message("Maximum 4 products");
-                      return;
-                    }
-                    toggleCompare(product.slug);
-                    toast.success(active ? "Removed from Compare" : "Added to Compare");
-                  }}
-                  aria-label={inCompare(product.slug) ? "Remove from compare" : "Add to compare"}
-                  aria-pressed={inCompare(product.slug)}
-                  className={`size-11 grid place-items-center rounded-full bg-black/35 backdrop-blur-md border border-white/10 transition-all active:scale-90 ${inCompare(product.slug) ? "text-accent border-accent/40" : "text-white/85 hover:text-accent"}`}
-                >
-                  <Scale className="size-[18px]" />
-                </button>
               </div>
 
 
@@ -1192,6 +1176,8 @@ function ProductPage() {
         </div>
       </div>
 
+      <PDPCompareSection currentProduct={product} />
+
       {/* Intelligent PDP recommendations — every rail flows through the
           centralized engine (scored, reason-tagged, diversity-passed) and is
           deferred until near the viewport so core product info paints first. */}
@@ -1215,6 +1201,10 @@ function ProductPage() {
           </Suspense>
         </LazyMount>
       )}
+
+
+
+
 
       <LazyMount minHeight={160} rootMargin="400px" className="scroll-mt-24" id="reviews">
         <div data-product-reviews className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
