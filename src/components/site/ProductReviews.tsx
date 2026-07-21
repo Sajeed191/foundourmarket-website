@@ -1016,8 +1016,13 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                                   <Pencil className="size-3.5" /> Edit
                                 </button>
                               )}
-                              {(isOwn || isAdmin) && (
-                                <button onClick={() => requestDelete(r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
+                              {isOwn && r.status !== "deleted" && (
+                                <button onClick={() => requestDelete(r.id, "customer")} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
+                                  <Trash2 className="size-3.5" /> Delete
+                                </button>
+                              )}
+                              {!isOwn && isAdmin && r.status !== "deleted" && (
+                                <button onClick={() => requestDelete(r.id, "admin_soft")} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
                                   <Trash2 className="size-3.5" /> Delete
                                 </button>
                               )}
@@ -1035,28 +1040,49 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
                             {isAdmin && (
                               <div className="mt-3 border-t border-border/50 pt-3">
-                                <div className="flex flex-wrap gap-1.5">
-                                  <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned")} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
-                                  <ModBtn onClick={() => patch(r.id, { featured: !r.featured }, r.featured ? "Unfeatured" : "Featured")} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
-                                  {r.status === "published" ? (
-                                    <ModBtn onClick={() => patch(r.id, { status: "hidden" }, "Review hidden")}><EyeOff className="size-3" /> Hide</ModBtn>
-                                  ) : (
-                                    <ModBtn onClick={() => patch(r.id, { status: "published" }, "Review approved")}><Eye className="size-3" /> Approve</ModBtn>
-                                  )}
-                                  {r.status !== "rejected" && (
-                                    <ModBtn onClick={() => patch(r.id, { status: "rejected" }, "Review rejected")}><X className="size-3" /> Reject</ModBtn>
-                                  )}
-                                  <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
-                                    {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
-                                  </ModBtn>
-                                </div>
-                                <div className="mt-2 flex gap-2">
-                                  <input value={replyDrafts[r.id] ?? r.admin_reply ?? ""} onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))} placeholder="Public reply…"
-                                    className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-accent" />
-                                  <button onClick={() => postReply(r.id)} className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground font-bold px-4 rounded-full text-[11px] uppercase tracking-widest">
-                                    <MessageSquare className="size-3.5" /> {r.admin_reply ? "Update" : "Reply"}
-                                  </button>
-                                </div>
+                                {r.status === "deleted" ? (
+                                  <div className="space-y-2">
+                                    <div className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-destructive">
+                                      <Trash2 className="size-3" /> Deleted{r.deleted_at ? ` · ${new Date(r.deleted_at).toLocaleDateString()}` : ""}
+                                    </div>
+                                    {r.deleted_reason && (
+                                      <p className="text-[11px] text-muted-foreground">Reason: {r.deleted_reason}</p>
+                                    )}
+                                    <div className="flex flex-wrap gap-1.5">
+                                      <ModBtn onClick={() => restoreReview(r.id)} disabled={restoringId === r.id}>
+                                        {restoringId === r.id ? <Loader2 className="size-3 animate-spin" /> : <Eye className="size-3" />} Restore
+                                      </ModBtn>
+                                      <ModBtn onClick={() => requestDelete(r.id, "admin_hard")}>
+                                        <Trash2 className="size-3" /> Delete permanently
+                                      </ModBtn>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned")} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
+                                      <ModBtn onClick={() => patch(r.id, { featured: !r.featured }, r.featured ? "Unfeatured" : "Featured")} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
+                                      {r.status === "published" ? (
+                                        <ModBtn onClick={() => patch(r.id, { status: "hidden" }, "Review hidden")}><EyeOff className="size-3" /> Hide</ModBtn>
+                                      ) : (
+                                        <ModBtn onClick={() => patch(r.id, { status: "published" }, "Review approved")}><Eye className="size-3" /> Approve</ModBtn>
+                                      )}
+                                      {r.status !== "rejected" && (
+                                        <ModBtn onClick={() => patch(r.id, { status: "rejected" }, "Review rejected")}><X className="size-3" /> Reject</ModBtn>
+                                      )}
+                                      <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
+                                        {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
+                                      </ModBtn>
+                                    </div>
+                                    <div className="mt-2 flex gap-2">
+                                      <input value={replyDrafts[r.id] ?? r.admin_reply ?? ""} onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))} placeholder="Public reply…"
+                                        className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-accent" />
+                                      <button onClick={() => postReply(r.id)} className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground font-bold px-4 rounded-full text-[11px] uppercase tracking-widest">
+                                        <MessageSquare className="size-3.5" /> {r.admin_reply ? "Update" : "Reply"}
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             )}
                           </>
