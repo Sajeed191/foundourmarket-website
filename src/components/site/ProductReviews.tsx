@@ -843,15 +843,15 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                             {isAdmin && (
                               <div className="mt-3 border-t border-border/50 pt-3">
                                 <div className="flex flex-wrap gap-1.5">
-                                  <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned })} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
-                                  <ModBtn onClick={() => patch(r.id, { featured: !r.featured })} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
+                                  <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned")} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
+                                  <ModBtn onClick={() => patch(r.id, { featured: !r.featured }, r.featured ? "Unfeatured" : "Featured")} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
                                   {r.status === "published" ? (
-                                    <ModBtn onClick={() => patch(r.id, { status: "hidden" })}><EyeOff className="size-3" /> Hide</ModBtn>
+                                    <ModBtn onClick={() => patch(r.id, { status: "hidden" }, "Review hidden")}><EyeOff className="size-3" /> Hide</ModBtn>
                                   ) : (
-                                    <ModBtn onClick={() => patch(r.id, { status: "published" })}><Eye className="size-3" /> Approve</ModBtn>
+                                    <ModBtn onClick={() => patch(r.id, { status: "published" }, "Review approved")}><Eye className="size-3" /> Approve</ModBtn>
                                   )}
                                   {r.status !== "rejected" && (
-                                    <ModBtn onClick={() => patch(r.id, { status: "rejected" })}><X className="size-3" /> Reject</ModBtn>
+                                    <ModBtn onClick={() => patch(r.id, { status: "rejected" }, "Review rejected")}><X className="size-3" /> Reject</ModBtn>
                                   )}
                                   <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
                                     {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
