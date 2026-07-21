@@ -287,9 +287,9 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
       if (sort === "oldest") return +new Date(a.created_at) - +new Date(b.created_at);
       return +new Date(b.created_at) - +new Date(a.created_at);
     });
-  }, [reviews, filter, sort]);
+  }, [reviews, filter, sort, query, isAdmin, profiles]);
 
-  useEffect(() => { setVisibleCount(6); }, [filter, sort]);
+  useEffect(() => { setVisibleCount(6); }, [filter, sort, query]);
 
   function clearReviewDraft() {
     composeSessionRef.current += 1;
