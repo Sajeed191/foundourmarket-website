@@ -749,15 +749,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
 
 
-          {/* Trust boosters */}
-          {expanded && hasReviews && (
-            <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatCard icon={<Users className="size-4" />} value={verifiedCount.toLocaleString()} label="Verified Buyers" />
-              <StatCard icon={<Camera className="size-4" />} value={photoReviews.length.toLocaleString()} label="Photo Reviews" />
-              <StatCard icon={<Video className="size-4" />} value={videoReviews.length.toLocaleString()} label="Video Reviews" />
-              <StatCard icon={<Recommend className="size-4" />} value={`${recommendPct}%`} label="Recommend" highlight />
-            </div>
-          )}
+          {/* Trust boosters removed in v2.0 — summary meta already surfaces verified/photo/video counts. */}
 
           {/* Review highlights */}
           {expanded && highlights.length > 0 && (
