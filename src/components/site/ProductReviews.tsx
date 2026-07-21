@@ -829,12 +829,39 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                               ))}
                             </div>
                             <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} maxLength={120}
+                              placeholder="Review title"
                               className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-2.5 focus:outline-none focus:border-accent" />
                             <textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} maxLength={2000} rows={3}
+                              placeholder="Your experience"
                               className="w-full bg-background/60 border border-border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-accent" />
+                            <div className="mb-3">
+                              <p className="mb-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Photos &amp; videos</p>
+                              <div className="flex flex-wrap gap-2">
+                                {editMedia.map((m, i) => (
+                                  <div key={i} className="relative size-16 overflow-hidden rounded-lg border border-border">
+                                    {m.type === "image"
+                                      ? <img loading="lazy" decoding="async" src={m.url} alt="" className="size-full object-cover" />
+                                      : <video src={m.url} className="size-full object-cover" muted playsInline />}
+                                    <button type="button" onClick={() => setEditMedia((p) => p.filter((_, idx) => idx !== i))}
+                                      className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-background/90 text-foreground ring-1 ring-border">
+                                      <X className="size-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                                {editMedia.length < 6 && (
+                                  <button type="button" onClick={() => editFileRef.current?.click()} disabled={editUploading}
+                                    className="grid size-16 place-items-center rounded-lg border border-dashed border-border text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-50">
+                                    {editUploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+                                  </button>
+                                )}
+                              </div>
+                              <input ref={editFileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => onPickEditFiles(e.target.files)} />
+                            </div>
                             <div className="flex gap-2">
-                              <button onClick={() => saveEdit(r.id)} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground">Update</button>
-                              <button onClick={() => setEditingId(null)} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest border border-border">Cancel</button>
+                              <button onClick={() => saveEdit(r.id)} disabled={editSaving || editUploading} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs uppercase tracking-widest font-bold bg-accent text-accent-foreground disabled:opacity-50">
+                                {editSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />} {editSaving ? "Saving…" : "Update"}
+                              </button>
+                              <button onClick={() => setEditingId(null)} disabled={editSaving} className="px-4 py-2 rounded-full text-xs uppercase tracking-widest border border-border">Cancel</button>
                             </div>
                           </div>
                         ) : (
