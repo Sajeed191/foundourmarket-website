@@ -152,11 +152,16 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         .select(REVIEW_COLS)
         .eq("product_slug", productSlug)
         .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .neq("status", "deleted")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       setMyReview(mine ? ({ ...(mine as any), media: ((mine as any).media ?? []) as ReviewMedia[] } as Review) : null);
     } else {
       setMyReview(null);
     }
+
 
     const { data: ts } = await supabase.rpc("product_trust_score", { _slug: productSlug });
     if (typeof ts === "number") setTrust(ts);
