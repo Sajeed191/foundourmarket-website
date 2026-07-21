@@ -534,6 +534,10 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     { key: "all", label: "All reviews" },
     { key: "verified", label: "Verified" },
     { key: "photo", label: "With photos" },
+    { key: "video", label: "With videos" },
+    { key: "featured", label: "Featured" },
+    { key: "pinned", label: "Pinned" },
+    { key: "ai", label: "AI Insights" },
     { key: "5", label: "5★" },
     { key: "4", label: "4★" },
     { key: "3", label: "3★" },
@@ -542,6 +546,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   ];
   const sortChips: { key: ReviewSort; label: string }[] = [
     { key: "newest", label: "Newest" },
+    { key: "oldest", label: "Oldest" },
     { key: "helpful", label: "Most helpful" },
     { key: "highest", label: "Highest" },
     { key: "lowest", label: "Lowest" },
