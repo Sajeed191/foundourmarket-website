@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Heart, Truck, RotateCcw, Minus, Plus,
-  Share2, Play, Scale,
+  Share2, Play,
   ShoppingCart, Zap, Check, Loader2, Lock,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
@@ -19,7 +19,6 @@ import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
 import { ProductReviews } from "@/components/site/ProductReviews";
 import { ProductQA } from "@/components/site/ProductQA";
 import { StarRating } from "@/components/site/StarRating";
-import { useCompare } from "@/hooks/use-compare";
 import { PDPCompareSection } from "@/components/site/PDPCompareSection";
 import { useWishlist } from "@/lib/wishlist";
 import { fetchProductImages, fetchProductVariants, fetchProduct, discountPercent, type ProductImage, type ProductVariant } from "@/lib/products";
@@ -210,7 +209,7 @@ function ProductPage() {
   const { add, items: cartItems, setQty: cartSetQty, remove: cartRemove } = useCart();
   const buyNow = useBuyNow();
   const { record } = useRecentlyViewed();
-  const { has: inWishlistDup } = useCompare(); void inWishlistDup;
+  
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   
   // Purchase-button UI states (visual only — underlying cart/buy-now logic unchanged).
