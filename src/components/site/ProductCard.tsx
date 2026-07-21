@@ -451,7 +451,7 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
         >
           <ProductBadges badge={winningBadge} reason={forceBadge ? undefined : badgeReason} />
           <WishlistButton slug={product.slug} name={product.name} />
-          <CompareButton slug={product.slug} name={product.name} />
+          
           {/* Variant colour preview — fades a colour's cover image over the
               base image. Overlaid (never swaps the base src) so palette,
               layout and aspect ratio never shift. */}
