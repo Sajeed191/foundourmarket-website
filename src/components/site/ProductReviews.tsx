@@ -804,10 +804,30 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
             </div>
           )}
 
-          {/* Filters + sort + write CTA */}
+          {/* Search + filters + sort */}
           {expanded && (
           <div className="mb-8 space-y-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search reviews by keyword, title, or name…"
+                className="w-full rounded-full border border-white/10 bg-white/[0.03] pl-10 pr-10 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 outline-none transition-colors focus:border-accent/40 focus:bg-white/[0.05]"
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 grid size-7 place-items-center rounded-full text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+
               {filterChips.map((c) => (
                 <button
                   key={c.key}
