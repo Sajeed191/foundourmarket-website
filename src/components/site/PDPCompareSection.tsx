@@ -436,10 +436,10 @@ function buildRows(
   ctx: {
     priceOf: (p: Product) => number;
     compareOf: (p: Product) => number | null;
-    region: { country: "IN" | "INT" } | { country: string };
+    currency: string;
   },
 ): Row[] {
-  const isIN = (ctx.region as { country: string }).country === "IN";
+  const isIN = ctx.currency === "INR";
 
   const prices = items.map((p) => ctx.priceOf(p));
   const minPrice = Math.min(...prices);
