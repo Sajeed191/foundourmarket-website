@@ -449,7 +449,7 @@ function buildRows(
   const maxReviews = Math.max(...reviews);
   const discounts = items.map((p) => {
     const cmp = ctx.compareOf(p);
-    return discountPercent(cmp, ctx.priceOf(p)) ?? 0;
+    return discountPercent(ctx.priceOf(p), cmp) ?? 0;
   });
   const maxDiscount = Math.max(...discounts);
 
