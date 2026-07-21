@@ -34,12 +34,15 @@ type PurchaseState = {
   delivered_at?: string | null;
 };
 
-type ReviewFilter = "all" | "verified" | "photo" | "video" | "featured" | "pinned" | "ai" | "5" | "4" | "3" | "2" | "1";
+type ReviewFilter =
+  | "all" | "verified" | "photo" | "video" | "featured" | "pinned" | "ai"
+  | "published" | "pending" | "hidden" | "rejected" | "deleted"
+  | "5" | "4" | "3" | "2" | "1";
 type ReviewSort = "newest" | "oldest" | "helpful" | "highest" | "lowest";
 
 // Full column set incl. moderation/sentiment/fraud internals — admin moderation only.
 const REVIEW_COLS =
-  "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, report_count, is_flagged, admin_reply, admin_reply_at, admin_reply_by, sentiment, sentiment_score, sentiment_summary, fake_score, fake_reasons, created_at";
+  "id, product_slug, user_id, rating, title, body, media, status, pinned, featured, verified_purchase, helpful_count, not_helpful_count, report_count, is_flagged, admin_reply, admin_reply_at, admin_reply_by, sentiment, sentiment_score, sentiment_summary, fake_score, fake_reasons, created_at, deleted_at, deleted_by, deleted_reason";
 // Safe public columns — granted to anonymous visitors. No reviewer UUIDs are
 // exposed; author display name/avatar are denormalized into the view instead.
 const REVIEW_COLS_PUBLIC =
@@ -110,6 +113,9 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const [reportFor, setReportFor] = useState<string | null>(null);
   const [reportedIds, setReportedIds] = useState<Set<string>>(new Set());
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteMode, setDeleteMode] = useState<"customer" | "admin_soft" | "admin_hard">("customer");
+  const [deleteReason, setDeleteReason] = useState("");
+  const [restoringId, setRestoringId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(6);
@@ -238,6 +244,9 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
   const sorted = useMemo(() => {
     let list = reviews.slice();
     list = list.filter((r) => {
+      // Deleted reviews are hidden by default; only visible under the explicit
+      // "Deleted" filter (admin-only archive view).
+      if (r.status === "deleted" && filter !== "deleted") return false;
       switch (filter) {
         case "verified": return r.verified_purchase;
         case "photo": return (r.media ?? []).some((m) => m.type === "image");
@@ -245,6 +254,11 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
         case "featured": return !!r.featured;
         case "pinned": return !!r.pinned;
         case "ai": return !!(r.sentiment_summary || r.fake_reasons || r.sentiment);
+        case "published": return r.status === "published";
+        case "pending": return r.status === "pending";
+        case "hidden": return r.status === "hidden";
+        case "rejected": return r.status === "rejected";
+        case "deleted": return r.status === "deleted";
         case "5": return Math.round(r.rating) === 5;
         case "4": return Math.round(r.rating) === 4;
         case "3": return Math.round(r.rating) === 3;
@@ -438,28 +452,68 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     const id = confirmDeleteId;
     if (!id) return;
     setDeleting(true);
-    // Snapshot + optimistic remove.
     const prevList = reviews;
     const prevMine = myReview;
-    setReviews((list) => list.filter((r) => r.id !== id));
-    if (myReview?.id === id) setMyReview(null);
+    // Optimistic: soft delete → hide from list (admin can restore via Deleted filter);
+    // hard delete → remove row entirely.
+    if (deleteMode === "admin_hard") {
+      setReviews((list) => list.filter((r) => r.id !== id));
+    } else {
+      setReviews((list) => list.map((r) => (r.id === id ? { ...r, status: "deleted", deleted_at: new Date().toISOString() } : r)));
+    }
+    if (myReview?.id === id && deleteMode !== "admin_hard") setMyReview(null);
     try {
       const { resilientRpc } = await import("@/lib/infra/supabase-resilient");
-      const r = await resilientRpc("review.submit", "soft_delete_own_review", { p_id: id }, `review.delete:${id}`);
-      if (!r.ok) throw new Error((r.error as any)?.message ?? "Delete failed");
-      toast.success("Review deleted");
+      const fn =
+        deleteMode === "admin_hard" ? "admin_hard_delete_review"
+        : deleteMode === "admin_soft" ? "admin_soft_delete_review"
+        : "soft_delete_own_review";
+      const args =
+        deleteMode === "admin_soft"
+          ? { p_id: id, p_reason: deleteReason.trim() || null }
+          : { p_id: id };
+      const r = await resilientRpc("review.submit", fn, args, `review.${fn}:${id}`);
+      if (!r.ok) throw new Error((r.error as any)?.message ?? "Action failed");
+      toast.success(
+        deleteMode === "admin_hard" ? "Review permanently deleted"
+        : deleteMode === "admin_soft" ? "Review deleted (archived)"
+        : "Review deleted",
+      );
       if (!r.queued) { await load(); onAggregateChange?.(); }
     } catch (e) {
       setReviews(prevList);
       setMyReview(prevMine);
-      toast.error(e instanceof Error ? e.message : "Delete failed");
+      toast.error(e instanceof Error ? e.message : "Action failed");
     } finally {
       setDeleting(false);
       setConfirmDeleteId(null);
+      setDeleteReason("");
     }
   }
 
-  function requestDelete(id: string) { setConfirmDeleteId(id); }
+  function requestDelete(id: string, mode: "customer" | "admin_soft" | "admin_hard" = "customer") {
+    setDeleteMode(mode);
+    setDeleteReason("");
+    setConfirmDeleteId(id);
+  }
+
+  async function restoreReview(id: string) {
+    setRestoringId(id);
+    const prev = reviews;
+    setReviews((list) => list.map((r) => (r.id === id ? { ...r, status: "published", deleted_at: null, deleted_by: null, deleted_reason: null } : r)));
+    try {
+      const { resilientRpc } = await import("@/lib/infra/supabase-resilient");
+      const r = await resilientRpc("review.submit", "admin_restore_review", { p_id: id }, `review.restore:${id}`);
+      if (!r.ok) throw new Error((r.error as any)?.message ?? "Restore failed");
+      toast.success("Review restored");
+      if (!r.queued) { await load(); onAggregateChange?.(); }
+    } catch (e) {
+      setReviews(prev);
+      toast.error(e instanceof Error ? e.message : "Restore failed");
+    } finally {
+      setRestoringId(null);
+    }
+  }
 
 
   async function vote(r: Review, v: "helpful" | "not_helpful") {
@@ -530,7 +584,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     }
   }
 
-  const filterChips: { key: ReviewFilter; label: string }[] = [
+  const filterChips: { key: ReviewFilter; label: string; adminOnly?: boolean }[] = [
     { key: "all", label: "All reviews" },
     { key: "verified", label: "Verified" },
     { key: "photo", label: "With photos" },
@@ -543,7 +597,11 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
     { key: "3", label: "3★" },
     { key: "2", label: "2★" },
     { key: "1", label: "1★" },
-  ];
+    { key: "pending", label: "Pending", adminOnly: true },
+    { key: "hidden", label: "Hidden", adminOnly: true },
+    { key: "rejected", label: "Rejected", adminOnly: true },
+    { key: "deleted", label: "Deleted", adminOnly: true },
+  ].filter((c) => !c.adminOnly || isAdmin) as { key: ReviewFilter; label: string; adminOnly?: boolean }[];
   const sortChips: { key: ReviewSort; label: string }[] = [
     { key: "newest", label: "Newest" },
     { key: "oldest", label: "Oldest" },
@@ -958,8 +1016,13 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                                   <Pencil className="size-3.5" /> Edit
                                 </button>
                               )}
-                              {(isOwn || isAdmin) && (
-                                <button onClick={() => requestDelete(r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
+                              {isOwn && r.status !== "deleted" && (
+                                <button onClick={() => requestDelete(r.id, "customer")} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
+                                  <Trash2 className="size-3.5" /> Delete
+                                </button>
+                              )}
+                              {!isOwn && isAdmin && r.status !== "deleted" && (
+                                <button onClick={() => requestDelete(r.id, "admin_soft")} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
                                   <Trash2 className="size-3.5" /> Delete
                                 </button>
                               )}
@@ -977,28 +1040,49 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
 
                             {isAdmin && (
                               <div className="mt-3 border-t border-border/50 pt-3">
-                                <div className="flex flex-wrap gap-1.5">
-                                  <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned")} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
-                                  <ModBtn onClick={() => patch(r.id, { featured: !r.featured }, r.featured ? "Unfeatured" : "Featured")} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
-                                  {r.status === "published" ? (
-                                    <ModBtn onClick={() => patch(r.id, { status: "hidden" }, "Review hidden")}><EyeOff className="size-3" /> Hide</ModBtn>
-                                  ) : (
-                                    <ModBtn onClick={() => patch(r.id, { status: "published" }, "Review approved")}><Eye className="size-3" /> Approve</ModBtn>
-                                  )}
-                                  {r.status !== "rejected" && (
-                                    <ModBtn onClick={() => patch(r.id, { status: "rejected" }, "Review rejected")}><X className="size-3" /> Reject</ModBtn>
-                                  )}
-                                  <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
-                                    {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
-                                  </ModBtn>
-                                </div>
-                                <div className="mt-2 flex gap-2">
-                                  <input value={replyDrafts[r.id] ?? r.admin_reply ?? ""} onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))} placeholder="Public reply…"
-                                    className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-accent" />
-                                  <button onClick={() => postReply(r.id)} className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground font-bold px-4 rounded-full text-[11px] uppercase tracking-widest">
-                                    <MessageSquare className="size-3.5" /> {r.admin_reply ? "Update" : "Reply"}
-                                  </button>
-                                </div>
+                                {r.status === "deleted" ? (
+                                  <div className="space-y-2">
+                                    <div className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-destructive">
+                                      <Trash2 className="size-3" /> Deleted{r.deleted_at ? ` · ${new Date(r.deleted_at).toLocaleDateString()}` : ""}
+                                    </div>
+                                    {r.deleted_reason && (
+                                      <p className="text-[11px] text-muted-foreground">Reason: {r.deleted_reason}</p>
+                                    )}
+                                    <div className="flex flex-wrap gap-1.5">
+                                      <ModBtn onClick={() => restoreReview(r.id)} disabled={restoringId === r.id}>
+                                        {restoringId === r.id ? <Loader2 className="size-3 animate-spin" /> : <Eye className="size-3" />} Restore
+                                      </ModBtn>
+                                      <ModBtn onClick={() => requestDelete(r.id, "admin_hard")}>
+                                        <Trash2 className="size-3" /> Delete permanently
+                                      </ModBtn>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned")} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
+                                      <ModBtn onClick={() => patch(r.id, { featured: !r.featured }, r.featured ? "Unfeatured" : "Featured")} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
+                                      {r.status === "published" ? (
+                                        <ModBtn onClick={() => patch(r.id, { status: "hidden" }, "Review hidden")}><EyeOff className="size-3" /> Hide</ModBtn>
+                                      ) : (
+                                        <ModBtn onClick={() => patch(r.id, { status: "published" }, "Review approved")}><Eye className="size-3" /> Approve</ModBtn>
+                                      )}
+                                      {r.status !== "rejected" && (
+                                        <ModBtn onClick={() => patch(r.id, { status: "rejected" }, "Review rejected")}><X className="size-3" /> Reject</ModBtn>
+                                      )}
+                                      <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
+                                        {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
+                                      </ModBtn>
+                                    </div>
+                                    <div className="mt-2 flex gap-2">
+                                      <input value={replyDrafts[r.id] ?? r.admin_reply ?? ""} onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))} placeholder="Public reply…"
+                                        className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-accent" />
+                                      <button onClick={() => postReply(r.id)} className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground font-bold px-4 rounded-full text-[11px] uppercase tracking-widest">
+                                        <MessageSquare className="size-3.5" /> {r.admin_reply ? "Update" : "Reply"}
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             )}
                           </>
@@ -1089,8 +1173,28 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
               <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-destructive/15 text-destructive">
                 <Trash2 className="size-5" />
               </div>
-              <p className="mt-4 text-base font-display">Delete this review?</p>
-              <p className="mt-1.5 text-sm text-muted-foreground">This review will be removed and can't be recovered. The product rating and count will update immediately.</p>
+              <p className="mt-4 text-base font-display">
+                {deleteMode === "admin_hard" ? "Permanently delete this review?"
+                  : deleteMode === "admin_soft" ? "Delete this review?"
+                  : "Delete this review?"}
+              </p>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                {deleteMode === "admin_hard"
+                  ? "This will permanently erase the review from the database. This action cannot be undone."
+                  : deleteMode === "admin_soft"
+                  ? "The review will be hidden from customers and moved to the admin archive. You can restore it later."
+                  : "Your review will be hidden from the product page. The product rating will update immediately."}
+              </p>
+              {deleteMode === "admin_soft" && (
+                <textarea
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  rows={2}
+                  maxLength={200}
+                  placeholder="Reason (optional, internal only)"
+                  className="mt-3 w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-left text-sm focus:border-accent focus:outline-none"
+                />
+              )}
               <div className="mt-5 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-center">
                 <button
                   onClick={() => setConfirmDeleteId(null)}
@@ -1105,7 +1209,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-destructive px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-destructive-foreground transition-all hover:brightness-110 disabled:opacity-50"
                 >
                   {deleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
-                  {deleting ? "Deleting…" : "Delete Review"}
+                  {deleting ? "Working…" : deleteMode === "admin_hard" ? "Delete permanently" : "Delete Review"}
                 </button>
               </div>
             </motion.div>
