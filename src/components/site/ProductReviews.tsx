@@ -1696,21 +1696,37 @@ function WriteReviewModal(props: {
   );
 }
 
-function Lightbox({ list, index, onIndex, onClose }: { list: ReviewMedia[] | null; index: number; onIndex: (i: number) => void; onClose: () => void }) {
-  const touchStart = useRef<number | null>(null);
+/**
+ * Reviews v3.1 — ReviewMediaViewer
+ *
+ * Dedicated viewer for customer-uploaded review media. Completely isolated
+ * from the product gallery: it never receives product images/videos, only the
+ * `ReviewMedia[]` array passed in (typically one review's own uploads).
+ *
+ * UI per spec:
+ *   • Top bar: back arrow · "Review Media" · counter (i / n)
+ *   • Media stage: swipe left/right, pinch zoom, double-tap zoom, inline video
+ *   • Bottom: dots pagination (no thumbnails, no side arrows, no product controls)
+ */
+function ReviewMediaViewer({ list, index, onIndex, onClose }: { list: ReviewMedia[] | null; index: number; onIndex: (i: number) => void; onClose: () => void }) {
+  const touchStart = useRef<{ x: number; y: number; t: number } | null>(null);
+  const lastTap = useRef(0);
+  const [zoomed, setZoomed] = useState(false);
   const count = list?.length ?? 0;
+
+  useEffect(() => { setZoomed(false); }, [index, list]);
 
   useEffect(() => {
     if (!list) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight" && count > 1) onIndex((index + 1) % count);
-      if (e.key === "ArrowLeft" && count > 1) onIndex((index - 1 + count) % count);
+      if (!zoomed && e.key === "ArrowRight" && count > 1) onIndex((index + 1) % count);
+      if (!zoomed && e.key === "ArrowLeft" && count > 1) onIndex((index - 1 + count) % count);
     };
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
-  }, [list, index, count, onClose, onIndex]);
+  }, [list, index, count, onClose, onIndex, zoomed]);
 
   if (!list) return null;
   const current = list[index];
@@ -1721,57 +1737,104 @@ function Lightbox({ list, index, onIndex, onClose }: { list: ReviewMedia[] | nul
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-[var(--z-modal-overlay)] flex flex-col bg-black/90 backdrop-blur-md"
+        className="fixed inset-0 z-[var(--z-modal-overlay)] flex flex-col bg-black/95 backdrop-blur-md"
+        role="dialog"
+        aria-label="Review media viewer"
       >
-        <div className="flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
-          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{index + 1} / {count}</span>
-          <button onClick={onClose} className="grid size-10 place-items-center rounded-full border border-white/10 text-muted-foreground hover:text-foreground">
-            <X className="size-5" />
-          </button>
-        </div>
+        {/* Top bar */}
         <div
-          className="relative flex flex-1 items-center justify-center px-4"
+          className="flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3"
           onClick={(e) => e.stopPropagation()}
-          onTouchStart={(e) => (touchStart.current = e.touches[0].clientX)}
+        >
+          <button
+            onClick={onClose}
+            aria-label="Close review media"
+            className="grid size-10 place-items-center rounded-full border border-white/10 bg-white/5 text-white hover:text-accent"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-white/80">
+            Review Media
+          </span>
+          <span className="min-w-10 text-right text-[11px] font-mono tabular-nums text-white/70">
+            {index + 1} / {count}
+          </span>
+        </div>
+
+        {/* Media stage */}
+        <div
+          className="relative flex flex-1 items-center justify-center overflow-hidden px-4"
+          onClick={(e) => e.stopPropagation()}
+          onTouchStart={(e) => {
+            const t = e.touches[0];
+            touchStart.current = { x: t.clientX, y: t.clientY, t: Date.now() };
+          }}
           onTouchEnd={(e) => {
-            if (touchStart.current == null || count < 2) return;
-            const dx = e.changedTouches[0].clientX - touchStart.current;
-            if (dx > 50) onIndex((index - 1 + count) % count);
-            else if (dx < -50) onIndex((index + 1) % count);
+            const start = touchStart.current;
             touchStart.current = null;
+            if (!start) return;
+            const end = e.changedTouches[0];
+            const dx = end.clientX - start.x;
+            const dy = end.clientY - start.y;
+            const dt = Date.now() - start.t;
+            // Tap → detect double-tap for image zoom toggle
+            if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && dt < 250) {
+              const now = Date.now();
+              if (now - lastTap.current < 300 && current.type === "image") {
+                setZoomed((z) => !z);
+              }
+              lastTap.current = now;
+              return;
+            }
+            if (zoomed) return;
+            if (count < 2) return;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+              if (dx > 0) onIndex((index - 1 + count) % count);
+              else onIndex((index + 1) % count);
+            }
           }}
         >
-          {count > 1 && (
-            <button onClick={() => onIndex((index - 1 + count) % count)} className="absolute left-2 z-10 grid size-11 place-items-center rounded-full border border-white/10 bg-background/60 text-foreground hover:text-accent">
-              <ChevronLeft className="size-5" />
-            </button>
-          )}
           {current.type === "image" ? (
             <motion.img
               key={current.url}
               src={current.url}
-              alt=""
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="max-h-[78vh] max-w-full rounded-2xl object-contain select-none"
-              style={{ touchAction: "pinch-zoom" }}
+              alt="Review media"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: zoomed ? 2 : 1 }}
+              transition={{ duration: 0.25, ease: [0.22, 0.61, 0.36, 1] }}
+              className="max-h-[82vh] max-w-full select-none object-contain"
+              style={{ touchAction: zoomed ? "pan-x pan-y pinch-zoom" : "pinch-zoom" }}
               draggable={false}
             />
           ) : (
-            <video key={current.url} src={current.url} controls autoPlay playsInline className="max-h-[78vh] max-w-full rounded-2xl" />
-          )}
-          {count > 1 && (
-            <button onClick={() => onIndex((index + 1) % count)} className="absolute right-2 z-10 grid size-11 place-items-center rounded-full border border-white/10 bg-background/60 text-foreground hover:text-accent">
-              <ChevronRight className="size-5" />
-            </button>
+            <video
+              key={current.url}
+              src={current.url}
+              controls
+              autoPlay
+              playsInline
+              className="max-h-[82vh] max-w-full"
+              onClick={(e) => e.stopPropagation()}
+            />
           )}
         </div>
+
+        {/* Dots pagination */}
         {count > 1 && (
-          <div className="flex justify-center gap-2 overflow-x-auto px-4 py-4" onClick={(e) => e.stopPropagation()}>
-            {list.map((m, i) => (
-              <button key={i} onClick={() => onIndex(i)} className={cn("size-14 shrink-0 overflow-hidden rounded-lg border transition-all", i === index ? "border-accent ring-2 ring-accent/30" : "border-border opacity-60 hover:opacity-100")}>
-                {m.type === "image" ? <img decoding="async" src={m.url} alt="" className="size-full object-cover" loading="lazy" /> : <video src={m.url} className="size-full object-cover" />}
-              </button>
+          <div
+            className="flex justify-center gap-1.5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {list.map((_, i) => (
+              <button
+                key={i}
+                aria-label={`Go to media ${i + 1}`}
+                onClick={() => onIndex(i)}
+                className={cn(
+                  "h-1.5 rounded-full transition-all",
+                  i === index ? "w-5 bg-white" : "w-1.5 bg-white/35 hover:bg-white/60",
+                )}
+              />
             ))}
           </div>
         )}
@@ -1779,6 +1842,7 @@ function Lightbox({ list, index, onIndex, onClose }: { list: ReviewMedia[] | nul
     </AnimatePresence>
   );
 }
+
 
 function Badge({ children, tone }: { children: React.ReactNode; tone: "accent" | "danger" | "muted" }) {
   const cls = tone === "accent" ? "text-accent bg-accent/10 border-accent/20"
