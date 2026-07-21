@@ -1238,7 +1238,8 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                               </div>
                             )}
                           </>
-                        )}
+                          );
+                        })()}
                       </motion.li>
                     );
                   })}
