@@ -664,7 +664,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                   <button onClick={startEditMyReview} className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110">
                     <Pencil className="size-3.5" /> Edit Review
                   </button>
-                  <button onClick={() => remove(myReview.id)} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-destructive/50 hover:text-destructive">
+                  <button onClick={() => requestDelete(myReview.id)} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-destructive/50 hover:text-destructive">
                     <Trash2 className="size-3.5" /> Delete Review
                   </button>
                 </div>
@@ -921,7 +921,7 @@ export function ProductReviews({ productSlug, onAggregateChange }: { productSlug
                                 </button>
                               )}
                               {(isOwn || isAdmin) && (
-                                <button onClick={() => remove(r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
+                                <button onClick={() => requestDelete(r.id)} className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-destructive">
                                   <Trash2 className="size-3.5" /> Delete
                                 </button>
                               )}
