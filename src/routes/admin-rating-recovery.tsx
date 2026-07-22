@@ -138,7 +138,7 @@ function RatingRecoveryPage() {
   }
 
   return (
-    <AdminShell>
+    <AdminShell title="Rating Recovery" subtitle="Restore missing admin initial ratings" allow={["admin", "super_admin"]}>
       <div className="space-y-6 p-4 sm:p-6">
         <header className="space-y-2">
           <h1 className="text-xl font-semibold tracking-tight">Rating Recovery</h1>
