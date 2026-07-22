@@ -265,9 +265,7 @@ function CartPage() {
                             <div className="mt-1 flex items-center gap-1 text-[11px]">
                               <Star className="size-3 fill-accent text-accent" />
                               <span className="font-medium">{item.product.rating.toFixed(1)}</span>
-                              {item.product.reviews > 0 && (
-                                <span className="text-muted-foreground">({item.product.reviews})</span>
-                              )}
+                              <span className="text-muted-foreground">({item.product.reviews ?? 0})</span>
                             </div>
                           )}
                           <div className="mt-1 flex items-center gap-2 text-[11px]">

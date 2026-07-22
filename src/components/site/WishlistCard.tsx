@@ -206,11 +206,11 @@ function WishlistCardImpl({
 
         {/* Rating */}
         <div className="flex flex-col justify-center min-w-0 mt-1.5 min-h-[30px]">
-          {product.reviews > 0 ? (
+          {product.rating > 0 ? (
             <>
-              <StarRating rating={product.rating} showValue starClassName="size-3" textClassName="text-[10px]" />
+              <StarRating rating={product.rating} count={product.reviews} showValue starClassName="size-3" textClassName="text-[10px]" />
               <span data-product-text className="product-typography product-rating-text font-mono text-muted-foreground/70 text-[9px] mt-0.5">
-                {product.reviews.toLocaleString()} Reviews
+                {(product.reviews ?? 0).toLocaleString()} {product.reviews === 1 ? "Review" : "Reviews"}
               </span>
             </>
           ) : (

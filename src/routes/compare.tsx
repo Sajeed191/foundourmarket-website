@@ -64,8 +64,8 @@ function buildGroups(items: Product[]): SpecGroup[] {
     },
     {
       key: "rating", label: "Rating",
-      values: items.map((p) => p.reviews > 0 ? `${p.rating.toFixed(1)} (${p.reviews})` : "No reviews"),
-      winnerIndex: items.length > 1 && (items[highestRatingIdx].reviews ?? 0) > 0 ? highestRatingIdx : null,
+      values: items.map((p) => p.rating > 0 ? `${p.rating.toFixed(1)} (${p.reviews ?? 0})` : "No reviews"),
+      winnerIndex: items.length > 1 && (items[highestRatingIdx].rating ?? 0) > 0 ? highestRatingIdx : null,
       winnerLabel: "Highest rating",
     },
     {
@@ -210,7 +210,7 @@ function ComparePage() {
                       {p.discount ? <span className="ml-2 text-muted-foreground font-mono text-xs line-through">${p.price.toFixed(2)}</span> : null}
                     </div>
                     <div className="mt-2">
-                      <StarRating rating={p.rating} count={p.reviews} showValue={p.reviews > 0} starClassName="size-3" textClassName="text-xs font-mono" />
+                      <StarRating rating={p.rating} count={p.reviews} showValue={p.rating > 0} starClassName="size-3" textClassName="text-xs font-mono" />
                     </div>
                     <button
                       onClick={() => p.inStock && add(p.slug, 1)}
