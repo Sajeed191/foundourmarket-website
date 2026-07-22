@@ -766,8 +766,15 @@ function CompareCard({
               type="button"
               onClick={onToggle}
               aria-pressed={isSelected}
+              aria-label={
+                pinned
+                  ? `${product.name} is the current product`
+                  : isSelected
+                    ? `Remove ${product.name} from comparison`
+                    : `Add ${product.name} to comparison`
+              }
               disabled={pinned || disabled}
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/75 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex items-center gap-1.5 py-1.5 pr-2 -ml-0.5 pl-0.5 text-[11px] font-medium text-white/75 disabled:cursor-not-allowed disabled:opacity-70 min-h-[44px] sm:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 rounded-md"
             >
               <span
                 aria-hidden
@@ -782,6 +789,7 @@ function CompareCard({
               Compare
             </button>
           </div>
+
         </div>
       </div>
     </div>
