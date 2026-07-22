@@ -136,6 +136,94 @@ function deriveInsight(
   return null;
 }
 
+type WinnerLabel =
+  | "Best Value"
+  | "Best Rated"
+  | "Most Popular"
+  | "Editor's Pick"
+  | "Best Match";
+
+/**
+ * Pick a single strongest alternative across the visible carousel. Priority
+ * follows the same evidence hierarchy as insights — cheaper + at least as
+ * good rating > higher rating > significantly more reviews > personalization
+ * favourite > default (top similarity).
+ */
+function pickWinner(
+  candidates: Product[],
+  current: Product,
+  priceOf: (p: Product) => number,
+  boostOf: (slug: string) => number,
+): { slug: string; label: WinnerLabel } | null {
+  if (candidates.length === 0) return null;
+  const curPrice = priceOf(current) || 0;
+  const curRating = Number(current.rating || 0);
+  const curReviews = Number(current.reviews || 0);
+
+  // Best Value — cheaper AND rating not lower
+  const value = candidates
+    .filter((p) => {
+      const pp = priceOf(p) || 0;
+      const rr = Number(p.rating || 0);
+      return curPrice > 0 && pp > 0 && pp < curPrice * 0.98 && rr >= curRating - 0.1;
+    })
+    .sort((a, b) => (priceOf(a) || 0) - (priceOf(b) || 0))[0];
+  if (value) return { slug: value.slug, label: "Best Value" };
+
+  // Best Rated — meaningfully higher rating with real review count
+  const rated = candidates
+    .filter((p) => Number(p.rating || 0) - curRating >= 0.3 && Number(p.reviews || 0) >= 20)
+    .sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0))[0];
+  if (rated) return { slug: rated.slug, label: "Best Rated" };
+
+  // Most Popular — significantly more reviews
+  const popular = candidates
+    .filter(
+      (p) =>
+        Number(p.reviews || 0) >= 50 &&
+        Number(p.reviews || 0) >= Math.max(curReviews * 2, curReviews + 50),
+    )
+    .sort((a, b) => Number(b.reviews || 0) - Number(a.reviews || 0))[0];
+  if (popular) return { slug: popular.slug, label: "Most Popular" };
+
+  // Editor's Pick — top personalization boost (from on-device + AI context)
+  const boosted = [...candidates]
+    .map((p) => ({ p, b: boostOf(p.slug) }))
+    .filter((x) => x.b >= 1)
+    .sort((a, b) => b.b - a.b)[0];
+  if (boosted) return { slug: boosted.p.slug, label: "Editor's Pick" };
+
+  // Default — top similarity (already sorted upstream)
+  return { slug: candidates[0].slug, label: "Best Match" };
+}
+
+/** Short, factual one-liner. Never invented — only when data supports it. */
+function deriveRecommendation(
+  candidate: Product,
+  current: Product,
+  candidatePrice: number,
+  currentPrice: number,
+): string | null {
+  const cRating = Number(candidate.rating || 0);
+  const uRating = Number(current.rating || 0);
+  const cReviews = Number(candidate.reviews || 0);
+  const uReviews = Number(current.reviews || 0);
+
+  const cheaper = currentPrice > 0 && candidatePrice > 0 && candidatePrice < currentPrice * 0.98;
+  const similarPrice =
+    currentPrice > 0 && candidatePrice > 0 &&
+    Math.abs(candidatePrice - currentPrice) / currentPrice <= 0.1;
+
+  if (cheaper && cRating >= uRating - 0.1) return "Better value for the money.";
+  if (cRating - uRating >= 0.3 && similarPrice) return "Higher rating at a similar price.";
+  if (cRating - uRating >= 0.3) return "Higher customer rating overall.";
+  if (cReviews >= 50 && cReviews >= Math.max(uReviews * 2, uReviews + 50))
+    return "Popular among similar buyers.";
+  if (cheaper) return "More affordable alternative.";
+  return null;
+}
+
+
 export function PDPCompareSection({ currentProduct }: { currentProduct: Product }) {
   const { products } = useProducts();
   const { priceOf, format } = useRegion();
