@@ -614,30 +614,27 @@ function QuickPreviewSheet({
           </p>
 
           {specEntries.length > 0 && (
-            <dl className="mt-5 space-y-2 border-t border-white/[0.06] pt-4">
+            <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-white/[0.05] pt-4">
               {specEntries.map(([k, v]) => (
-                <div
-                  key={k}
-                  className="flex items-start justify-between gap-4 text-[12.5px]"
-                >
-                  <dt className="text-white/50 shrink-0">{k}</dt>
-                  <dd className="text-white/85 text-right">{v}</dd>
+                <div key={k} className="min-w-0 text-[12px]">
+                  <dt className="text-white/45 truncate">{k}</dt>
+                  <dd className="text-white/85 truncate">{v}</dd>
                 </div>
               ))}
             </dl>
           )}
 
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mt-6 flex items-center gap-2">
             <button
               type="button"
               disabled={isPinned}
               onClick={() => onToggle(product.slug)}
               aria-pressed={isSelected}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3.5 py-2 text-[12.5px] text-white/80 hover:text-foreground hover:border-white/25 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-[12px] text-white/80 hover:text-foreground hover:border-white/25 disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
               <span
                 aria-hidden
-                className={`grid place-items-center size-3.5 rounded-[3.5px] border transition-colors ${
+                className={`grid place-items-center size-3.5 rounded-[3.5px] border transition-colors duration-150 ${
                   isSelected
                     ? "border-accent bg-accent text-accent-foreground"
                     : "border-white/25"
@@ -647,11 +644,18 @@ function QuickPreviewSheet({
               </span>
               {isPinned ? "Current" : isSelected ? "Added" : "Compare"}
             </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center rounded-full border border-white/10 px-3 py-1.5 text-[12px] text-white/60 hover:text-white/85 hover:border-white/20 min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+              Close
+            </button>
             <Link
               to="/products/$slug"
               params={{ slug: product.slug }}
               onClick={onClose}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground px-4 py-2 text-[12.5px] font-medium min-h-[44px] shadow-[var(--shadow-ember)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground px-3.5 py-1.5 text-[12px] font-medium min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
               View product
               <ArrowRight className="size-3.5" aria-hidden />
