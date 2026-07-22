@@ -427,9 +427,6 @@ const AdminCommandCenter = lazyWithRetry(() =>
 const AdminMobileBar = lazyWithRetry(() =>
   import("@/components/admin/AdminMobileBar").then((m) => ({ default: m.AdminMobileBar })),
 );
-const CompareTray = lazyWithRetry(() =>
-  import("@/components/site/CompareTray").then((m) => ({ default: m.CompareTray })),
-);
 const InstallPrompt = lazyWithRetry(() =>
   import("@/components/site/InstallPrompt").then((m) => ({ default: m.InstallPrompt })),
 );
@@ -761,7 +758,7 @@ function DeferredShell({
       {!isAuthRoute && <IsolatedBoundary name="AdminFloatingToolbar"><AdminFloatingToolbar /></IsolatedBoundary>}
       {!isAuthRoute && <IsolatedBoundary name="AdminOverlayIndicator"><AdminOverlayIndicator /></IsolatedBoundary>}
       {!isAuthRoute && <IsolatedBoundary name="AdminCommandCenter"><AdminCommandCenter /></IsolatedBoundary>}
-      <IsolatedBoundary name="CompareTray"><CompareTray /></IsolatedBoundary>
+      
       <IsolatedBoundary name="InstallPrompt"><InstallPrompt /></IsolatedBoundary>
       {!hideLiveChat && <IsolatedBoundary name="LiveChat"><LiveChat /></IsolatedBoundary>}
       {!hideLiveChat && <IsolatedBoundary name="CommunicationHub"><CommunicationHub /></IsolatedBoundary>}
