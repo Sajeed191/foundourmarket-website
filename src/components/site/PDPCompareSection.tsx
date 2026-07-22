@@ -606,6 +606,7 @@ function CompareCard({
   disabled,
   pinned,
   onToggle,
+  winnerLabel,
 }: {
   product: Product;
   price: number;
@@ -615,6 +616,7 @@ function CompareCard({
   disabled?: boolean;
   pinned?: boolean;
   onToggle?: () => void;
+  winnerLabel?: WinnerLabel;
 }) {
   const { compareOf, format } = useRegion();
   const comparePrice = compareOf(product);
@@ -643,11 +645,32 @@ function CompareCard({
           ? "bg-violet-500/10 text-violet-300"
           : "bg-emerald-500/10 text-emerald-400";
 
+  // Price difference vs current — subtle, only when meaningful (>=1% delta).
+  const priceDiff = !pinned && currentPrice > 0 && price > 0 ? price - currentPrice : 0;
+  const priceDiffPct = currentPrice > 0 ? Math.abs(priceDiff) / currentPrice : 0;
+  const showPriceDiff = !pinned && Math.abs(priceDiff) >= 1 && priceDiffPct >= 0.01;
+  const priceDiffText = showPriceDiff
+    ? priceDiff < 0
+      ? `${format(Math.round(Math.abs(priceDiff)))} less than current`
+      : `${format(Math.round(priceDiff))} more than current`
+    : null;
+
+  // One-line recommendation — only when data-backed.
+  const recommendation =
+    !pinned && currentProduct
+      ? deriveRecommendation(product, currentProduct, price, currentPrice)
+      : null;
+
   return (
     <div className="flex h-full flex-col">
       {pinned ? (
         <span className="mb-1.5 px-0.5 text-[10px] font-medium uppercase tracking-widest text-white/40">
           Current Product
+        </span>
+      ) : winnerLabel ? (
+        <span className="mb-1.5 inline-flex w-fit items-center gap-1 px-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent">
+          <Sparkles className="size-2.5" aria-hidden />
+          {winnerLabel}
         </span>
       ) : (
         <span aria-hidden className="mb-1.5 h-[14px]" />
@@ -661,6 +684,7 @@ function CompareCard({
         <Link
           to="/products/$slug"
           params={{ slug: product.slug }}
+          aria-label={`View ${product.name}`}
           className="relative block bg-black/25 overflow-hidden"
           style={{ aspectRatio: "1 / 1" }}
         >
@@ -708,6 +732,16 @@ function CompareCard({
             )}
           </div>
 
+          {priceDiffText && (
+            <p
+              className={`mt-0.5 text-[10.5px] tabular-nums ${
+                priceDiff < 0 ? "text-emerald-400/90" : "text-white/45"
+              }`}
+            >
+              {priceDiffText}
+            </p>
+          )}
+
           {insight && (
             <div className="mt-1.5">
               <span
@@ -717,6 +751,14 @@ function CompareCard({
               </span>
             </div>
           )}
+
+          {recommendation && (
+            <p className="mt-1 text-[11px] leading-snug text-white/60 line-clamp-1">
+              {recommendation}
+            </p>
+          )}
+
+
 
 
           <div className="mt-auto pt-3">
