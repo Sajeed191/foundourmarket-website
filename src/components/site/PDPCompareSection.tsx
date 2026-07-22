@@ -506,7 +506,13 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         </p>
       )}
 
-      <div className="mt-4 pt-6 border-t border-white/[0.05] flex items-center justify-between gap-3 px-1">
+      {decisionMessage && (
+        <p className="mt-6 text-[12.5px] text-white/70 px-1">{decisionMessage}</p>
+      )}
+
+      <div
+        className={`${decisionMessage ? "mt-3" : "mt-4"} pt-6 border-t border-white/[0.05] flex items-center justify-between gap-3 px-1`}
+      >
         <span className="text-[12px] text-white/50 tabular-nums">
           Selected: {selectedCount}
         </span>
@@ -516,8 +522,8 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
           onClick={handleCompare}
           aria-label={
             canCompare
-              ? `Compare ${selectedCount} selected products`
-              : "Select at least one more product to compare"
+              ? "Compare selected products"
+              : "Select one more product to compare"
           }
           className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[12px] font-medium tracking-wide transition-colors duration-150 ease-out min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
             canCompare && !navigating
@@ -538,6 +544,12 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
           )}
         </button>
       </div>
+      {!canCompare && (
+        <p className="mt-2 text-[11.5px] text-white/45 px-1 text-right">
+          Select one more product to compare.
+        </p>
+      )}
+
 
       <QuickPreviewSheet
         product={preview}
