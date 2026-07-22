@@ -220,7 +220,7 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
   if (suggestions.length === 0) {
     return (
       <section
-        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-28 sm:mt-32"
+        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-36 sm:mt-40"
         aria-labelledby="pdp-ymal-heading"
       >
         <h2
@@ -229,11 +229,8 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         >
           Similar Products
         </h2>
-        <p className="mt-3 text-[13.5px] text-white/60">
+        <p className="mt-3 text-[13px] text-white/55">
           No similar products available right now.
-        </p>
-        <p className="mt-1 text-[12.5px] text-white/40">
-          We&apos;ll recommend similar products as our catalog grows.
         </p>
       </section>
     );
@@ -241,19 +238,19 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
 
   return (
     <section
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-28 sm:mt-32"
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-36 sm:mt-40"
       data-pdp-compare
       aria-labelledby="pdp-ymal-heading"
     >
-      <div className="mb-6 sm:mb-7">
+      <div className="mb-7 sm:mb-8">
         <h2
           id="pdp-ymal-heading"
           className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-foreground leading-tight"
         >
           Similar Products
         </h2>
-        <p className="mt-2 text-[13px] text-muted-foreground/75 leading-relaxed">
-          Customers also viewed these alternatives
+        <p className="mt-2 text-[13px] text-white/55 leading-relaxed">
+          More options you may like.
         </p>
       </div>
 
