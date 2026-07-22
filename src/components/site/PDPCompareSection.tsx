@@ -73,12 +73,14 @@ function pillFor(p: Product, shipping: number): Pill | null {
   return null;
 }
 
+// Quieter, near-neutral pill palette. Only Free Delivery keeps a subtle
+// accent — everything else is neutral so a single card never dominates.
 const pillClasses: Record<Pill["tone"], string> = {
-  emerald: "text-emerald-300/90 bg-emerald-400/[0.08] border-emerald-400/20",
-  sky: "text-sky-300/90 bg-sky-400/[0.08] border-sky-400/20",
-  amber: "text-amber-300/90 bg-amber-400/[0.08] border-amber-400/20",
-  violet: "text-violet-300/90 bg-violet-400/[0.08] border-violet-400/20",
-  neutral: "text-white/60 bg-white/[0.04] border-white/10",
+  emerald: "text-emerald-300/85 bg-emerald-400/[0.06] border-emerald-400/15",
+  sky: "text-white/65 bg-white/[0.035] border-white/10",
+  amber: "text-white/65 bg-white/[0.035] border-white/10",
+  violet: "text-white/65 bg-white/[0.035] border-white/10",
+  neutral: "text-white/60 bg-white/[0.035] border-white/10",
 };
 
 export function PDPCompareSection({ currentProduct }: { currentProduct: Product }) {
@@ -218,7 +220,7 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
   if (suggestions.length === 0) {
     return (
       <section
-        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-28 sm:mt-32"
+        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-36 sm:mt-40"
         aria-labelledby="pdp-ymal-heading"
       >
         <h2
@@ -227,11 +229,8 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         >
           Similar Products
         </h2>
-        <p className="mt-3 text-[13.5px] text-white/60">
+        <p className="mt-3 text-[13px] text-white/55">
           No similar products available right now.
-        </p>
-        <p className="mt-1 text-[12.5px] text-white/40">
-          We&apos;ll recommend similar products as our catalog grows.
         </p>
       </section>
     );
@@ -239,19 +238,19 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
 
   return (
     <section
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-28 sm:mt-32"
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-36 sm:mt-40"
       data-pdp-compare
       aria-labelledby="pdp-ymal-heading"
     >
-      <div className="mb-6 sm:mb-7">
+      <div className="mb-7 sm:mb-8">
         <h2
           id="pdp-ymal-heading"
           className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-foreground leading-tight"
         >
           Similar Products
         </h2>
-        <p className="mt-2 text-[13px] text-muted-foreground/75 leading-relaxed">
-          Customers also viewed these alternatives
+        <p className="mt-2 text-[13px] text-white/55 leading-relaxed">
+          More options you may like.
         </p>
       </div>
 
@@ -291,11 +290,11 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
       <div className="relative -mx-4 sm:mx-0">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-background to-transparent z-10"
+          className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-background/95 to-transparent z-10"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent z-10"
+          className="pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background/95 to-transparent z-10"
         />
 
         <ul
@@ -366,8 +365,8 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         </p>
       )}
 
-      <div className="mt-4 pt-6 border-t border-white/[0.06] flex items-center justify-between gap-3 px-1">
-        <span className="text-[12.5px] text-white/55 tabular-nums">
+      <div className="mt-4 pt-6 border-t border-white/[0.05] flex items-center justify-between gap-3 px-1">
+        <span className="text-[12px] text-white/50 tabular-nums">
           Selected: {selectedCount}
         </span>
         <button
@@ -379,10 +378,10 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
               ? `Compare ${selectedCount} selected products`
               : "Select at least one more product to compare"
           }
-          className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[12.5px] font-medium tracking-wide transition-colors duration-150 ease-out min-h-[44px] sm:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[12px] font-medium tracking-wide transition-colors duration-150 ease-out min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
             canCompare && !navigating
-              ? "border-accent/70 text-accent hover:bg-accent/[0.06]"
-              : "border-white/10 text-white/35 cursor-not-allowed"
+              ? "border-white/20 text-white/85 hover:border-accent/50 hover:text-accent"
+              : "border-white/10 text-white/30 cursor-not-allowed"
           }`}
         >
           {navigating ? (
@@ -615,30 +614,27 @@ function QuickPreviewSheet({
           </p>
 
           {specEntries.length > 0 && (
-            <dl className="mt-5 space-y-2 border-t border-white/[0.06] pt-4">
+            <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-white/[0.05] pt-4">
               {specEntries.map(([k, v]) => (
-                <div
-                  key={k}
-                  className="flex items-start justify-between gap-4 text-[12.5px]"
-                >
-                  <dt className="text-white/50 shrink-0">{k}</dt>
-                  <dd className="text-white/85 text-right">{v}</dd>
+                <div key={k} className="min-w-0 text-[12px]">
+                  <dt className="text-white/45 truncate">{k}</dt>
+                  <dd className="text-white/85 truncate">{v}</dd>
                 </div>
               ))}
             </dl>
           )}
 
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mt-6 flex items-center gap-2">
             <button
               type="button"
               disabled={isPinned}
               onClick={() => onToggle(product.slug)}
               aria-pressed={isSelected}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3.5 py-2 text-[12.5px] text-white/80 hover:text-foreground hover:border-white/25 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-[12px] text-white/80 hover:text-foreground hover:border-white/25 disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
               <span
                 aria-hidden
-                className={`grid place-items-center size-3.5 rounded-[3.5px] border transition-colors ${
+                className={`grid place-items-center size-3.5 rounded-[3.5px] border transition-colors duration-150 ${
                   isSelected
                     ? "border-accent bg-accent text-accent-foreground"
                     : "border-white/25"
@@ -648,11 +644,18 @@ function QuickPreviewSheet({
               </span>
               {isPinned ? "Current" : isSelected ? "Added" : "Compare"}
             </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center rounded-full border border-white/10 px-3 py-1.5 text-[12px] text-white/60 hover:text-white/85 hover:border-white/20 min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+              Close
+            </button>
             <Link
               to="/products/$slug"
               params={{ slug: product.slug }}
               onClick={onClose}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground px-4 py-2 text-[12.5px] font-medium min-h-[44px] shadow-[var(--shadow-ember)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground px-3.5 py-1.5 text-[12px] font-medium min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
               View product
               <ArrowRight className="size-3.5" aria-hidden />
