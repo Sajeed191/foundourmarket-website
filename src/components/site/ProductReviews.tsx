@@ -254,11 +254,14 @@ export function ProductReviews({ productSlug, onAggregateChange, productRating, 
 
   const isSaved = user ? wishlist.has(productSlug) : false;
   // Single source of truth: products.rating / products.reviews (maintained by
-  // the DB trigger). Never recompute the aggregate from the loaded review list
-  // — the list may include seeded rows or lag behind moderation state.
-  const localAvg = published.length ? published.reduce((s, r) => s + r.rating, 0) / published.length : 0;
-  const avg = typeof productRating === "number" && productRating > 0 ? productRating : localAvg;
-  const totalReviewCount = typeof productReviewCount === "number" ? productReviewCount : published.length;
+  // the DB trigger `recalc_product_rating`). NEVER recompute the aggregate
+  // from the loaded review list — the list may include seeded rows or lag
+  // behind moderation state, and when there are 0 published customer reviews
+  // the DB rating is the admin `initial_rating` fallback which the client
+  // must display verbatim (including when it is 0).
+  const avg = typeof productRating === "number" ? productRating : 0;
+  const totalReviewCount = typeof productReviewCount === "number" ? productReviewCount : 0;
+
   const buckets = ratingBuckets(published);
   const verifiedCount = published.filter((r) => r.verified_purchase).length;
   const photoReviews = published.filter((r) => (r.media ?? []).some((m) => m.type === "image"));
