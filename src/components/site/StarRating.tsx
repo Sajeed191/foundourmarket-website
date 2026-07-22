@@ -86,7 +86,10 @@ export function StarRating({
   // Use the exact value so a 4.8 rating shows 4 full stars + one 80%-filled star.
   const value = raw;
   const hasCount = typeof count === "number";
-  const noReviews = hasCount && count === 0;
+  // "No reviews yet" is only shown when there is genuinely no rating at all
+  // (rating === 0 AND count === 0). If an admin fallback rating > 0 exists
+  // with 0 customer reviews, we still render the stars + value + (0).
+  const noReviews = hasCount && count === 0 && raw <= 0;
 
   return (
     <div
