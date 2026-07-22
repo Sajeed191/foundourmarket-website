@@ -1,28 +1,26 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Check, Star, ArrowRight, ImageOff } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { Check, ArrowRight } from "lucide-react";
+import { memo, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
+import { ProductCard } from "@/components/site/ProductCard";
 import { useProducts } from "@/lib/use-products";
-import { resolveImage, discountPercent, type Product } from "@/lib/products";
+import { type Product } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { useCompare } from "@/hooks/use-compare";
-import { Price } from "@/components/site/Price";
 
 /**
- * PDP — Similar Products v6.0
+ * PDP — You may also like (v6.1)
  *
- * Native shopping-recommendation carousel (Amazon / Flipkart / Apple in feel):
- * a clean horizontal rail of similar items with an optional compare checkbox
- * on each card. No insights, chips, banners, reminders, sheets or floating
- * bars — the PDP is for discovery; the dedicated /compare page performs the
- * actual comparison.
- *
- * Reuses the existing similarity ranking, compare store and /compare route.
- * Zero new state, zero new queries, zero backend changes.
+ * Native marketplace recommendation carousel. Reuses the standard ProductCard
+ * used everywhere else on the site, and layers a single "Compare" checkbox
+ * beneath each card. No bordered container, no special compare cards, no
+ * insights or banners — the carousel is a shopping surface first, comparison
+ * second. Compare store, ranking, and /compare page are all untouched.
  */
 
 const VISIBLE_LIMIT = 12;
+const VIEW_MORE_THRESHOLD = 8;
 
 export function PDPCompareSection({ currentProduct }: { currentProduct: Product }) {
   const { products } = useProducts();
@@ -36,7 +34,9 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
   const suggestions = useMemo(() => {
     if (!products.length) return [] as Product[];
     const cur = currentProduct;
-    const curCats = new Set([cur.category, ...(cur.categories ?? [])].filter(Boolean));
+    const curCats = new Set(
+      [cur.category, ...(cur.categories ?? [])].filter(Boolean),
+    );
 
     return products
       .filter(
@@ -86,29 +86,42 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
 
   return (
     <section
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20"
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-24"
       data-pdp-compare
+      aria-labelledby="pdp-ymal-heading"
     >
-      <div className="mb-5">
-        <h2 className="text-[19px] sm:text-[21px] font-semibold tracking-tight text-foreground leading-tight">
-          Similar Products
+      <div className="mb-6">
+        <h2
+          id="pdp-ymal-heading"
+          className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-foreground leading-tight"
+        >
+          You may also like
         </h2>
-        <p className="mt-1 text-[12.5px] text-muted-foreground/75 leading-relaxed">
-          Explore products similar to this item.
+        <p className="mt-1.5 text-[13px] text-muted-foreground/75 leading-relaxed">
+          Similar products chosen for you.
         </p>
       </div>
 
-      <div className="-mx-4 sm:mx-0">
+      <div className="relative -mx-4 sm:mx-0">
+        {/* subtle edge fades */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-background to-transparent z-10"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent z-10"
+        />
+
         <ul
-          className="flex overflow-x-auto gap-3 px-4 sm:px-1 pb-1 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex overflow-x-auto gap-4 sm:gap-5 px-4 sm:px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           style={{
             overscrollBehaviorX: "contain",
             WebkitOverflowScrolling: "touch",
-            scrollPaddingLeft: "1rem",
           }}
         >
-          <li className="snap-start shrink-0 w-[42%] min-[420px]:w-[38%] sm:w-[188px]">
-            <SimilarCard product={currentProduct} price={currentPrice} pinned />
+          <li className="shrink-0 w-[43%] min-[420px]:w-[38%] sm:w-[210px]">
+            <RailItem product={currentProduct} pinned />
           </li>
           {suggestions.map((p) => {
             const active = has(p.slug);
@@ -116,11 +129,10 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
             return (
               <li
                 key={p.slug}
-                className="snap-start shrink-0 w-[42%] min-[420px]:w-[38%] sm:w-[188px]"
+                className="shrink-0 w-[43%] min-[420px]:w-[38%] sm:w-[210px]"
               >
-                <SimilarCard
+                <RailItem
                   product={p}
-                  price={priceOf(p)}
                   active={active}
                   disabled={disabled}
                   onToggle={() => handleToggle(p.slug)}
@@ -132,16 +144,18 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         </ul>
       </div>
 
-      <div className="mt-4 px-1">
-        <Link
-          to="/category/$slug"
-          params={{ slug: currentProduct.category || "all" }}
-          className="inline-flex items-center gap-1 text-[12.5px] font-medium text-white/75 hover:text-accent transition-colors duration-150"
-        >
-          See More Similar Products
-          <ArrowRight className="size-3.5" aria-hidden />
-        </Link>
-      </div>
+      {suggestions.length >= VIEW_MORE_THRESHOLD && (
+        <div className="mt-5 px-1">
+          <Link
+            to="/category/$slug"
+            params={{ slug: currentProduct.category || "all" }}
+            className="inline-flex items-center gap-1 text-[13px] font-medium text-white/75 hover:text-accent transition-colors duration-150"
+          >
+            View all similar products
+            <ArrowRight className="size-3.5" aria-hidden />
+          </Link>
+        </div>
+      )}
 
       <div
         className="sr-only"
@@ -154,7 +168,10 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
           : `${selectedCount} products selected for comparison.`}
       </div>
 
-      <div className="mt-4 px-1">
+      <div className="mt-8 flex items-center justify-between gap-3 px-1">
+        <span className="text-[12.5px] text-white/55 tabular-nums">
+          Selected: {selectedCount}
+        </span>
         <button
           type="button"
           disabled={!canCompare}
@@ -170,150 +187,73 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
               : "border-white/10 text-white/35 cursor-not-allowed"
           }`}
         >
-          Compare Selected ({selectedCount})
+          Compare Selected Products
+          <ArrowRight className="size-3.5" aria-hidden />
         </button>
       </div>
     </section>
   );
 }
 
-type SimilarCardProps = {
+type RailItemProps = {
   product: Product;
-  price: number;
   active?: boolean;
   disabled?: boolean;
   pinned?: boolean;
   onToggle?: () => void;
 };
 
-function SimilarCardImpl({
-  product,
-  price,
-  active,
-  disabled,
-  pinned,
-  onToggle,
-}: SimilarCardProps) {
-  const { compareOf } = useRegion();
-  const [imgFailed, setImgFailed] = useState(false);
-  const comparePrice = compareOf(product);
-  const discount = discountPercent(price, comparePrice) ?? 0;
+function RailItemImpl({ product, active, disabled, pinned, onToggle }: RailItemProps) {
   const isSelected = !!(pinned || active);
-  const resolvedImg = product.image ? resolveImage(product.image) : null;
-
   return (
     <div className="flex h-full flex-col">
-      {/* Reserved label slot so all cards align regardless of "Current" tag */}
+      {/* Reserved caption slot so cards align regardless of "Current" tag */}
       <div className="mb-1.5 h-[14px] px-0.5 flex items-center">
         {pinned && (
           <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">
-            Current
+            Current Product
           </span>
         )}
       </div>
 
       <div
-        className={`relative flex flex-1 flex-col rounded-[14px] border overflow-hidden bg-transparent transition-[border-color] duration-150 ease-out ${
-          isSelected ? "border-accent" : "border-white/[0.08] hover:border-white/20"
+        className={`rounded-2xl transition-[box-shadow] duration-150 ${
+          isSelected && !pinned ? "ring-1 ring-accent/70" : ""
         }`}
       >
-        <Link
-          to="/products/$slug"
-          params={{ slug: product.slug }}
-          aria-label={`View ${product.name}`}
-          className="relative block bg-white/[0.03] overflow-hidden"
-          style={{ aspectRatio: "1 / 1" }}
+        <ProductCard product={product} compact hideBadges={pinned} />
+      </div>
+
+      <div className="mt-2 px-0.5">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-pressed={isSelected}
+          aria-label={
+            pinned
+              ? `${product.name} is the current product`
+              : isSelected
+                ? `Remove ${product.name} from comparison`
+                : `Add ${product.name} to comparison`
+          }
+          disabled={pinned || disabled}
+          className="inline-flex items-center gap-1.5 py-1.5 pr-2 pl-0.5 text-[11px] font-medium text-white/70 disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px] sm:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 rounded-md"
         >
-          {resolvedImg && !imgFailed ? (
-            <img
-              src={resolvedImg}
-              alt={product.name}
-              loading="lazy"
-              decoding="async"
-              width={400}
-              height={400}
-              onError={() => setImgFailed(true)}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div
-              aria-hidden
-              className="w-full h-full grid place-items-center text-white/25"
-            >
-              <ImageOff className="size-6" />
-            </div>
-          )}
-        </Link>
-
-        <div className="flex flex-1 flex-col p-3">
-          <Link
-            to="/products/$slug"
-            params={{ slug: product.slug }}
-            className="block text-[12.5px] font-medium text-white/95 line-clamp-2 leading-snug h-[2.6em] hover:text-accent transition-colors"
+          <span
+            aria-hidden
+            className={`grid place-items-center size-3.5 rounded-[3.5px] border transition-colors duration-150 ${
+              isSelected
+                ? "border-accent bg-accent text-accent-foreground"
+                : "border-white/25 bg-transparent"
+            }`}
           >
-            {product.name}
-          </Link>
-
-          <div className="mt-2 h-[14px] flex items-center gap-1 text-[10.5px] text-white/55 tabular-nums">
-            <Star className="size-2.5 fill-amber-400 text-amber-400 shrink-0" aria-hidden />
-            <span className="font-medium text-white/85">
-              {Number(product.rating || 0).toFixed(1)}
-            </span>
-            <span className="text-white/40 truncate">
-              ({Number(product.reviews || 0)})
-            </span>
-          </div>
-
-          <div className="mt-1 h-[20px] flex items-baseline gap-1.5 overflow-hidden">
-            <Price value={price} variant="current" className="text-[13px]" />
-            {comparePrice != null && comparePrice > price && (
-              <>
-                <Price
-                  value={comparePrice}
-                  variant="compare"
-                  className="text-[10.5px] text-white/40 line-through"
-                />
-                {discount > 0 && (
-                  <span className="text-[10.5px] font-semibold text-emerald-400 tabular-nums">
-                    -{discount}%
-                  </span>
-                )}
-              </>
-            )}
-          </div>
-
-          <div className="mt-auto pt-3">
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-pressed={isSelected}
-              aria-label={
-                pinned
-                  ? `${product.name} is the current product`
-                  : isSelected
-                    ? `Remove ${product.name} from comparison`
-                    : `Add ${product.name} to comparison`
-              }
-              disabled={pinned || disabled}
-              className="inline-flex items-center gap-1.5 py-1.5 pr-2 -ml-0.5 pl-0.5 text-[11px] font-medium text-white/75 disabled:cursor-not-allowed disabled:opacity-70 min-h-[44px] sm:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 rounded-md"
-            >
-              <span
-                aria-hidden
-                className={`grid place-items-center size-3.5 rounded-[3.5px] border transition-colors duration-150 ${
-                  isSelected
-                    ? "border-accent bg-accent text-accent-foreground"
-                    : "border-white/25 bg-transparent"
-                }`}
-              >
-                {isSelected && <Check className="size-2.5" strokeWidth={3} />}
-              </span>
-              Compare
-            </button>
-          </div>
-        </div>
+            {isSelected && <Check className="size-2.5" strokeWidth={3} />}
+          </span>
+          {isSelected && !pinned ? "Compared" : "Compare"}
+        </button>
       </div>
     </div>
   );
 }
 
-const SimilarCard = memo(SimilarCardImpl);
+const RailItem = memo(RailItemImpl);
