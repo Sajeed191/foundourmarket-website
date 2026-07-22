@@ -231,7 +231,9 @@ function CompareCard({
   pinned?: boolean;
   onToggle: () => void;
 }) {
-  const discount = discountPercent(product);
+  const { compareOf } = useRegion();
+  const discount = discountPercent(price, compareOf(product)) ?? 0;
+
 
   return (
     <div
