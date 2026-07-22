@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Check, Star, Package, ArrowRight } from "lucide-react";
+import { Check, Star, ArrowRight } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -10,10 +10,11 @@ import { useCompare } from "@/hooks/use-compare";
 import { Price } from "@/components/site/Price";
 
 /**
- * PDP — Compare Similar Products v4.2 (Final Premium Polish).
+ * PDP — Compare Similar Products v5.0 (Native Recommendation).
  *
- * UI-only refinement. Reuses existing compare store and `/compare` page.
- * Feels like a product-discovery recommendation section, not a utility.
+ * Full-native shopping section. No floating bar, no summary chips, no dialog.
+ * Just: header → horizontal carousel of product cards → one CTA row.
+ * Reuses existing compare storage and `/compare` page unchanged.
  */
 
 export function PDPCompareSection({ currentProduct }: { currentProduct: Product }) {
@@ -69,9 +70,8 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
     });
   }, [products, slugs, remove, currentSlug]);
 
-  const selectedCount = slugs.filter((s) => s !== currentSlug).length;
-  const totalCount = selectedCount + 1;
-  const canCompare = totalCount >= 2;
+  const selectedCount = slugs.filter((s) => s !== currentSlug).length + 1; // include current
+  const canCompare = selectedCount >= 2;
 
   const handleToggle = (slug: string) => {
     if (slug === currentSlug) return;
@@ -82,34 +82,23 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
     toggle(slug);
   };
 
-  if (suggestions.length === 0) {
-    return (
-      <section
-        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20"
-        data-pdp-compare
-      >
-        <SectionHeader />
-        <div className="mt-5 rounded-[18px] border border-white/[0.05] bg-white/[0.015] px-6 py-10 flex flex-col items-center text-center">
-          <div className="size-10 rounded-full bg-white/[0.04] border border-white/[0.06] grid place-items-center mb-3">
-            <Package className="size-4 text-white/45" aria-hidden />
-          </div>
-          <p className="text-[13px] text-white/70 leading-relaxed">
-            No similar products available.
-          </p>
-        </div>
-      </section>
-    );
-  }
+  if (suggestions.length === 0) return null;
 
   return (
     <section
       className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20"
       data-pdp-compare
     >
-      <SectionHeader />
+      <div className="mb-4">
+        <h2 className="text-[19px] sm:text-[21px] font-semibold tracking-tight text-foreground leading-tight">
+          Compare Similar Products
+        </h2>
+        <p className="mt-1 text-[12.5px] text-muted-foreground/80 leading-relaxed">
+          Compare this product with similar alternatives.
+        </p>
+      </div>
 
-      {/* Carousel — 2.2 cards visible on mobile, edge fades */}
-      <div className="mt-5 relative -mx-4 sm:mx-0">
+      <div className="relative -mx-4 sm:mx-0">
         <ul
           className="flex overflow-x-auto snap-x snap-mandatory gap-2.5 px-4 sm:px-1 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           style={{
@@ -119,14 +108,7 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
           }}
         >
           <li className="snap-start shrink-0 w-[44%] min-[420px]:w-[38%] sm:w-[188px]">
-            <CompareCard
-              product={currentProduct}
-              price={priceOf(currentProduct)}
-              active
-              disabled
-              pinned
-              onToggle={() => {}}
-            />
+            <CompareCard product={currentProduct} price={priceOf(currentProduct)} pinned />
           </li>
           {suggestions.map((p) => {
             const active = has(p.slug);
@@ -158,52 +140,26 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         />
       </div>
 
-      {/* Compact summary row */}
-      <div className="mt-6 flex items-center gap-3 px-1">
-        <div className="min-w-0 flex-1">
-          <p className="text-[12.5px] font-medium text-white/90">
-            {canCompare
-              ? `${totalCount} products selected`
-              : "Select products to compare"}
-          </p>
-          <p className="mt-0.5 text-[11px] text-white/45 leading-snug truncate">
-            Price · Rating · Reviews · Specifications
-          </p>
-        </div>
+      <div className="mt-5 flex items-center justify-between gap-3 px-1">
+        <p className="text-[12.5px] text-white/70 tabular-nums">
+          <span className="font-medium text-white/90">{selectedCount}</span>{" "}
+          {selectedCount === 1 ? "product" : "products"} selected
+        </p>
         <button
           type="button"
           disabled={!canCompare}
           onClick={() => canCompare && navigate({ to: "/compare" })}
-          className={`shrink-0 inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-[12px] font-semibold tracking-wide transition-[background-color,color,border-color,transform] duration-200 ease-out active:scale-[0.98] ${
+          className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold tracking-wide transition-[background-color,color,border-color,transform] duration-150 ease-out active:scale-[0.98] ${
             canCompare
               ? "bg-accent text-accent-foreground hover:brightness-110"
-              : "bg-white/[0.06] text-white/45 cursor-not-allowed"
+              : "bg-white/[0.05] text-white/40 cursor-not-allowed"
           }`}
         >
-          {canCompare ? (
-            <>
-              Compare Products
-              <ArrowRight className="size-3.5" aria-hidden />
-            </>
-          ) : (
-            "Select 2 or more products"
-          )}
+          Compare
+          <ArrowRight className="size-3.5" aria-hidden />
         </button>
       </div>
     </section>
-  );
-}
-
-function SectionHeader() {
-  return (
-    <div>
-      <h2 className="text-[19px] sm:text-[21px] font-semibold tracking-tight text-foreground leading-tight">
-        Compare Similar Products
-      </h2>
-      <p className="mt-1 text-[12.5px] text-muted-foreground/80 leading-relaxed">
-        Not sure? Compare this product with similar options before you buy.
-      </p>
-    </div>
   );
 }
 
@@ -217,18 +173,19 @@ function CompareCard({
 }: {
   product: Product;
   price: number;
-  active: boolean;
-  disabled: boolean;
+  active?: boolean;
+  disabled?: boolean;
   pinned?: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
 }) {
   const { compareOf } = useRegion();
   const comparePrice = compareOf(product);
   const discount = discountPercent(price, comparePrice) ?? 0;
+  const isSelected = pinned || active;
 
   return (
     <div
-      className={`group relative rounded-[16px] border overflow-hidden bg-white/[0.02] transition-[border-color] duration-200 ease-out h-full ${
+      className={`relative flex h-full flex-col rounded-[14px] border overflow-hidden bg-white/[0.02] transition-[border-color] duration-150 ease-out ${
         pinned
           ? "border-amber-500/35"
           : active
@@ -240,7 +197,7 @@ function CompareCard({
         to="/products/$slug"
         params={{ slug: product.slug }}
         className="relative block bg-black/30 overflow-hidden"
-        style={{ aspectRatio: "1 / 0.9" }}
+        style={{ aspectRatio: "1 / 1" }}
       >
         {product.image && (
           <img
@@ -248,21 +205,21 @@ function CompareCard({
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover transition-transform duration-200 ease-out active:scale-[1.02]"
+            className="w-full h-full object-cover"
           />
         )}
-        {discount > 0 && (
-          <span className="absolute top-1.5 left-1.5 inline-flex items-center rounded-md bg-emerald-500/90 px-1.5 py-[1px] text-[10px] font-bold tabular-nums text-white">
-            -{discount}%
-          </span>
-        )}
-        {pinned && (
-          <span className="absolute top-1.5 right-1.5 inline-flex items-center rounded-full border border-amber-500/50 bg-black/50 backdrop-blur px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-widest text-amber-300/90">
+        {pinned ? (
+          <span className="absolute top-1.5 left-1.5 inline-flex items-center rounded-full border border-amber-500/50 bg-black/55 backdrop-blur px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-widest text-amber-300/90">
             Current
           </span>
-        )}
+        ) : product.bestseller ? (
+          <span className="absolute top-1.5 left-1.5 inline-flex items-center rounded-full border border-white/15 bg-black/55 backdrop-blur px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-widest text-white/85">
+            Best Seller
+          </span>
+        ) : null}
       </Link>
-      <div className="p-2.5">
+
+      <div className="flex flex-1 flex-col p-2.5">
         <Link
           to="/products/$slug"
           params={{ slug: product.slug }}
@@ -270,48 +227,52 @@ function CompareCard({
         >
           {product.name}
         </Link>
+
         <div className="mt-1.5 flex items-center gap-1 text-[10.5px] text-white/60 tabular-nums">
           <Star className="size-2.5 fill-amber-400 text-amber-400" aria-hidden />
           <span className="font-medium text-white/85">{Number(product.rating || 0).toFixed(1)}</span>
           <span className="text-white/40">({Number(product.reviews || 0)})</span>
         </div>
-        <div className="mt-1 flex items-baseline gap-1.5">
+
+        <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
           <Price value={price} variant="current" className="text-[13px]" />
           {comparePrice != null && comparePrice > price && (
-            <Price
-              value={comparePrice}
-              variant="compare"
-              className="text-[10.5px] text-white/40 line-through"
-            />
+            <>
+              <Price
+                value={comparePrice}
+                variant="compare"
+                className="text-[10.5px] text-white/40 line-through"
+              />
+              {discount > 0 && (
+                <span className="text-[10.5px] font-semibold text-emerald-400 tabular-nums">
+                  -{discount}%
+                </span>
+              )}
+            </>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-pressed={active}
-          disabled={disabled}
-          className={`mt-2.5 w-full inline-flex items-center justify-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-medium tracking-wide transition-[color,border-color,background-color,transform] duration-200 ease-out active:scale-[0.97] disabled:cursor-not-allowed ${
-            pinned
-              ? "border border-amber-500/25 text-amber-300/70 bg-transparent cursor-default"
-              : active
-                ? "border border-accent text-accent bg-accent/[0.06]"
-                : "border border-white/[0.1] text-white/80 bg-transparent hover:border-white/25 disabled:opacity-40"
-          }`}
-        >
-          <span
-            aria-hidden
-            className={`grid place-items-center size-3.5 rounded-[4px] border transition-colors duration-200 ${
-              active
-                ? pinned
-                  ? "border-amber-500/50 bg-amber-500/15 text-amber-300"
-                  : "border-accent bg-accent text-accent-foreground"
-                : "border-white/25 bg-transparent"
-            }`}
+
+        <div className="mt-auto pt-2.5">
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-pressed={!!isSelected}
+            disabled={pinned || disabled}
+            className="w-full inline-flex items-center gap-1.5 text-[11px] font-medium text-white/80 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {active && <Check className="size-2.5" strokeWidth={3} />}
-          </span>
-          {active ? "Selected" : "Compare"}
-        </button>
+            <span
+              aria-hidden
+              className={`grid place-items-center size-3.5 rounded-[3.5px] border transition-colors duration-150 ${
+                isSelected
+                  ? "border-accent bg-accent text-accent-foreground"
+                  : "border-white/30 bg-transparent"
+              }`}
+            >
+              {isSelected && <Check className="size-2.5" strokeWidth={3} />}
+            </span>
+            {isSelected ? "Selected" : "Compare"}
+          </button>
+        </div>
       </div>
     </div>
   );
