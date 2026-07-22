@@ -365,8 +365,8 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         </p>
       )}
 
-      <div className="mt-4 pt-6 border-t border-white/[0.06] flex items-center justify-between gap-3 px-1">
-        <span className="text-[12.5px] text-white/55 tabular-nums">
+      <div className="mt-4 pt-6 border-t border-white/[0.05] flex items-center justify-between gap-3 px-1">
+        <span className="text-[12px] text-white/50 tabular-nums">
           Selected: {selectedCount}
         </span>
         <button
@@ -378,10 +378,10 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
               ? `Compare ${selectedCount} selected products`
               : "Select at least one more product to compare"
           }
-          className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[12.5px] font-medium tracking-wide transition-colors duration-150 ease-out min-h-[44px] sm:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[12px] font-medium tracking-wide transition-colors duration-150 ease-out min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
             canCompare && !navigating
-              ? "border-accent/70 text-accent hover:bg-accent/[0.06]"
-              : "border-white/10 text-white/35 cursor-not-allowed"
+              ? "border-white/20 text-white/85 hover:border-accent/50 hover:text-accent"
+              : "border-white/10 text-white/30 cursor-not-allowed"
           }`}
         >
           {navigating ? (
