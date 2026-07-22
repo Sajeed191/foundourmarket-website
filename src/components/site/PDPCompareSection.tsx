@@ -469,6 +469,33 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         </div>
       )}
 
+      {hadPreviousSelection && selectedNonCurrent > 0 && (
+        <div className="mt-4 px-1 flex items-center gap-2 text-[12px] text-white/65">
+          <Sparkles className="size-3.5 text-accent" aria-hidden />
+          <span>Your previous comparison is ready.</span>
+          <button
+            type="button"
+            onClick={() => canCompare && navigate({ to: "/compare" })}
+            className="inline-flex items-center gap-0.5 font-medium text-accent hover:text-accent/85 transition-colors duration-150 min-h-[44px] sm:min-h-0"
+            aria-label="Continue with your previous comparison"
+          >
+            Continue
+            <ArrowRight className="size-3" aria-hidden />
+          </button>
+        </div>
+      )}
+
+      <div
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {selectedNonCurrent === 0
+          ? "No alternatives selected for comparison."
+          : `${selectedCount} products selected for comparison.`}
+      </div>
+
       <div className="mt-5 flex items-center justify-between gap-3 px-1">
         <p className="text-[12px] text-white/60 tabular-nums transition-colors duration-150">
           {selectedNonCurrent === 0 ? (
@@ -483,7 +510,8 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
           type="button"
           disabled={!canCompare}
           onClick={() => canCompare && navigate({ to: "/compare" })}
-          className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[12px] font-medium tracking-wide transition-[color,border-color,background-color] duration-150 ease-out ${
+          aria-label={canCompare ? `Compare ${selectedCount} selected products` : "Select at least one alternative to compare"}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[12px] font-medium tracking-wide transition-[color,border-color,background-color] duration-150 ease-out min-h-[44px] sm:min-h-0 ${
             canCompare
               ? "border-accent text-accent hover:bg-accent/[0.08]"
               : "border-white/10 text-white/35 cursor-not-allowed"
@@ -493,6 +521,7 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
           <ArrowRight className="size-3.5" aria-hidden />
         </button>
       </div>
+
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
