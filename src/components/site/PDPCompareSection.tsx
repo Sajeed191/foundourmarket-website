@@ -8,6 +8,10 @@ import { resolveImage, discountPercent, type Product } from "@/lib/products";
 import { useRegion } from "@/lib/region";
 import { useCompare } from "@/hooks/use-compare";
 import { Price } from "@/components/site/Price";
+import { useRecentlyViewed } from "@/hooks/use-recently-viewed";
+import { useWishlist } from "@/lib/wishlist";
+import { useCart } from "@/lib/cart";
+import { getShoppingContext } from "@/lib/ai-shopping/shopping-context";
 import {
   Sheet,
   SheetContent,
@@ -17,21 +21,119 @@ import {
 } from "@/components/ui/sheet";
 
 /**
- * PDP — Compare Alternatives v5.2 (Native, Premium Polish).
+ * PDP — Compare Alternatives v5.3 (Intelligent Shopping Insights).
  *
- * UI/UX-only refinement. Reuses existing similarity, compare storage,
- * and `/compare` page. No new API calls, no schema changes.
+ * UI unchanged from v5.2. Adds two intelligence layers on top of the
+ * existing similarity algorithm — never overriding it:
  *
- * Highlights:
- * - Dynamic label: "Discover similar products" ↔ "N selected"
- * - Cheaper-than-current insight ("Save ₹X") derived from existing prices
- * - "View all similar products" bottom sheet when >8 exist
- * - Session selection persists via existing localStorage compare store
- * - Clean empty state hides compare CTA / counter
- * - 150–180ms transitions, no scaling / glow / bounce
+ * 1. Per-card "insight" chip — a single, data-backed reason to consider an
+ *    alternative (Price > Rating > Reviews > Discount > Stock > Delivery).
+ *    Only shown when the underlying delta is real and meaningful.
+ * 2. Soft personalization re-ranking using existing on-device signals:
+ *    recently viewed, wishlist, cart, and the AI Shopping Context snapshot.
+ *    Adds at most PERSONALIZATION_CAP to the similarity score so that ties
+ *    and near-ties surface products most relevant to the shopper's intent.
+ *
+ * Reuses existing storage, compare engine, `/compare` page, and shopping
+ * context engine. Zero new API calls, zero schema changes.
  */
 
 const VISIBLE_LIMIT = 8;
+// Maximum personalization boost applied on top of the similarity score.
+// Similarity max is 10 (4+3+2+1), so this can only reorder near-ties.
+const PERSONALIZATION_CAP = 2;
+
+type Insight = {
+  label: string;
+  tone: "emerald" | "amber" | "sky" | "violet";
+} | null;
+
+/** Detect a preferred brand from on-device signals (no PII, no network). */
+function inferPreferredBrands(
+  products: Product[],
+  recentSlugs: string[],
+  wishlistSlugs: Set<string>,
+  cartSlugs: Set<string>,
+): Set<string> {
+  const counts = new Map<string, number>();
+  const bump = (slug: string, weight: number) => {
+    const p = products.find((x) => x.slug === slug);
+    if (!p?.brand) return;
+    counts.set(p.brand, (counts.get(p.brand) ?? 0) + weight);
+  };
+  cartSlugs.forEach((s) => bump(s, 3));
+  wishlistSlugs.forEach((s) => bump(s, 2));
+  recentSlugs.slice(0, 8).forEach((s) => bump(s, 1));
+  const brands = new Set<string>();
+  for (const [brand, count] of counts) {
+    if (count >= 2) brands.add(brand);
+  }
+  return brands;
+}
+
+/** Choose the single highest-priority insight backed by real data. */
+function deriveInsight(
+  candidate: Product,
+  current: Product,
+  candidatePrice: number,
+  currentPrice: number,
+  candidateCompare: number | null,
+  currentCompare: number | null,
+  format: (v: number) => string,
+): Insight {
+  // 1. Price — cheaper by a non-trivial amount (>=1% and >=1 unit)
+  if (
+    currentPrice > 0 &&
+    candidatePrice > 0 &&
+    candidatePrice < currentPrice
+  ) {
+    const diff = currentPrice - candidatePrice;
+    const pct = diff / currentPrice;
+    if (diff >= 1 && pct >= 0.01) {
+      return { label: `Save ${format(Math.round(diff))}`, tone: "emerald" };
+    }
+  }
+
+  // 2. Rating — >= 0.3★ higher, both sides have a real rating
+  const curRating = Number(current.rating || 0);
+  const canRating = Number(candidate.rating || 0);
+  if (curRating > 0 && canRating > 0 && canRating - curRating >= 0.3) {
+    const delta = (canRating - curRating).toFixed(1);
+    return { label: `${delta}★ Higher Rated`, tone: "amber" };
+  }
+
+  // 3. Reviews — "significantly more" (>=50 more AND >=2× current), both real
+  const curReviews = Number(current.reviews || 0);
+  const canReviews = Number(candidate.reviews || 0);
+  if (canReviews >= 50 && canReviews >= curReviews * 2 && canReviews - curReviews >= 50) {
+    const more = canReviews - curReviews;
+    return { label: `${more.toLocaleString()} More Reviews`, tone: "sky" };
+  }
+
+  // 4. Discount — better discount by >=5 percentage points
+  const curDisc = discountPercent(currentPrice, currentCompare) ?? 0;
+  const canDisc = discountPercent(candidatePrice, candidateCompare) ?? 0;
+  if (canDisc > 0 && canDisc - curDisc >= 5) {
+    return { label: `${canDisc - curDisc}% Better Offer`, tone: "emerald" };
+  }
+
+  // 5. Stock — current is low, candidate is comfortably in stock
+  const curLow =
+    current.inStock !== false &&
+    current.stockQuantity > 0 &&
+    current.lowStockThreshold > 0 &&
+    current.stockQuantity <= current.lowStockThreshold;
+  const canHealthy =
+    candidate.inStock !== false &&
+    candidate.stockQuantity > (candidate.lowStockThreshold || 0);
+  if (curLow && canHealthy) {
+    return { label: "Ready to Ship", tone: "violet" };
+  }
+
+  // 6. Delivery — only when both sides expose a real shipping fee delta signal.
+  // We do not have per-product ETA in the catalog; skip silently otherwise.
+  return null;
+}
 
 export function PDPCompareSection({ currentProduct }: { currentProduct: Product }) {
   const { products } = useProducts();
