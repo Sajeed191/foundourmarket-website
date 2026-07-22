@@ -142,6 +142,16 @@ export function ProductReviews({ productSlug, onAggregateChange, productRating, 
   const [moreOpenId, setMoreOpenId] = useState<string | null>(null);
   const [modOpenId, setModOpenId] = useState<string | null>(null);
   const [replyOpenId, setReplyOpenId] = useState<string | null>(null);
+  // Confirmation dialog for reversible moderation actions (hide/unhide/restore).
+  const [modConfirm, setModConfirm] = useState<
+    | { id: string; kind: "hide" | "unhide" | "restore" }
+    | null
+  >(null);
+  const [modRunning, setModRunning] = useState(false);
+  // Details drawer for admins to inspect the full review payload.
+  const [detailsFor, setDetailsFor] = useState<Review | null>(null);
+  // Inline reply-as-store composer (opened from the moderation menu).
+  const [replyForId, setReplyForId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const table = (isAdmin ? "product_reviews" : "product_reviews_public") as "product_reviews_public";
@@ -608,7 +618,10 @@ export function ProductReviews({ productSlug, onAggregateChange, productRating, 
       { admin_reply: text, admin_reply_at: new Date().toISOString(), admin_reply_by: user.id },
       "Reply published",
     );
-    if (ok) setReplyDrafts((d) => ({ ...d, [id]: "" }));
+    if (ok) {
+      setReplyDrafts((d) => ({ ...d, [id]: "" }));
+      setReplyForId(null);
+    }
   }
   async function analyzeOne(id: string) {
     setAnalyzing(id);
@@ -619,6 +632,27 @@ export function ProductReviews({ productSlug, onAggregateChange, productRating, 
       toast.error("Analysis failed", { description: e instanceof Error ? e.message : undefined });
     } finally {
       setAnalyzing(null);
+    }
+  }
+
+  /** Execute a confirmed moderation action. Every path triggers a rating
+   *  recalculation via `patch`/`restoreReview`, which in turn calls
+   *  `onAggregateChange` (wired to `invalidateProducts`) so every surface
+   *  refreshes without a manual reload. */
+  async function runConfirmedMod() {
+    if (!modConfirm) return;
+    setModRunning(true);
+    try {
+      if (modConfirm.kind === "hide") {
+        await patch(modConfirm.id, { status: "hidden" }, "Review hidden");
+      } else if (modConfirm.kind === "unhide") {
+        await patch(modConfirm.id, { status: "published" }, "Review restored");
+      } else if (modConfirm.kind === "restore") {
+        await restoreReview(modConfirm.id);
+      }
+    } finally {
+      setModRunning(false);
+      setModConfirm(null);
     }
   }
 
@@ -1141,57 +1175,116 @@ export function ProductReviews({ productSlug, onAggregateChange, productRating, 
                                   <span className={cn("transition-transform", modOpenId === r.id && "rotate-180")}>▾</span>
                                 </button>
                                 {modOpenId === r.id && (
-                                  <div className="mt-2 space-y-2">
-                                    {isAdmin && r.sentiment_summary && (
-                                      <div className="flex items-start gap-2 rounded-lg border border-white/5 bg-white/[0.02] p-2 text-[10px] font-mono text-muted-foreground">
+                                  <div
+                                    className="mt-2 overflow-hidden rounded-xl border border-white/10 bg-background/80 backdrop-blur-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)]"
+                                    role="menu"
+                                    aria-label="Review moderation"
+                                  >
+                                    {r.sentiment_summary && (
+                                      <div className="flex items-start gap-2 border-b border-white/5 bg-white/[0.02] px-3 py-2 text-[10px] font-mono text-muted-foreground">
                                         <Brain className="size-3 text-accent mt-0.5 shrink-0" />
                                         <span>{r.sentiment_summary}</span>
                                       </div>
                                     )}
                                     {r.status === "deleted" ? (
-                                      <div className="space-y-2">
-                                        <div className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-destructive">
-                                          <Trash2 className="size-3" /> Deleted{r.deleted_at ? ` · ${new Date(r.deleted_at).toLocaleDateString()}` : ""}
+                                      <>
+                                        <div className="border-b border-white/5 px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-destructive/90">
+                                          Deleted{r.deleted_at ? ` · ${new Date(r.deleted_at).toLocaleDateString()}` : ""}
                                         </div>
                                         {r.deleted_reason && (
-                                          <p className="text-[11px] text-muted-foreground">Reason: {r.deleted_reason}</p>
+                                          <div className="border-b border-white/5 px-3 py-2 text-[11px] text-muted-foreground">Reason: {r.deleted_reason}</div>
                                         )}
-                                        <div className="flex flex-wrap gap-1.5">
-                                          <ModBtn onClick={() => restoreReview(r.id)} disabled={restoringId === r.id}>
-                                            {restoringId === r.id ? <Loader2 className="size-3 animate-spin" /> : <Eye className="size-3" />} Restore
-                                          </ModBtn>
-                                          <ModBtn onClick={() => requestDelete(r.id, "admin_hard")}>
-                                            <Trash2 className="size-3" /> Delete permanently
-                                          </ModBtn>
-                                        </div>
-                                      </div>
+                                        <ModMenuItem
+                                          icon={restoringId === r.id ? Loader2 : Eye}
+                                          spinning={restoringId === r.id}
+                                          label="Restore Review"
+                                          onClick={() => { setModOpenId(null); setModConfirm({ id: r.id, kind: "restore" }); }}
+                                        />
+                                        <ModMenuItem
+                                          icon={Trash2}
+                                          tone="danger"
+                                          label="Delete permanently"
+                                          onClick={() => { setModOpenId(null); requestDelete(r.id, "admin_hard"); }}
+                                        />
+                                        <ModMenuItem
+                                          icon={Search}
+                                          label="View Review Details"
+                                          onClick={() => { setModOpenId(null); setDetailsFor(r); }}
+                                        />
+                                      </>
                                     ) : (
                                       <>
-                                        <div className="flex flex-wrap gap-1.5">
-                                          <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned")} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
-                                          <ModBtn onClick={() => patch(r.id, { featured: !r.featured }, r.featured ? "Unfeatured" : "Featured")} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
-                                          {r.status === "published" ? (
-                                            <ModBtn onClick={() => patch(r.id, { status: "hidden" }, "Review hidden")}><EyeOff className="size-3" /> Hide</ModBtn>
-                                          ) : (
-                                            <ModBtn onClick={() => patch(r.id, { status: "published" }, "Review approved")}><Eye className="size-3" /> Approve</ModBtn>
-                                          )}
-                                          {r.status !== "rejected" && (
-                                            <ModBtn onClick={() => patch(r.id, { status: "rejected" }, "Review rejected")}><X className="size-3" /> Reject</ModBtn>
-                                          )}
-                                          {!isOwn && (
-                                            <ModBtn onClick={() => requestDelete(r.id, "admin_soft")}><Trash2 className="size-3" /> Delete</ModBtn>
-                                          )}
-                                          <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
-                                            {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
-                                          </ModBtn>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <input value={replyDrafts[r.id] ?? r.admin_reply ?? ""} onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))} placeholder="Public reply…"
-                                            className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-accent" />
-                                          <button onClick={() => postReply(r.id)} className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground font-bold px-4 rounded-full text-[11px] uppercase tracking-widest">
-                                            <MessageSquare className="size-3.5" /> {r.admin_reply ? "Update" : "Reply"}
-                                          </button>
-                                        </div>
+                                        {r.status === "published" ? (
+                                          <ModMenuItem
+                                            icon={EyeOff}
+                                            label="Hide Review"
+                                            onClick={() => { setModOpenId(null); setModConfirm({ id: r.id, kind: "hide" }); }}
+                                          />
+                                        ) : (
+                                          <ModMenuItem
+                                            icon={Eye}
+                                            label="Unhide Review"
+                                            onClick={() => { setModOpenId(null); setModConfirm({ id: r.id, kind: "unhide" }); }}
+                                          />
+                                        )}
+                                        {!isOwn && (
+                                          <ModMenuItem
+                                            icon={Trash2}
+                                            tone="danger"
+                                            label="Delete Review"
+                                            onClick={() => { setModOpenId(null); requestDelete(r.id, "admin_soft"); }}
+                                          />
+                                        )}
+                                        {r.featured ? (
+                                          <ModMenuItem
+                                            icon={Sparkles}
+                                            label="Remove Featured"
+                                            onClick={() => { setModOpenId(null); patch(r.id, { featured: false }, "Featured removed"); }}
+                                          />
+                                        ) : (
+                                          <ModMenuItem
+                                            icon={Sparkles}
+                                            label="Feature Review"
+                                            onClick={() => { setModOpenId(null); patch(r.id, { featured: true }, "Review featured"); }}
+                                          />
+                                        )}
+                                        <ModMenuItem
+                                          icon={Pin}
+                                          label={r.pinned ? "Unpin Review" : "Pin Review"}
+                                          onClick={() => { setModOpenId(null); patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned"); }}
+                                        />
+                                        <ModMenuItem
+                                          icon={MessageSquare}
+                                          label={r.admin_reply ? "Edit Store Reply" : "Reply as Store"}
+                                          onClick={() => { setModOpenId(null); setReplyForId(r.id); }}
+                                        />
+                                        <ModMenuItem
+                                          icon={analyzing === r.id ? Loader2 : Brain}
+                                          spinning={analyzing === r.id}
+                                          label="AI Analyze"
+                                          onClick={() => analyzeOne(r.id)}
+                                        />
+                                        <ModMenuItem
+                                          icon={Search}
+                                          label="View Review Details"
+                                          onClick={() => { setModOpenId(null); setDetailsFor(r); }}
+                                        />
+                                        {replyForId === r.id && (
+                                          <div className="border-t border-white/5 bg-white/[0.02] p-2 flex gap-2">
+                                            <input
+                                              value={replyDrafts[r.id] ?? r.admin_reply ?? ""}
+                                              onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))}
+                                              placeholder="Public reply as store…"
+                                              className="flex-1 bg-background border border-border rounded-full px-3 py-1.5 text-xs focus:outline-none focus:border-accent"
+                                            />
+                                            <button
+                                              onClick={() => postReply(r.id)}
+                                              className="inline-flex items-center gap-1 bg-accent text-accent-foreground font-bold px-3 rounded-full text-[10px] uppercase tracking-widest"
+                                            >
+                                              <MessageSquare className="size-3" /> {r.admin_reply ? "Update" : "Post"}
+                                            </button>
+                                          </div>
+                                        )}
                                       </>
                                     )}
                                   </div>
@@ -1267,6 +1360,140 @@ export function ProductReviews({ productSlug, onAggregateChange, productRating, 
         onClose={() => setLightboxList(null)}
       />
 
+
+      {/* Hide / Unhide / Restore confirmation */}
+      <AnimatePresence>
+        {modConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !modRunning && setModConfirm(null)}
+            className="fixed inset-0 z-[var(--z-modal-dialog)] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-3xl border border-white/10 bg-card p-6 text-center shadow-[var(--shadow-float)]"
+            >
+              <div className={cn(
+                "mx-auto grid size-12 place-items-center rounded-2xl",
+                modConfirm.kind === "hide" ? "bg-accent/15 text-accent" : "bg-emerald-500/15 text-emerald-400",
+              )}>
+                {modConfirm.kind === "hide" ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+              </div>
+              <p className="mt-4 text-base font-display">
+                {modConfirm.kind === "hide" && "Hide this review from customers?"}
+                {modConfirm.kind === "unhide" && "Unhide this review?"}
+                {modConfirm.kind === "restore" && "Restore this deleted review?"}
+              </p>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                {modConfirm.kind === "hide" && "The review will be removed from the product page and the rating will recalculate immediately."}
+                {modConfirm.kind === "unhide" && "The review will be shown to customers again and the rating will recalculate."}
+                {modConfirm.kind === "restore" && "The review will be restored to Published and the rating will recalculate."}
+              </p>
+              <div className="mt-5 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-center">
+                <button
+                  onClick={() => setModConfirm(null)}
+                  disabled={modRunning}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-foreground transition-all hover:border-accent/40 hover:text-accent disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={runConfirmedMod}
+                  disabled={modRunning}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-accent-foreground transition-all hover:brightness-110 disabled:opacity-50"
+                >
+                  {modRunning ? <Loader2 className="size-3.5 animate-spin" /> : <ShieldCheck className="size-3.5" />}
+                  {modRunning ? "Working…" : "Confirm"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Review details drawer (admin-only) */}
+      <AnimatePresence>
+        {detailsFor && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDetailsFor(null)}
+            className="fixed inset-0 z-[var(--z-modal-dialog)] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl border border-white/10 bg-card p-6 shadow-[var(--shadow-float)]"
+            >
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <p className="text-xs font-mono uppercase tracking-widest text-accent">Review Details</p>
+                  <p className="mt-1 text-lg font-display">{detailsFor.title || "Untitled review"}</p>
+                </div>
+                <button onClick={() => setDetailsFor(null)} className="rounded-full p-2 text-muted-foreground hover:text-foreground">
+                  <X className="size-4" />
+                </button>
+              </div>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
+                <dt className="text-muted-foreground">Review ID</dt>
+                <dd className="font-mono break-all">{detailsFor.id}</dd>
+                <dt className="text-muted-foreground">Author</dt>
+                <dd>{detailsFor.author_name || detailsFor.user_id || "—"}</dd>
+                <dt className="text-muted-foreground">Rating</dt>
+                <dd>{detailsFor.rating} / 5</dd>
+                <dt className="text-muted-foreground">Status</dt>
+                <dd className="capitalize">{detailsFor.status}</dd>
+                <dt className="text-muted-foreground">Verified Purchase</dt>
+                <dd>{detailsFor.verified_purchase ? "Yes" : "No"}</dd>
+                <dt className="text-muted-foreground">Featured / Pinned</dt>
+                <dd>{detailsFor.featured ? "Featured" : "—"}{detailsFor.pinned ? " · Pinned" : ""}</dd>
+                <dt className="text-muted-foreground">Helpful / Not helpful</dt>
+                <dd>{detailsFor.helpful_count ?? 0} / {detailsFor.not_helpful_count ?? 0}</dd>
+                <dt className="text-muted-foreground">Reports</dt>
+                <dd>{detailsFor.report_count ?? 0}{detailsFor.is_flagged ? " (flagged)" : ""}</dd>
+                <dt className="text-muted-foreground">Sentiment</dt>
+                <dd>{detailsFor.sentiment ?? "—"}{typeof detailsFor.sentiment_score === "number" ? ` (${detailsFor.sentiment_score.toFixed(2)})` : ""}</dd>
+                <dt className="text-muted-foreground">Fake score</dt>
+                <dd>{typeof detailsFor.fake_score === "number" ? detailsFor.fake_score.toFixed(2) : "—"}</dd>
+                <dt className="text-muted-foreground">Created</dt>
+                <dd>{fmtDate(detailsFor.created_at)}</dd>
+                {detailsFor.deleted_at && (
+                  <>
+                    <dt className="text-muted-foreground">Deleted</dt>
+                    <dd>{fmtDate(detailsFor.deleted_at)}</dd>
+                  </>
+                )}
+              </dl>
+              {detailsFor.body && (
+                <div className="mt-4 rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">Body</p>
+                  <p className="text-[13px] whitespace-pre-wrap text-foreground/85">{detailsFor.body}</p>
+                </div>
+              )}
+              {detailsFor.admin_reply && (
+                <div className="mt-3 rounded-xl border border-accent/20 bg-accent/[0.05] p-3">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-accent mb-1.5">Store Reply</p>
+                  <p className="text-[13px] whitespace-pre-wrap text-foreground/85">{detailsFor.admin_reply}</p>
+                </div>
+              )}
+              {detailsFor.fake_reasons && (
+                <div className="mt-3 rounded-xl border border-destructive/20 bg-destructive/[0.05] p-3">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-destructive mb-1.5">Fake signals</p>
+                  <p className="text-[12px] text-foreground/80">{detailsFor.fake_reasons}</p>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Delete confirmation dialog */}
       <AnimatePresence>
@@ -1864,3 +2091,37 @@ function ModBtn({ children, onClick, active, disabled }: { children: React.React
     )}>{children}</button>
   );
 }
+
+function ModMenuItem({
+  icon: Icon,
+  label,
+  onClick,
+  tone,
+  spinning,
+  disabled,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  tone?: "danger";
+  spinning?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      role="menuitem"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors border-b border-white/5 last:border-b-0 disabled:opacity-50",
+        tone === "danger"
+          ? "text-destructive/90 hover:bg-destructive/10"
+          : "text-foreground/85 hover:bg-accent/10 hover:text-accent",
+      )}
+    >
+      <Icon className={cn("size-3.5 shrink-0", spinning && "animate-spin")} />
+      <span className="flex-1 font-medium tracking-tight">{label}</span>
+    </button>
+  );
+}
+
