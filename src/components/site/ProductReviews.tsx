@@ -1957,3 +1957,37 @@ function ModBtn({ children, onClick, active, disabled }: { children: React.React
     )}>{children}</button>
   );
 }
+
+function ModMenuItem({
+  icon: Icon,
+  label,
+  onClick,
+  tone,
+  spinning,
+  disabled,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  tone?: "danger";
+  spinning?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      role="menuitem"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors border-b border-white/5 last:border-b-0 disabled:opacity-50",
+        tone === "danger"
+          ? "text-destructive/90 hover:bg-destructive/10"
+          : "text-foreground/85 hover:bg-accent/10 hover:text-accent",
+      )}
+    >
+      <Icon className={cn("size-3.5 shrink-0", spinning && "animate-spin")} />
+      <span className="flex-1 font-medium tracking-tight">{label}</span>
+    </button>
+  );
+}
+
