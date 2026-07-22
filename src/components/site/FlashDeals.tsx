@@ -125,7 +125,7 @@ function FlashCard({ item, now }: { item: FlashItem; now: number }) {
           <div className="flex items-center gap-1 text-[10.5px] text-muted-foreground">
             <Star className="size-3 fill-accent text-accent" strokeWidth={0} />
             <span className="font-semibold text-white/90 tabular-nums">{p.rating.toFixed(1)}</span>
-            {p.reviews > 0 && <span className="tabular-nums">({p.reviews.toLocaleString()})</span>}
+            <span className="tabular-nums">({(p.reviews ?? 0).toLocaleString()})</span>
           </div>
         )}
 

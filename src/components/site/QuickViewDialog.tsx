@@ -153,11 +153,11 @@ export function QuickViewDialog({
           <h3 className="text-lg font-semibold leading-tight tracking-[-0.01em]">{product.name}</h3>
 
           <div className="mt-2 flex items-center gap-2">
-            {product.reviews > 0 ? (
+            {product.rating > 0 ? (
               <span className="inline-flex items-center gap-1">
                 <Star className="size-3.5 fill-accent text-accent" />
                 <span className="text-sm font-semibold tabular-nums">{product.rating.toFixed(1)}</span>
-                <span className="text-xs text-muted-foreground/70">({product.reviews.toLocaleString()})</span>
+                <span className="text-xs text-muted-foreground/70">({(product.reviews ?? 0).toLocaleString()})</span>
               </span>
             ) : (
               <span className="text-xs font-medium text-accent">New Product</span>

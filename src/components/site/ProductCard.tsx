@@ -474,11 +474,11 @@ function ProductCardImpl({ product, context = "default", forceBadge, priority = 
 
         {/* Rating */}
         <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-          {product.reviews > 0 ? (
+          {product.rating > 0 ? (
             <span className="inline-flex min-w-0 items-center gap-1.5">
               <Star className="size-[14px] sm:size-[18px] shrink-0 fill-accent text-accent" />
               <span data-product-text className="product-typography product-rating-text text-[13px] sm:text-[17px] font-semibold tabular-nums text-white">{product.rating.toFixed(1)}</span>
-              <span data-product-text className="product-typography product-rating-text truncate text-[11px] sm:text-[14px] text-muted-foreground">({product.reviews.toLocaleString()})</span>
+              <span data-product-text className="product-typography product-rating-text truncate text-[11px] sm:text-[14px] text-muted-foreground">({(product.reviews ?? 0).toLocaleString()})</span>
             </span>
           ) : (
             <span data-product-text className="product-typography product-rating-text text-[11px] sm:text-[14px] font-medium text-accent">New Product</span>
