@@ -307,6 +307,21 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
     return diff;
   }, [selectedAlt, suggestions, priceOf, currentPrice]);
 
+  // --- Single data-backed recommendation across the carousel ---
+  const recommendation = useMemo(
+    () => pickRecommendation(sortedSuggestions, priceOf),
+    [sortedSuggestions, priceOf],
+  );
+
+  // --- Decision helper (factual, based on first selected alternative) ---
+  const decisionMessage = useMemo(() => {
+    const firstAltSlug = selectedAlt[0];
+    if (!firstAltSlug) return null;
+    const alt = suggestions.find((p) => p.slug === firstAltSlug);
+    if (!alt) return null;
+    return buildDecisionHelper(alt, currentProduct, priceOf);
+  }, [selectedAlt, suggestions, currentProduct, priceOf]);
+
   const handleToggle = useCallback(
     (slug: string) => {
       if (slug === currentSlug) return;
@@ -330,9 +345,9 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
     writeSort(v);
   };
 
-  const ctaLabel = canCompare
-    ? `Compare ${selectedCount} Product${selectedCount === 1 ? "" : "s"}`
-    : "Compare";
+  const ctaLabel = "Compare Selected Products";
+  const previewSlug = preview?.slug ?? null;
+
 
   if (products.length === 0) return null;
 
