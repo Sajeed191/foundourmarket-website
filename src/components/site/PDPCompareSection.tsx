@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Check, ArrowRight } from "lucide-react";
-import { memo, useEffect, useMemo } from "react";
+import { Check, ArrowRight, Loader2 } from "lucide-react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ProductCard } from "@/components/site/ProductCard";
@@ -10,13 +10,12 @@ import { useRegion } from "@/lib/region";
 import { useCompare } from "@/hooks/use-compare";
 
 /**
- * PDP — You may also like (v6.1)
+ * PDP — Similar Products (v6.2)
  *
- * Native marketplace recommendation carousel. Reuses the standard ProductCard
- * used everywhere else on the site, and layers a single "Compare" checkbox
- * beneath each card. No bordered container, no special compare cards, no
- * insights or banners — the carousel is a shopping surface first, comparison
- * second. Compare store, ranking, and /compare page are all untouched.
+ * Native marketplace recommendation carousel. Discovery-first: reuses the
+ * standard ProductCard and layers a single "Compare" checkbox beneath each
+ * card. Compare store, ranking, and /compare page are all untouched — this
+ * is a pure UI refinement.
  */
 
 const VISIBLE_LIMIT = 12;
@@ -27,6 +26,7 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
   const { priceOf } = useRegion();
   const { slugs, toggle, has, isFull, max } = useCompare();
   const navigate = useNavigate();
+  const [navigating, setNavigating] = useState(false);
 
   const currentSlug = currentProduct.slug;
   const currentPrice = priceOf(currentProduct) || 0;
@@ -82,23 +82,29 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
     toggle(slug);
   };
 
+  const handleCompare = () => {
+    if (!canCompare || navigating) return;
+    setNavigating(true);
+    navigate({ to: "/compare" });
+  };
+
   if (products.length === 0 || suggestions.length === 0) return null;
 
   return (
     <section
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-24"
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-28 sm:mt-32"
       data-pdp-compare
       aria-labelledby="pdp-ymal-heading"
     >
-      <div className="mb-6">
+      <div className="mb-8 sm:mb-10">
         <h2
           id="pdp-ymal-heading"
           className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-foreground leading-tight"
         >
-          You may also like
+          Similar Products
         </h2>
-        <p className="mt-1.5 text-[13px] text-muted-foreground/75 leading-relaxed">
-          Similar products chosen for you.
+        <p className="mt-2 text-[13px] text-muted-foreground/75 leading-relaxed">
+          Customers also viewed these alternatives
         </p>
       </div>
 
@@ -114,13 +120,13 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
         />
 
         <ul
-          className="flex overflow-x-auto gap-4 sm:gap-5 px-4 sm:px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex overflow-x-auto gap-5 sm:gap-6 px-4 sm:px-1 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           style={{
             overscrollBehaviorX: "contain",
             WebkitOverflowScrolling: "touch",
           }}
         >
-          <li className="shrink-0 w-[43%] min-[420px]:w-[38%] sm:w-[210px]">
+          <li className="shrink-0 w-[38%] min-[420px]:w-[34%] sm:w-[190px]">
             <RailItem product={currentProduct} pinned />
           </li>
           {suggestions.map((p) => {
@@ -129,7 +135,7 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
             return (
               <li
                 key={p.slug}
-                className="shrink-0 w-[43%] min-[420px]:w-[38%] sm:w-[210px]"
+                className="shrink-0 w-[38%] min-[420px]:w-[34%] sm:w-[190px]"
               >
                 <RailItem
                   product={p}
@@ -145,11 +151,11 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
       </div>
 
       {suggestions.length >= VIEW_MORE_THRESHOLD && (
-        <div className="mt-5 px-1">
+        <div className="mt-8 px-1">
           <Link
             to="/category/$slug"
             params={{ slug: currentProduct.category || "all" }}
-            className="inline-flex items-center gap-1 text-[13px] font-medium text-white/75 hover:text-accent transition-colors duration-150"
+            className="inline-flex items-center gap-1 text-[13px] text-white/60 hover:text-accent transition-colors duration-150"
           >
             View all similar products
             <ArrowRight className="size-3.5" aria-hidden />
@@ -168,27 +174,36 @@ export function PDPCompareSection({ currentProduct }: { currentProduct: Product 
           : `${selectedCount} products selected for comparison.`}
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3 px-1">
+      <div className="mt-8 pt-6 border-t border-white/[0.06] flex items-center justify-between gap-3 px-1">
         <span className="text-[12.5px] text-white/55 tabular-nums">
           Selected: {selectedCount}
         </span>
         <button
           type="button"
-          disabled={!canCompare}
-          onClick={() => canCompare && navigate({ to: "/compare" })}
+          disabled={!canCompare || navigating}
+          onClick={handleCompare}
           aria-label={
             canCompare
               ? `Compare ${selectedCount} selected products`
               : "Select at least one more product to compare"
           }
-          className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[12.5px] font-medium tracking-wide transition-[color,border-color,background-color] duration-150 ease-out min-h-[44px] sm:min-h-0 ${
-            canCompare
-              ? "border-accent text-accent hover:bg-accent/[0.08]"
+          className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[12.5px] font-medium tracking-wide transition-colors duration-150 ease-out min-h-[44px] sm:min-h-0 ${
+            canCompare && !navigating
+              ? "border-accent/70 text-accent hover:bg-accent/[0.06]"
               : "border-white/10 text-white/35 cursor-not-allowed"
           }`}
         >
-          Compare Selected Products
-          <ArrowRight className="size-3.5" aria-hidden />
+          {navigating ? (
+            <>
+              <Loader2 className="size-3.5 animate-spin" aria-hidden />
+              Opening
+            </>
+          ) : (
+            <>
+              Compare
+              <ArrowRight className="size-3.5" aria-hidden />
+            </>
+          )}
         </button>
       </div>
     </section>
@@ -211,14 +226,16 @@ function RailItemImpl({ product, active, disabled, pinned, onToggle }: RailItemP
       <div className="mb-1.5 h-[14px] px-0.5 flex items-center">
         {pinned && (
           <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">
-            Current Product
+            Current
           </span>
         )}
       </div>
 
       <div
-        className={`rounded-2xl transition-[box-shadow] duration-150 ${
-          isSelected && !pinned ? "ring-1 ring-accent/70" : ""
+        className={`rounded-2xl border transition-colors duration-150 ${
+          isSelected && !pinned
+            ? "border-accent/60"
+            : "border-transparent"
         }`}
       >
         <ProductCard product={product} compact hideBadges={pinned} />
@@ -249,7 +266,7 @@ function RailItemImpl({ product, active, disabled, pinned, onToggle }: RailItemP
           >
             {isSelected && <Check className="size-2.5" strokeWidth={3} />}
           </span>
-          {isSelected && !pinned ? "Compared" : "Compare"}
+          Compare
         </button>
       </div>
     </div>
