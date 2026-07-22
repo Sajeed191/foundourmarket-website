@@ -1175,57 +1175,116 @@ export function ProductReviews({ productSlug, onAggregateChange, productRating, 
                                   <span className={cn("transition-transform", modOpenId === r.id && "rotate-180")}>▾</span>
                                 </button>
                                 {modOpenId === r.id && (
-                                  <div className="mt-2 space-y-2">
-                                    {isAdmin && r.sentiment_summary && (
-                                      <div className="flex items-start gap-2 rounded-lg border border-white/5 bg-white/[0.02] p-2 text-[10px] font-mono text-muted-foreground">
+                                  <div
+                                    className="mt-2 overflow-hidden rounded-xl border border-white/10 bg-background/80 backdrop-blur-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)]"
+                                    role="menu"
+                                    aria-label="Review moderation"
+                                  >
+                                    {r.sentiment_summary && (
+                                      <div className="flex items-start gap-2 border-b border-white/5 bg-white/[0.02] px-3 py-2 text-[10px] font-mono text-muted-foreground">
                                         <Brain className="size-3 text-accent mt-0.5 shrink-0" />
                                         <span>{r.sentiment_summary}</span>
                                       </div>
                                     )}
                                     {r.status === "deleted" ? (
-                                      <div className="space-y-2">
-                                        <div className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-destructive">
-                                          <Trash2 className="size-3" /> Deleted{r.deleted_at ? ` · ${new Date(r.deleted_at).toLocaleDateString()}` : ""}
+                                      <>
+                                        <div className="border-b border-white/5 px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-destructive/90">
+                                          Deleted{r.deleted_at ? ` · ${new Date(r.deleted_at).toLocaleDateString()}` : ""}
                                         </div>
                                         {r.deleted_reason && (
-                                          <p className="text-[11px] text-muted-foreground">Reason: {r.deleted_reason}</p>
+                                          <div className="border-b border-white/5 px-3 py-2 text-[11px] text-muted-foreground">Reason: {r.deleted_reason}</div>
                                         )}
-                                        <div className="flex flex-wrap gap-1.5">
-                                          <ModBtn onClick={() => restoreReview(r.id)} disabled={restoringId === r.id}>
-                                            {restoringId === r.id ? <Loader2 className="size-3 animate-spin" /> : <Eye className="size-3" />} Restore
-                                          </ModBtn>
-                                          <ModBtn onClick={() => requestDelete(r.id, "admin_hard")}>
-                                            <Trash2 className="size-3" /> Delete permanently
-                                          </ModBtn>
-                                        </div>
-                                      </div>
+                                        <ModMenuItem
+                                          icon={restoringId === r.id ? Loader2 : Eye}
+                                          spinning={restoringId === r.id}
+                                          label="Restore Review"
+                                          onClick={() => { setModOpenId(null); setModConfirm({ id: r.id, kind: "restore" }); }}
+                                        />
+                                        <ModMenuItem
+                                          icon={Trash2}
+                                          tone="danger"
+                                          label="Delete permanently"
+                                          onClick={() => { setModOpenId(null); requestDelete(r.id, "admin_hard"); }}
+                                        />
+                                        <ModMenuItem
+                                          icon={Search}
+                                          label="View Review Details"
+                                          onClick={() => { setModOpenId(null); setDetailsFor(r); }}
+                                        />
+                                      </>
                                     ) : (
                                       <>
-                                        <div className="flex flex-wrap gap-1.5">
-                                          <ModBtn onClick={() => patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned")} active={r.pinned}><Pin className="size-3" /> Pin</ModBtn>
-                                          <ModBtn onClick={() => patch(r.id, { featured: !r.featured }, r.featured ? "Unfeatured" : "Featured")} active={r.featured}><Sparkles className="size-3" /> Feature</ModBtn>
-                                          {r.status === "published" ? (
-                                            <ModBtn onClick={() => patch(r.id, { status: "hidden" }, "Review hidden")}><EyeOff className="size-3" /> Hide</ModBtn>
-                                          ) : (
-                                            <ModBtn onClick={() => patch(r.id, { status: "published" }, "Review approved")}><Eye className="size-3" /> Approve</ModBtn>
-                                          )}
-                                          {r.status !== "rejected" && (
-                                            <ModBtn onClick={() => patch(r.id, { status: "rejected" }, "Review rejected")}><X className="size-3" /> Reject</ModBtn>
-                                          )}
-                                          {!isOwn && (
-                                            <ModBtn onClick={() => requestDelete(r.id, "admin_soft")}><Trash2 className="size-3" /> Delete</ModBtn>
-                                          )}
-                                          <ModBtn onClick={() => analyzeOne(r.id)} disabled={analyzing === r.id}>
-                                            {analyzing === r.id ? <Loader2 className="size-3 animate-spin" /> : <Brain className="size-3" />} AI analyze
-                                          </ModBtn>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <input value={replyDrafts[r.id] ?? r.admin_reply ?? ""} onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))} placeholder="Public reply…"
-                                            className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-accent" />
-                                          <button onClick={() => postReply(r.id)} className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground font-bold px-4 rounded-full text-[11px] uppercase tracking-widest">
-                                            <MessageSquare className="size-3.5" /> {r.admin_reply ? "Update" : "Reply"}
-                                          </button>
-                                        </div>
+                                        {r.status === "published" ? (
+                                          <ModMenuItem
+                                            icon={EyeOff}
+                                            label="Hide Review"
+                                            onClick={() => { setModOpenId(null); setModConfirm({ id: r.id, kind: "hide" }); }}
+                                          />
+                                        ) : (
+                                          <ModMenuItem
+                                            icon={Eye}
+                                            label="Unhide Review"
+                                            onClick={() => { setModOpenId(null); setModConfirm({ id: r.id, kind: "unhide" }); }}
+                                          />
+                                        )}
+                                        {!isOwn && (
+                                          <ModMenuItem
+                                            icon={Trash2}
+                                            tone="danger"
+                                            label="Delete Review"
+                                            onClick={() => { setModOpenId(null); requestDelete(r.id, "admin_soft"); }}
+                                          />
+                                        )}
+                                        {r.featured ? (
+                                          <ModMenuItem
+                                            icon={Sparkles}
+                                            label="Remove Featured"
+                                            onClick={() => { setModOpenId(null); patch(r.id, { featured: false }, "Featured removed"); }}
+                                          />
+                                        ) : (
+                                          <ModMenuItem
+                                            icon={Sparkles}
+                                            label="Feature Review"
+                                            onClick={() => { setModOpenId(null); patch(r.id, { featured: true }, "Review featured"); }}
+                                          />
+                                        )}
+                                        <ModMenuItem
+                                          icon={Pin}
+                                          label={r.pinned ? "Unpin Review" : "Pin Review"}
+                                          onClick={() => { setModOpenId(null); patch(r.id, { pinned: !r.pinned }, r.pinned ? "Unpinned" : "Pinned"); }}
+                                        />
+                                        <ModMenuItem
+                                          icon={MessageSquare}
+                                          label={r.admin_reply ? "Edit Store Reply" : "Reply as Store"}
+                                          onClick={() => { setModOpenId(null); setReplyForId(r.id); }}
+                                        />
+                                        <ModMenuItem
+                                          icon={analyzing === r.id ? Loader2 : Brain}
+                                          spinning={analyzing === r.id}
+                                          label="AI Analyze"
+                                          onClick={() => analyzeOne(r.id)}
+                                        />
+                                        <ModMenuItem
+                                          icon={Search}
+                                          label="View Review Details"
+                                          onClick={() => { setModOpenId(null); setDetailsFor(r); }}
+                                        />
+                                        {replyForId === r.id && (
+                                          <div className="border-t border-white/5 bg-white/[0.02] p-2 flex gap-2">
+                                            <input
+                                              value={replyDrafts[r.id] ?? r.admin_reply ?? ""}
+                                              onChange={(e) => setReplyDrafts((d) => ({ ...d, [r.id]: e.target.value }))}
+                                              placeholder="Public reply as store…"
+                                              className="flex-1 bg-background border border-border rounded-full px-3 py-1.5 text-xs focus:outline-none focus:border-accent"
+                                            />
+                                            <button
+                                              onClick={() => postReply(r.id)}
+                                              className="inline-flex items-center gap-1 bg-accent text-accent-foreground font-bold px-3 rounded-full text-[10px] uppercase tracking-widest"
+                                            >
+                                              <MessageSquare className="size-3" /> {r.admin_reply ? "Update" : "Post"}
+                                            </button>
+                                          </div>
+                                        )}
                                       </>
                                     )}
                                   </div>
