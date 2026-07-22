@@ -84,6 +84,125 @@ const pillClasses: Record<Pill["tone"], string> = {
   neutral: "text-white/60 bg-white/[0.035] border-white/10",
 };
 
+type Recommendation = {
+  slug: string;
+  badge: "Recommended" | "Best Value" | "Most Popular" | "Highest Rated" | "Best Seller";
+  reason: string;
+};
+
+/**
+ * Pick ONE recommended product from the visible list using deterministic,
+ * data-backed rules. Never fabricates. Returns null when no signal is strong
+ * enough. Priority reflects customer decision value:
+ *   Best Value → Most Popular → Highest Rated → Best Seller → Recommended.
+ */
+function pickRecommendation(
+  list: Product[],
+  priceOf: (p: Product) => number,
+): Recommendation | null {
+  if (list.length < 2) return null;
+
+  const withPrice = list.filter((p) => (priceOf(p) || 0) > 0);
+
+  // Best Value: rating >= 4.3, meaningful review base, best rating-per-price.
+  const valueCandidates = withPrice.filter(
+    (p) => (p.rating || 0) >= 4.3 && (p.reviews || 0) >= 10,
+  );
+  if (valueCandidates.length > 0) {
+    const best = valueCandidates
+      .slice()
+      .sort((a, b) => (b.rating || 0) / priceOf(b) - (a.rating || 0) / priceOf(a))[0];
+    if (best) {
+      return { slug: best.slug, badge: "Best Value", reason: "Best value for the price." };
+    }
+  }
+
+  // Most Popular: leader in sold + reviews with a meaningful floor.
+  const popular = list
+    .slice()
+    .sort(
+      (a, b) =>
+        (b.soldCount || 0) + (b.reviews || 0) - ((a.soldCount || 0) + (a.reviews || 0)),
+    )[0];
+  if (popular && (popular.soldCount || 0) + (popular.reviews || 0) >= 50) {
+    return {
+      slug: popular.slug,
+      badge: "Most Popular",
+      reason: "Most customers choose this option.",
+    };
+  }
+
+  // Highest Rated: top rating with credible review count.
+  const rated = list
+    .filter((p) => (p.reviews || 0) >= 10)
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+  if (rated && (rated.rating || 0) >= 4.5) {
+    return {
+      slug: rated.slug,
+      badge: "Highest Rated",
+      reason: "Highest rated among similar products.",
+    };
+  }
+
+  // Best Seller: explicit bestseller flag.
+  const seller = list.find((p) => p.bestseller);
+  if (seller) {
+    return {
+      slug: seller.slug,
+      badge: "Best Seller",
+      reason: "A best-selling option in this category.",
+    };
+  }
+
+  // Fallback Recommended: top-ranked match with a decent rating.
+  const first = list[0];
+  if (first && (first.rating || 0) >= 4) {
+    return {
+      slug: first.slug,
+      badge: "Recommended",
+      reason: "Best balance of price and rating.",
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Build ONE factual decision helper comparing a selected alternative to the
+ * current product. Priority: price < rating < reviews < discount.
+ */
+function buildDecisionHelper(
+  alt: Product,
+  current: Product,
+  priceOf: (p: Product) => number,
+): string | null {
+  const ap = priceOf(alt) || 0;
+  const cp = priceOf(current) || 0;
+  if (ap > 0 && cp > 0 && ap < cp) {
+    return "This product costs less than your current selection.";
+  }
+  if ((alt.rating || 0) >= (current.rating || 0) + 0.3 && (alt.reviews || 0) >= 5) {
+    return "This product has a higher customer rating.";
+  }
+  if ((alt.reviews || 0) >= (current.reviews || 0) * 1.5 && (alt.reviews || 0) >= 20) {
+    return "This product has more verified reviews.";
+  }
+  const discPct = (p: Product) => {
+    const price = priceOf(p) || 0;
+    const orig =
+      (p.comparePriceInr && p.comparePriceInr > price ? p.comparePriceInr : null) ??
+      (p.comparePriceUsd && p.comparePriceUsd > price ? p.comparePriceUsd : null);
+    if (!orig || orig <= 0 || price <= 0) return 0;
+    return (orig - price) / orig;
+  };
+  if (discPct(alt) > discPct(current) + 0.05) {
+    return "This product offers a better discount.";
+  }
+  return null;
+}
+
+
+
 export function PDPCompareSection({ currentProduct }: { currentProduct: Product }) {
   const { products } = useProducts();
   const { priceOf, shippingFeeOf, format } = useRegion();
