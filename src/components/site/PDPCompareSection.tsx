@@ -572,6 +572,9 @@ type RailItemProps = {
   pill?: Pill | null;
   onToggle?: () => void;
   onPreview?: () => void;
+  previewSelected?: boolean;
+  recommendedBadge?: Recommendation["badge"] | null;
+  recommendedReason?: string | null;
 };
 
 function RailItemImpl({
@@ -582,23 +585,46 @@ function RailItemImpl({
   pill,
   onToggle,
   onPreview,
+  previewSelected,
+  recommendedBadge,
+  recommendedReason,
 }: RailItemProps) {
   const isSelected = !!(pinned || active);
+  // Border priority: preview-selected (orange) wins over compare-selected accent.
+  const borderClass = previewSelected
+    ? "border-accent"
+    : isSelected && !pinned
+      ? "border-accent/60"
+      : "border-transparent";
+
+  // Caption slot priority: Current > Selected > Recommended.
+  let caption: { label: string; tone: "muted" | "accent" | "recommend" } | null = null;
+  if (pinned) caption = { label: "Current", tone: "muted" };
+  else if (previewSelected) caption = { label: "Selected", tone: "accent" };
+  else if (recommendedBadge) caption = { label: recommendedBadge, tone: "recommend" };
+
+  const captionClass =
+    caption?.tone === "accent"
+      ? "text-accent"
+      : caption?.tone === "recommend"
+        ? "text-amber-300/90"
+        : "text-white/40";
+
   return (
     <div className="flex h-full flex-col">
-      {/* Reserved caption slot so cards align regardless of "Current" tag */}
+      {/* Reserved caption slot so cards align regardless of tag */}
       <div className="mb-1.5 h-[14px] px-0.5 flex items-center">
-        {pinned && (
-          <span className="text-[10px] font-medium uppercase tracking-widest text-white/40">
-            Current
+        {caption && (
+          <span
+            className={`text-[10px] font-medium uppercase tracking-widest ${captionClass}`}
+          >
+            {caption.label}
           </span>
         )}
       </div>
 
       <div
-        className={`relative rounded-2xl border transition-colors duration-150 ${
-          isSelected && !pinned ? "border-accent/60" : "border-transparent"
-        }`}
+        className={`relative rounded-2xl border transition-colors duration-150 ${borderClass}`}
       >
         <ProductCard product={product} compact hideBadges={pinned} />
 
@@ -627,6 +653,14 @@ function RailItemImpl({
           </span>
         )}
       </div>
+
+      {/* "Why we recommend it" — factual, single line, recommended card only */}
+      {recommendedReason && (
+        <p className="mt-1 px-0.5 text-[11px] leading-snug text-white/60 line-clamp-2">
+          {recommendedReason}
+        </p>
+      )}
+
 
       <div className="mt-1 px-0.5">
         <button
